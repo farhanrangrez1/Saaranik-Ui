@@ -1,50 +1,59 @@
-import React, { useState } from 'react';
-import { Modal, Form, Table, Badge, Dropdown, Button } from 'react-bootstrap';
+import React, { useState } from "react";
+import { Modal, Form, Table, Badge, Dropdown, Button } from "react-bootstrap";
 import { BsPlusLg, BsPencil, BsTrash, BsUpload } from "react-icons/bs";
 import { Link } from "react-router-dom";
 
 function CostEstimates() {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState(null);
-  const [sortDirection, setSortDirection] = useState('asc');
+  const [sortDirection, setSortDirection] = useState("asc");
 
   const initialPurchaseOrders = [
     {
-      poNumber: 'PO/2024/001',
-      client: 'AcmeCorp',
-      project: 'PackageRedesign',
-      estimateRef: 'CE-00001',
-      status: 'Pending',
-      receivedDate: '2024/01/15',
-      amount: 3000.00
+      poNumber: "PO/2024/001",
+      client: "AcmeCorp",
+      project: "PackageRedesign",
+      projectNo: "P789",
+      projectName: "New Building Construction",
+      estimateRef: "CE-00001",
+      status: "Pending",
+      receivedDate: "2024/01/15",
+      amount: 3000.0,
     },
     {
-      poNumber: 'PO/2024/002',
-      client: 'TechStartInc',
-      project: 'BrandIdentity',
-      estimateRef: 'CE-00002',
-      status: 'Approved',
-      receivedDate: '2024/01/14',
-      amount: 3500.00
+      poNumber: "PO/2024/002",
+      client: "TechStartInc",
+      project: "BrandIdentity",
+      projectNo: "P789",
+      projectName: "New Building Construction",
+      estimateRef: "CE-00002",
+      status: "received",
+      receivedDate: "2024/01/14",
+      amount: 3500.0,
     },
     {
-      poNumber: 'PO/2024/003',
-      client: 'GlobalFoods',
-      project: 'LabelDesign',
-      estimateRef: 'CE-00003',
-      status: 'Pending',
-      receivedDate: '2024/01/13',
-      amount: 2800.00
-    }
+      poNumber: "PO/2024/003",
+      client: "GlobalFoods",
+      project: "LabelDesign",
+      projectNo: "P789",
+      projectName: "New Building Construction",
+      estimateRef: "CE-00003",
+      status: "Pending",
+      receivedDate: "2024/01/13",
+      amount: 2800.0,
+    },
   ];
-  
+
   const [purchaseOrders, setPurchaseOrders] = useState(initialPurchaseOrders);
 
   const getStatusBadgeVariant = (status) => {
     switch (status.toLowerCase()) {
-      case 'pending': return 'warning';
-      case 'approved': return 'success';
-      default: return 'secondary';
+      case "pending":
+        return "warning";
+      case "received ":
+        return "success";
+      default:
+        return "secondary";
     }
   };
 
@@ -52,22 +61,23 @@ function CostEstimates() {
     const query = e.target.value.toLowerCase();
     setSearchQuery(query);
 
-    const filtered = initialPurchaseOrders.filter(po =>
-      po.poNumber.toLowerCase().includes(query) ||
-      po.client.toLowerCase().includes(query) ||
-      po.project.toLowerCase().includes(query) ||
-      po.estimateRef.toLowerCase().includes(query)
+    const filtered = initialPurchaseOrders.filter(
+      (po) =>
+        po.poNumber.toLowerCase().includes(query) ||
+        po.client.toLowerCase().includes(query) ||
+        po.project.toLowerCase().includes(query) ||
+        po.estimateRef.toLowerCase().includes(query)
     );
     setPurchaseOrders(filtered);
   };
 
   const handleSort = (field) => {
-    const isAsc = sortField === field && sortDirection === 'asc';
-    setSortDirection(isAsc ? 'desc' : 'asc');
+    const isAsc = sortField === field && sortDirection === "asc";
+    setSortDirection(isAsc ? "desc" : "asc");
     setSortField(field);
 
     const sorted = [...purchaseOrders].sort((a, b) => {
-      if (field === 'amount') {
+      if (field === "amount") {
         return isAsc ? b[field] - a[field] : a[field] - b[field];
       }
       return isAsc
@@ -77,7 +87,9 @@ function CostEstimates() {
     setPurchaseOrders(sorted);
   };
 
-  const pendingPOs = purchaseOrders.filter(po => po.status === 'Pending').length;
+  const pendingPOs = purchaseOrders.filter(
+    (po) => po.status === "Pending"
+  ).length;
 
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [selectedPO, setSelectedPO] = useState(null);
@@ -87,14 +99,14 @@ function CostEstimates() {
     setShowInvoiceModal(true);
   };
 
-  const calculateTax = (amount) => amount * 0.10;
+  const calculateTax = (amount) => amount * 0.1;
   const calculateTotal = (amount) => amount + calculateTax(amount);
 
-  // PO Add Form 
+  // PO Add Form
   const [showAddPOModal, setShowAddPOModal] = useState(false);
-  const [poNumber, setPONumber] = useState('');
-  const [poDate, setPODate] = useState('');
-  const [poAmount, setPOAmount] = useState('');
+  const [poNumber, setPONumber] = useState("");
+  const [poDate, setPODate] = useState("");
+  const [poAmount, setPOAmount] = useState("");
   const [poDocument, setPODocument] = useState(null);
 
   const handleFileUpload = (e) => {
@@ -102,13 +114,12 @@ function CostEstimates() {
   };
 
   const handleSavePO = () => {
-    console.log('PO Number:', poNumber);
-    console.log('PO Date:', poDate);
-    console.log('PO Amount:', poAmount);
-    console.log('PO Document:', poDocument);
+    console.log("PO Number:", poNumber);
+    console.log("PO Date:", poDate);
+    console.log("PO Amount:", poAmount);
+    console.log("PO Document:", poDocument);
     setShowAddPOModal(false);
   };
-
 
   // const [purchaseOrders, setPurchaseOrders] = useState(
   //   initialPurchaseOrders.map(po => ({ ...po, invoiceStatus: 'Active' }))
@@ -118,10 +129,13 @@ function CostEstimates() {
     updatedPOs[index].invoiceStatus = newStatus;
     setPurchaseOrders(updatedPOs);
   };
-    
+
   return (
-    <div className="p-4 m-3" style={{ backgroundColor: "white", borderRadius: "10px" }}>
-        <h2 className="fw-semibold mb-3">Cost Estimates</h2>
+    <div
+      className="p-4 m-3"
+      style={{ backgroundColor: "white", borderRadius: "10px" }}
+    >
+      <h2 className="fw-semibold mb-3">Cost Estimates</h2>
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div className="filters d-flex flex-wrap gap-1 mb-4">
           <div className="search-container flex-grow-1">
@@ -135,8 +149,12 @@ function CostEstimates() {
           </div>
 
           <Dropdown className="filter-dropdown">
-            <Dropdown.Toggle variant="light" id="designer-dropdown" className="custom-dropdown">
-             Sort by Client
+            <Dropdown.Toggle
+              variant="light"
+              id="designer-dropdown"
+              className="custom-dropdown"
+            >
+              Sort by Client
             </Dropdown.Toggle>
             <Dropdown.Menu>
               <Dropdown.Item>Sort by Client</Dropdown.Item>
@@ -146,7 +164,7 @@ function CostEstimates() {
             </Dropdown.Menu>
           </Dropdown>
 
-          <Dropdown className="filter-dropdown">
+          {/* <Dropdown className="filter-dropdown">
             <Dropdown.Toggle variant="light" id="priority-dropdown" className="custom-dropdown">
               All Priorities
             </Dropdown.Toggle>
@@ -156,11 +174,30 @@ function CostEstimates() {
               <Dropdown.Item>Medium</Dropdown.Item>
               <Dropdown.Item>Low</Dropdown.Item>
             </Dropdown.Menu>
+          </Dropdown> */}
+
+          <Dropdown className="filter-dropdown">
+            <Dropdown.Toggle
+              variant="light"
+              id="viewall-dropdown"
+              className="custom-dropdown"
+            >
+              View All
+            </Dropdown.Toggle>
+            <Dropdown.Menu>
+              <Dropdown.Item>Active</Dropdown.Item>
+              <Dropdown.Item>Invoiced</Dropdown.Item>
+              <Dropdown.Item>Cancelled</Dropdown.Item>
+            </Dropdown.Menu>
           </Dropdown>
 
           <Dropdown className="filter-dropdown">
-            <Dropdown.Toggle variant="light" id="status-dropdown" className="custom-dropdown">
-              Active Invoiced Cancelled 
+            <Dropdown.Toggle
+              variant="light"
+              id="status-dropdown"
+              className="custom-dropdown"
+            >
+              Active Invoiced Cancelled
             </Dropdown.Toggle>
             <Dropdown.Menu>
               <Dropdown.Item>All Status</Dropdown.Item>
@@ -171,53 +208,122 @@ function CostEstimates() {
           </Dropdown>
 
           <Link to={"/AddCostEstimates"}>
-          <button id='btn-All' className="btn btn-dark">
-            <BsPlusLg className="me-2" /> New Estimate
-          </button>
-        </Link>
+            <button id="btn-All" className="btn btn-dark">
+              <BsPlusLg className="me-2" /> New Estimate
+            </button>
+          </Link>
         </div>
       </div>
 
       <Table hover responsive>
         <thead>
           <tr>
-            <th onClick={() => handleSort('client')} style={{ cursor: 'pointer' }}>Estimate</th>
-            <th onClick={() => handleSort('project')} style={{ cursor: 'pointer' }}>Client</th>
-            <th onClick={() => handleSort('amount')} style={{ cursor: 'pointer' }}>Amount</th>
-            <th onClick={() => handleSort('status')} style={{ cursor: 'pointer' }}>PO Status</th>
-            <th onClick={() => handleSort('receivedDate')} style={{ cursor: 'pointer' }}>Date</th>
-            <th onClick={() => handleSort('status')} style={{ cursor: 'pointer' }}>Status</th>
+            <th
+              onClick={() => handleSort("estimateRef")}
+              style={{ cursor: "pointer" }}
+            >
+              CE No
+            </th>
+            <th
+              onClick={() => handleSort("receivedDate")}
+              style={{ cursor: "pointer" }}
+            >
+              Date
+            </th>
+            <th
+              onClick={() => handleSort("client")}
+              style={{ cursor: "pointer" }}
+            >
+              Client
+            </th>
+            <th
+              onClick={() => handleSort("projectNo")}
+              style={{ cursor: "pointer" }}
+            >
+              Project No
+            </th>
+            <th
+              onClick={() => handleSort("projectName")}
+              style={{ cursor: "pointer" }}
+            >
+              Project Name
+            </th>
+            <th
+              onClick={() => handleSort("amount")}
+              style={{ cursor: "pointer" }}
+            >
+              Amount
+            </th>
+            <th
+              onClick={() => handleSort("status")}
+              style={{ cursor: "pointer" }}
+            >
+              PO Status
+            </th>
+            <th>Status</th> {/* ✅ New Status column */}
             <th>Actions</th>
           </tr>
         </thead>
+
         <tbody>
           {purchaseOrders.map((po, index) => (
             <tr key={po.poNumber}>
               <td>{po.estimateRef}</td>
-              <td>{po.client}</td>
-              <td>${po.amount.toFixed(2)}</td>
-              <td><Badge bg={getStatusBadgeVariant(po.status)}>{po.status}</Badge></td>
               <td>{po.receivedDate}</td>
+              <td>{po.client}</td>
+              <td>{po.projectNo}</td>
+              <td>{po.projectName}</td>
+              <td>${po.amount.toFixed(2)}</td>
               <td>
-  <Dropdown>
-    <Dropdown.Toggle variant="success" size="sm" id={`status-dropdown-${index}`}>
-      {po.invoiceStatus || 'Select Status'}
-    </Dropdown.Toggle>
+                <Badge bg={getStatusBadgeVariant(po.status)}>{po.status}</Badge>
+              </td>
+              <td>
+                <Dropdown>
+                  <Dropdown.Toggle
+                    variant="success"
+                    size="sm"
+                    id={`status-dropdown-${index}`}
+                  >
+                    {po.invoiceStatus || "Select Status"}
+                  </Dropdown.Toggle>
 
-    <Dropdown.Menu>
-      <Dropdown.Item onClick={() => updateInvoiceStatus(index, 'Active')}>Active</Dropdown.Item>
-      <Dropdown.Item onClick={() => updateInvoiceStatus(index, 'Invoiced')}>Invoiced</Dropdown.Item>
-      <Dropdown.Item onClick={() => updateInvoiceStatus(index, 'Cancelled')}>Cancelled</Dropdown.Item>
-    </Dropdown.Menu>
-  </Dropdown>
-</td>
-
+                  <Dropdown.Menu>
+                    <Dropdown.Item
+                      onClick={() => updateInvoiceStatus(index, "Active")}
+                    >
+                      Active
+                    </Dropdown.Item>
+                    <Dropdown.Item
+                      onClick={() => updateInvoiceStatus(index, "Invoiced")}
+                    >
+                      Invoiced
+                    </Dropdown.Item>
+                    <Dropdown.Item
+                      onClick={() => updateInvoiceStatus(index, "Cancelled")}
+                    >
+                      Cancelled
+                    </Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown>
+              </td>{" "}
+              {/* ✅ Status Dropdown */}
               <td>
                 <div className="d-flex gap-2">
-                  <button className="btn btn-sm btn-primary" onClick={() => handleConvertToInvoice(po)}>ConvertInvoice</button>
-                  <button className="btn btn-sm btn-success" onClick={() => setShowAddPOModal(true)}>AddPO</button>
-                  <button className="btn btn-sm btn-outline-primary"><BsPencil /></button>
-                  <button className="btn btn-sm btn-outline-danger"><BsTrash /></button>
+                  <button
+                    className="btn btn-sm btn-primary"
+                    onClick={() => handleConvertToInvoice(po)}
+                  >
+                    ConvertInvoice
+                  </button>
+                  <button
+                    className="btn btn-sm btn-success"
+                    onClick={() => setShowAddPOModal(true)}
+                  >
+                    AddPO
+                  </button>
+                  <button className="btn btn-sm btn-outline-primary">
+                    <BsPencil />
+                  </button>
                 </div>
               </td>
             </tr>
@@ -238,7 +344,11 @@ function CostEstimates() {
       </ul>
 
       {/* Modal for converting to invoice */}
-      <Modal show={showInvoiceModal} onHide={() => setShowInvoiceModal(false)} size="lg">
+      <Modal
+        show={showInvoiceModal}
+        onHide={() => setShowInvoiceModal(false)}
+        size="lg"
+      >
         <Modal.Header closeButton>
           <Modal.Title>Convert Estimate to Invoice</Modal.Title>
         </Modal.Header>
@@ -248,7 +358,11 @@ function CostEstimates() {
               <Form.Label>Invoice Number</Form.Label>
               <Form.Control
                 type="text"
-                defaultValue={selectedPO ? `INV-${selectedPO.estimateRef.split('-')[1]}` : ''}
+                defaultValue={
+                  selectedPO
+                    ? `INV-${selectedPO.estimateRef.split("-")[1]}`
+                    : ""
+                }
                 disabled
               />
             </Form.Group>
@@ -283,7 +397,11 @@ function CostEstimates() {
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Amount</Form.Label>
-              <Form.Control type="text" value={`$${selectedPO?.amount.toFixed(2)}`} disabled />
+              <Form.Control
+                type="text"
+                value={`$${selectedPO?.amount.toFixed(2)}`}
+                disabled
+              />
             </Form.Group>
             <hr />
             <div className="d-flex justify-content-between">
@@ -303,7 +421,10 @@ function CostEstimates() {
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowInvoiceModal(false)}>
+          <Button
+            variant="secondary"
+            onClick={() => setShowInvoiceModal(false)}
+          >
             Cancel
           </Button>
           <Button variant="primary">Create Invoice</Button>
@@ -311,7 +432,11 @@ function CostEstimates() {
       </Modal>
 
       {/* Modal for Add Purchase Order */}
-      <Modal show={showAddPOModal} onHide={() => setShowAddPOModal(false)} size="lg">
+      <Modal
+        show={showAddPOModal}
+        onHide={() => setShowAddPOModal(false)}
+        size="lg"
+      >
         <Modal.Header closeButton>
           <Modal.Title>Add Purchase Order</Modal.Title>
         </Modal.Header>
@@ -355,7 +480,8 @@ function CostEstimates() {
                   onChange={handleFileUpload}
                 />
                 <div className="upload-info">
-                  <BsUpload className="me-2" /> Upload a file (PDF, DOC up to 10MB)
+                  <BsUpload className="me-2" /> Upload a file (PDF, DOC up to
+                  10MB)
                 </div>
               </div>
             </Form.Group>
