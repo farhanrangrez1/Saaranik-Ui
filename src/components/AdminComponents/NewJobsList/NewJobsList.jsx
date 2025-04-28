@@ -11,10 +11,12 @@ function NewJobsList() {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedDesigner, setSelectedDesigner] = useState("");
 
-
   const [selectedProduction, setSelectedProduction] = useState("");
   const [selectedAdditional, setSelectedAdditional] = useState("");
   const [description, setDescription] = useState("");
+
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   const jobs = [
     {
@@ -60,8 +62,31 @@ function NewJobsList() {
   };
 
   const handleAssignJob = (job) => {
+    if (job === null) {
+      const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
+      if (selectedJobIds.length === 0) {
+        setErrorMessage("Please select at least 1 job to assign.");
+        setTimeout(() => setErrorMessage(""), 3000);
+        return;
+      }
+    }
     setSelectedJob(job);
     setShowAssignModal(true);
+  };
+
+  const handleRejectJobs = () => {
+    const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
+    if (selectedJobIds.length === 0) {
+      setErrorMessage("Please select at least 1 job to reject.");
+      setTimeout(() => setErrorMessage(""), 3000);
+      return;
+    }
+    // Success message
+    setSuccessMessage("Jobs rejected successfully.");
+    setTimeout(() => setSuccessMessage(""), 3000);
+
+    // Reset selected jobs after rejection
+    setSelectedJobs({});
   };
 
   const handleSubmitAssignment = () => {
@@ -85,20 +110,26 @@ function NewJobsList() {
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h5 className="fw-bold m-0">Job Assign</h5>
         <div className="d-flex gap-2">
-          <Link to={""}>
-            <Button id="All_btn" variant="dark">
-              Reject
-            </Button>
-          </Link>
-          <Button
-            onClick={() => handleAssignJob(null)}
-            id="All_btn"
-            variant="dark"
-          >
+          <Button onClick={handleRejectJobs} id="All_btn" variant="dark">
+            Reject
+          </Button>
+          <Button onClick={() => handleAssignJob(null)} id="All_btn" variant="dark">
             + Assign
           </Button>
         </div>
       </div>
+
+      {/* Show Messages */}
+      {errorMessage && (
+        <div className="alert alert-danger py-2" role="alert">
+          {errorMessage}
+        </div>
+      )}
+      {successMessage && (
+        <div className="alert alert-success py-2" role="alert">
+          {successMessage}
+        </div>
+      )}
 
       {/* Filters */}
       <div className="d-flex flex-wrap gap-2 mb-3 align-items-center">
@@ -226,19 +257,16 @@ function NewJobsList() {
         </Modal.Header>
         <Modal.Body>
           <Form>
-            
-          <Form.Group className="mb-3">
-  <Form.Label>Select Designer</Form.Label>
-  <Form.Select
-    value={selectedDesigner}
-    onChange={(e) => setSelectedDesigner(e.target.value)}
-  >
-    <option value="">-- Select Designer --</option>
-    <option value="designer1">Raj Sharma</option>
-    <option value="designer2">Pooja Verma</option>
-  </Form.Select>
-</Form.Group>
-
+            <Form.Group className="mb-3">
+              <Form.Label>Select Designer</Form.Label>
+              <Form.Select
+                value={selectedDesigner}
+                onChange={(e) => setSelectedDesigner(e.target.value)}
+              >
+                <option value="designer1">Production</option>
+                <option value="designer2">Designer</option>
+              </Form.Select>
+            </Form.Group>
           </Form>
         </Modal.Body>
         <Modal.Footer>

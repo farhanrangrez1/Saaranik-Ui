@@ -9,7 +9,7 @@ function ProjectJobsTab() {
   const [selectedProduction, setSelectedProduction] = useState('');
   const [selectedAdditional, setSelectedAdditional] = useState('');
   const [selectedJob, setSelectedJob] = useState(null);
-  
+  const [selectedDesigner, setSelectedDesigner] = useState("");
 
   const handleAssignJob = (job) => {
     setSelectedJob(job);
@@ -175,8 +175,10 @@ function ProjectJobsTab() {
                     </span>
                   </td> */}
                   <td className="d-flex">
-                  
-                    <button className="btn btn-sm btn-outline-primary me-2">
+                  <Link to={"/OvervieJobsTracker"}><button className="btn btn-sm btn-outline-primary me-1">
+                    <i className="bi bi-eye"></i> View
+                   </button></Link>
+                    <button className="btn btn-sm btn-outline-primary me-1">
                       <i className="bi bi-pencil"></i> Edit
                     </button>
                     <button className="btn btn-sm btn-outline-danger">
@@ -191,49 +193,36 @@ function ProjectJobsTab() {
       </div>
 
       {/* Job Assignment Modal */}
-      <Modal show={showAssignModal} onHide={() => setShowAssignModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Assign Job</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-        <Form>
-  <Form.Group className="mb-3">
-    <Form.Label>Designer</Form.Label>
-    <Form.Select
-      value={selectedAdditional}
-      onChange={(e) => setSelectedAdditional(e.target.value)}
-    >
-      <option value="">Select Designer</option>
-      <option value="additional1">Additional 1</option>
-      <option value="additional2">Additional 2</option>
-      <option value="additional3">Additional 3</option>
-    </Form.Select>
-  </Form.Group>
-
-  <Form.Group className="mb-3">
-    <Form.Label>Attach Document</Form.Label>
-    <Form.Control
-      type="file"
-      accept=".pdf,.doc,.docx,.jpg,.png"
-      onChange={(e) => {
-        const file = e.target.files[0];
-        console.log("Selected File:", file);
-        // You can store it in state or handle upload
-      }}
-    />
-  </Form.Group>
-</Form>
-
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowAssignModal(false)}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={handleSubmitAssignment}>
-            Assign
-          </Button>
-        </Modal.Footer>
-      </Modal>
+          <Modal show={showAssignModal} onHide={() => setShowAssignModal(false)}>
+            <Modal.Header closeButton>
+              <Modal.Title>Assign Job</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <Form>
+                
+              <Form.Group className="mb-3">
+      <Form.Label>Select Designer</Form.Label>
+      <Form.Select
+        value={selectedDesigner}
+        onChange={(e) => setSelectedDesigner(e.target.value)}
+      >
+        {/* <option value="">-- Select --</option> */}
+        <option value="designer1">Production </option>
+        <option value="designer2">Designer</option>
+      </Form.Select>
+    </Form.Group>
+    
+              </Form>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button variant="secondary" onClick={() => setShowAssignModal(false)}>
+                Cancel
+              </Button>
+              <Button variant="primary" onClick={handleSubmitAssignment}>
+                Assign
+              </Button>
+            </Modal.Footer>
+          </Modal>
     </div>
   );
 }

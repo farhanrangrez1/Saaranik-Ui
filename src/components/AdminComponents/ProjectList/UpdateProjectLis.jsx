@@ -56,7 +56,7 @@ function UpdateProjectLis() {
   return (
     <Container className="py-4">
       <div className="form-container p-4 rounded shadow-sm" style={{backgroundColor:"white", margin: "0 auto"}}>
-      <h2 className="mb-4">Update Project</h2>
+      <h2 className="mb-4">Create Project</h2>
       <Form onSubmit={handleSubmit} >
         <Row className="mb-3">
           <Col md={6}>

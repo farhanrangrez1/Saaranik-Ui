@@ -52,6 +52,9 @@ import OvervieMyJobs from "./components/AdminComponents/MyJobs/OvervieMyJobs";
 import OvervieJobsProject from "./components/AdminComponents/ProjectList/ProjectTabs/OvervieJobsProject";
 import Profile from "./components/AdminComponents/Profile/Profile";
 import Extrahr from "./components/AdminComponents/TimeLogs/Extrahr";
+import InProgressDashboard from "./components/AdminComponents/Dashbord/InProgressDashboard.jsx";
+import InProgressDashboardProject from "./components/AdminComponents/Dashbord/InProgressDashboardProject.jsx";
+import InProgressDashboardJobsDueToday from "./components/AdminComponents/Dashbord/InProgressDashboardJobsDueToday.jsx";
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 768);
@@ -74,6 +77,10 @@ function App() {
 
           {/* AdminComponents */}
           <Route path="/dashboard" element={<Dashbord />} />
+            <Route path="/InProgressDashboard" element={<InProgressDashboard/>} />     
+            <Route path="/InProgressDashboardProject" element={<InProgressDashboardProject />} />
+            <Route path="/InProgressDashboardJobsDueToday" element={<InProgressDashboardJobsDueToday/>} />
+
            <Route path="/clientManagement" element={<ClientManagement/>} />
            <Route path="/AddClientManagement" element={<AddClientManagement/>} />
            <Route path="/ViewdetailsClientManagement" element={<ViewdetailsClientManagement/>} />

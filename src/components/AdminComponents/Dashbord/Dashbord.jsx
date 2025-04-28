@@ -38,7 +38,7 @@ function Dashbord() {
  <Row className="g-4 mb-4">
   {/* Projects in Progress */}
   <Col md={4} lg={4}>
-    <Link to="/inProgress" className="text-decoration-none w-100 d-block">
+    <Link to="/InProgressDashboardProject" className="text-decoration-none w-100 d-block">
       <Card className="h-100 shadow-sm border-0">
         <Card.Body className="d-flex align-items-center">
           <div
@@ -59,7 +59,7 @@ function Dashbord() {
 
   {/* Jobs in Progress */}
   <Col md={4} lg={4}>
-    <Link to="/jobAssignment" className="text-decoration-none w-100 d-block">
+    <Link to="/InProgressDashboard" className="text-decoration-none w-100 d-block">
       <Card className="h-100 shadow-sm">
         <Card.Body className="d-flex align-items-center">
           <div className="rounded-circle p-3 bg-light-green me-3">
@@ -77,7 +77,7 @@ function Dashbord() {
 
   {/* Jobs Due Today */}
   <Col md={4} lg={4}>
-    <Link to="/ProjectOverview" className="text-decoration-none w-100 d-block">
+    <Link to="/InProgressDashboardJobsDueToday" className="text-decoration-none w-100 d-block">
       <Card className="h-100 shadow-sm">
         <Card.Body className="d-flex align-items-center">
           <div className="rounded-circle p-3 bg-light-yellow me-3">
