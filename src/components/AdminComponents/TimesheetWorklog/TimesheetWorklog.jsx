@@ -144,7 +144,7 @@ function TimesheetWorklog() {
             <thead>
               <tr className="bg-light">
                 <th className="py-3">Date</th>
-                <th className="py-3">Job ID</th>
+                <th className="py-3">JobID</th>
                 <th className="py-3">Task Description</th>
                 <th className="py-3">Hours</th>
                 <th className="py-3">Status</th>
