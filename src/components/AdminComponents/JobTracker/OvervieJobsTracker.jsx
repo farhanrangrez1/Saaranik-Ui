@@ -252,35 +252,43 @@ const OvervieJobsTracker = ({ onClose }) => {
 
         {/* Job Additional Information */}
 
-        <Row className="">
-          <Col md={6} className="mb-3">
-            <h6 className="text-bold">Brand:</h6>
-            <p className="mb-0">{job.brand}</p>
-          </Col>
-          
-          <Col md={4} className="mb-3">
-            <h6 className="text-bold">SubBrand:</h6>
-            <p className="mb-0">{job.subBrand}</p>
-          </Col>
-          <Col md={4} className="mb-3">
-            <h6 className="text-bold">Flavour:</h6>
-            <p className="mb-0">{job.flavour}</p>
-          </Col>
-          <Col md={4} className="mb-3">
-            <h6 className="text-bold">Pack Type:</h6>
-            <p className="mb-0">{job.packType}</p>
-          </Col>
-          <Col md={4} className="mb-3">
-            <h6 className="text-bold">Pack Size:</h6>
-            <p className="mb-0">{job.packSize}</p>
-          </Col>
-          <Col md={4} className="mb-3">
-            <h6 className="text-bold">Priority:</h6>
-            <p className="mb-0">{job.priority}</p>
-          </Col>
-        </Row>
+        <Row className="mb-4">
+  <Col md={4} className="mb-3">
+    <h6 className="text-bold">Brand:</h6>
+    <p className="mb-0">{job.brand}</p>
+  </Col>
 
-    
+  <Col md={4} className="mb-3">
+    <h6 className="text-bold">Flavour:</h6>
+    <p className="mb-0">{job.flavour}</p>
+  </Col>
+
+  <Col md={4} className="mb-3">
+    <h6 className="text-bold">SubBrand:</h6>
+    <p className="mb-0">{job.subBrand}</p>
+  </Col>
+</Row>
+
+<Row className="mb-4">
+  <Col md={4} className="mb-3">
+    <h6 className="text-bold">Pack Type:</h6>
+    <p className="mb-0">{job.packType}</p>
+  </Col>
+
+  <Col md={4} className="mb-3">
+    <h6 className="text-bold">Pack Size:</h6>
+    <p className="mb-0">{job.packSize}</p>
+  </Col>
+
+  <Col md={4} className="mb-3">
+    <h6 className="text-bold">Pack Code:</h6>
+    <p className="mb-0">{job.packCode}</p>
+  </Col>
+</Row>
+
+
+
+
 
         {/* Progress Section */}
         <h5 className="fw-bold text-primary mb-3">Progress</h5>

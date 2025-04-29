@@ -189,7 +189,13 @@ function ProjectList() {
               <td>{project.endDate}</td>
               <td>{project.totaltimelogged}</td>
               <td>{project.client}</td>
-              <td>
+              <th>
+              <Button className='mt-4' variant="success" style={{width:"150px"}} size="sm" >
+                            {project.status || "Active"}
+                           </Button>
+              </th>
+               
+              {/* <td>
                 <Dropdown>
                   <Dropdown.Toggle variant="success" size="sm">
                     {project.status || 'Select Status'}
@@ -204,7 +210,7 @@ function ProjectList() {
                     <Dropdown.Item onClick={() => updateProjectStatus(index, 'On Hold')}>On Hold</Dropdown.Item>
                   </Dropdown.Menu>
                 </Dropdown>
-              </td>
+              </td> */}
               <td>
                 <div className="action-buttons d-flex ">
                   <Button variant="link" className="p-0 me-2">

@@ -341,7 +341,7 @@ function InProgressDashboardJobsDueToday() {
               <th>Project</th>
               <th>TimeSpent</th>
               <th>Status</th>
-              <th></th>
+              {/* <th></th> */}
               <th>Actions</th>
             </tr>
           </thead>
@@ -356,7 +356,7 @@ function InProgressDashboardJobsDueToday() {
                 <td>
                   <ProgressBar now={job.progress} variant="success" />
                 </td>
-                <td>{job.status}</td>
+                {/* <td>{job.status}</td> */}
                 <td style={{ whiteSpace: "nowrap" }}>
                   <div className="d-flex gap-1 justify-content-center">
                     <button className="btn btn-sm btn-outline-primary">

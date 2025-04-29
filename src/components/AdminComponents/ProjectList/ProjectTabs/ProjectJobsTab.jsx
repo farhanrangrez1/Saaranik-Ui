@@ -142,7 +142,7 @@ function ProjectJobsTab() {
                     }}
                   />
                 </th>
-                <th>Jobs No</th>
+                <th>JobsNo</th>
                 <th>Brand</th>
                 <th>SubBrand</th>
                 <th>Flavour</th>
@@ -170,7 +170,10 @@ function ProjectJobsTab() {
                   <td>{job.packType}</td>
                   <td>{job.packSize}</td>
                   <td>{job.packCode}</td>
-                  <td>{job.status}</td>
+                     <th>
+                      <Button className='' variant="success" style={{width:"150px"}} size="sm" >
+                                              {job.status || "Active"}
+                                             </Button></th>
                   <td className="d-flex">
                     <Link to={"/OvervieJobsTracker"}>
                       <button className="btn btn-sm btn-outline-primary me-1">
