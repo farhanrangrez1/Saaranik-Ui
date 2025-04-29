@@ -9,6 +9,7 @@ import {
   FaTrash,
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import { MdDeleteOutline } from 'react-icons/md';
 
 function JobTracker() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -330,9 +331,9 @@ function JobTracker() {
                         <FaEdit />
                       </Link>
                     </Button>
-                    <Button variant="outline-secondary" size="sm">
-                      <FaTrash />
-                    </Button>
+                    {/* <Button variant="outline-secondary" size="sm">
+                    <MdDeleteOutline />
+                    </Button> */}
                   </div>
                 </td>
               </tr>

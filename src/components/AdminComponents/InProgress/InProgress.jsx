@@ -20,11 +20,16 @@ function InProgress() {
   const jobs = [
     {
       id: "00001",
-      project: "Package Redesign",
-      designer: "Sarah Chen",
+      project: "PackageRedesign",
+      designer: "SarahChen",
       timeSpent: "12h 30m",
       progress: 75,
       status: "Assigned",
+      brand: "BrandA",
+      subBrand: "SubBrand1",
+      flavour: "Vanilla",
+      packType: "Box",
+      packSize: "500ml",
       briefLogs: [
         "Initial sketches done",
         "Color palette approved"
@@ -32,11 +37,16 @@ function InProgress() {
     },
     {
       id: "00002",
-      project: "Brand Guidelines",
-      designer: "Mike Johnson",
+      project: "BrandGuidelines",
+      designer: "MikeJohnson",
       timeSpent: "8h 45m",
       progress: 45,
       status: "In Progress",
+      brand: "BrandB",
+      subBrand: "SubBrand2",
+      flavour: "Strawberry",
+      packType: "Can",
+      packSize: "330ml",
       briefLogs: [
         "Logo variations prepared",
         "Typography system drafted"
@@ -44,11 +54,16 @@ function InProgress() {
     },
     {
       id: "00003",
-      project: "Marketing Materials",
-      designer: "Alex Wong",
+      project: "MarketingMaterials",
+      designer: "AlexWong",
       timeSpent: "15h 20m",
       progress: 90,
       status: "Review",
+      brand: "BrandC",
+      subBrand: "SubBrand3",
+      flavour: "Lemon",
+      packType: "Bag",
+      packSize: "1L",
       briefLogs: [
         "Posters finalized",
         "Social media banners created"
@@ -95,10 +110,10 @@ function InProgress() {
       {/* Filters */}
       <div className="d-flex flex-wrap gap-2 mb-3 align-items-center">
         <Form.Control type="text" placeholder="Search jobs..." className="w-auto" />
-        <Form.Select className="w-auto">
+        <Form.Select className=""style={{width:'140px'}} >
           <option>All Designers</option>
         </Form.Select>
-        <Form.Select className="w-auto">
+        <Form.Select className=""style={{width:'120px'}}>
           <option>All Status</option>
         </Form.Select>
       </div>
@@ -111,13 +126,18 @@ function InProgress() {
               <th>
                 <input type="checkbox" onChange={handleSelectAll} />
               </th>
-              <th>Job No</th>
+              <th>JobNo</th>
               <th>Project</th>
+              <th>Brand</th>
+              <th>SubBrand</th>
+              <th>Flavour</th>
+              <th>PackType</th>
+              <th>PackSize</th>
               <th>Designer</th>
-              <th>Time Spent</th>
+              <th>TimeSpent</th>
               <th>Progress</th>
               <th>Status</th>
-              <th>Brief Logs</th>
+              {/* <th>Brief Logs</th> */}
             </tr>
           </thead>
           <tbody>
@@ -136,6 +156,11 @@ function InProgress() {
                   </Link>
                 </td>
                 <td>{job.project}</td>
+                <td>{job.brand}</td>
+                <td>{job.subBrand}</td>
+                <td>{job.flavour}</td>
+                <td>{job.packType}</td>
+                <td>{job.packSize}</td>
                 <td onClick={() => handleDesignerClick(job)} style={{ cursor: 'pointer', color: 'darkblue' }}>
                   {job.designer}
                 </td>
@@ -144,13 +169,13 @@ function InProgress() {
                   <ProgressBar now={job.progress} label={`${job.progress}%`} variant="success" />
                 </td>
                 <td>{job.status}</td>
-                <td>
+                {/* <td>
                   {job.briefLogs.map((log, index) => (
                     <div key={index}>
                       <small>• {log}</small>
                     </div>
                   ))}
-                </td>
+                </td> */}
               </tr>
             ))}
           </tbody>

@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Barcode from 'react-barcode';
 
 function AddJobTracker() {
   const navigate = useNavigate();
@@ -152,25 +153,24 @@ function AddJobTracker() {
                 <input type="text" className="form-control" name="jobNumber" value={formData.jobNumber} onChange={handleChange} />
               </div> */}
               <div className="col-md-6">
-               <label className="form-label">Project Name</label>
-               <select className="form-control border-bold">
-                    <option value="">Select project</option>
-                    <option value="project1">Project 1</option>
-             <option value="project2">Project 2</option>
-             <option value="project3">Project 3</option>
-           {/* Add more options as needed */}
-        </select>
-     </div>
-             <div className="col-md-6">
+                <label className="form-label">Project Name</label>
+                <input
+                  type="text"
+                  className="form-control border-bold"
+                  defaultValue="POS"
+                  placeholder="Enter project name"
+                />
+              </div>
+
+              {/* <div className="col-md-6">
                 <label className="form-label">Job No</label>
                 <select className="form-control border-bold">
                     <option value="">Select Job No</option>
                     <option value="project1">00001</option>
              <option value="project2">00002</option>
              <option value="project3">00003</option>
-           {/* Add more options as needed */}
         </select>
-              </div>
+              </div> */}
               <div className="col-md-6">
                 <label className="form-label">Brand Name</label>
                 <input type="text" className="form-control" name="brandName" value={formData.brandName} onChange={handleChange} />
@@ -218,10 +218,14 @@ function AddJobTracker() {
                 <input type="number" className="form-control" name="timeLogged" value={formData.timeLogged} onChange={handleChange} />
               </div>
 
+              <div className="col-md-1">
+                {/* <label className="form-label">Project Barcode</label> */}
+                <Barcode value="POS-123456" />
+              </div>
               {/* Submit Buttons */}
               <div className="col-12 d-flex justify-content-end gap-2 mt-4">
                 <button type="button" className="btn btn-outline-secondary">Cancel</button>
-                <button id='All_btn' type="submit" className="btn btn-dark">Create Client</button>
+                <button id='All_btn' type="submit" className="btn btn-dark">Add                               Jobs</button>
               </div>
             </form>
           </div>

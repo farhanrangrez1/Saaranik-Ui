@@ -1,43 +1,17 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Modal, Form, Button } from 'react-bootstrap';
-// import papaparse from 'papaparse';
-
 
 function ProjectJobsTab() {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedProduction, setSelectedProduction] = useState('');
   const [selectedAdditional, setSelectedAdditional] = useState('');
   const [selectedJob, setSelectedJob] = useState(null);
-  const [selectedDesigner, setSelectedDesigner] = useState("");
+  const [selectedDesigner, setSelectedDesigner] = useState('');
+  const [attachedFile, setAttachedFile] = useState(null);
+  const [selectedJobs, setSelectedJobs] = useState({});
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const handleAssignJob = (job) => {
-    setSelectedJob(job);
-    setShowAssignModal(true);
-  };
-
-  const handleSubmitAssignment = () => {
-    console.log('Assigning job:', selectedJob);
-    console.log('Production:', selectedProduction);
-    console.log('Additional:', selectedAdditional);
-    setShowAssignModal(false);
-    setSelectedProduction('');
-    setSelectedAdditional('');
-    setSelectedJob(null);
-  };
-  const handleCSVImport = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      Papa.parse(file, {
-        header: true,
-        skipEmptyLines: true,
-        complete: function (results) {
-          console.log("Parsed CSV Data:", results.data);
-        },
-      });
-    }
-  };
-  
   const jobs = [
     {
       id: "00001",
@@ -79,56 +53,86 @@ function ProjectJobsTab() {
       statusVariant: "secondary",
     },
   ];
-  const [attachedFile, setAttachedFile] = useState(null);
 
-  const [selectedJobs, setSelectedJobs] = useState({});
   const handleCheckboxChange = (jobId) => {
     setSelectedJobs((prev) => ({
       ...prev,
-      [jobId]: !prev[jobId], // Toggle the checkbox
+      [jobId]: !prev[jobId],
     }));
+  };
+
+  const handleSubmitAssignment = () => {
+    console.log("Assigning jobs:", selectedJobs);
+    setShowAssignModal(false);
+    setSelectedProduction('');
+    setSelectedAdditional('');
+    setSelectedJob(null);
+    setSelectedDesigner('');
+  };
+
+  const handleCSVImport = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      console.log("CSV file selected:", file.name);
+    }
   };
 
   return (
     <div className="card">
-   <div className="card-header d-flex align-content-center justify-content-between mt-3">
-  <h5 className="card-title mb-0">Jobs List</h5>
-  <div className="text-end">
-    <button
-      className="btn btn-primary m-2"
-      onClick={() => setShowAssignModal(true)}
-    >
-      Assign
-    </button>
+      <div className="card-header d-flex align-content-center justify-content-between mt-3">
+        <h5 className="card-title mb-0">Jobs List</h5>
+        <div className="text-end">
+          {/* ✅ Assign Button always enabled, shows error if none selected */}
+          <Button
+            className="m-2"
+            variant="primary"
+            onClick={() => {
+              const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
+              if (selectedJobIds.length === 0) {
+                setErrorMessage("Please select at least 1 job to assign.");
+                setTimeout(() => setErrorMessage(""), 3000);
+              } else {
+                setShowAssignModal(true);
+              }
+            }}
+          >
+            Assign
+          </Button>
 
-    <label className="btn btn-success m-2">
-      <i className="bi bi-upload"></i> Import CSV
-      <input
-        type="file"
-        accept=".csv"
-        onChange={handleCSVImport}
-        hidden
-      />
-    </label>
+          <label className="btn btn-success m-2">
+            <i className="bi bi-upload"></i> Import CSV
+            <input
+              type="file"
+              accept=".csv"
+              onChange={handleCSVImport}
+              hidden
+            />
+          </label>
 
-    <Link to={"/AddJobTracker"}>
-      <button className="btn btn-primary">
-        <i className="bi bi-plus"></i> Add New
-      </button>
-    </Link>
-  </div>
-</div>
+          <Link to={"/AddJobTracker"}>
+            <button className="btn btn-primary">
+              <i className="bi bi-plus"></i> Add New
+            </button>
+          </Link>
+        </div>
+      </div>
 
       <div className="card-body">
+        {/* ✅ Error message block */}
+        {errorMessage && (
+          <div className="alert alert-danger py-2" role="alert">
+            {errorMessage}
+          </div>
+        )}
+
         <div className="table-responsive">
           <table className="table table-hover">
             <thead>
               <tr>
-              <th>
+                <th>
                   <input
                     type="checkbox"
                     onChange={() => {
-                      // Select all checkboxes when the header checkbox is clicked
                       const isChecked = Object.keys(selectedJobs).length === jobs.length;
                       const newSelectedJobs = {};
                       jobs.forEach((job) => {
@@ -138,46 +142,41 @@ function ProjectJobsTab() {
                     }}
                   />
                 </th>
-                <th style={{ whiteSpace: "nowrap" }}>Jobs No</th>
-               
+                <th>Jobs No</th>
                 <th>Brand</th>
                 <th>SubBrand</th>
+                <th>Flavour</th>
                 <th>PackType</th>
-                <th>Size</th>
-                 <th>Pack Code</th>
+                <th>PackSize</th>
+                <th>PackCode</th>
                 <th>Status</th>
-                {/* <th>PackCode</th> */}
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {jobs.map((job, index) => (
-                <tr key={index}>
-                                    <td>
+              {jobs.map((job) => (
+                <tr key={job.id}>
+                  <td>
                     <input
                       type="checkbox"
                       checked={selectedJobs[job.id] || false}
                       onChange={() => handleCheckboxChange(job.id)}
                     />
                   </td>
-
                   <td><Link to={"/OvervieJobsTracker"}>{job.id}</Link></td>
-                 
                   <td>{job.brandName}</td>
                   <td>{job.subBrand}</td>
+                  <td>{job.flavour}</td>
                   <td>{job.packType}</td>
                   <td>{job.packSize}</td>
                   <td>{job.packCode}</td>
-                  <td>{job.packType}</td>
-                  {/* <td>
-                    <span className={badge bg-${job.statusVariant}}>
-                      {job.status}
-                    </span>
-                  </td> */}
+                  <td>{job.status}</td>
                   <td className="d-flex">
-                  <Link to={"/OvervieJobsTracker"}><button className="btn btn-sm btn-outline-primary me-1">
-                    <i className="bi bi-eye"></i> View
-                   </button></Link>
+                    <Link to={"/OvervieJobsTracker"}>
+                      <button className="btn btn-sm btn-outline-primary me-1">
+                        <i className="bi bi-eye"></i> View
+                      </button>
+                    </Link>
                     <button className="btn btn-sm btn-outline-primary me-1">
                       <i className="bi bi-pencil"></i> Edit
                     </button>
@@ -192,37 +191,35 @@ function ProjectJobsTab() {
         </div>
       </div>
 
-      {/* Job Assignment Modal */}
-          <Modal show={showAssignModal} onHide={() => setShowAssignModal(false)}>
-            <Modal.Header closeButton>
-              <Modal.Title>Assign Job</Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
-              <Form>
-                
-              <Form.Group className="mb-3">
-      <Form.Label>Select Designer</Form.Label>
-      <Form.Select
-        value={selectedDesigner}
-        onChange={(e) => setSelectedDesigner(e.target.value)}
-      >
-        {/* <option value="">-- Select --</option> */}
-        <option value="designer1">Production </option>
-        <option value="designer2">Designer</option>
-      </Form.Select>
-    </Form.Group>
-    
-              </Form>
-            </Modal.Body>
-            <Modal.Footer>
-              <Button variant="secondary" onClick={() => setShowAssignModal(false)}>
-                Cancel
-              </Button>
-              <Button variant="primary" onClick={handleSubmitAssignment}>
-                Assign
-              </Button>
-            </Modal.Footer>
-          </Modal>
+      {/* ✅ Job Assignment Modal */}
+      <Modal show={showAssignModal} onHide={() => setShowAssignModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Assign Job</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>Select Designer</Form.Label>
+              <Form.Select
+                value={selectedDesigner}
+                onChange={(e) => setSelectedDesigner(e.target.value)}
+              >
+                <option value="">-- Select --</option>
+                <option value="production">Production</option>
+                <option value="designer">Designer</option>
+              </Form.Select>
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowAssignModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleSubmitAssignment}>
+            Assign
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 }

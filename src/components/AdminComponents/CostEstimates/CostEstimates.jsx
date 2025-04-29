@@ -277,7 +277,11 @@ function CostEstimates() {
                 <Badge bg={getStatusBadgeVariant(po.status)}>{po.status}</Badge>
               </td>
               <td>
-                <Dropdown>
+              <Button style={{width:"100px"}} variant="success" size="sm" >
+              {po.invoiceStatus || "Active"}
+             </Button>
+
+                {/* <Dropdown>
                   <Dropdown.Toggle
                     variant="success"
                     size="sm"
@@ -303,7 +307,7 @@ function CostEstimates() {
                       Cancelled
                     </Dropdown.Item>
                   </Dropdown.Menu>
-                </Dropdown>
+                </Dropdown> */}
               </td>{" "}
               {/* ✅ Status Dropdown */}
               <td>
