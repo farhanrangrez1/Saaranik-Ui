@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Base_Url from "../../ApiUrl/ApiUrl";
 import { Link, useNavigate } from "react-router-dom";
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const currencies = [
   { label: "USD - US Dollar", value: "USD" },
@@ -15,7 +15,6 @@ const currencies = [
   { label: "SAR - Saudi Riyal", value: "SAR" },
 ];
 
-
 function AddCostEstimates() {
   const navigate = useNavigate();
   const [clients, setClients] = useState([]);
@@ -24,12 +23,12 @@ function AddCostEstimates() {
   ]);
   const [formData, setFormData] = useState({
     clientId: "",
+    projectNo: "",
     projectName: "",
     estimateDate: "",
     validUntil: "",
-    estimateNumber: "",
     notes: "",
-    currency: "USD"
+    currency: "USD",
   });
 
   const [taxRate, setTaxRate] = useState(0.1);
@@ -50,6 +49,33 @@ function AddCostEstimates() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleProjectNumberChange = async (e) => {
+    const projectNo = e.target.value;
+    setFormData({ ...formData, projectNo });
+
+    try {
+      if (projectNo) {
+        const response = await axios.get(
+          `${Base_Url}/project/getProjectByNumber/${projectNo}`
+        );
+        const project = response.data.data;
+        if (project) {
+          setFormData((prev) => ({
+            ...prev,
+            projectName: project.projectName,
+          }));
+        } else {
+          setFormData((prev) => ({ ...prev, projectName: "" }));
+        }
+      } else {
+        setFormData((prev) => ({ ...prev, projectName: "" }));
+      }
+    } catch (error) {
+      console.error("Error fetching project name:", error);
+      toast.error("Project not found!");
+    }
+  };
+
   const addItem = () => {
     setItems([...items, { description: "", quantity: 0, rate: 0, amount: 0 }]);
   };
@@ -66,8 +92,13 @@ function AddCostEstimates() {
 
   const handleSubmit = async () => {
     try {
+      const generatedEstimateNumber = `EST-${Math.floor(
+        1000 + Math.random() * 9000
+      )}`; // Auto Generate
+
       const payload = {
         ...formData,
+        estimateNumber: generatedEstimateNumber,
         items,
       };
 
@@ -79,10 +110,10 @@ function AddCostEstimates() {
 
       setFormData({
         clientId: "",
+        projectNo: "",
         projectName: "",
         estimateDate: "",
         validUntil: "",
-        estimateNumber: "",
         notes: "",
         currency: "USD",
       });
@@ -91,7 +122,6 @@ function AddCostEstimates() {
       setTimeout(() => {
         navigate("/CostEstimates");
       }, 1000);
-
     } catch (err) {
       console.error("Submit Error:", err);
       toast.error("Failed to create estimate!");
@@ -104,7 +134,7 @@ function AddCostEstimates() {
         const response = await axios.get(`${Base_Url}/client/getAllClient`);
         setClients(response.data.data);
       } catch (error) {
-        console.error('Error fetching clients:', error);
+        console.error("Error fetching clients:", error);
       }
     };
     fetchClients();
@@ -120,34 +150,27 @@ function AddCostEstimates() {
 
           <div className="row mb-3">
             <div className="col-md-6 mb-3">
-              <label className="form-label">Client Name</label>
-
+              <label className="form-label">Project Number</label>
               <input
                 type="text"
                 className="form-control"
-                name="projectName"
-                value={formData.projectName}
-                onChange={handleFormChange}
-                placeholder="Enter project name"
+                name="projectNo"
+                value={formData.projectNo}
+                onChange={handleProjectNumberChange}
+                placeholder="Enter project number"
               />
             </div>
 
             <div className="col-md-6 mb-3">
               <label className="form-label">Project Name</label>
-              <select
-  className="form-select"
+             <input
+  type="text"
+  className="form-control"
   name="projectName"
   value={formData.projectName}
-  onChange={handleFormChange}
->
-  <option value="">Select Project</option>
-  <option value="POS">POS</option>
-  <option value="CRM">CRM</option>
-  <option value="HRM">HRM</option>
-  <option value="Project Management">Project Management</option>
-  <option value="Task Management">Task Management</option>
-  <option value="E-commerce">E-commerce</option>
-</select>
+  readOnly   
+  placeholder="Project name will auto-fill"
+/>
 
             </div>
 
@@ -161,23 +184,7 @@ function AddCostEstimates() {
                 onChange={handleFormChange}
               />
             </div>
-            <div className="col-md-4 mb-3">
-              <label className="form-label">Estimate Number</label>
-              <select
-                className="form-select"
-                name="estimateNumber"
-                value={formData.estimateNumber}
-                onChange={handleFormChange}
-              >
-                <option value="">Select Estimate Number</option>
-                <option value="EST-001">EST-00001</option>
-                <option value="EST-002">EST-00002</option>
-                <option value="EST-003">EST-00003</option>
-                <option value="EST-004">EST-00004</option>
-              </select>
 
-
-            </div>
             <div className="col-md-4 mb-3">
               <label className="form-label">Valid Until</label>
               <input
@@ -189,16 +196,14 @@ function AddCostEstimates() {
               />
             </div>
 
-            <div className="col-md-6 mb-3">
+            <div className="col-md-4 mb-3">
               <label className="form-label">Currency</label>
               <select
                 className="form-select"
                 name="currency"
                 value={formData.currency}
                 onChange={handleFormChange}
-                required
               >
-                <option value="">Select Currency</option>
                 {currencies.map((curr) => (
                   <option key={curr.value} value={curr.value}>
                     {curr.label}
@@ -240,7 +245,11 @@ function AddCostEstimates() {
                   className="form-control"
                   value={item.quantity}
                   onChange={(e) =>
-                    handleItemChange(index, "quantity", parseInt(e.target.value))
+                    handleItemChange(
+                      index,
+                      "quantity",
+                      parseInt(e.target.value)
+                    )
                   }
                 />
               </div>
@@ -255,7 +264,9 @@ function AddCostEstimates() {
                 />
               </div>
               <div className="col-md-2">
-                <span>{formData.currency} {item.amount.toFixed(2)}</span>
+                <span>
+                  {formData.currency} {item.amount.toFixed(2)}
+                </span>
               </div>
               <div className="col-md-1 text-end">
                 <button
@@ -291,9 +302,16 @@ function AddCostEstimates() {
                 />
               </div>
 
-              <div className="mb-2">Subtotal: {formData.currency} {subtotal.toFixed(2)}</div>
-              <div className="mb-2">VAT ({(taxRate * 100).toFixed(0)}%): {formData.currency} {tax.toFixed(2)}</div>
-              <div className="fw-bold mb-2">Total: {formData.currency} {total.toFixed(2)}</div>
+              <div className="mb-2">
+                Subtotal: {formData.currency} {subtotal.toFixed(2)}
+              </div>
+              <div className="mb-2">
+                VAT ({(taxRate * 100).toFixed(0)}%): {formData.currency}{" "}
+                {tax.toFixed(2)}
+              </div>
+              <div className="fw-bold mb-2">
+                Total: {formData.currency} {total.toFixed(2)}
+              </div>
             </div>
 
             <div className="col-md-6">
@@ -313,7 +331,11 @@ function AddCostEstimates() {
             <Link to={"/CostEstimates"}>
               <button className="btn btn-light me-2">Cancel</button>
             </Link>
-            <button id="btn-All" className="btn btn-dark" onClick={handleSubmit}>
+            <button
+              id="btn-All"
+              className="btn btn-dark"
+              onClick={handleSubmit}
+            >
               Create Estimate
             </button>
           </div>
