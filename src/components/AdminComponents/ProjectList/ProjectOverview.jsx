@@ -74,7 +74,7 @@ function ProjectOverview() {
         </div>
         <div>
           <button className="btn btn-outline-secondary me-2">Import File</button>
-         <Link to={"/UpdateProjectLis"}><button id='All_btn' className="btn btn-dark">Edit Project</button></Link>
+         <Link to={"/UpdateProjectLis"}><button id='All_btn' className="btn btn-dark">Create Project</button></Link>
         </div>
       </div>
 

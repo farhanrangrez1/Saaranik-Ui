@@ -157,10 +157,20 @@ function AddJobTracker() {
                     <option value="">Select project</option>
                     <option value="project1">Project 1</option>
              <option value="project2">Project 2</option>
-    <option value="project3">Project 3</option>
-    {/* Add more options as needed */}
-  </select>
-</div>
+             <option value="project3">Project 3</option>
+           {/* Add more options as needed */}
+        </select>
+     </div>
+             <div className="col-md-6">
+                <label className="form-label">Job No</label>
+                <select className="form-control border-bold">
+                    <option value="">Select Job No</option>
+                    <option value="project1">00001</option>
+             <option value="project2">00002</option>
+             <option value="project3">00003</option>
+           {/* Add more options as needed */}
+        </select>
+              </div>
               <div className="col-md-6">
                 <label className="form-label">Brand Name</label>
                 <input type="text" className="form-control" name="brandName" value={formData.brandName} onChange={handleChange} />
@@ -210,7 +220,7 @@ function AddJobTracker() {
 
               {/* Submit Buttons */}
               <div className="col-12 d-flex justify-content-end gap-2 mt-4">
-               <Link to={"/JobTracker"}> <button type="button" className="btn btn-outline-secondary">Cancel</button></Link>
+                <button type="button" className="btn btn-outline-secondary">Cancel</button>
                 <button id='All_btn' type="submit" className="btn btn-dark">Create Client</button>
               </div>
             </form>

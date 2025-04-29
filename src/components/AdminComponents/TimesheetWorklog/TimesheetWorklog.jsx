@@ -32,6 +32,17 @@ function TimesheetWorklog() {
     }
   ];
 
+  const discrepancies = [
+    {
+      name: 'John Doe',
+      issue: 'Missing time entry on 14/01/2024'
+    },
+    {
+      name: 'Jane Smith',
+      issue: 'Overlapping entries on 15/01/2024'
+    }
+  ];
+
   const summaryData = {
     hoursThisWeek: 32.5,
     leaveBalance: '15 days',
@@ -39,10 +50,19 @@ function TimesheetWorklog() {
     overtime: '2.5 hrs'
   };
 
-  // Note: Admin level relationship needs to be determined
+  const formatDate = (dateStr) => {
+    const [year, month, day] = dateStr.split('-');
+    return `${day}/${month}/${year}`;
+  };
+
+  const formatHours = (hoursDecimal) => {
+    const hours = Math.floor(hoursDecimal);
+    const minutes = Math.round((hoursDecimal - hours) * 60);
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} hrs`;
+  };
 
   return (
-    <div className=" p-4 m-3" style={{backgroundColor:"white",borderRadius:"10px",}}>
+    <div className="p-4 m-3" style={{ backgroundColor: "white", borderRadius: "10px" }}>
 
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h4 className="mb-0">Timesheet & Worklog</h4>
@@ -118,7 +138,7 @@ function TimesheetWorklog() {
       </div>
 
       {/* Time Entries Table */}
-      <div className="card shadow-sm custom-table-card">
+      <div className="card shadow-sm custom-table-card mb-4">
         <div className="table-responsive">
           <table className="table table-hover align-middle mb-0">
             <thead>
@@ -134,10 +154,10 @@ function TimesheetWorklog() {
             <tbody>
               {timeEntries.map((entry, index) => (
                 <tr key={index}>
-                  <td className="py-3">{entry.date}</td>
+                  <td className="py-3">{formatDate(entry.date)}</td>
                   <td className="py-3">{entry.jobId}</td>
                   <td className="py-3">{entry.taskDescription}</td>
-                  <td className="py-3">{entry.hours}</td>
+                  <td className="py-3">{formatHours(entry.hours)}</td>
                   <td className="py-3">
                     <span className={`badge rounded-pill ${entry.status === 'Approved' ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning'} px-3 py-2`}>
                       {entry.status}
@@ -151,6 +171,31 @@ function TimesheetWorklog() {
                       <FaTrashAlt />
                     </button>
                   </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Timesheet Discrepancies */}
+      <div className="card shadow-sm custom-table-card mb-4">
+        <div className="card-header bg-light fw-semibold">
+          Timesheet Discrepancies
+        </div>
+        <div className="table-responsive">
+          <table className="table table-hover align-middle mb-0">
+            <thead>
+              <tr className="bg-light">
+                <th className="py-3">Employee Name</th>
+                <th className="py-3">Issue</th>
+              </tr>
+            </thead>
+            <tbody>
+              {discrepancies.map((entry, index) => (
+                <tr key={index}>
+                  <td className="py-3">{entry.name}</td>
+                  <td className="py-3">{entry.issue}</td>
                 </tr>
               ))}
             </tbody>
@@ -183,6 +228,7 @@ function TimesheetWorklog() {
           </ul>
         </nav>
       </div>
+
     </div>
   );
 }

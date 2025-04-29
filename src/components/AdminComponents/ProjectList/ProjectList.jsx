@@ -1,16 +1,13 @@
 import React, { useState } from 'react';
-import { Table, Badge, Button, ProgressBar, Row, Col, Card } from 'react-bootstrap';
-import { FaEye, FaEdit, FaTrash, FaDownload, FaUpload, FaPlus } from 'react-icons/fa';
-import './Project.css';
+import { Table, Badge, Button, Row, Col, Card, Modal, Form, Dropdown } from 'react-bootstrap';
+import { FaEye, FaEdit, FaUpload, FaPlus } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
+import './Project.css';
 
 function ProjectList() {
   const [activeTab, setActiveTab] = useState('All');
   const [currentPage, setCurrentPage] = useState(1);
-
-  const tabs = [ 'All','Active Project', 'In Progress', 'Completed', 'Closed', 'Cancelled', 'On Hold'];
-
-  const projects = [
+  const [projects, setProjects] = useState([
     {
       id: '00001',
       name: 'POS',
@@ -19,7 +16,8 @@ function ProjectList() {
       endDate: '2025/06/30',
       totaltimelogged: '9hour',
       client: 'JohnnySmith',
-      status: 'Active Project'
+      status: 'Active Project',
+      invoiceCreated: false
     },
     {
       id: '00002',
@@ -29,7 +27,8 @@ function ProjectList() {
       endDate: '2025/09/20',
       totaltimelogged: '9hour',
       client: 'JohnnySmith',
-      status: 'In Progress'
+      status: 'In Progress',
+      invoiceCreated: false
     },
     {
       id: '00003',
@@ -39,7 +38,8 @@ function ProjectList() {
       endDate: '2025/11/05',
       totaltimelogged: '9hour',
       client: 'JohnnySmith',
-      status: 'Completed'
+      status: 'Completed',
+      invoiceCreated: false
     },
     {
       id: '00004',
@@ -49,7 +49,8 @@ function ProjectList() {
       endDate: '2025/12/31',
       totaltimelogged: '9hour',
       client: 'Jane/Doe',
-      status: 'Closed'
+      status: 'Closed',
+      invoiceCreated: true
     },
     {
       id: '00005',
@@ -59,7 +60,8 @@ function ProjectList() {
       endDate: '2025/08/15',
       totaltimelogged: '9hour',
       client: 'TechCorp',
-      status: 'Cancelled'
+      status: 'Cancelled',
+      invoiceCreated: true
     },
     {
       id: '00006',
@@ -69,54 +71,37 @@ function ProjectList() {
       endDate: '2025/12/31',
       totaltimelogged: '9hour',
       client: 'InnovationLabs',
-      status: 'On Hold'
+      status: 'On Hold',
+      invoiceCreated: false
     }
-  ];
+  ]);
 
-  // Filter projects based on active tab
+  const tabs = ['All', 'Active Project', 'In Progress', 'Completed', 'Closed', 'Cancelled', 'On Hold', 'Completed (To Be Invoiced)'];
+
   const filteredProjects = activeTab === 'All' 
     ? projects 
-    : projects.filter(project => project.status === activeTab);
-  const jobList = [
-    { phase: 'Design Phase', status: 'Completed' },
-    { phase: 'Development', status: 'In Progress' },
-    { phase: 'Testing', status: 'Pending' }
-  ];
+    : activeTab === 'Completed (To Be Invoiced)'
+      ? projects.filter(project => project.status === 'Completed' && !project.invoiceCreated)
+      : projects.filter(project => project.status === activeTab);
 
-  const costEstimate = {
-    estimated: 50000,
-    actual: 45000,
-    variance: 5000
+  const updateProjectStatus = (index, newStatus) => {
+    const updatedProjects = [...projects];
+    updatedProjects[index].status = newStatus;
+    setProjects(updatedProjects);
   };
 
-  const purchaseOrders = {
-    received: 3,
-    issued: 5,
-    totalValue: 35000
+  const [selectedJobs, setSelectedJobs] = useState({});
+
+  const handleCheckboxChange = (projectId) => {
+    setSelectedJobs((prev) => ({
+      ...prev,
+      [projectId]: !prev[projectId],
+    }));
   };
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
-  };
-
-  const getStatusBadge = (status) => {
-    const classes = {
-      'Active': 'badge-active',
-      'In Progress': 'badge-progress',
-      'Completed': 'badge-completed',
-      'Pending': 'badge-pending'
-    };
-    return <span className={`badge ${classes[status] || 'badge-pending'}`}>{status}</span>;
-  };
-    
   return (
     <div className="project-container">
-            {/* Header */}
+      {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h5 className="m-0 fw-bold">Project List</h5>
       </div>
@@ -129,7 +114,7 @@ function ProjectList() {
               <button
                 className={`nav-link ${activeTab === tab ? 'active' : ''}`}
                 onClick={() => setActiveTab(tab)}
-                style={{color:"#0d6efd",borderColor:"#0d6efd"}}
+                style={{ color: "#0d6efd", borderColor: "#0d6efd" }}
               >
                 {tab}
               </button>
@@ -148,15 +133,14 @@ function ProjectList() {
           />
         </div>
         <div className="actions">
-          {/* <Button variant="outline-secondary" size="sm" className="me-2">
-            <FaDownload className="me-1" /> Export
-          </Button> */}
           <Button variant="outline-secondary" size="sm" className="me-2">
             <FaUpload className="me-1" /> Import
           </Button>
-          <Link to={"/AddProjectList"}>    <Button id='All_btn' variant="dark" size="sm">
-            <FaPlus className="me-1" /> Add project
-          </Button></Link>
+          <Link to={"/AddProjectList"}>
+            <Button id='All_btn' variant="dark" size="sm">
+              <FaPlus className="me-1" /> Add project
+            </Button>
+          </Link>
         </div>
       </div>
 
@@ -164,8 +148,21 @@ function ProjectList() {
       <Table responsive className="project-table mb-4">
         <thead>
           <tr>
+            <th>
+              <input
+                type="checkbox"
+                onChange={() => {
+                  const isChecked = Object.keys(selectedJobs).length === projects.length;
+                  const newSelectedJobs = {};
+                  projects.forEach((project) => {
+                    newSelectedJobs[project.id] = !isChecked;
+                  });
+                  setSelectedJobs(newSelectedJobs);
+                }}
+              />
+            </th>
             <th style={{ whiteSpace: "nowrap" }}>Project No</th>
-            <th style={{textWrap:"nowrap"}}>Project Name</th>
+            <th style={{ textWrap: "nowrap" }}>Project Name</th>
             <th>Description</th>
             <th>Start Date</th>
             <th>End Date</th>
@@ -176,25 +173,48 @@ function ProjectList() {
           </tr>
         </thead>
         <tbody>
-          {filteredProjects.map((project) => (
+          {filteredProjects.map((project, index) => (
             <tr key={project.id}>
-               <td><Link to={"/ProjectOverview"}>{project.id}</Link></td>
-               <td>{project.name}</td>
+              <td>
+                <input
+                  type="checkbox"
+                  checked={selectedJobs[project.id] || false}
+                  onChange={() => handleCheckboxChange(project.id)}
+                />
+              </td>
+              <td><Link to={"/ProjectOverview"}>{project.id}</Link></td>
+              <td>{project.name}</td>
               <td>{project.description}</td>
               <td>{project.startDate}</td>
               <td>{project.endDate}</td>
               <td>{project.totaltimelogged}</td>
               <td>{project.client}</td>
-              <td>{getStatusBadge(project.status)}</td>
+              <td>
+                <Dropdown>
+                  <Dropdown.Toggle variant="success" size="sm">
+                    {project.status || 'Select Status'}
+                  </Dropdown.Toggle>
+
+                  <Dropdown.Menu>
+                    <Dropdown.Item onClick={() => updateProjectStatus(index, 'Active Project')}>Active Project</Dropdown.Item>
+                    <Dropdown.Item onClick={() => updateProjectStatus(index, 'In Progress')}>In Progress</Dropdown.Item>
+                    <Dropdown.Item onClick={() => updateProjectStatus(index, 'Completed')}>Completed</Dropdown.Item>
+                    <Dropdown.Item onClick={() => updateProjectStatus(index, 'Closed')}>Closed</Dropdown.Item>
+                    <Dropdown.Item onClick={() => updateProjectStatus(index, 'Cancelled')}>Cancelled</Dropdown.Item>
+                    <Dropdown.Item onClick={() => updateProjectStatus(index, 'On Hold')}>On Hold</Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown>
+              </td>
               <td>
                 <div className="action-buttons d-flex ">
                   <Button variant="link" className="p-0 me-2">
                     <FaEye />
                   </Button>
                   <Button variant="link" className="p-0 me-2">
-                  <Link to={"/UpdateProjectLis"}><FaEdit /></Link>
+                    <Link to={"/UpdateProjectLis"}>
+                      <FaEdit />
+                    </Link>
                   </Button>
-                 
                 </div>
               </td>
             </tr>
@@ -204,7 +224,7 @@ function ProjectList() {
 
       {/* Pagination */}
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <div className="text-muted small">Showing 1 to 3 of 10 entries</div>
+        <div className="text-muted small">Showing 1 to {filteredProjects.length} of {projects.length} entries</div>
         <ul className="pagination pagination-sm mb-0">
           <li className="page-item">
             <button className="page-link">Previous</button>
@@ -223,91 +243,8 @@ function ProjectList() {
           </li>
         </ul>
       </div>
-
-      {/* Dashboard Cards */}
-      <Row>
-        {/* Job List */}
-        {/* <Col md={4}>
-          <Card>
-            <Card.Header>Job List gwd</Card.Header>
-            <Card.Body>
-              <Table borderless>
-                <tbody>
-                  {jobList.map((job, index) => (
-                    <tr key={index}>
-                      <td>{job.phase}</td>
-                      <td>{getStatusBadge(job.status)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </Table>
-            </Card.Body>
-          </Card>
-        </Col> */}
-
-        {/* Cost Estimate */}
-        {/* <Col md={4}>
-          <Card>
-            <Card.Header className="py-3">Cost Estimate</Card.Header>
-            <Card.Body>
-              <Table borderless className="table-sm">
-                <tbody>
-                  <tr>
-                    <td className="text-muted">Estimated Cost</td>
-                    <td className="text-end">{formatCurrency(costEstimate.estimated)}</td>
-                  </tr>
-                  <tr>
-                    <td className="text-muted">Actual Cost</td>
-                    <td className="text-end">{formatCurrency(costEstimate.actual)}</td>
-                  </tr>
-                  <tr>
-                    <td className="text-muted">Variance</td>
-                    <td className="text-end text-success">{formatCurrency(costEstimate.variance)}</td>
-                  </tr>
-                </tbody>
-              </Table>
-            </Card.Body>
-          </Card>
-        </Col> */}
-
-        {/* Purchase Orders */}
-        {/* <Col md={4}>
-          <Card>
-            <Card.Header className="py-3">Purchase Orders</Card.Header>
-            <Card.Body>
-              <Table borderless className="table-sm">
-                <tbody>
-                  <tr>
-                    <td className="text-muted">PO Received</td>
-                    <td className="text-end">{purchaseOrders.received}</td>
-                  </tr>
-                  <tr>
-                    <td className="text-muted">PO Issued</td>
-                    <td className="text-end">{purchaseOrders.issued}</td>
-                  </tr>
-                  <tr>
-                    <td className="text-muted">Total Value</td>
-                    <td className="text-end">{formatCurrency(purchaseOrders.totalValue)}</td>
-                  </tr>
-                </tbody>
-              </Table>
-            </Card.Body>
-          </Card>
-        </Col> */}
-      </Row>
-
-      {/* Progress Bar */}
-      {/* <Card className="mt-4">
-        <Card.Body className="py-3">
-          <div className="d-flex justify-content-between align-items-center mb-2">
-            <div className="text-muted">Progress</div>
-            <div className="small text-muted">60%</div>
-          </div>
-          <ProgressBar now={60} variant="success" className="progress-sm" />
-        </Card.Body>
-      </Card> */}
     </div>
-  )
+  );
 }
 
-export default ProjectList
+export default ProjectList;

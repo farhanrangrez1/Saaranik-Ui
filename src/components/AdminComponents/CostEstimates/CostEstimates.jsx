@@ -197,13 +197,12 @@ function CostEstimates() {
               id="status-dropdown"
               className="custom-dropdown"
             >
-              Active Invoiced Cancelled
+              All Status
             </Dropdown.Toggle>
             <Dropdown.Menu>
-              <Dropdown.Item>All Status</Dropdown.Item>
-              <Dropdown.Item>In Progress</Dropdown.Item>
-              <Dropdown.Item>Review</Dropdown.Item>
-              <Dropdown.Item>Not Started</Dropdown.Item>
+              <Dropdown.Item>Active</Dropdown.Item>
+              <Dropdown.Item>Invoice</Dropdown.Item>
+              <Dropdown.Item>Cancelled</Dropdown.Item>
             </Dropdown.Menu>
           </Dropdown>
 
@@ -222,7 +221,7 @@ function CostEstimates() {
               onClick={() => handleSort("estimateRef")}
               style={{ cursor: "pointer" }}
             >
-              CE No
+              CENo
             </th>
             <th
               onClick={() => handleSort("receivedDate")}
@@ -240,13 +239,13 @@ function CostEstimates() {
               onClick={() => handleSort("projectNo")}
               style={{ cursor: "pointer" }}
             >
-              Project No
+              ProjectNo
             </th>
             <th
               onClick={() => handleSort("projectName")}
               style={{ cursor: "pointer" }}
             >
-              Project Name
+              ProjectName
             </th>
             <th
               onClick={() => handleSort("amount")}
@@ -258,7 +257,7 @@ function CostEstimates() {
               onClick={() => handleSort("status")}
               style={{ cursor: "pointer" }}
             >
-              PO Status
+              POStatus
             </th>
             <th>Status</th> {/* ✅ New Status column */}
             <th>Actions</th>

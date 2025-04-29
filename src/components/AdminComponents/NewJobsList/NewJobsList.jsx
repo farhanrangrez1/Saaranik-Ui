@@ -283,9 +283,19 @@ function NewJobsList() {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false); // ✅ For Reject
   const [selectedDesigner, setSelectedDesigner] = useState("");
+// <<<<<<< HEAD
+
+  const [selectedProduction, setSelectedProduction] = useState("");
+  const [selectedAdditional, setSelectedAdditional] = useState("");
+  const [description, setDescription] = useState("");
+// =======
   const [selectedJob, setSelectedJob] = useState(null);
   const [selectedJobs, setSelectedJobs] = useState({});
   const [rejectionReason, setRejectionReason] = useState(""); // ✅ Rejection Reason
+// >>>>>>> 7030ed47741b4a462cc3812504d13dbf81dfb9d2
+
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   const jobs = [
     {
@@ -325,22 +335,32 @@ function NewJobsList() {
     setSelectedJob(null);
   };
 
-  const handleAssignButtonClick = () => {
-    const selectedCount = Object.values(selectedJobs).filter(Boolean).length;
-    if (selectedCount === 0) {
-      alert("Please select at least 1 job to assign.");
-      return;
+  const handleAssignJob = (job) => {
+    if (job === null) {
+      const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
+      if (selectedJobIds.length === 0) {
+        setErrorMessage("Please select at least 1 job to assign.");
+        setTimeout(() => setErrorMessage(""), 3000);
+        return;
+      }
     }
-    setShowAssignModal(true); // ✅ Open assign modal only if selection exists
+    setSelectedJob(job);
+    setShowAssignModal(true);
   };
 
-  const handleRejectButtonClick = () => {
-    const selectedCount = Object.values(selectedJobs).filter(Boolean).length;
-    if (selectedCount === 0) {
-      alert("Please select at least 1 job to reject.");
+  const handleRejectJobs = () => {
+    const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
+    if (selectedJobIds.length === 0) {
+      setErrorMessage("Please select at least 1 job to reject.");
+      setTimeout(() => setErrorMessage(""), 3000);
       return;
     }
-    setShowRejectModal(true); // ✅ Open Reject modal
+    // Success message
+    setSuccessMessage("Jobs rejected successfully.");
+    setTimeout(() => setSuccessMessage(""), 3000);
+
+    // Reset selected jobs after rejection
+    setSelectedJobs({});
   };
 
   const handleSubmitAssignment = () => {
@@ -361,21 +381,26 @@ function NewJobsList() {
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h5 className="fw-bold m-0">Job Assign</h5>
         <div className="d-flex gap-2">
-          {/* Reject Button */}
-          <Button
-            id="All_btn"
-            variant="danger"
-            onClick={handleRejectButtonClick}
-          >
+          <Button onClick={handleRejectJobs} id="All_btn" variant="dark">
             Reject
           </Button>
-
-          {/* Assign Button */}
-          <Button id="All_btn" variant="dark" onClick={handleAssignButtonClick}>
+          <Button onClick={() => handleAssignJob(null)} id="All_btn" variant="dark">
             + Assign
           </Button>
         </div>
       </div>
+
+      {/* Show Messages */}
+      {errorMessage && (
+        <div className="alert alert-danger py-2" role="alert">
+          {errorMessage}
+        </div>
+      )}
+      {successMessage && (
+        <div className="alert alert-success py-2" role="alert">
+          {successMessage}
+        </div>
+      )}
 
       {/* Filters */}
       <div className="d-flex flex-wrap gap-2 mb-3 align-items-center">
@@ -482,17 +507,18 @@ function NewJobsList() {
           <Modal.Title>Assign Job</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Form.Group className="mb-3">
-            <Form.Label>Select Designer</Form.Label>
-            <Form.Select
-              value={selectedDesigner}
-              onChange={(e) => setSelectedDesigner(e.target.value)}
-            >
-              <option value="">-- Select Designer --</option>
-              <option value="designer1">Raj Sharma</option>
-              <option value="designer2">Pooja Verma</option>
-            </Form.Select>
-          </Form.Group>
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>Select Designer</Form.Label>
+              <Form.Select
+                value={selectedDesigner}
+                onChange={(e) => setSelectedDesigner(e.target.value)}
+              >
+                <option value="designer1">Production</option>
+                <option value="designer2">Designer</option>
+              </Form.Select>
+            </Form.Group>
+          </Form>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowAssignModal(false)}>

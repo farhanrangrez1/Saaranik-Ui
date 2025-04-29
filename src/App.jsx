@@ -56,7 +56,12 @@ import OvervieMyJobs from "./components/AdminComponents/MyJobs/OvervieMyJobs";
 import OvervieJobsProject from "./components/AdminComponents/ProjectList/ProjectTabs/OvervieJobsProject";
 import Profile from "./components/AdminComponents/Profile/Profile";
 import Extrahr from "./components/AdminComponents/TimeLogs/Extrahr";
-import ReturnReport from "./components/AdminComponents/DesignerPanel/ReturnReport.jsx";
+import InProgressDashboard from "./components/AdminComponents/Dashbord/InProgressDashboard.jsx";
+import InProgressDashboardJobsDueToday from "./components/AdminComponents/Dashbord/InProgressDashboardJobsDueToday.jsx";
+import InProgressDashboardProject from "./components/AdminComponents/Dashbord/InProgressDashboardProject.jsx";
+
+
+
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 768);
   const toggleSidebar = () => {
@@ -78,84 +83,60 @@ function App() {
             <Route path="/" element={<Login />} />
             <Route path="/Signup" element={<Register />} />
 
-            {/* AdminComponents */}
-            <Route path="/dashboard" element={<Dashbord />} />
-            <Route path="/clientManagement" element={<ClientManagement />} />
-            <Route
-              path="/AddClientManagement"
-              element={<AddClientManagement />}
-            />
-            <Route
-              path="/ViewdetailsClientManagement"
-              element={<ViewdetailsClientManagement />}
-            />
-            <Route path="/CostEstimates" element={<CostEstimates />} />
-            <Route path="/AddCostEstimates" element={<AddCostEstimates />} />
-            <Route path="/receivable" element={<ReciveablePurchase />} />
-            <Route path="/IssuablePurchase" element={<IssuablePurchase />} />
-            <Route
-              path="/AddIssuablePurchase"
-              element={<AddIssuablePurchase />}
-            />
-            <Route path="/projectList" element={<ProjectList />} />
-            <Route path="/AddProjectList" element={<AddProjectList />} />
-            <Route
-              path="/OvervieJobsProject"
-              element={<OvervieJobsProject />}
-            />
-            <Route path="/ProjectOverview" element={<ProjectOverview />} />
-            <Route path="/UpdateProjectLis" element={<UpdateProjectLis />} />
-            <Route path="/jobTracker" element={<JobTracker />} />
-            <Route path="/AddJobTracker" element={<AddJobTracker />} />
-            <Route
-              path="/OvervieJobsTracker"
-              element={<OvervieJobsTracker />}
-            />
-            <Route path="/updateJobTracker" element={<UpdateJobTracker />} />
-            <Route path="/AddJobAssignment" element={<AddJobAssignment />} />
-            <Route path="/newJobsList" element={<NewJobsList />} />
-            <Route path="/inProgress" element={<InProgress />} />
-            <Route path="/AddInProgress" element={<AddInProgress />} />
-            <Route path="/completedJobs" element={<Completed_Jobs />} />
-            <Route
-              path="/jobsView"
-              element={<Completed_jobsView_job_details />}
-            />
-            <Route path="/MyJobs" element={<MyJobs />} />
-            <Route path="/OvervieMyJobs" element={<OvervieMyJobs />} />
-            <Route
-              path="/MyJobsHolidayPackageDesign"
-              element={<MyJobsHolidayPackageDesign />}
-            />
-            <Route
-              path="/MyJobs_Upload_Artwork"
-              element={<MyJobs_Upload_Artwork />}
-            />
-            <Route path="/TimeLogs" element={<TimeLogs />} />
-            <Route path="/AddTimeLog" element={<AddTimeLog />} />
-            <Route path="/Invoicing_Billing" element={<Invoicing_Billing />} />
-            <Route path="/AddInvoice" element={<AddInvoice />} />
-            <Route path="/TimesheetWorklog" element={<TimesheetWorklog />} />
-            <Route
-              path="/AddTimesheetWorklog"
-              element={<AddTimesheetWorklog />}
-            />
-            <Route path="/Notiifcations" element={<Notiifcations />} />
-            <Route path="/Reports" element={<Reports />} />
-            <Route path="/UserRoles" element={<UserRoles />} />
-            <Route path="/UserRoleModal" element={<UserRoleModal />} />
-            <Route path="/ProductionManager" element={<ProductionManager />} />
-            <Route
-              path="/AddProductionManager"
-              element={<AddProductionManager />}
-            />
-            <Route path="/DesignerPanel" element={<DesignerPanel />} />
-            <Route path="/AddDesignerPanel" element={<AddDesignerPanel />} />
-            <Route path="/Settings" element={<Settings />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/Extrahr" element={<Extrahr />} />
-            <Route path="/return-report" element={<ReturnReport />} />
-          </Routes>
+          {/* AdminComponents */}
+          <Route path="/dashboard" element={<Dashbord />} />
+            <Route path="/InProgressDashboard" element={<InProgressDashboard/>} />     
+            <Route path="/InProgressDashboardProject" element={<InProgressDashboardProject/>} />
+            <Route path="/InProgressDashboardJobsDueToday" element={<InProgressDashboardJobsDueToday/>} />
+
+           <Route path="/clientManagement" element={<ClientManagement/>} />
+           <Route path="/AddClientManagement" element={<AddClientManagement/>} />
+           <Route path="/ViewdetailsClientManagement" element={<ViewdetailsClientManagement/>} />
+           <Route path="/CostEstimates" element={<CostEstimates/>} />
+           <Route path="/AddCostEstimates" element={<AddCostEstimates/>} />
+           <Route path="/receivable" element={<ReciveablePurchase/>} />
+           <Route path="/IssuablePurchase" element={<IssuablePurchase/>} />
+           <Route path="/AddIssuablePurchase" element={<AddIssuablePurchase/>} />
+           <Route path="/projectList" element={<ProjectList/>} />
+           <Route path="/AddProjectList" element={<AddProjectList/>} />
+           <Route path="/OvervieJobsProject" element={<OvervieJobsProject/>} />
+           <Route path="/ProjectOverview" element={<ProjectOverview/>} />
+           <Route path="/UpdateProjectLis" element={<UpdateProjectLis/>} />
+           <Route path="/jobTracker" element={<JobTracker/>} />
+           <Route path="/AddJobTracker" element={<AddJobTracker/>} />           
+           <Route path="/OvervieJobsTracker" element={<OvervieJobsTracker/>} />
+           <Route path="/updateJobTracker" element={<UpdateJobTracker/>} />
+           <Route path="/AddJobAssignment" element={<AddJobAssignment/>} />
+           <Route path="/newJobsList" element={<NewJobsList/>} />
+           <Route path="/inProgress" element={<InProgress/>}/>
+           <Route path="/AddInProgress" element={<AddInProgress/>}/>
+           <Route path="/completedJobs" element={<Completed_Jobs/>}/>
+           <Route path="/jobsView" element={<Completed_jobsView_job_details/>}/>
+           <Route path="/MyJobs" element={<MyJobs/>}/>
+           <Route path="/OvervieMyJobs" element={<OvervieMyJobs/>}/>
+           <Route path="/MyJobsHolidayPackageDesign" element={<MyJobsHolidayPackageDesign/>}/>
+           <Route path="/MyJobs_Upload_Artwork" element={<MyJobs_Upload_Artwork/>}/>
+           <Route path="/TimeLogs" element={<TimeLogs/>}/>
+           <Route path="/AddTimeLog" element={<AddTimeLog/>}/>
+           <Route path="/Invoicing_Billing" element={<Invoicing_Billing/>}/>
+           <Route path="/AddInvoice" element={<AddInvoice/>}/>
+           <Route path="/TimesheetWorklog" element={<TimesheetWorklog/>}/>
+           <Route path="/AddTimesheetWorklog" element={<AddTimesheetWorklog/>}/>
+           <Route path="/Notiifcations" element={<Notiifcations/>}/>
+           <Route path="/Reports" element={<Reports/>}/>
+           <Route path="/UserRoles" element={<UserRoles/>}/>
+           <Route path="/UserRoleModal" element={<UserRoleModal/>}/>
+           <Route path="/ProductionManager" element={<ProductionManager/>}/>
+           <Route path="/AddProductionManager" element={<AddProductionManager/>}/>
+           <Route path="/DesignerPanel" element={<DesignerPanel/>}/>
+           <Route path="/AddDesignerPanel" element={<AddDesignerPanel/>}/>
+           <Route path="/Settings" element={<Settings/>}/>
+           <Route path="/profile" element={<Profile/>}/>
+           <Route path="/Extrahr" element={<Extrahr/>}/>
+           {/* 
+           
+           */}
+            </Routes>
         </div>
       </div>
     </div>
