@@ -38,7 +38,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       submenu: [
         { title: "My Jobs", path: "/MyJobs" },
         { title: "Time Logs", path: "/TimeLogs" },
-      { title: "Designers", path: "/DesignerPanel" },
+      // { title: "Designers", path: "/DesignerPanel" },
       ]
     },
     {

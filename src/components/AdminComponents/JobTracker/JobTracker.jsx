@@ -246,6 +246,7 @@ import {
   FaTrash,
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import { MdDeleteOutline } from 'react-icons/md';
 
 function JobTracker() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -501,8 +502,8 @@ function JobTracker() {
               <th>
                 <input type="checkbox" />
               </th>
-              <th>Job No</th>
-              <th>Project Name</th>
+              <th>JobNo</th>
+              <th>ProjectName</th>
               <th>Brand</th>
               <th>SubBrand</th>
               <th>Flavour</th>
@@ -567,9 +568,9 @@ function JobTracker() {
                         <FaEdit />
                       </Link>
                     </Button>
-                    <Button variant="outline-secondary" size="sm">
-                      <FaTrash />
-                    </Button>
+                    {/* <Button variant="outline-secondary" size="sm">
+                    <MdDeleteOutline />
+                    </Button> */}
                   </div>
                 </td>
               </tr>

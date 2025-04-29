@@ -125,7 +125,7 @@ function Completed_jobsView_job_details() {
         {/* Buttons */}
         <div className="d-flex justify-content-between">
          <Link to={"/completedJobs"}> <button className="btn btn-outline-secondary">← Back to List</button></Link>
-          <button className="btn btn-dark">Generate Report</button>
+          {/* <button className="btn btn-dark">Generate Report</button> */}
         </div>
       </div>
     </div>

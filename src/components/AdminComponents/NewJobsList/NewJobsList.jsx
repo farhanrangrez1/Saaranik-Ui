@@ -409,10 +409,10 @@ function NewJobsList() {
           placeholder="Search jobs..."
           className="w-auto"
         />
-        <Form.Select className="w-auto">
+        <Form.Select className="" style={{ width: "120px" }}>
           <option>All Clients</option>
         </Form.Select>
-        <Form.Select className="w-auto">
+        <Form.Select className=""style={{ width: "130px" }}>
           <option>All Projects</option>
         </Form.Select>
       </div>
