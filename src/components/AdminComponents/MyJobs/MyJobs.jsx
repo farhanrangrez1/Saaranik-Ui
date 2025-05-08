@@ -89,6 +89,16 @@ function MyJobs() {
       // Aap yahan file ko backend pe bhej sakte ho
     }
   };
+
+  const handleSelectAll = (e) => {
+    const isChecked = e.target.checked;
+    const allJobs = jobs.reduce((acc, job) => {
+      acc[job.id] = isChecked;
+      return acc;
+    }, {});
+    setSelectedJobs(allJobs);
+  };
+
   return (
     <div className="p-4 m-2" style={{ backgroundColor: "white", borderRadius: "10px" }}>
       <h5 className="fw-bold mb-3 text-start">My Jobs</h5>
@@ -128,6 +138,9 @@ function MyJobs() {
       <Table responsive hover className="align-middle bg-white rounded shadow-sm overflow-hidden">
         <thead className="table-light">
           <tr>
+              <th>
+                            <input type="checkbox" onChange={handleSelectAll} />
+                          </th>
             <th  className="text-nowrap">Job No</th>
             <th className="text-nowrap">Brand</th>
             <th className="text-nowrap">SubBrand</th>
@@ -144,6 +157,9 @@ function MyJobs() {
         <tbody>
           {jobs.map((job) => (
             <tr key={job.id}>
+                <th>
+                <input type="checkbox" onChange={handleSelectAll} />
+              </th>
               <td><Link to={"/OvervieMyJobs"}>{job.id}</Link></td>
               <td>{job.brandName}</td>
               <td>{job.subBrand}</td>
@@ -177,7 +193,7 @@ function MyJobs() {
         style={{ display: 'none' }}
         onChange={handleFileChange}
       />
-  <Button
+  {/* <Button
         size="sm"
         variant="dark"
         className="me-2"
@@ -201,11 +217,11 @@ function MyJobs() {
       >
         <FaUpload className="me-1" />
         Excel
-      </Button>
+      </Button> */}
       <Button
         size="sm"
         variant="dark"
-        className="me-2"
+        className="me-2 d-flex"
         onClick={handleUploadClick}
         id="All_btn"
       >

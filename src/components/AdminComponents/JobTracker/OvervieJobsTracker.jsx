@@ -287,8 +287,17 @@ const OvervieJobsTracker = ({ onClose }) => {
 </Row>
 
 
-
-
+{/* <div className="col-md-6 text-center mt-4">
+  <label className="form-label">Project Barcode</label>
+  <div className="border p-3 d-inline-block bg-light rounded shadow-sm">
+  
+    <div className="mt-2 fw-bold">POS-123456</div>
+  </div>
+</div> */}
+<div className="col-md-6 mt-4 mb-4">
+<label className="fw-bold">Project Barcode</label>
+<div className="mt-2 form-label ">POS-123456</div>
+</div>
 
         {/* Progress Section */}
         <h5 className="fw-bold text-primary mb-3">Progress</h5>

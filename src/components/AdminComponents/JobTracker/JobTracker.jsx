@@ -23,7 +23,7 @@ function JobTracker() {
     {
       jobNumber: "00001",
       projectName: "Project A",
-      brandName: "Brand 1",
+      brandName: "Brand1",
       subBrand: "SubBrand1",
       flavour: "Flavour1",
       packType: "Type 1",
@@ -37,7 +37,7 @@ function JobTracker() {
     {
       jobNumber: "00002",
       projectName: "Project B",
-      brandName: "Brand 2",
+      brandName: "Brand2",
       subBrand: "SubBrand2",
       flavour: "Flavour2",
       packType: "Type 2",
@@ -51,7 +51,7 @@ function JobTracker() {
     {
       jobNumber: "00003",
       projectName: "Project C",
-      brandName: "Brand 3",
+      brandName: "Brand3",
       subBrand: "SubBrand3",
       flavour: "Flavour3",
       packType: "Type 3",
