@@ -59,7 +59,7 @@ import Extrahr from "./components/AdminComponents/TimeLogs/Extrahr";
 import InProgressDashboard from "./components/AdminComponents/Dashbord/InProgressDashboard.jsx";
 import InProgressDashboardJobsDueToday from "./components/AdminComponents/Dashbord/InProgressDashboardJobsDueToday.jsx";
 import InProgressDashboardProject from "./components/AdminComponents/Dashbord/InProgressDashboardProject.jsx";
-
+import { ToastContainer } from 'react-toastify';
 
 
 function App() {
@@ -73,6 +73,7 @@ function App() {
 
   return (
     <div className="Main-App">
+       <ToastContainer position="top-right" autoClose={3000} />
       {!hideLayout && <Navbar toggleSidebar={toggleSidebar} />}
       <div className={`Main-App-container ${hideLayout ? "no-sidebar" : ""}`}>
         {!hideLayout && (

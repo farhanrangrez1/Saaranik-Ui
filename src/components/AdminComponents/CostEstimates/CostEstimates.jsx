@@ -266,7 +266,7 @@ function CostEstimates() {
 
         <tbody>
           {purchaseOrders.map((po, index) => (
-            <tr key={po.poNumber}>
+            <tr style={{ whiteSpace: "nowrap" }} key={po.poNumber}>
               <td>{po.estimateRef}</td>
               <td>{po.receivedDate}</td>
               <td>{po.client}</td>

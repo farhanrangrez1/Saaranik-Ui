@@ -1,14 +1,24 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ProjectOverviewTab from './ProjectTabs/ProjectOverviewTab';
 import ProjectJobsTab from './ProjectTabs/ProjectJobsTab';
 import ProjectFinanceTab from './ProjectTabs/ProjectFinanceTab';
 import ProjectDocumentsTab from './ProjectTabs/ProjectDocumentsTab';
 import ProjectTeamTab from './ProjectTabs/ProjectTeamTab';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useDispatch ,useSelector} from 'react-redux';
 
 function ProjectOverview() {
-  const [activeTab, setActiveTab] = useState('overview');
+const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const location = useLocation();
+  const params = useParams();
+  const id = location.state?.id || params.id;
+  useEffect(() => {
+    console.log("Project ID:", id);
+  }, [id]);
 
+
+  const [activeTab, setActiveTab] = useState('overview');
   const projectData = {
     title: 'Website Redesign Project',
     projectId: 'P00001',
@@ -61,6 +71,14 @@ function ProjectOverview() {
         return <ProjectOverviewTab projectData={projectData} />;
     }
   };
+
+
+  // const { project, loading, error } = useSelector((state) => state.jobs);
+
+  // useEffect(() => {
+  //   dispatch(fetchjo());
+  // }, [dispatch]);
+
 
   return (
     <div className="container-fluid py-4">

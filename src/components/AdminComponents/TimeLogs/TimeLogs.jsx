@@ -14,36 +14,36 @@ function TimeLogs() {
 
   const [timeLogs, setTimeLogs] = useState([
     {
-      date: '2024-01-19',
+      date: '2024/01/19',
       jobId: '#JOB102',
-      project: 'Holiday Package Design',
+      project: 'Holiday Package',
       hours: 4.5,
       taskNotes: 'Initial concept development and sketching',
       day: 14,
       ExtraHours: "12"
     },
     {
-      date: '2024-01-19',
+      date: '2024/01/19',
       jobId: '#JOB101',
-      project: 'Product Catalog',
+      project: 'ProductCatalog',
       hours: 6.0,
       taskNotes: 'Layout design and photo editing',
       day: "16",
       ExtraHours: "25"
     },
     {
-      date: '2024-01-18',
+      date: '2024/01/18',
       jobId: '#JOB102',
-      project: 'Holiday Package Design',
+      project: 'HolidaywPackage ',
       hours: 5.5,
       taskNotes: 'Color palette selection and mockups',
       day: "22",
       ExtraHours: "9.5"
     },
     {
-      date: '2024-01-18',
+      date: '2024/01/18',
       jobId: '#JOB100',
-      project: 'Brand Guidelines',
+      project: 'BrandGuidelines',
       hours: 8,
       taskNotes: 'Typography system and logo variations',
       day: "28",

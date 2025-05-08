@@ -28,7 +28,7 @@ function Completed_Jobs() {
   const jobData = [
     {
       jobNumber: "00001",
-      brand: "Brand 1",
+      brand: "Brand1",
       subBrand: "SubBrand1",
       flavour: "Flavour1",
       type: "Type1",
@@ -37,11 +37,11 @@ function Completed_Jobs() {
       completed: "2023-12-15",
       timeSpent: "2h 15m",
       budget: "2h 15m",
-      designer: "Sarah Chen",
+      designer: "SarahChen",
     },
     {
       jobNumber: "00002",
-      brand: "Brand 2",
+      brand: "Brand2",
       subBrand: "SubBrand2",
       flavour: "Flavour2",
       type: "Type2",
@@ -50,12 +50,12 @@ function Completed_Jobs() {
       completed: "2023-12-14",
       timeSpent: "3h 30m",
       budget: "3h 30m",
-      designer: "Mike Johnson",
+      designer: "MikeJohnson",
     },
     {
       jobNumber: "00003",
       brand: "Brand3",
-      subBrand: "Sub Brand3",
+      subBrand: "SubBrand3",
       flavour: "Flavour3",
       type: "Type3",
       size: "Size 3ml",
@@ -63,7 +63,7 @@ function Completed_Jobs() {
       completed: "2023-12-13",
       timeSpent: "2h 45m",
       budget: "2h 45m",
-      designer: "Alex Wong",
+      designer: "AlexWong",
     },
   ];
 
