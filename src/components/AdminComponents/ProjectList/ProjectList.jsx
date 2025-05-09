@@ -73,9 +73,36 @@ function ProjectList() {
   const handleUpdate = (project) => {
     navigate(`/AddProjectList`, { state: { project } });
   };
-  const CreatJobs =(id)=>{
-    navigate(`/ProjectOverview`, { state: {id} });
+  const CreatJobs = (id) => {
+    navigate(`/ProjectOverview`, { state: { id } });
   }
+
+  const getStatusClass = (status) => {
+    switch ((status || "").toLowerCase().trim()) {
+      case "active project":
+        return "bg-primary text-white";
+      case "in progress":
+      case "in_progress":
+        return "bg-warning text-dark";
+      case "completed":
+        return "bg-success text-white";
+      case "closed":
+        return "bg-dark text-white";
+      case "cancelled":
+        return "bg-danger text-white";
+      case "on hold":
+        return "bg-info text-dark";
+      case "review":
+        return "bg-info text-dark";
+      case "not started":
+        return "bg-secondary text-white";
+      case "open":
+        return "bg-primary text-white";
+      default:
+        return "bg-light text-dark";
+    }
+  };
+
   return (
     <div className="project-container">
       {/* Header */}
@@ -177,7 +204,7 @@ function ProjectList() {
                     onChange={() => handleCheckboxChange(project.id)}
                   />
                 </td>
-                <td onClick={()=>CreatJobs(project.id)}>
+                <td onClick={() => CreatJobs(project.id)}>
                   <Link>
                     {String(index + 1).padStart(4, '0')}
                   </Link>
@@ -196,16 +223,10 @@ function ProjectList() {
                       .join(', ')
                     : 'N/A'}
                 </th>
-
                 <td>
-                  <Button
-                    id='All_btn'
-                    variant="success"
-                    style={{ width: "130px" }}
-                    size="sm"
-                  >
-                    {project.status || "Active"}
-                  </Button>
+                  <span className={`badge ${getStatusClass(project.status)} px-2 py-1`}>
+                    {project.status}
+                  </span>
                 </td>
                 <td>
                   <div className="action-buttons d-flex">

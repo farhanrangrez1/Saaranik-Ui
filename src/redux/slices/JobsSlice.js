@@ -89,17 +89,17 @@ const jobsSlice = createSlice({
         //     state.loading = false;
         //     state.error = action.payload;
         //   })
-      // .addCase(fetchjob.pending, (state) => {
-      //   state.status = 'loading';
-      // })
-      // .addCase(fetchjob.fulfilled, (state, action) => {
-      //   state.status = 'succeeded';
-      //   state.job = action.payload;
-      // })
-      // .addCase(fetchjob.rejected, (state, action) => {
-      //   state.status = 'failed';
-      //   state.error = action.payload;
-      // })
+      .addCase(fetchjobs.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(fetchjobs.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.job = action.payload;
+      })
+      .addCase(fetchjobs.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      })
     //   .addCase(createjob.fulfilled, (state, action) => {
     //     state.job.push(action.payload);
     //   })

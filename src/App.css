@@ -372,9 +372,6 @@ a:hover {
     transition: transform 0.2s ease-in-out;
   }
   
-  .card:hover {
-    transform: translateY(-5px);
-  }
   
   .rounded-circle {
     width: 48px;
@@ -631,5 +628,8 @@ a:hover {
   background-color:#0052CC;
   color: white;
   border: none;
-
+}
+#icone_btn {
+  color:white;
+  border: 1px solid #0052CC;
 }

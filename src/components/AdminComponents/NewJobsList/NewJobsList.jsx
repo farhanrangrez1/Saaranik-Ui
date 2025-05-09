@@ -1,9 +1,19 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { MdEditSquare } from "react-icons/md";
 import { FaRegTrashCan } from "react-icons/fa6";
 import { Button, Form, Table, Pagination, Modal } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { FaEye } from "react-icons/fa";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchjobs } from "../../../redux/slices/JobsSlice";
+import {
+  FaFilePdf,
+  FaUpload,
+  FaLink,
+  FaClock,
+  FaEdit,
+} from "react-icons/fa";
+import { Dropdown } from "react-bootstrap";
 
 function NewJobsList() {
   const [showModal, setShowModal] = useState(false);
@@ -102,6 +112,116 @@ function NewJobsList() {
     setRejectionReason("");
   };
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+  // ////////////////////////////////////////
+    const [searchQuery, setSearchQuery] = useState("");
+    const [selectedProject, setSelectedProject] = useState("All Projects");
+    const [selectedPriority, setSelectedPriority] = useState("All Priorities");
+    const [selectedStatus, setSelectedStatus] = useState("All Status");
+    const [selectedStage, setSelectedStage] = useState("All Stages");
+  
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const location = useLocation();
+    const params = useParams();
+    const id = location.state?.id || params.id;
+  
+    const { job } = useSelector((state) => state.jobs);
+  
+    useEffect(() => {
+      dispatch(fetchjobs());
+    }, [dispatch]);
+
+  
+    const getPriorityClass = (priority) => {
+      switch ((priority || "").toLowerCase()) {
+        case "high":
+          return "text-danger";
+        case "medium":
+          return "text-warning";
+        case "low":
+          return "text-success";
+        default:
+          return "";
+      }
+    };
+  
+    const getStatusClass = (status) => {
+      switch ((status || "").toLowerCase().trim()) {
+        case "in progress":
+        case "in_progress":
+          return "bg-warning text-dark";
+        case "review":
+          return "bg-info text-dark";
+        case "not started":
+          return "bg-secondary text-white";
+        case "completed":
+          return "bg-success text-white";
+        case "open":
+          return "bg-primary text-white";
+        default:
+          return "bg-light text-dark";
+      }
+    };
+  
+    // ✅ Filter jobs from Redux store
+    const filteredJobs = (job?.jobs || []).filter((j) => {
+      const search = searchQuery.toLowerCase();
+  
+      const matchesSearch =
+        j.jobNumber?.toLowerCase().includes(search) ||
+        j.project?.projectName?.toLowerCase().includes(search) ||
+        j.brandName?.toLowerCase().includes(search) ||
+        j.subBrand?.toLowerCase().includes(search) ||
+        j.flavour?.toLowerCase().includes(search) ||
+        j.packType?.toLowerCase().includes(search) ||
+        j.packSize?.toLowerCase().includes(search);
+  
+      const matchesProject =
+        selectedProject === "All Projects" ||
+        j.project?.projectName === selectedProject;
+  
+      const matchesPriority =
+        selectedPriority === "All Priorities" ||
+        j.priority?.toLowerCase() === selectedPriority.toLowerCase();
+  
+      const matchesStatus =
+        selectedStatus === "All Status" ||
+        j.Status?.toLowerCase() === selectedStatus.toLowerCase();
+  
+      const matchesStage =
+        selectedStage === "All Stages" ||
+        j.stage?.toLowerCase() === selectedStage.toLowerCase();
+  
+      return (
+        matchesSearch &&
+        matchesProject &&
+        matchesPriority &&
+        matchesStatus &&
+        matchesStage
+      );
+    });
+  
+    const handleUpdate = (job) => {
+      navigate(`/AddJobTracker`, { state: { job } });
+    };
+  
+    const JobDetails = (job) => {
+      navigate(`/OvervieJobsTracker`, { state: { job } });
+    }
+  
   return (
     <div className="container bg-white p-4 mt-4 rounded shadow-sm">
       {/* Title */}
@@ -139,83 +259,99 @@ function NewJobsList() {
         <Form.Select className="" style={{ width: "120px" }}>
           <option>All Clients</option>
         </Form.Select>
-        <Form.Select className=""style={{ width: "130px" }}>
-          <option>All Projects</option>
-        </Form.Select>
+        
+        <Dropdown>
+          <Dropdown.Toggle variant="light" id="project-dropdown">
+            {selectedProject}
+          </Dropdown.Toggle>
+          <Dropdown.Menu>
+            <Dropdown.Item onClick={() => setSelectedProject("All Projects")}>All Projects</Dropdown.Item>
+            {job?.jobs?.map((j, i) => (
+              <Dropdown.Item key={i} onClick={() => setSelectedProject(j.project?.projectName || "N/A")}>
+                {j.project?.projectName || "N/A"}
+              </Dropdown.Item>
+            ))}
+          </Dropdown.Menu>
+        </Dropdown>
       </div>
 
       {/* Table */}
-      <Table hover responsive className="align-middle">
-        <thead className="table-light">
-          <tr>
-            <th>
-              <input
-                type="checkbox"
-                onChange={() => {
-                  const isChecked =
-                    Object.keys(selectedJobs).length === jobs.length;
-                  const newSelectedJobs = {};
-                  jobs.forEach((job) => (newSelectedJobs[job.id] = !isChecked));
-                  setSelectedJobs(newSelectedJobs);
-                }}
-              />
-            </th>
-            <th>JobNo</th>
-            <th>Brand</th>
-            <th>SubBrand</th>
-            <th>Flavour</th>
-            <th>PackType</th>
-            <th>PackSize</th>
-            <th>PackCode</th>
-            <th>Brief</th>
-            <th>DateReceived</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {jobs.map((job) => (
-            <tr key={job.id}>
-              <td>
-                <input
-                  type="checkbox"
-                  checked={selectedJobs[job.id] || false}
-                  onChange={() => handleCheckboxChange(job.id)}
-                />
-              </td>
-              <td>
-                <Link to={"/OvervieJobsTracker"}>{job.id}</Link>
-              </td>
-              <td>{job.project}</td>
-              <td>{job.client}</td>
-              <td>Flavour1</td>
-              <td>Type1</td>
-              <td>Size1</td>
-              <td>Code1</td>
-              <td>
-                <FaEye
-                  className="text-primary me-2"
-                  style={{ cursor: "pointer" }}
-                  onClick={() => handleShowDescription(job)}
-                  title="View Description"
-                />
-              </td>
-              <td>{job.date}</td>
-              <td>
-                <div className="d-flex gap-2">
-                  <span
-                    className="text-primary"
-                    style={{ cursor: "pointer" }}
-                    onClick={() => handleAssignButtonClick()}
-                  >
-                    Assign
-                  </span>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
-
+     <div className="table-responsive" style={{ maxHeight: "500px", overflowY: "auto" }}>
+          <Table hover className="align-middle sticky-header">
+            <thead className="bg-light">
+              <tr>
+                <th><input type="checkbox" /></th>
+                <th>JobNo</th>
+                <th>ProjectName</th>
+                <th>Brand</th>
+                <th>SubBrand</th>
+                <th>Flavour</th>
+                <th>PackType</th>
+                <th>PackSize</th>
+                <th>Priority</th>
+                <th>Due Date</th>
+                <th>Assign</th>
+                <th>TimeLogged</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredJobs.slice().reverse().map((job, index) => (
+                <tr key={job._id}>
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={selectedJobs[job._id] || false}
+                      onChange={() => handleCheckboxChange(job._id)}
+                    />
+                  </td>
+                  <td>
+                    <span
+                      style={{ color: "blue", cursor: "pointer", textDecoration: "underline" }}
+                      onClick={() => JobDetails(job)}
+                    >
+                      {String(index + 1).padStart(4, '0')}
+                    </span>
+                  </td>
+  
+                  <td>{job.project?.projectName || "N/A"}</td>
+                  <td>{job.brandName}</td>
+                  <td>{job.subBrand}</td>
+                  <td>{job.flavour}</td>
+                  <td>{job.packType}</td>
+                  <td>{job.packSize}</td>
+                  <td>
+                    <span className={getPriorityClass(job.priority)}>{job.priority}</span>
+                  </td>
+                  <td>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
+                  <td>{job.assign}</td>
+                  <td>{job.totalTime}</td>
+                  <td>
+                    <span className={`badge ${getStatusClass(job.Status)} px-2 py-1`}>
+                      {job.Status}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="d-flex gap-2">
+                      <Button id="icone_btn"  size="sm"><FaFilePdf /></Button>
+                      <Button id="icone_btn"  size="sm"><FaUpload /></Button>
+                      <Button id="icone_btn" size="sm"><FaLink /></Button>
+                      <Button id="icone_btn"  size="sm"><FaClock /></Button>
+                      <Button
+                      id="icone_btn"                                          
+                        size="sm"
+                        onClick={() => handleUpdate(job)}
+                      >
+                        <FaEdit />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        </div>
       {/* Pagination */}
       <div className="d-flex justify-content-between align-items-center">
         <div>Showing 1 to 3 of 12 entries</div>

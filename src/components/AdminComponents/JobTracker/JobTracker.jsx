@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button, Form, Table, Dropdown } from "react-bootstrap";
 import {
   FaFilePdf,
@@ -6,66 +6,40 @@ import {
   FaLink,
   FaClock,
   FaEdit,
-  FaTrash,
 } from "react-icons/fa";
-import { Link } from "react-router-dom";
-import { MdDeleteOutline } from 'react-icons/md';
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchjobs } from "../../../redux/slices/JobsSlice";
+import Swal from "sweetalert2";
 
 function JobTracker() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProject, setSelectedProject] = useState("All Projects");
   const [selectedPriority, setSelectedPriority] = useState("All Priorities");
   const [selectedStatus, setSelectedStatus] = useState("All Status");
-  const [selectedStage, setSelectedStage] = useState("All Stages");
   const [selectedJobs, setSelectedJobs] = useState({});
 
-  const jobData = [
-    {
-      jobNumber: "00001",
-      projectName: "Project A",
-      brandName: "Brand1",
-      subBrand: "SubBrand1",
-      flavour: "Flavour1",
-      packType: "Type 1",
-      packSize: "Size 1ml",
-      packCode: "Code1",
-      priority: "High",
-      status: "In Progress",
-      timeLogged: "12h 30m",
-      stage: "Production",
-    },
-    {
-      jobNumber: "00002",
-      projectName: "Project B",
-      brandName: "Brand2",
-      subBrand: "SubBrand2",
-      flavour: "Flavour2",
-      packType: "Type 2",
-      packSize: "Size 2ml",
-      packCode: "Code2",
-      priority: "Medium",
-      status: "Review",
-      timeLogged: "8h 45m",
-      stage: "Home",
-    },
-    {
-      jobNumber: "00003",
-      projectName: "Project C",
-      brandName: "Brand3",
-      subBrand: "SubBrand3",
-      flavour: "Flavour3",
-      packType: "Type 3",
-      packSize: "Size 3ml",
-      packCode: "Code3",
-      priority: "Low",
-      status: "Not Started",
-      timeLogged: "0h 0m",
-      stage: "Production",
-    },
-  ];
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const location = useLocation();
+  const params = useParams();
+  const id = location.state?.id || params.id;
+
+  const { job } = useSelector((state) => state.jobs);
+
+  useEffect(() => {
+    dispatch(fetchjobs());
+  }, [dispatch]);
+
+  const handleCheckboxChange = (jobId) => {
+    setSelectedJobs((prevSelectedJobs) => ({
+      ...prevSelectedJobs,
+      [jobId]: !prevSelectedJobs[jobId],
+    }));
+  };
 
   const getPriorityClass = (priority) => {
-    switch (priority.toLowerCase()) {
+    switch ((priority || "").toLowerCase()) {
       case "high":
         return "text-danger";
       case "medium":
@@ -78,193 +52,130 @@ function JobTracker() {
   };
 
   const getStatusClass = (status) => {
-    switch (status.toLowerCase()) {
+    switch ((status || "").toLowerCase().trim()) {
       case "in progress":
+      case "in_progress":
         return "bg-warning text-dark";
       case "review":
         return "bg-info text-dark";
       case "not started":
         return "bg-secondary text-white";
+      case "completed":
+        return "bg-success text-white";
+      case "open":
+        return "bg-primary text-white";
       default:
-        return "bg-light";
+        return "bg-light text-dark";
     }
   };
 
-  const handleCheckboxChange = (jobNumber) => {
-    setSelectedJobs((prevSelectedJobs) => ({
-      ...prevSelectedJobs,
-      [jobNumber]: !prevSelectedJobs[jobNumber],
-    }));
-  };
-
-  const filteredJobs = jobData.filter((job) => {
+  // ✅ Filter jobs from Redux store
+  const filteredJobs = (job?.jobs || []).filter((j) => {
     const search = searchQuery.toLowerCase();
+
     const matchesSearch =
-      job.jobNumber.toLowerCase().includes(search) ||
-      job.projectName.toLowerCase().includes(search) ||
-      job.brandName.toLowerCase().includes(search) ||
-      job.subBrand.toLowerCase().includes(search) ||
-      job.flavour.toLowerCase().includes(search) ||
-      job.packType.toLowerCase().includes(search) ||
-      job.packSize.toLowerCase().includes(search);
+      j.jobNumber?.toLowerCase().includes(search) ||
+      j.project?.projectName?.toLowerCase().includes(search) ||
+      j.brandName?.toLowerCase().includes(search) ||
+      j.subBrand?.toLowerCase().includes(search) ||
+      j.flavour?.toLowerCase().includes(search) ||
+      j.packType?.toLowerCase().includes(search) ||
+      j.packSize?.toLowerCase().includes(search);
 
     const matchesProject =
-      selectedProject === "All Projects" || job.projectName === selectedProject;
+      selectedProject === "All Projects" ||
+      j.project?.projectName === selectedProject;
+
     const matchesPriority =
       selectedPriority === "All Priorities" ||
-      job.priority === selectedPriority;
+      j.priority?.toLowerCase() === selectedPriority.toLowerCase();
+
     const matchesStatus =
-      selectedStatus === "All Status" || job.status === selectedStatus;
-    const matchesStage =
-      selectedStage === "All Stages" || job.stage === selectedStage;
+      selectedStatus === "All Status" ||
+      j.Status?.toLowerCase() === selectedStatus.toLowerCase();
+
+  
 
     return (
       matchesSearch &&
       matchesProject &&
       matchesPriority &&
-      matchesStatus &&
-      matchesStage
+      matchesStatus
     );
   });
 
+  const handleUpdate = (job) => {
+    navigate(`/AddJobTracker`, { state: { job } });
+  };
+
+  const JobDetails = (job) => {
+    navigate(`/OvervieJobsTracker`, { state: { job } });
+  }
+
   return (
-    <div
-      className="p-4 m-3"
-      style={{ backgroundColor: "white", borderRadius: "10px" }}
-    >
+    <div className="p-4 m-3" style={{ backgroundColor: "white", borderRadius: "10px" }}>
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="job-title mb-0">Job Tracker</h2>
       </div>
 
       {/* Filters */}
       <div className="filters d-flex flex-wrap gap-2 mb-4">
-        {/* <Form.Control 
-          type="search"
-          placeholder="Search by Job #, Project Name, Brand, etc..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="flex-grow-1 "
-        /> */}
-
         <Form.Control
           type="search"
           placeholder="Search by Job #, Project Name, Brand, etc..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          style={{ width: "250px" }} // ✅ Custom width
-          className="search-input"
+          style={{ width: "250px" }}
         />
 
         <Dropdown>
-          <Dropdown.Toggle
-            variant="light"
-            id="project-dropdown"
-            className="custom-dropdown"
-          >
+          <Dropdown.Toggle variant="light" id="project-dropdown">
             {selectedProject}
           </Dropdown.Toggle>
           <Dropdown.Menu>
-            <Dropdown.Item onClick={() => setSelectedProject("All Projects")}>
-              All Projects
-            </Dropdown.Item>
-            <Dropdown.Item onClick={() => setSelectedProject("Project A")}>
-              Project A
-            </Dropdown.Item>
-            <Dropdown.Item onClick={() => setSelectedProject("Project B")}>
-              Project B
-            </Dropdown.Item>
-            <Dropdown.Item onClick={() => setSelectedProject("Project C")}>
-              Project C
-            </Dropdown.Item>
+            <Dropdown.Item onClick={() => setSelectedProject("All Projects")}>All Projects</Dropdown.Item>
+            {job?.jobs?.map((j, i) => (
+              <Dropdown.Item key={i} onClick={() => setSelectedProject(j.project?.projectName || "N/A")}>
+                {j.project?.projectName || "N/A"}
+              </Dropdown.Item>
+            ))}
           </Dropdown.Menu>
         </Dropdown>
 
         <Dropdown>
-          <Dropdown.Toggle
-            variant="light"
-            id="priority-dropdown"
-            className="custom-dropdown"
-          >
+          <Dropdown.Toggle variant="light" id="priority-dropdown">
             {selectedPriority}
           </Dropdown.Toggle>
           <Dropdown.Menu>
-            <Dropdown.Item
-              onClick={() => setSelectedPriority("All Priorities")}
-            >
-              All Priorities
-            </Dropdown.Item>
-            <Dropdown.Item onClick={() => setSelectedPriority("High")}>
-              High
-            </Dropdown.Item>
-            <Dropdown.Item onClick={() => setSelectedPriority("Medium")}>
-              Medium
-            </Dropdown.Item>
-            <Dropdown.Item onClick={() => setSelectedPriority("Low")}>
-              Low
-            </Dropdown.Item>
+            {["All Priorities", "High", "Medium", "Low"].map((item) => (
+              <Dropdown.Item key={item} onClick={() => setSelectedPriority(item)}>
+                {item}
+              </Dropdown.Item>
+            ))}
           </Dropdown.Menu>
         </Dropdown>
 
         <Dropdown>
-          <Dropdown.Toggle
-            variant="light"
-            id="status-dropdown"
-            className="custom-dropdown"
-          >
+          <Dropdown.Toggle variant="light" id="status-dropdown">
             {selectedStatus}
           </Dropdown.Toggle>
           <Dropdown.Menu>
-            <Dropdown.Item onClick={() => setSelectedStatus("All Status")}>
-              All Status
-            </Dropdown.Item>
-            <Dropdown.Item onClick={() => setSelectedStatus("In Progress")}>
-              In Progress
-            </Dropdown.Item>
-            <Dropdown.Item onClick={() => setSelectedStatus("Review")}>
-              Review
-            </Dropdown.Item>
-            <Dropdown.Item onClick={() => setSelectedStatus("Not Started")}>
-              Not Started
-            </Dropdown.Item>
+            {["All Status", "In Progress", "Review", "Not Started", "Completed"].map((item) => (
+              <Dropdown.Item key={item} onClick={() => setSelectedStatus(item)}>
+                {item}
+              </Dropdown.Item>
+            ))}
           </Dropdown.Menu>
         </Dropdown>
 
-        <Dropdown>
-          <Dropdown.Toggle
-            variant="light"
-            id="stage-dropdown"
-            className="custom-dropdown"
-          >
-            {selectedStage}
-          </Dropdown.Toggle>
-          <Dropdown.Menu>
-            <Dropdown.Item onClick={() => setSelectedStage("All Stages")}>
-              All Stages
-            </Dropdown.Item>
-            <Dropdown.Item onClick={() => setSelectedStage("Production")}>
-              Production
-            </Dropdown.Item>
-            <Dropdown.Item onClick={() => setSelectedStage("Home")}>
-              Home
-            </Dropdown.Item>
-          </Dropdown.Menu>
-        </Dropdown>
-
-        {/* ❌ Add New Job button removed */}
-        {/* ❌ Date Field removed */}
       </div>
 
       {/* Table */}
-      <div
-        className="table-responsive"
-        style={{ maxHeight: "500px", overflowY: "auto" }}
-      >
+      <div className="table-responsive" style={{ maxHeight: "500px", overflowY: "auto" }}>
         <Table hover className="align-middle sticky-header">
           <thead className="bg-light">
             <tr>
-              <th>
-                <input type="checkbox" />
-              </th>
+              <th><input type="checkbox" /></th>
               <th>JobNo</th>
               <th>ProjectName</th>
               <th>Brand</th>
@@ -273,67 +184,62 @@ function JobTracker() {
               <th>PackType</th>
               <th>PackSize</th>
               <th>Priority</th>
-              <th>Status</th>
-              <th>Stage</th>
+              <th>Due Date</th>
+              <th>Assign</th>
               <th>TimeLogged</th>
+              <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {filteredJobs.map((job, index) => (
-              <tr key={index}>
+            {filteredJobs.slice().reverse().map((job, index) => (
+              <tr key={job._id}>
                 <td>
                   <input
                     type="checkbox"
-                    checked={selectedJobs[job.jobNumber] || false}
-                    onChange={() => handleCheckboxChange(job.jobNumber)}
+                    checked={selectedJobs[job._id] || false}
+                    onChange={() => handleCheckboxChange(job._id)}
                   />
                 </td>
                 <td>
-                  <Link to={"/OvervieJobsTracker"}>{job.jobNumber}</Link>
+                  <span
+                    style={{ color: "blue", cursor: "pointer", textDecoration: "underline" }}
+                    onClick={() => JobDetails(job)}
+                  >
+                    {String(index + 1).padStart(4, '0')}
+                  </span>
                 </td>
-                <td>{job.projectName}</td>
+
+                <td>{job.project?.projectName || "N/A"}</td>
                 <td>{job.brandName}</td>
-                <td>{job.subBrand}</td>
+                <td style={{ whiteSpace: "nowrap" }}>{job.subBrand}</td>
                 <td>{job.flavour}</td>
                 <td>{job.packType}</td>
                 <td>{job.packSize}</td>
                 <td>
-                  <span className={getPriorityClass(job.priority)}>
-                    {job.priority}
-                  </span>
+                  <span className={getPriorityClass(job.priority)}>{job.priority}</span>
                 </td>
+                <td>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
+                <td>{job.assign}</td>
+                <td>{job.totalTime}</td>
                 <td>
-                  <span
-                    className={`badge ${getStatusClass(job.status)} px-2 py-1`}
-                  >
-                    {job.status}
+                  <span className={`badge ${getStatusClass(job.Status)} px-2 py-1`}>
+                    {job.Status}
                   </span>
                 </td>
-                <td>{job.stage}</td>
-                <td>{job.timeLogged}</td>
                 <td>
                   <div className="d-flex gap-2">
-                    <Button variant="outline-secondary" size="sm">
-                      <FaFilePdf />
+                    <Button id="icone_btn"  size="sm"><FaFilePdf /></Button>
+                    <Button id="icone_btn"  size="sm"><FaUpload /></Button>
+                    <Button id="icone_btn"  size="sm"><FaLink /></Button>
+                    <Button id="icone_btn"  size="sm"><FaClock /></Button>
+                    <Button
+                    id="icone_btn"
+                      size="sm"
+                      onClick={() => handleUpdate(job)}
+                    >
+                      <FaEdit />
                     </Button>
-                    <Button variant="outline-secondary" size="sm">
-                      <FaUpload />
-                    </Button>
-                    <Button variant="outline-secondary" size="sm">
-                      <FaLink />
-                    </Button>
-                    <Button variant="outline-secondary" size="sm">
-                      <FaClock />
-                    </Button>
-                    <Button variant="outline-secondary" size="sm">
-                      <Link to={"/updateJobTracker"}>
-                        <FaEdit />
-                      </Link>
-                    </Button>
-                    {/* <Button variant="outline-secondary" size="sm">
-                    <MdDeleteOutline />
-                    </Button> */}
                   </div>
                 </td>
               </tr>

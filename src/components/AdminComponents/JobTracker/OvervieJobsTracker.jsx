@@ -156,8 +156,9 @@
 
 import React, { useRef } from "react";
 import { Card, Row, Col, Button, ProgressBar, Table } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { FaUpload } from "react-icons/fa";
+import { useDispatch } from "react-redux";
 
 const OvervieJobsTracker = ({ onClose }) => {
   const fileInputRef = useRef(null);
@@ -191,7 +192,7 @@ const OvervieJobsTracker = ({ onClose }) => {
   ];
 
   // Sample job data
-  const job = {
+  const jobs = {
     jobNo: "Banner Design - Spring Campaign",
     status: "In Progress",
     dueDate: "April 25, 2025",
@@ -204,6 +205,15 @@ const OvervieJobsTracker = ({ onClose }) => {
     packSize: "500g",
     priority: "High",
   };
+
+
+  // /////
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const { id } = useParams(); // for edit mode
+    const location = useLocation();
+    const { job } = location.state || {};
+  console.log(job);
 
   return (
     <div className="container mt-5">
@@ -224,28 +234,28 @@ const OvervieJobsTracker = ({ onClose }) => {
             <p>
               <strong>Job No:</strong>
               <br />
-              {job.jobNo}
+              {jobs.jobNo}
             </p>
           </Col>
           <Col md={6}>
             <p>
               <strong>Status:</strong>
               <br />
-              {job.status}
+              {job?.Status}
             </p>
           </Col>
           <Col md={6}>
             <p>
               <strong>Due Date:</strong>
               <br />
-              {job.dueDate}
+              <td>{new Date(job?.createdAt).toLocaleDateString('en-GB').replace(/\/20/, '/')}</td>
             </p>
           </Col>
           <Col md={12}>
             <p>
               <strong>Instructions:</strong>
               <br />
-              {job.instructions}
+              {jobs.instructions}
             </p>
           </Col>
         </Row>
@@ -255,37 +265,53 @@ const OvervieJobsTracker = ({ onClose }) => {
         <Row className="mb-4">
   <Col md={4} className="mb-3">
     <h6 className="text-bold">Brand:</h6>
-    <p className="mb-0">{job.brand}</p>
+    <p className="mb-0">{job?.brandName}</p>
   </Col>
 
   <Col md={4} className="mb-3">
     <h6 className="text-bold">Flavour:</h6>
-    <p className="mb-0">{job.flavour}</p>
+    <p className="mb-0">{job?.flavour}</p>
   </Col>
 
   <Col md={4} className="mb-3">
     <h6 className="text-bold">SubBrand:</h6>
-    <p className="mb-0">{job.subBrand}</p>
+    <p className="mb-0">{job?.subBrand}</p>
   </Col>
 </Row>
 
 <Row className="mb-4">
   <Col md={4} className="mb-3">
     <h6 className="text-bold">Pack Type:</h6>
-    <p className="mb-0">{job.packType}</p>
+    <p className="mb-0">{job?.packType}</p>
   </Col>
 
   <Col md={4} className="mb-3">
     <h6 className="text-bold">Pack Size:</h6>
-    <p className="mb-0">{job.packSize}</p>
+    <p className="mb-0">{job?.packSize}</p>
   </Col>
 
   <Col md={4} className="mb-3">
-    <h6 className="text-bold">Pack Code:</h6>
-    <p className="mb-0">{job.packCode}</p>
+    <h6 className="text-bold">Priority:</h6>
+    <p className="mb-0">{job?.priority}</p>
   </Col>
 </Row>
 
+<Row className="mb-4">
+  <Col md={4} className="mb-3">
+    <h6 className="text-bold">Project Name:</h6>
+    <p className="mb-0">{job?.packType}</p>
+  </Col>
+
+  <Col md={4} className="mb-3">
+    <h6 className="text-bold">Assign:</h6>
+    <p className="mb-0">{job?.assign}</p>
+  </Col>
+
+  <Col md={4} className="mb-3">
+    <h6 className="text-bold">Total Time:</h6>
+    <p className="mb-0">{job?.totalTime}</p>
+  </Col>
+</Row>
 
 {/* <div className="col-md-6 text-center mt-4">
   <label className="form-label">Project Barcode</label>
@@ -296,7 +322,7 @@ const OvervieJobsTracker = ({ onClose }) => {
 </div> */}
 <div className="col-md-6 mt-4 mb-4">
 <label className="fw-bold">Project Barcode</label>
-<div className="mt-2 form-label ">POS-123456</div>
+<div className="mt-2 form-label ">{job?.barcode || "POS-123456"}</div>
 </div>
 
         {/* Progress Section */}

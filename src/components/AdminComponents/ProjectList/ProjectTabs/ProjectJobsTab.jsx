@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Modal, Form, Button } from 'react-bootstrap';
+import { useDispatch, useSelector } from 'react-redux';
+import { deletejob, fetchjobs } from '../../../../redux/slices/JobsSlice';
+import Swal from 'sweetalert2';
 
 function ProjectJobsTab() {
   const [showAssignModal, setShowAssignModal] = useState(false);
@@ -77,6 +80,87 @@ function ProjectJobsTab() {
     }
   };
 
+  const getPriorityClass = (priority) => {
+    switch (priority.toLowerCase()) {
+      case "high":
+        return "text-danger";
+      case "medium":
+        return "text-warning";
+      case "low":
+        return "text-success";
+      default:
+        return "";
+    }
+  };
+  // ////////////////////////////////////////
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const location = useLocation();
+  const params = useParams();
+  const id = location.state?.id || params.id;
+  useEffect(() => {
+    console.log("Project ID:", id);
+  }, [id]);
+
+  const { job } = useSelector((state) => state.jobs);
+  console.log(job.jobs, "all jobs");
+
+  useEffect(() => {
+    dispatch(fetchjobs());
+  }, [dispatch]);
+
+  
+ const handleDelete = (_id) => {
+    console.log(_id);
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        dispatch(deletejob(_id))
+          .then(() => {
+            Swal.fire("Deleted!", "The document has been deleted.", "success");
+            dispatch(fetchjobs());
+          })
+          .catch(() => {
+            Swal.fire("Error!", "Something went wrong.", "error");
+          });
+      }
+    });
+  }
+
+
+  const handleUpdate = (job) => {
+    navigate(`/AddJobTracker`, { state: { job } });
+  };
+
+  const JobDetails =(job)=>{
+    navigate(`/OvervieJobsTracker`, { state: { job } });
+  }
+
+
+  const getStatusClass = (status) => {
+    switch (status.toLowerCase().trim()) {
+      case "in progress":
+      case "in_progress":
+        return "bg-warning text-dark";
+      case "review":
+        return "bg-info text-dark";
+      case "not started":
+        return "bg-secondary text-white";
+      case "completed":
+        return "bg-success text-white";
+      case "open":
+        return "bg-primary text-white";
+      default:
+        return "bg-light text-dark";
+    }
+  };
   return (
     <div className="card">
       <div className="card-header d-flex align-content-center justify-content-between mt-3">
@@ -84,6 +168,7 @@ function ProjectJobsTab() {
         <div className="text-end">
           {/* ✅ Assign Button always enabled, shows error if none selected */}
           <Button
+            id='All_btn'
             className="m-2"
             variant="primary"
             onClick={() => {
@@ -98,7 +183,6 @@ function ProjectJobsTab() {
           >
             Assign
           </Button>
-
           <label className="btn btn-success m-2">
             <i className="bi bi-upload"></i> Import CSV
             <input
@@ -110,7 +194,7 @@ function ProjectJobsTab() {
           </label>
 
           <Link to={"/AddJobTracker"}>
-            <button className="btn btn-primary">
+            <button id='All_btn' className="btn btn-primary">
               <i className="bi bi-plus"></i> Add New
             </button>
           </Link>
@@ -143,18 +227,22 @@ function ProjectJobsTab() {
                   />
                 </th>
                 <th>JobsNo</th>
+                <th style={{ whiteSpace: 'nowrap' }}>Project Name</th>
                 <th>Brand</th>
                 <th>SubBrand</th>
                 <th>Flavour</th>
                 <th>PackType</th>
                 <th>PackSize</th>
-                <th>PackCode</th>
+                <th>Priority</th>
+                 <th style={{ whiteSpace: 'nowrap' }}>Due Date</th>
+                <th>Assing</th>
+                <th>TotalTime</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {jobs.map((job) => (
+              {job?.jobs?.slice().reverse().map((job, index) => (
                 <tr key={job.id}>
                   <td>
                     <input
@@ -163,27 +251,44 @@ function ProjectJobsTab() {
                       onChange={() => handleCheckboxChange(job.id)}
                     />
                   </td>
-                  <td><Link to={"/OvervieJobsTracker"}>{job.id}</Link></td>
+                  <td>
+                    <Link>
+                      {String(index + 1).padStart(4, '0')}
+                    </Link>
+                  </td>
+                  <td>{job.project?.projectName || 'N/A'}</td>
                   <td>{job.brandName}</td>
-                  <td>{job.subBrand}</td>
-                  <td>{job.flavour}</td>
+                  <td style={{ whiteSpace: 'nowrap' }}>{job.subBrand}</td>
+                  <td style={{ whiteSpace: 'nowrap' }}>{job.flavour}</td>
                   <td>{job.packType}</td>
                   <td>{job.packSize}</td>
-                  <td>{job.packCode}</td>
-                     <th>
-                      <Button className='' variant="success" style={{width:"150px"}} size="sm" >
-                                              {job.status || "Active"}
-                                             </Button></th>
+                  <td>
+                  <span className={getPriorityClass(job.priority)}>
+                    {job.priority}
+                  </span>
+                </td>
+                <td>{new Date(job?.createdAt).toLocaleDateString('en-GB').replace(/\/20/, '/')}</td>
+                  <td>{job.assign}</td>
+                  <td>{job.totalTime}</td>
+                  {/* <th>
+                    <Button id='All_btn' variant="success" style={{ width: "130px" }} size="sm" >
+                      {job.Status || "Active"}
+                    </Button></th> */}
+                    <td>
+                  <span
+                    className={`badge ${getStatusClass(job.Status)} px-2 py-1`}
+                  >
+                    {job.Status}
+                  </span>
+                </td>
                   <td className="d-flex">
-                    <Link to={"/OvervieJobsTracker"}>
-                      <button className="btn btn-sm btn-outline-primary me-1">
+                      <button className="btn btn-sm btn-outline-primary me-1" onClick={()=>JobDetails(job)}>
                         <i className="bi bi-eye"></i> View
                       </button>
-                    </Link>
-                    <button className="btn btn-sm btn-outline-primary me-1">
+                    <button className="btn btn-sm btn-outline-primary me-1" onClick={()=>handleUpdate(job)}>
                       <i className="bi bi-pencil"></i> Edit
                     </button>
-                    <button className="btn btn-sm btn-outline-danger">
+                    <button className="btn btn-sm btn-outline-danger" onClick={()=>handleDelete(job._id)}>
                       <i className="bi bi-trash"></i> Delete
                     </button>
                   </td>

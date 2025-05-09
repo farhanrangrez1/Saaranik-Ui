@@ -1506,3 +1506,394 @@ export default AddProjectList;
 
       
       
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      import axios from 'axios';
+      import React, { useEffect, useState } from 'react';
+      import { useNavigate, useParams } from 'react-router-dom'; // ✅ Added useParams
+      import { toast, ToastContainer } from 'react-toastify';
+      import 'react-toastify/dist/ReactToastify.css';
+      import Barcode from 'react-barcode';
+      import Select from 'react-select';
+      import { useDispatch, useSelector } from 'react-redux';
+      import { fetchProject } from '../../../redux/slices/ProjectsSlice';
+      import { createjob, fetchjobById } from '../../../redux/slices/JobsSlice';
+      
+      
+      import { useLocation } from 'react-router-dom';
+      
+      function AddJobTracker() {
+        const { id } = useParams(); 
+        const navigate = useNavigate();
+        const dispatch = useDispatch();
+      
+        const { project, loading, error } = useSelector((state) => state.projects);
+      
+        useEffect(() => {
+          dispatch(fetchProject());
+        }, [dispatch]);
+      
+        const [formData, setFormData] = useState({
+          projectsId: '',
+          brandName: '',
+          subBrand: '',
+          flavour: '',
+          packType: '',
+          packSize: '',
+          priority: '',
+          Status: '',
+          totalTime: '',
+          assign: '',
+          barcode: 'POS-123456',
+        });
+      
+        const brandOptions = [
+          { value: 'Pepsi', label: 'Pepsi' },
+          { value: 'CocaCola', label: 'CocaCola' },
+          { value: 'Fanta', label: 'Fanta' },
+        ];
+      
+        const flavourOptions = [
+          { value: 'Orange', label: 'Orange' },
+          { value: 'Lime', label: 'Lime' },
+          { value: 'Ginger Ale', label: 'Ginger Ale' },
+        ];
+      
+        const packSizeOptions = [
+          { value: '250ml', label: '250ml' },
+          { value: '500ml', label: '500ml' },
+          { value: '1L', label: '1L' },
+        ];
+      
+        const handleChange = (e) => {
+          const { name, value } = e.target;
+          setFormData((prev) => ({ ...prev, [name]: value }));
+        };
+      
+        useEffect(() => {
+          if (project && !id) {
+            setFormData((prev) => ({
+              ...prev,
+              projectRequirements: project.projectRequirements?.[0] || {},
+            }));
+          } else if (id) {
+            // If editing job
+            dispatch(fetchjobById(id)).then((res) => {
+              const fetchedProject = res.payload;
+              if (fetchedProject) {
+                setFormData({
+                  ...fetchedProject,
+                  projectRequirements: fetchedProject.projectRequirements?.[0] || {},
+                });
+              }
+            });
+          }
+        }, [id, dispatch, project]);
+      
+        const handleSubmit = (e) => {
+          e.preventDefault();
+      
+          if (id) {
+            toast.info('Update logic not implemented in this code');
+          } else {
+            dispatch(createjob(formData))
+              .unwrap()
+              .then(() => {
+                navigate('/ProjectOverview', { state: { openTab: 'jobs' } });
+                dispatch(fetchProject());
+                toast.success('Project created successfully!');
+              })
+              .catch(() => {
+                toast.error('Error creating project');
+              });
+          }
+        };
+      
+        const handleCancel = () => {
+          navigate('/projectList');
+        };
+      
+        
+        return (
+          <>
+            <ToastContainer />
+            <div className="container mt-5">
+              <div className="card shadow-sm">
+                <div className="card-body">
+                  <h1 className="card-title h4 mb-4">Add New Jobs</h1>
+                  <form className="row g-3" onSubmit={handleSubmit}>
+                    {/* Project Name */}
+                    <div className="col-md-6">
+                      <label className="form-label">Project Name</label>
+                      <select
+                        name="projectsId"
+                        className="form-control"
+                        value={formData.projectsId}
+                        onChange={handleChange}
+                      >
+                        <option value="" disabled>
+                          Select a project
+                        </option>
+                        {project?.data?.map((project) => (
+                          <option key={project._id} value={project._id}>
+                            {project.projectName}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+      
+                    {/* Brand Name */}
+                    <div className="col-md-6">
+                      <label className="form-label">Brand Name</label>
+                      <Select
+                        options={brandOptions}
+                        value={brandOptions.find((opt) => opt.value === formData.brandName)}
+                        onChange={(option) =>
+                          setFormData((prev) => ({ ...prev, brandName: option?.value || '' }))
+                        }
+                        isClearable
+                      />
+                    </div>
+      
+                    {/* Sub Brand */}
+                    <div className="col-md-6">
+                      <label className="form-label">Sub Brand</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        name="subBrand"
+                        value={formData.subBrand}
+                        onChange={handleChange}
+                      />
+                    </div>
+      
+                    {/* Flavour */}
+                    <div className="col-md-6">
+                      <label className="form-label">Flavour</label>
+                      <Select
+                        options={flavourOptions}
+                        value={flavourOptions.find((opt) => opt.value === formData.flavour)}
+                        onChange={(option) =>
+                          setFormData((prev) => ({ ...prev, flavour: option?.value || '' }))
+                        }
+                        isClearable
+                      />
+                    </div>
+      
+                    {/* Pack Type */}
+                    <div className="col-md-6">
+                      <label className="form-label">Pack Type</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        name="packType"
+                        value={formData.packType}
+                        onChange={handleChange}
+                      />
+                    </div>
+      
+                    {/* Pack Size */}
+                    <div className="col-md-6">
+                      <label className="form-label">Pack Size</label>
+                      <Select
+                        options={packSizeOptions}
+                        value={packSizeOptions.find((opt) => opt.value === formData.packSize)}
+                        onChange={(option) =>
+                          setFormData((prev) => ({ ...prev, packSize: option?.value || '' }))
+                        }
+                        isClearable
+                      />
+                    </div>
+      
+                    {/* Priority */}
+                    <div className="col-md-6">
+                      <label className="form-label">Priority</label>
+                      <select
+                        className="form-select"
+                        name="priority"
+                        value={formData.priority}
+                        onChange={handleChange}
+                      >
+                        <option value="">Select</option>
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                      </select>
+                    </div>
+      
+                    {/* Status */}
+                    <div className="col-md-6">
+                      <label className="form-label">Status</label>
+                      <select
+                        className="form-select"
+                        name="Status"
+                        value={formData.Status}
+                        onChange={handleChange}
+                      >
+                        <option value="">Select</option>
+                        <option value="open">Open</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="completed">Completed</option>
+                      </select>
+                    </div>
+      
+                    {/* Total Time Logged */}
+                    <div className="col-md-6">
+                      <label className="form-label">Total Time Logged</label>
+                      <input
+                        type="time"
+                        className="form-control"
+                        name="totalTime"
+                        value={formData.totalTime}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, totalTime: e.target.value }))
+                        }
+                      />
+                    </div>
+      
+                    {/* assign */}
+                    <div className="col-md-6">
+                      <label className="form-label">Assign</label>
+                      <select
+                        className="form-select"
+                        name="assign"
+                        value={formData.assign}
+                        onChange={handleChange}
+                      >
+                        <option value="">Select</option>
+                        <option value="Production">Production</option>
+                        <option value="Designer">Designer</option>
+                      </select>
+                    </div>
+      
+                    {/* Barcode */}
+                    <div className="col-md-1">
+                      <Barcode value={formData.barcode} />
+                    </div>
+      
+                    {/* Buttons */}
+                    <div className="col-12 d-flex justify-content-end gap-2 mt-4">
+                      <button
+                        type="button"
+                        className="btn btn-outline-secondary"
+                        onClick={handleCancel}
+                      >
+                        Cancel
+                      </button>
+                      <button type="submit" className="btn btn-dark">
+                        Add Jobs
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </>
+        );
+      }
+      
+      export default AddJobTracker;
+
+
+
+
+
+
+
+
+
+
+
+
+       {/* {filteredJobs.map((job, index) => (
+              <tr key={index}>
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={selectedJobs[job.jobNumber] || false}
+                    onChange={() => handleCheckboxChange(job.jobNumber)}
+                  />
+                </td>
+                <td>
+                  <Link to={"/OvervieJobsTracker"}>{job.jobNumber}</Link>
+                </td>
+                <td>{job.projectName}</td>
+                <td>{job.brandName}</td>
+                <td>{job.subBrand}</td>
+                <td>{job.flavour}</td>
+                <td>{job.packType}</td>
+                <td>{job.packSize}</td>
+                <td>
+                  <span className={getPriorityClass(job.priority)}>
+                    {job.priority}
+                  </span>
+                </td>
+                <td>
+                  <span >
+                    5\5\5\5
+                  </span>
+                </td>
+                <th><span >
+                  Designer
+                </span></th>
+                <td>{job.timeLogged}</td>
+                <td>
+                  <span
+                    className={`badge ${getStatusClass(job.status)} px-2 py-1`}
+                  >
+                    {job.status}
+                  </span>
+                </td> */}
+                {/* <td>{job.stage}</td> */}
+                {/* <td>
+                  <div className="d-flex gap-2">
+                    <Button variant="outline-secondary" size="sm">
+                      <FaFilePdf />
+                    </Button>
+                    <Button variant="outline-secondary" size="sm">
+                      <FaUpload />
+                    </Button>
+                    <Button variant="outline-secondary" size="sm">
+                      <FaLink />
+                    </Button>
+                    <Button variant="outline-secondary" size="sm">
+                      <FaClock />
+                    </Button>
+                    <Button variant="outline-secondary" size="sm">
+                      <Link to={"/updateJobTracker"}>
+                        <FaEdit />
+                      </Link>
+                    </Button> */}
+                    {/* <Button variant="outline-secondary" size="sm">
+                    <MdDeleteOutline />
+                    </Button> */}
+                  {/* </div>
+                </td>
+              </tr>
+            ))} */}
+
+             {/* <Button variant="outline-secondary" size="sm">
+                    <MdDeleteOutline />
+                    </Button> */}
+      

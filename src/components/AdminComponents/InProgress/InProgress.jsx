@@ -1,9 +1,19 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button, Form, Table, ProgressBar, Pagination, Modal } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { FaComments } from "react-icons/fa";
 import { BsPencil } from "react-icons/bs";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchjobs } from "../../../redux/slices/JobsSlice";
 
+import {
+  FaFilePdf,
+  FaUpload,
+  FaLink,
+  FaClock,
+  FaEdit,
+} from "react-icons/fa";
+import { Dropdown } from "react-bootstrap";
 function InProgress() {
   const [showDesignerModal, setShowDesignerModal] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
@@ -99,6 +109,125 @@ function InProgress() {
     setSelectedJobs(allJobs);
   };
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  // //////////////////
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedProject, setSelectedProject] = useState("All Projects");
+  const [selectedPriority, setSelectedPriority] = useState("All Priorities");
+  const [selectedStatus, setSelectedStatus] = useState("In Progress");
+  const [selectedStage, setSelectedStage] = useState("All Stages");
+  // const [selectedJobs, setSelectedJobs] = useState({});
+
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const location = useLocation();
+  const params = useParams();
+  const id = location.state?.id || params.id;
+
+  const { job } = useSelector((state) => state.jobs);
+
+  useEffect(() => {
+    dispatch(fetchjobs());
+  }, [dispatch]);
+
+  // const handleCheckboxChange = (jobId) => {
+  //   setSelectedJobs((prevSelectedJobs) => ({
+  //     ...prevSelectedJobs,
+  //     [jobId]: !prevSelectedJobs[jobId],
+  //   }));
+  // };
+
+  const getPriorityClass = (priority) => {
+    switch ((priority || "").toLowerCase()) {
+      case "high":
+        return "text-danger";
+      case "medium":
+        return "text-warning";
+      case "low":
+        return "text-success";
+      default:
+        return "";
+    }
+  };
+
+  const getStatusClass = (status) => {
+    switch ((status || "").toLowerCase().trim()) {
+      case "in progress":
+      case "in_progress":
+        return "bg-warning text-dark";
+      case "review":
+        return "bg-info text-dark";
+      case "not started":
+        return "bg-secondary text-white";
+      case "completed":
+        return "bg-success text-white";
+      case "open":
+        return "bg-primary text-white";
+      default:
+        return "bg-light text-dark";
+    }
+  };
+
+  // ✅ Filter jobs from Redux store
+  const filteredJobs = (job?.jobs || []).filter((j) => {
+    const search = searchQuery.toLowerCase();
+
+    const matchesSearch =
+      j.jobNumber?.toLowerCase().includes(search) ||
+      j.project?.projectName?.toLowerCase().includes(search) ||
+      j.brandName?.toLowerCase().includes(search) ||
+      j.subBrand?.toLowerCase().includes(search) ||
+      j.flavour?.toLowerCase().includes(search) ||
+      j.packType?.toLowerCase().includes(search) ||
+      j.packSize?.toLowerCase().includes(search);
+
+    const matchesProject =
+      selectedProject === "All Projects" ||
+      j.project?.projectName === selectedProject;
+
+    const matchesPriority =
+      selectedPriority === "All Priorities" ||
+      j.priority?.toLowerCase() === selectedPriority.toLowerCase();
+
+    const matchesStatus =
+      selectedStatus === "All Status" ||
+      j.Status?.toLowerCase() === selectedStatus.toLowerCase();
+
+    const matchesStage =
+      selectedStage === "All Stages" ||
+      j.stage?.toLowerCase() === selectedStage.toLowerCase();
+
+    return (
+      matchesSearch &&
+      matchesProject &&
+      matchesPriority &&
+      matchesStatus &&
+      matchesStage
+    );
+  });
+
+  const handleUpdate = (job) => {
+    navigate(`/AddJobTracker`, { state: { job } });
+  };
+
+  const JobDetails = (job) => {
+    navigate(`/OvervieJobsTracker`, { state: { job } });
+  }
+
   return (
     <div className="container bg-white p-4 mt-4 rounded shadow-sm">
       {/* Title */}
@@ -113,69 +242,81 @@ function InProgress() {
         <Form.Select className=""style={{width:'140px'}} >
           <option>All Designers</option>
         </Form.Select>
-        <Form.Select className=""style={{width:'120px'}}>
-          <option>All Status</option>
-        </Form.Select>
+         <Dropdown>
+                  <Dropdown.Toggle variant="light" id="status-dropdown">
+                    {selectedStatus}
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu>
+                    {["All Status", "In Progress", "Review", "Not Started", "Completed"].map((item) => (
+                      <Dropdown.Item key={item} onClick={() => setSelectedStatus(item)}>
+                        {item}
+                      </Dropdown.Item>
+                    ))}
+                  </Dropdown.Menu>
+                </Dropdown>
       </div>
 
       {/* Table */}
-      <div className="border-start border-end rounded-2 overflow-hidden">
-        <Table hover responsive className="align-middle mb-0">
-          <thead className="table-light">
+      <div className="table-responsive" style={{ maxHeight: "500px", overflowY: "auto" }}>
+        <Table hover className="align-middle sticky-header">
+          <thead className="bg-light">
             <tr>
-              <th>
-                <input type="checkbox" onChange={handleSelectAll} />
-              </th>
+              <th><input type="checkbox" /></th>
               <th>JobNo</th>
-              <th>Project</th>
+              <th>ProjectName</th>
               <th>Brand</th>
               <th>SubBrand</th>
               <th>Flavour</th>
               <th>PackType</th>
               <th>PackSize</th>
-              <th>Designer</th>
-              <th>TimeSpent</th>
-              <th>Progress</th>
+              <th>Priority</th>
+              <th>Due Date</th>
+              <th>Assign</th>
+              <th>TimeLogged</th>
               <th>Status</th>
-              {/* <th>Brief Logs</th> */}
+              <th></th>
             </tr>
           </thead>
           <tbody>
-            {jobs.map((job) => (
-              <tr key={job.id}>
+            {filteredJobs.slice().reverse().map((job, index) => (
+              <tr key={job._id}>
                 <td>
                   <input
                     type="checkbox"
-                    checked={selectedJobs[job.id] || false}
-                    onChange={() => handleCheckboxChange(job.id)}
+                    checked={selectedJobs[job._id] || false}
+                    onChange={() => handleCheckboxChange(job._id)}
                   />
                 </td>
                 <td>
-                  <Link to="/OvervieJobsTracker" style={{ textDecoration: "none", color: "blue" }}>
-                    {job.id}
-                  </Link>
+                  <span
+                    style={{ color: "blue", cursor: "pointer", textDecoration: "underline" }}
+                    onClick={() => JobDetails(job)}
+                  >
+                    {String(index + 1).padStart(4, '0')}
+                  </span>
                 </td>
-                <td>{job.project}</td>
-                <td>{job.brand}</td>
+
+                <td>{job.project?.projectName || "N/A"}</td>
+                <td>{job.brandName}</td>
                 <td>{job.subBrand}</td>
                 <td>{job.flavour}</td>
                 <td>{job.packType}</td>
                 <td>{job.packSize}</td>
+                <td>
+                  <span className={getPriorityClass(job.priority)}>{job.priority}</span>
+                </td>
+                <td>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
                 <td onClick={() => handleDesignerClick(job)} style={{ cursor: 'pointer', color: 'darkblue' }}>
-                  {job.designer}
+                  {job.assign}
                 </td>
-                <td>{job.timeSpent}</td>
-                <td style={{ minWidth: '160px' }}>
-                  <ProgressBar now={job.progress} label={`${job.progress}%`} variant="success" />
+                <td>{job.totalTime}</td>
+                <td>
+                  <span className={`badge ${getStatusClass(job.Status)} px-2 py-1`}>
+                    {job.Status}
+                  </span>
                 </td>
-                <td>{job.status}</td>
-                {/* <td>
-                  {job.briefLogs.map((log, index) => (
-                    <div key={index}>
-                      <small>• {log}</small>
-                    </div>
-                  ))}
-                </td> */}
+                <td>
+                </td>
               </tr>
             ))}
           </tbody>

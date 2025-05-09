@@ -1,6 +1,22 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { LuDownload, LuEye, LuRotateCcw } from "react-icons/lu";
-import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { fetchjobs } from '../../../redux/slices/JobsSlice';
+
+
+import { Button, Form, Table, ProgressBar, Pagination, Modal } from "react-bootstrap";
+import { Link } from "react-router-dom";
+import { FaComments } from "react-icons/fa";
+import { BsPencil } from "react-icons/bs";
+
+import {
+
+  FaDownload,
+  FaEye
+} from "react-icons/fa";
+
+import { Dropdown } from "react-bootstrap";
 
 function Completed_Jobs() {
   const [selectedJobs, setSelectedJobs] = useState({});
@@ -67,6 +83,125 @@ function Completed_Jobs() {
     },
   ];
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  // ////////////////////
+
+
+  // //////////////////
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedProject, setSelectedProject] = useState("All Projects");
+  const [selectedPriority, setSelectedPriority] = useState("All Priorities");
+  const [selectedStatus, setSelectedStatus] = useState("completed");
+  const [selectedStage, setSelectedStage] = useState("All Stages");
+  // const [selectedJobs, setSelectedJobs] = useState({});
+
+  const dispatch = useDispatch();
+  const location = useLocation();
+  const params = useParams();
+  const id = location.state?.id || params.id;
+
+  const { job } = useSelector((state) => state.jobs);
+
+  useEffect(() => {
+    dispatch(fetchjobs());
+  }, [dispatch]);
+
+  // const handleCheckboxChange = (jobId) => {
+  //   setSelectedJobs((prevSelectedJobs) => ({
+  //     ...prevSelectedJobs,
+  //     [jobId]: !prevSelectedJobs[jobId],
+  //   }));
+  // };
+
+  const getPriorityClass = (priority) => {
+    switch ((priority || "").toLowerCase()) {
+      case "high":
+        return "text-danger";
+      case "medium":
+        return "text-warning";
+      case "low":
+        return "text-success";
+      default:
+        return "";
+    }
+  };
+
+  const getStatusClass = (status) => {
+    switch ((status || "").toLowerCase().trim()) {
+      case "in progress":
+      case "in_progress":
+        return "bg-warning text-dark";
+      case "review":
+        return "bg-info text-dark";
+      case "not started":
+        return "bg-secondary text-white";
+      case "completed":
+        return "bg-success text-white";
+      case "open":
+        return "bg-primary text-white";
+      default:
+        return "bg-light text-dark";
+    }
+  };
+
+  // ✅ Filter jobs from Redux store
+  const filteredJobs = (job?.jobs || []).filter((j) => {
+    const search = searchQuery.toLowerCase();
+
+    const matchesSearch =
+      j.jobNumber?.toLowerCase().includes(search) ||
+      j.project?.projectName?.toLowerCase().includes(search) ||
+      j.brandName?.toLowerCase().includes(search) ||
+      j.subBrand?.toLowerCase().includes(search) ||
+      j.flavour?.toLowerCase().includes(search) ||
+      j.packType?.toLowerCase().includes(search) ||
+      j.packSize?.toLowerCase().includes(search);
+
+    const matchesProject =
+      selectedProject === "All Projects" ||
+      j.project?.projectName === selectedProject;
+
+    const matchesPriority =
+      selectedPriority === "All Priorities" ||
+      j.priority?.toLowerCase() === selectedPriority.toLowerCase();
+
+    const matchesStatus =
+      selectedStatus === "All Status" ||
+      j.Status?.toLowerCase() === selectedStatus.toLowerCase();
+
+    const matchesStage =
+      selectedStage === "All Stages" ||
+      j.stage?.toLowerCase() === selectedStage.toLowerCase();
+
+    return (
+      matchesSearch &&
+      matchesProject &&
+      matchesPriority &&
+      matchesStatus &&
+      matchesStage
+    );
+  });
+
+  const handleUpdate = (job) => {
+    navigate(`/AddJobTracker`, { state: { job } });
+  };
+
+  const JobDetails = (job) => {
+    navigate(`/OvervieJobsTracker`, { state: { job } });
+  }
   return (
     <div className="container-fluid mt-4">
       <div className="d-flex justify-content-between align-items-center mb-3">
@@ -99,69 +234,105 @@ function Completed_Jobs() {
               style={{ width: "200px" }}
             />
             <select className="form-select" style={{ width: "160px" }}>
- 
+
               <option>All Time Periods</option>
             </select>
-             <select className="form-select" style={{ width: "150px" }}>
-              <option>All Projects</option>
-            </select>
+            <Dropdown>
+              <Dropdown.Toggle variant="light" id="project-dropdown">
+                {selectedProject}
+              </Dropdown.Toggle>
+              <Dropdown.Menu>
+                <Dropdown.Item onClick={() => setSelectedProject("All Projects")}>All Projects</Dropdown.Item>
+                {job?.jobs?.map((j, i) => (
+                  <Dropdown.Item key={i} onClick={() => setSelectedProject(j.project?.projectName || "N/A")}>
+                    {j.project?.projectName || "N/A"}
+                  </Dropdown.Item>
+                ))}
+              </Dropdown.Menu>
+            </Dropdown>
           </div>
         </div>
 
         {/* Table Section */}
-        <div className="table-responsive">
-          <table className="table align-middle mb-0 no-vertical-border">
-            <thead className="table-light">
+        <div className="table-responsive" style={{ maxHeight: "500px", overflowY: "auto" }}>
+          <Table hover className="align-middle sticky-header">
+            <thead className="bg-light">
               <tr>
-                <th>
-                  <input type="checkbox" disabled />
-                </th>
-                <th style={{ whiteSpace: "nowrap" }}>Job No</th>
+                <th><input type="checkbox" /></th>
+                <th>JobNo</th>
+                <th>ProjectName</th>
                 <th>Brand</th>
                 <th>SubBrand</th>
                 <th>Flavour</th>
                 <th>PackType</th>
                 <th>PackSize</th>
-                <th>PackCode</th>
+                <th>Priority</th>
                 <th style={{ whiteSpace: "nowrap" }}>Date Completed</th>
-                <th>Designer</th>
+                <th>Assign</th>
+                <th>TimeLogged</th>
                 <th style={{ whiteSpace: "nowrap" }}>Time Budget</th>
                 <th style={{ whiteSpace: "nowrap" }}>Time Spent</th>
+                <th>Status</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {jobData.map((job) => (
-                <tr key={job.jobNumber}>
+              {filteredJobs.slice().reverse().map((job, index) => (
+                <tr key={job._id}>
                   <td>
                     <input
                       type="checkbox"
-                      checked={selectedJobs[job.jobNumber] || false}
-                      onChange={() => handleCheckboxChange(job.jobNumber)}
+                      checked={selectedJobs[job._id] || false}
+                      onChange={() => handleCheckboxChange(job._id)}
                     />
                   </td>
-                  <td>{job.jobNumber}</td>
-                  <td>{job.brand}</td>
+                  <td>
+                    <span
+                      style={{ color: "blue", cursor: "pointer", textDecoration: "underline" }}
+                      onClick={() => JobDetails(job)}
+                    >
+                      {String(index + 1).padStart(4, '0')}
+                    </span>
+                  </td>
+
+                  <td>{job.project?.projectName || "N/A"}</td>
+                  <td>{job.brandName}</td>
                   <td>{job.subBrand}</td>
                   <td>{job.flavour}</td>
-                  <td>{job.type}</td>
-                  <td>{job.size}</td>
-                  <td>{job.code}</td>
-                  <td>{job.completed}</td>
-                  <td>{job.designer}</td>
-                  <td>{job.budget}</td>
-                  <td>{job.timeSpent}</td>
-                  <td className="gap-2">
-                    <LuDownload className="text-primary" role="button" />
-                    <LuEye role="button" />
-                    <LuRotateCcw role="button" />
+                  <td>{job.packType}</td>
+                  <td>{job.packSize}</td>
+                  <td>
+                    <span className={getPriorityClass(job.priority)}>{job.priority}</span>
+                  </td>
+                  <td>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
+                  <td onClick={() => handleDesignerClick(job)} style={{ cursor: 'pointer', color: 'darkblue' }}>
+                    {job.assign}
+                  </td>
+                  <td>{job.totalTime}</td>
+                  <th>2h 15m</th>
+                  <th>3h 30m</th>
+                  <td>
+                    <span className={`badge ${getStatusClass(job.Status)} px-2 py-1`}>
+                      {job.Status}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="d-flex gap-2">
+
+                      <Button id="icone_btn" size="sm" >
+                        <FaEye />
+                      </Button>
+                      <Button id="icone_btn" size="sm" >
+                        <FaDownload />
+                      </Button>
+                    </div>
+
                   </td>
                 </tr>
               ))}
             </tbody>
-          </table>
+          </Table>
         </div>
-
         {/* Pagination Section */}
         <div className="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3">
           <div className="mb-2 mb-md-0">Showing 1 to 3 of 12 completed jobs</div>
