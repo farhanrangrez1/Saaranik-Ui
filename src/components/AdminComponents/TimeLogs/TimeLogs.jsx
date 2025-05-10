@@ -183,7 +183,7 @@ function TimeLogs() {
                   <th>Date</th>
                   <th>JobID</th>
                   <th>Project</th>
-                  <th>Extra Hours</th>
+                  <th style={{ whiteSpace: 'nowrap' }}>Extra Hours</th>
                   <th>Hours</th>
                   <th>Task Notes</th>
                   <th className="text-end">Actions</th>

@@ -215,7 +215,7 @@ function AddProjectList() {
                   <option value="">Select Status</option>
                   <option value="Active Project">Active Project</option>
                   <option value="In Progress">In Progress</option>
-                  <option value="completed">Completed</option>
+                  <option value="Completed">Completed</option>
                   <option value="Closed">Closed</option>
                   <option value="Cancelled">Cancelled</option>
                   <option value="On Hold">On Hold</option>

@@ -182,24 +182,24 @@ function ProjectJobsTab() {
     }
   };
 
- const handleJobAssign = (selectedIds, assignTo) => {
- 
-  const payload = {
-    id: selectedIds,
-    assign: assignTo,
-  };
-  console.log("Assignment Payload:", payload);
-  dispatch(UpdateJobAssign(payload))
-  .then(() => {
-      // Swal.fire("Success!", "Jobs assigned successfully", "success");
-      dispatch(fetchjobs());
-    })
-    .catch(() => {
-      Swal.fire("Error!", "Something went wrong", "error");
-    });
-};
+  const handleJobAssign = (selectedIds, assignTo) => {
 
-return (
+    const payload = {
+      id: selectedIds,
+      assign: assignTo,
+    };
+    console.log("Assignment Payload:", payload);
+    dispatch(UpdateJobAssign(payload))
+      .then(() => {
+        // Swal.fire("Success!", "Jobs assigned successfully", "success");
+        dispatch(fetchjobs());
+      })
+      .catch(() => {
+        Swal.fire("Error!", "Something went wrong", "error");
+      });
+  };
+
+  return (
     <div className="card">
       <div className="card-header d-flex align-content-center justify-content-between mt-3">
         <h5 className="card-title mb-0">Jobs List</h5>
@@ -257,16 +257,21 @@ return (
                 <th>
                   <input
                     type="checkbox"
-                    onChange={() => {
-                      const isChecked = Object.keys(selectedJobs).length === jobs.length;
+                    onChange={(e) => {
+                      const checked = e.target.checked;
                       const newSelectedJobs = {};
-                      jobs.forEach((job) => {
-                        newSelectedJobs[job.id] = !isChecked;
+                      job?.jobs?.forEach((job) => {
+                        newSelectedJobs[job._id] = checked;
                       });
                       setSelectedJobs(newSelectedJobs);
                     }}
+                    checked={
+                      job?.jobs?.length > 0 &&
+                      job?.jobs?.every((j) => selectedJobs[j._id])
+                    }
                   />
                 </th>
+
                 <th>JobsNo</th>
                 <th style={{ whiteSpace: 'nowrap' }}>Project Name</th>
                 <th>Brand</th>
@@ -301,8 +306,8 @@ return (
                   <td>{job.brandName}</td>
                   <td style={{ whiteSpace: 'nowrap' }}>{job.subBrand}</td>
                   <td style={{ whiteSpace: 'nowrap' }}>{job.flavour}</td>
-                  <td>{job.packType}</td>
-                  <td>{job.packSize}</td>
+                  <td style={{ whiteSpace: 'nowrap' }}>{job.packType}</td>
+                  <td style={{ whiteSpace: 'nowrap' }}>{job.packSize}</td>
                   <td>
                     <span className={getPriorityClass(job.priority)}>
                       {job.priority}
@@ -354,8 +359,8 @@ return (
                 onChange={(e) => setSelectedDesigner(e.target.value)}
               >
                 <option value="">-- Select --</option>
-                <option value="production">Production</option>
-                <option value="designer">Designer</option>
+                <option value="Production">Production</option>
+                <option value="Designer">Designer</option>
               </Form.Select>
             </Form.Group>
 

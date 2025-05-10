@@ -233,7 +233,7 @@ function InProgress() {
       {/* Title */}
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h5 className="fw-bold m-0">In Progress Jobs</h5>
-        <Button variant="dark" onClick={() => setShowDesignerModal(true)}>Change Designer</Button>
+        <Button id="All_btn" variant="dark" onClick={() => setShowDesignerModal(true)}>Change Designer</Button>
       </div>
 
       {/* Filters */}
@@ -297,11 +297,11 @@ function InProgress() {
                 </td>
 
                 <td>{job.projectId?.[0]?.projectName || 'N/A'}</td>
-                <td>{job.brandName}</td>
-                <td>{job.subBrand}</td>
-                <td>{job.flavour}</td>
-                <td>{job.packType}</td>
-                <td>{job.packSize}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{job.brandName}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{job.subBrand}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{job.flavour}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{job.packType}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{job.packSize}</td>
                 <td>
                   <span className={getPriorityClass(job.priority)}>{job.priority}</span>
                 </td>

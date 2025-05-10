@@ -209,8 +209,8 @@ function ProjectList() {
                     {String(index + 1).padStart(4, '0')}
                   </Link>
                 </td>
-                <td>{project.projectName}</td>
-                <td>{project.description}</td>
+                <td  style={{ whiteSpace: 'nowrap' }}>{project.projectName}</td>
+                <td  style={{ whiteSpace: 'nowrap' }}>{project.description}</td>
                 <td>{new Date(project.startDate).toLocaleDateString('en-GB').replace(/\/20/, '/')}</td>
                 <td>{new Date(project.endDate).toLocaleDateString('en-GB').replace(/\/20/, '/')}</td>
                 <td>{project.totalTime}</td>
