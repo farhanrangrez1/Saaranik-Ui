@@ -16,7 +16,7 @@ function AddJobTracker() {
   const { id } = useParams(); // for edit mode
   const location = useLocation();
   const { job } = location.state || {};
-console.log(job);
+  console.log(job);
 
   // All Projects
   const { project, loading, error } = useSelector((state) => state.projects);
@@ -34,9 +34,9 @@ console.log(job);
     packSize: '',
     priority: '',
     Status: '',
-    totalTime: '',  
+    totalTime: '',
     assign: '',
-    barcode:"POS-123456",  
+    barcode: "POS-123456",
   });
 
   // Static options
@@ -63,33 +63,26 @@ console.log(job);
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   console.log("Form Data Submitted:", formData);
-  //   dispatch(createjob(formData))
-  // };
-
-
   useEffect(() => {
-    if (job) {
+    if (job && project?.data?.length) {
+      let projectId = '';
+  
+      // Safely extract project ID from nested projectsId array
+      if (Array.isArray(job.projectId) && job.projectId.length > 0) {
+        projectId = job.projectId[0]._id;
+      } else if (Array.isArray(job.projectsId) && job.projectsId.length > 0) {
+        projectId = typeof job.projectsId[0] === 'object'
+          ? job.projectsId[0]._id
+          : job.projectsId[0];
+      }
+  
       setFormData((prev) => ({
         ...prev,
         ...job,
-        projectsId: job.project?._id || job.project?.projectId || '', 
+        projectsId: projectId,
       }));
-    } else if (id) {
-      dispatch(fetchjobById(id)).then((res) => {
-        const fetchedJob = res.payload;
-        if (fetchedJob) {
-          setFormData((prev) => ({
-            ...prev,
-            ...fetchedJob,
-            projectsId: fetchedJob.project?._id || fetchedJob.project?.projectId || '', 
-          }));
-        }
-      });
     }
-  }, [id, job, dispatch]);
+  }, [job, project?.data]);
   
 
   const handleInputChange = (e) => {
@@ -99,39 +92,48 @@ console.log(job);
       [name]: value
     }));
   };
+  const handleSubmit = (e) => {
+    e.preventDefault();
 
-
-   const handleSubmit = (e) => {
-      e.preventDefault();
-      if (id) {
-        dispatch(updatejob({ id, data: payload }))
-          .unwrap()
-          .then(() => {
-            toast.success("job updated successfully!");
-            navigate('/ProjectOverview', { state: { openTab: 'jobs' } });
-            dispatch(fetchProject());
-          })
-          .catch(() => {
-            toast.error("Failed to update project!");
-          });
-      } else {
-        dispatch(createjob(formData))
-          .unwrap()
-          .then(() => {
-            toast.success("job created successfully!");
-            navigate('/ProjectOverview', { state: { openTab: 'jobs' } });
-            dispatch(fetchProject());
-          })
-          .catch(() => {
-            toast.error("Error creating project");
-          });
-      }
+    // Wrap projectsId as array
+    const payload = {
+      ...formData,
+      projectsId: [formData.projectsId],  // convert to array
     };
 
-// 
-    const handleCancel = () => {
-      navigate("/projectList");
+    if (id) {
+      dispatch(updatejob({ id, data: payload }))
+        .unwrap()
+        .then(() => {
+          toast.success("Job updated successfully!");
+          navigate('/ProjectOverview', { state: { openTab: 'jobs' } });
+          dispatch(fetchProject());
+        })
+        .catch(() => {
+          toast.error("Failed to update job!");
+        });
+    } else {
+      dispatch(createjob(payload))  // send payload with array
+        .unwrap()
+        .then(() => {
+          toast.success("Job created successfully!");
+          navigate('/ProjectOverview', { state: { openTab: 'jobs' } });
+          dispatch(fetchProject());
+        })
+        .catch(() => {
+          toast.error("Error creating job");
+        });
     }
+  };
+
+
+  // 
+  const handleCancel = () => {
+    navigate("/projectList");
+  }
+  const Cancel = () => {
+    navigate('/ProjectOverview', { state: { openTab: 'jobs' } });
+  }
   return (
     <>
       <ToastContainer />
@@ -144,6 +146,19 @@ console.log(job);
               {/* Project Name */}
               <div className="col-md-6">
                 <label className="form-label">Project Name</label>
+                {/* <select
+                  name="projectsId"
+                  className="form-control"
+                  value={formData.projectsId}
+                  onChange={handleChange}
+                >
+                  <option value="" disabled>Select a project</option>
+                  {project?.data?.map((project) => (
+                    <option key={project._id} value={project._id}>
+                      {project.projectName}
+                    </option>
+                  ))}
+                </select> */}
                 <select
                   name="projectsId"
                   className="form-control"
@@ -157,6 +172,7 @@ console.log(job);
                     </option>
                   ))}
                 </select>
+
               </div>
 
               {/* Brand Name */}
@@ -290,7 +306,7 @@ console.log(job);
 
               {/* Buttons */}
               <div className="col-12 d-flex justify-content-end gap-2 mt-4">
-                <button type="button" className="btn btn-outline-secondary">Cancel</button>
+                <button type="button" className="btn btn-outline-secondary" onClick={() => Cancel()}>Cancel</button>
                 <button type="submit" className="btn btn-dark">Add Jobs</button>
               </div>
 

@@ -210,7 +210,8 @@ function JobTracker() {
                   </span>
                 </td>
 
-                <td>{job.project?.projectName || "N/A"}</td>
+                <td>{job.projectId?.[0]?.projectName || 'N/A'}</td>
+
                 <td>{job.brandName}</td>
                 <td style={{ whiteSpace: "nowrap" }}>{job.subBrand}</td>
                 <td>{job.flavour}</td>

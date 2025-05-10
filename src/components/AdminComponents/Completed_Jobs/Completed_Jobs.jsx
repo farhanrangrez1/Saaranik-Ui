@@ -295,7 +295,8 @@ function Completed_Jobs() {
                     </span>
                   </td>
 
-                  <td>{job.project?.projectName || "N/A"}</td>
+                  <td>{job.projectId?.[0]?.projectName || 'N/A'}</td>
+
                   <td>{job.brandName}</td>
                   <td>{job.subBrand}</td>
                   <td>{job.flavour}</td>

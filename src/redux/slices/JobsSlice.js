@@ -66,6 +66,21 @@ export const fetchjobById = createAsyncThunk('jobs/fetchById', async (id) => {
   });
   
 
+export const UpdateJobAssign = createAsyncThunk('jobs/updatejob', async ({ id, assign }) => {
+  const response = await fetch(`${apiUrl}/jobs`, {
+    method: "put",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ id, assign }),  // Ensure 'ids' and 'assign' are passed here
+  });
+
+  if (!response.ok) throw new Error("Failed to update jobs");
+
+  return await response.json();
+});
+
+
 const jobsSlice = createSlice({
   name: 'jobs',
   initialState: {

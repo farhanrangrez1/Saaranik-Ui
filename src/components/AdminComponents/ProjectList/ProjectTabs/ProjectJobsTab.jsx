@@ -2,18 +2,20 @@ import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Modal, Form, Button } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
-import { deletejob, fetchjobs } from '../../../../redux/slices/JobsSlice';
+import { deletejob, fetchjobs, UpdateJobAssign } from '../../../../redux/slices/JobsSlice';
 import Swal from 'sweetalert2';
 
 function ProjectJobsTab() {
-  const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedProduction, setSelectedProduction] = useState('');
   const [selectedAdditional, setSelectedAdditional] = useState('');
   const [selectedJob, setSelectedJob] = useState(null);
-  const [selectedDesigner, setSelectedDesigner] = useState('');
   const [attachedFile, setAttachedFile] = useState(null);
   const [selectedJobs, setSelectedJobs] = useState({});
   const [errorMessage, setErrorMessage] = useState('');
+
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [selectedDesigner, setSelectedDesigner] = useState('');
+  const [assignmentDescription, setAssignmentDescription] = useState('');
 
   const jobs = [
     {
@@ -65,12 +67,30 @@ function ProjectJobsTab() {
   };
 
   const handleSubmitAssignment = () => {
-    console.log("Assigning jobs:", selectedJobs);
+    const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
+
+    if (selectedJobIds.length === 0) {
+      setErrorMessage("Please select at least 1 job to assign.");
+      setTimeout(() => setErrorMessage(""), 3000);
+      return;
+    }
+
+    if (!selectedDesigner) {
+      setErrorMessage("Please select a designer.");
+      setTimeout(() => setErrorMessage(""), 3000);
+      return;
+    }
+
+    // ✅ Now send data to handleJobAssign
+    handleJobAssign(selectedJobIds, selectedDesigner);
+
+    // Reset state and close modal
     setShowAssignModal(false);
     setSelectedProduction('');
     setSelectedAdditional('');
     setSelectedJob(null);
     setSelectedDesigner('');
+    setAssignmentDescription('');
   };
 
   const handleCSVImport = (event) => {
@@ -109,8 +129,8 @@ function ProjectJobsTab() {
     dispatch(fetchjobs());
   }, [dispatch]);
 
-  
- const handleDelete = (_id) => {
+
+  const handleDelete = (_id) => {
     console.log(_id);
     Swal.fire({
       title: "Are you sure?",
@@ -139,7 +159,7 @@ function ProjectJobsTab() {
     navigate(`/AddJobTracker`, { state: { job } });
   };
 
-  const JobDetails =(job)=>{
+  const JobDetails = (job) => {
     navigate(`/OvervieJobsTracker`, { state: { job } });
   }
 
@@ -161,14 +181,32 @@ function ProjectJobsTab() {
         return "bg-light text-dark";
     }
   };
-  return (
+
+ const handleJobAssign = (selectedIds, assignTo) => {
+ 
+  const payload = {
+    id: selectedIds,
+    assign: assignTo,
+  };
+  console.log("Assignment Payload:", payload);
+  dispatch(UpdateJobAssign(payload))
+  .then(() => {
+      // Swal.fire("Success!", "Jobs assigned successfully", "success");
+      dispatch(fetchjobs());
+    })
+    .catch(() => {
+      Swal.fire("Error!", "Something went wrong", "error");
+    });
+};
+
+return (
     <div className="card">
       <div className="card-header d-flex align-content-center justify-content-between mt-3">
         <h5 className="card-title mb-0">Jobs List</h5>
         <div className="text-end">
           {/* ✅ Assign Button always enabled, shows error if none selected */}
           <Button
-            id='All_btn'
+            id="All_btn"
             className="m-2"
             variant="primary"
             onClick={() => {
@@ -177,12 +215,15 @@ function ProjectJobsTab() {
                 setErrorMessage("Please select at least 1 job to assign.");
                 setTimeout(() => setErrorMessage(""), 3000);
               } else {
+                handleJobAssign(selectedJobIds); // ✅ Call with selected IDs
                 setShowAssignModal(true);
               }
             }}
           >
             Assign
           </Button>
+
+
           <label className="btn btn-success m-2">
             <i className="bi bi-upload"></i> Import CSV
             <input
@@ -234,7 +275,7 @@ function ProjectJobsTab() {
                 <th>PackType</th>
                 <th>PackSize</th>
                 <th>Priority</th>
-                 <th style={{ whiteSpace: 'nowrap' }}>Due Date</th>
+                <th style={{ whiteSpace: 'nowrap' }}>Due Date</th>
                 <th>Assing</th>
                 <th>TotalTime</th>
                 <th>Status</th>
@@ -243,12 +284,12 @@ function ProjectJobsTab() {
             </thead>
             <tbody>
               {job?.jobs?.slice().reverse().map((job, index) => (
-                <tr key={job.id}>
+                <tr key={job._id}>
                   <td>
                     <input
                       type="checkbox"
-                      checked={selectedJobs[job.id] || false}
-                      onChange={() => handleCheckboxChange(job.id)}
+                      checked={selectedJobs[job._id] || false}
+                      onChange={() => handleCheckboxChange(job._id)}
                     />
                   </td>
                   <td>
@@ -256,39 +297,39 @@ function ProjectJobsTab() {
                       {String(index + 1).padStart(4, '0')}
                     </Link>
                   </td>
-                  <td>{job.project?.projectName || 'N/A'}</td>
+                  <td>{job.projectId?.[0]?.projectName || 'N/A'}</td>
                   <td>{job.brandName}</td>
                   <td style={{ whiteSpace: 'nowrap' }}>{job.subBrand}</td>
                   <td style={{ whiteSpace: 'nowrap' }}>{job.flavour}</td>
                   <td>{job.packType}</td>
                   <td>{job.packSize}</td>
                   <td>
-                  <span className={getPriorityClass(job.priority)}>
-                    {job.priority}
-                  </span>
-                </td>
-                <td>{new Date(job?.createdAt).toLocaleDateString('en-GB').replace(/\/20/, '/')}</td>
+                    <span className={getPriorityClass(job.priority)}>
+                      {job.priority}
+                    </span>
+                  </td>
+                  <td>{new Date(job?.createdAt).toLocaleDateString('en-GB').replace(/\/20/, '/')}</td>
                   <td>{job.assign}</td>
                   <td>{job.totalTime}</td>
                   {/* <th>
                     <Button id='All_btn' variant="success" style={{ width: "130px" }} size="sm" >
                       {job.Status || "Active"}
                     </Button></th> */}
-                    <td>
-                  <span
-                    className={`badge ${getStatusClass(job.Status)} px-2 py-1`}
-                  >
-                    {job.Status}
-                  </span>
-                </td>
+                  <td>
+                    <span
+                      className={`badge ${getStatusClass(job.Status)} px-2 py-1`}
+                    >
+                      {job.Status}
+                    </span>
+                  </td>
                   <td className="d-flex">
-                      <button className="btn btn-sm btn-outline-primary me-1" onClick={()=>JobDetails(job)}>
-                        <i className="bi bi-eye"></i> View
-                      </button>
-                    <button className="btn btn-sm btn-outline-primary me-1" onClick={()=>handleUpdate(job)}>
+                    <button className="btn btn-sm btn-outline-primary me-1" onClick={() => JobDetails(job)}>
+                      <i className="bi bi-eye"></i> View
+                    </button>
+                    <button className="btn btn-sm btn-outline-primary me-1" onClick={() => handleUpdate(job)}>
                       <i className="bi bi-pencil"></i> Edit
                     </button>
-                    <button className="btn btn-sm btn-outline-danger" onClick={()=>handleDelete(job._id)}>
+                    <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(job._id)}>
                       <i className="bi bi-trash"></i> Delete
                     </button>
                   </td>
@@ -317,6 +358,17 @@ function ProjectJobsTab() {
                 <option value="designer">Designer</option>
               </Form.Select>
             </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Description</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
+                value={assignmentDescription}
+                onChange={(e) => setAssignmentDescription(e.target.value)}
+                placeholder="Enter assignment details or instructions..."
+              />
+            </Form.Group>
           </Form>
         </Modal.Body>
         <Modal.Footer>
@@ -328,6 +380,7 @@ function ProjectJobsTab() {
           </Button>
         </Modal.Footer>
       </Modal>
+
     </div>
   );
 }
