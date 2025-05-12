@@ -13,12 +13,12 @@ import { createjob, fetchjobById, updatejob } from '../../../redux/slices/JobsSl
 function AddJobTracker() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-    // Project name sho
+  // Project name sho
   const { id } = useParams();
   const location = useLocation();
   const { job } = location.state || {};
   const projectId = location.state?.id;
- 
+
   const { project, loading, error } = useSelector((state) => state.projects);
   useEffect(() => {
     if (projectId && project?.data?.length) {
@@ -48,7 +48,7 @@ function AddJobTracker() {
     priority: '',
     Status: '',
     totalTime: '',
-    assign: 'Designer',
+    assign: 'Not Assing',
     barcode: "",
   });
 
@@ -139,26 +139,35 @@ function AddJobTracker() {
     }
   };
 
-  
-  
+
+
   const handleCancel = () => {
     navigate("/projectList");
   }
   const Cancel = () => {
     navigate('/ProjectOverview', { state: { openTab: 'jobs' } });
   }
-  
+
   // Project name sho
   const selectedProjectName = project?.data?.find(p => p._id === formData.projectsId)?.projectName || "";
+
+  const reversedProjectList = project?.data?.slice().reverse() || [];
+
+  const idToIndexMap = {};
+  reversedProjectList.forEach((project, index) => {
+    idToIndexMap[project._id] = String(index + 1).padStart(4, '0');
+  });
+
+
   return (
     <>
       <ToastContainer />
       <div className="container mt-5">
         <div className="card shadow-sm">
           <div className="card-body">
-            <h1 className="card-title h4 mb-4">Add New Jobs</h1>
-            <form className="row g-3" onSubmit={handleSubmit}>
+            <h2 className="mb-4">{id || job?._id ? "Edit Jobs" : "Add New Jobs"}</h2>
 
+            <form className="row g-3" onSubmit={handleSubmit}>
               {/* Project Name */}
               <div className="col-md-6">
                 <label className="form-label">Project Name</label>
@@ -188,7 +197,7 @@ function AddJobTracker() {
                     </option>
                   ))}
                 </select> */}
-            {/* ok map  */}
+                {/* ok map  */}
                 {/* <select
                   name="projectsId"
                   className="form-control"
@@ -213,8 +222,26 @@ function AddJobTracker() {
                     {selectedProjectName}
                   </option>
                 </select>
-
               </div>
+
+              <div className="col-md-6">
+                <label className="form-label">Project</label>
+                <select
+                  name="projectsId"
+                  className="form-control"
+                  value={formData.projectsId || ""}
+                  onChange={handleChange}
+                >
+                  <option value="" disabled>Select a project</option>
+                  {project?.data?.map((p) => (
+                    <option key={p._id} value={p._id}>
+                      {idToIndexMap[p._id] || '----'}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+
 
               {/* Brand Name */}
               <div className="col-md-6">

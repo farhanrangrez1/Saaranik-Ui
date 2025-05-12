@@ -239,21 +239,21 @@ function InProgress() {
       {/* Filters */}
       <div className="d-flex flex-wrap gap-2 mb-3 align-items-center">
         <Form.Control type="text" placeholder="Search jobs..." className="w-auto" />
-        <Form.Select className=""style={{width:'140px'}} >
+        <Form.Select className="" style={{ width: '140px' }} >
           <option>All Designers</option>
         </Form.Select>
-         <Dropdown>
-                  <Dropdown.Toggle variant="light" id="status-dropdown">
-                    {selectedStatus}
-                  </Dropdown.Toggle>
-                  <Dropdown.Menu>
-                    {["All Status", "In Progress", "Review", "Not Started", "Completed"].map((item) => (
-                      <Dropdown.Item key={item} onClick={() => setSelectedStatus(item)}>
-                        {item}
-                      </Dropdown.Item>
-                    ))}
-                  </Dropdown.Menu>
-                </Dropdown>
+        <Dropdown>
+          <Dropdown.Toggle variant="light" id="status-dropdown">
+            {selectedStatus}
+          </Dropdown.Toggle>
+          <Dropdown.Menu>
+            {["All Status", "In Progress", "Review", "Not Started", "Completed"].map((item) => (
+              <Dropdown.Item key={item} onClick={() => setSelectedStatus(item)}>
+                {item}
+              </Dropdown.Item>
+            ))}
+          </Dropdown.Menu>
+        </Dropdown>
       </div>
 
       {/* Table */}
@@ -271,7 +271,7 @@ function InProgress() {
               <th>PackSize</th>
               <th>Priority</th>
               <th>Due Date</th>
-              <th>Assign</th>
+              <th>Designer</th>
               <th>TimeLogged</th>
               <th>Status</th>
               <th></th>

@@ -340,10 +340,10 @@ function NewJobsList() {
               <th>Flavour</th>
               <th>PackType</th>
               <th>PackSize</th>
-              <th>Priority</th>
+              <th>TimeLogged</th>
               <th>Due Date</th>
               <th>Assign</th>
-              <th>TimeLogged</th>
+              <th>Priority</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
@@ -374,12 +374,12 @@ function NewJobsList() {
                 <td style={{ whiteSpace: 'nowrap' }}>{job.flavour}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.packType}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.packSize}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{job.assign}</td>
                 <td>
                   <span className={getPriorityClass(job.priority)}>{job.priority}</span>
                 </td>
-                <td>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
-                <td>{job.assign}</td>
-                <td>{job.totalTime}</td>
                 <td>
                   <span className={`badge ${getStatusClass(job.Status)} px-2 py-1`}>
                     {job.Status}
