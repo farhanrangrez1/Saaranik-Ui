@@ -6,6 +6,13 @@ import { deletejob, fetchjobs, UpdateJobAssign } from '../../../../redux/slices/
 import Swal from 'sweetalert2';
 
 function ProjectJobsTab() {
+  const location = useLocation();
+  const params = useParams();
+  const id = location.state?.id || params.id;
+  console.log("hello me project id", id);
+
+
+
   const [selectedProduction, setSelectedProduction] = useState('');
   const [selectedAdditional, setSelectedAdditional] = useState('');
   const [selectedJob, setSelectedJob] = useState(null);
@@ -115,13 +122,15 @@ function ProjectJobsTab() {
   // ////////////////////////////////////////
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const location = useLocation();
-  const params = useParams();
-  const id = location.state?.id || params.id;
+  // const location = useLocation();
+  // const params = useParams();
+  // const id = location.state?.id || params.id;
   useEffect(() => {
     console.log("Project ID:", id);
   }, [id]);
 
+
+  // ///
   const { job } = useSelector((state) => state.jobs);
   console.log(job.jobs, "all jobs");
 
@@ -234,9 +243,12 @@ function ProjectJobsTab() {
             />
           </label>
 
-          <Link to={"/AddJobTracker"}>
-            <button id='All_btn' className="btn btn-primary">
-              <i className="bi bi-plus"></i> Add New
+          <Link
+            to="/AddJobTracker"
+            state={{ id }} // ID pass kar rahe hain yahan
+          >
+            <button id="All_btn" className="btn btn-primary">
+              <i className="bi bi-plus"></i> Add Job
             </button>
           </Link>
         </div>
@@ -271,7 +283,6 @@ function ProjectJobsTab() {
                     }
                   />
                 </th>
-
                 <th>JobsNo</th>
                 <th style={{ whiteSpace: 'nowrap' }}>Project Name</th>
                 <th>Brand</th>
@@ -302,8 +313,8 @@ function ProjectJobsTab() {
                       {String(index + 1).padStart(4, '0')}
                     </Link>
                   </td>
-                  <td>{job.projectId?.[0]?.projectName || 'N/A'}</td>
-                  <td>{job.brandName}</td>
+                  <td style={{ whiteSpace: 'nowrap' }}>{job.projectId?.[0]?.projectName || 'N/A'}</td>
+                  <td style={{ whiteSpace: 'nowrap' }}>{job.brandName}</td>
                   <td style={{ whiteSpace: 'nowrap' }}>{job.subBrand}</td>
                   <td style={{ whiteSpace: 'nowrap' }}>{job.flavour}</td>
                   <td style={{ whiteSpace: 'nowrap' }}>{job.packType}</td>
@@ -315,7 +326,7 @@ function ProjectJobsTab() {
                   </td>
                   <td>{new Date(job?.createdAt).toLocaleDateString('en-GB').replace(/\/20/, '/')}</td>
                   <td>{job.assign}</td>
-                  <td>{job.totalTime}</td>
+                  <td>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
                   {/* <th>
                     <Button id='All_btn' variant="success" style={{ width: "130px" }} size="sm" >
                       {job.Status || "Active"}

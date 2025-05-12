@@ -1,6 +1,14 @@
 import React from 'react';
+import { useDispatch } from 'react-redux';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 function ProjectOverviewTab({ projectData }) {
+  // const location = useLocation();
+  // const params = useParams();
+  // const id = location.state?.id || params.id;
+  // console.log("hello me project id",id);
+  
+
   return (
     <div className="row g-4">
       {/* Metrics Cards */}

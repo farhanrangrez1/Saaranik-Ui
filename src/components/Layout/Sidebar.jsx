@@ -80,7 +80,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       path: "/Reports"
     },
     {
-      title: "User Roles & Permissions",
+      title: "User Permissions",
       icon: <FaUsersCog className="menu-icon" />,
       path: "/UserRoles"
     },
@@ -118,7 +118,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             <span className="logo-text">Saaranik</span>
           </div>
         </div>
-        <ul className="menu">
+        <ul className="menu" style={{ whiteSpace: 'nowrap' }}>
           {menuItems.map((item, index) => (
             <li
               key={index}

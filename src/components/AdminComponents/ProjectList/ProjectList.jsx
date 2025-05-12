@@ -24,7 +24,7 @@ function ProjectList() {
     'Closed',
     'Cancelled',
     'On Hold',
-    'Completed (To Be Invoiced)',
+    // 'Completed (To Be Invoiced)',
   ];
 
   useEffect(() => {
@@ -74,8 +74,9 @@ function ProjectList() {
     navigate(`/AddProjectList`, { state: { project } });
   };
   const CreatJobs = (id) => {
-    navigate(`/ProjectOverview`, { state: { id } });
-  }
+  navigate('/ProjectOverview', { state: { id, openTab: 'jobs' } });
+};
+
 
   const getStatusClass = (status) => {
     switch ((status || "").toLowerCase().trim()) {
@@ -187,7 +188,6 @@ function ProjectList() {
               <th>Description</th>
               <th style={{ whiteSpace: 'nowrap' }}>Start Date</th>
               <th style={{ whiteSpace: 'nowrap' }}>End Date</th>
-              <th style={{ whiteSpace: 'nowrap' }}>Total Time logged</th>
               <th>Client</th>
               <th style={{ whiteSpace: 'nowrap' }}>project Requirements</th>
               <th>Status</th>
@@ -213,7 +213,6 @@ function ProjectList() {
                 <td  style={{ whiteSpace: 'nowrap' }}>{project.description}</td>
                 <td>{new Date(project.startDate).toLocaleDateString('en-GB').replace(/\/20/, '/')}</td>
                 <td>{new Date(project.endDate).toLocaleDateString('en-GB').replace(/\/20/, '/')}</td>
-                <td>{project.totalTime}</td>
                 <td>{project.client}Client</td>
                 <th>
                   {project.projectRequirements && project.projectRequirements.length > 0
@@ -236,14 +235,14 @@ function ProjectList() {
                     <Button style={{ color: "#0d6efd" }} variant="link" className="p-0 me-2" onClick={() => handleUpdate(project)}>
                       <FaEdit />
                     </Button>
-                    <Button
+                    {/* <Button
                       style={{ color: "red" }}
                       variant="link"
                       className="p-0"
                       onClick={() => handleDelete(project.id)}
                     >
                       <FaTrash />
-                    </Button>
+                    </Button> */}
                   </div>
                 </td>
               </tr>

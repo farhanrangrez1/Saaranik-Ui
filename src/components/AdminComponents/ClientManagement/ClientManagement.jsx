@@ -32,7 +32,7 @@
 //     const { name, value } = e.target;
 //     setFormData(prev => ({ ...prev, [name]: value }));
 //   };
-  
+
 //   const handleDelete = async (id) => {
 //     if (window.confirm("Are you sure you want to delete this client?")) {
 //       try {
@@ -75,7 +75,7 @@
 //       <Col>
 //     <h4>Client/Supplier</h4>
 //   </Col>
-  
+
 // </Row>
 
 
@@ -119,7 +119,7 @@
 //               </Button>
 //             </Link>
 //           </Col>
-          
+
 //         </Row>
 
 //         <div className="table-responsive">
@@ -217,14 +217,18 @@
 
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Form, Button, Table, Dropdown } from 'react-bootstrap';
-import { FaEllipsisV } from 'react-icons/fa';
+import { FaEdit, FaEllipsisV, FaEye, FaTrash } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Base_Url from '../../ApiUrl/ApiUrl';
 import './ClientManagement.css';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchClient } from '../../../redux/slices/ClientSlice';
 
 function ClientManagement() {
   const navigate = useNavigate();
+  const dispatch = useDispatch()
+
   const [clients, setClients] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -237,7 +241,7 @@ function ClientManagement() {
   useEffect(() => {
     const fetchClients = async () => {
       try {
-        const response = await axios.get( `${Base_Url}`/client/getAllClient);
+        const response = await axios.get(`${Base_Url}` / client / getAllClient);
         setClients(response.data.data);
       } catch (error) {
         console.error('Error fetching clients:', error);
@@ -249,7 +253,7 @@ function ClientManagement() {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
-  
+
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this client?")) {
       try {
@@ -285,17 +289,23 @@ function ClientManagement() {
     }
   };
 
+
+  //  all client 
+  const { Clients, error } = useSelector((state) => state.client);
+  console.log(Clients);
+
+  useEffect(() => {
+    dispatch(fetchClient());
+  }, [dispatch]);
+
   return (
     <Container fluid className="p-4">
       <Row className="align-items-center p-3" style={{ backgroundColor: "white", borderRadius: "10px" }}>
-      <Row className="mb-4 align-items-center">
-      <Col>
-    <h4>Client/Supplier</h4>
-  </Col>
-  
-</Row>
-
-
+        <Row className="mb-4 align-items-center">
+          <Col>
+            <h4>Client/Supplier</h4>
+          </Col>
+        </Row>
         <Row className="mb-4 align-items-center">
           <Col md={3}>
             <Form.Control
@@ -323,12 +333,12 @@ function ClientManagement() {
             </Form.Select>
           </Col>
           <Col >
-    <Form.Select name="industry" value={formData.industry} onChange={handleChange}>
-      <option value="Client">Client</option>
-      <option value="Sup">Suppliers</option>
-      <option value="Other">Other</option>
-    </Form.Select>
-  </Col>
+            <Form.Select name="industry" value={formData.industry} onChange={handleChange}>
+              <option value="Client">Client</option>
+              <option value="Sup">Suppliers</option>
+              <option value="Other">Other</option>
+            </Form.Select>
+          </Col>
           <Col className='me-5 d-flex justify-content-end'>
             <Link to="/AddClientManagement">
               <Button id='All_btn' variant="primary">
@@ -336,7 +346,7 @@ function ClientManagement() {
               </Button>
             </Link>
           </Col>
-          
+
         </Row>
 
         <div className="table-responsive">
@@ -352,8 +362,8 @@ function ClientManagement() {
               </tr>
             </thead>
             <tbody>
-              {currentClients.length > 0 ? (
-                currentClients.map((client, index) => (
+              {Clients?.data?.length > 0 ? (
+                Clients?.data?.slice().reverse().map((client, index) => (
                   <tr key={client._id}>
                     <td>{indexOfFirstClient + index + 1}</td>
                     <td>
@@ -384,6 +394,20 @@ function ClientManagement() {
                           </Dropdown.Item>
                         </Dropdown.Menu>
                       </Dropdown>
+                      <div className="action-buttons d-flex">
+                        <Button id="icone_btn" size="sm">
+                          <FaEdit />
+                        </Button>
+                        <Button
+                          onClick={() => handleDelete(project.id)}
+                          id="icone_btn" size="sm"
+                        >
+                          <FaTrash />
+                        </Button>
+                        <Button id="icone_btn" size="sm" >
+                          <FaEye />
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))

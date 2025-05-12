@@ -13,18 +13,31 @@ import { createjob, fetchjobById, updatejob } from '../../../redux/slices/JobsSl
 function AddJobTracker() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { id } = useParams(); // for edit mode
+    // Project name sho
+  const { id } = useParams();
   const location = useLocation();
   const { job } = location.state || {};
-  console.log(job);
-
-  // All Projects
+  const projectId = location.state?.id;
+ 
   const { project, loading, error } = useSelector((state) => state.projects);
+  useEffect(() => {
+    if (projectId && project?.data?.length) {
+      const foundProject = project.data.find(p => p._id === projectId);
+      if (foundProject) {
+        setFormData(prev => ({
+          ...prev,
+          projectsId: foundProject._id,
+        }));
+      }
+    }
+  }, [projectId, project]);
 
   useEffect(() => {
     dispatch(fetchProject());
   }, [dispatch]);
 
+
+  // Form submit f
   const [formData, setFormData] = useState({
     projectsId: '',
     brandName: '',
@@ -35,8 +48,8 @@ function AddJobTracker() {
     priority: '',
     Status: '',
     totalTime: '',
-    assign: '',
-    barcode: "POS-123456",
+    assign: 'Designer',
+    barcode: "",
   });
 
   // Static options
@@ -66,7 +79,7 @@ function AddJobTracker() {
   useEffect(() => {
     if (job && project?.data?.length) {
       let projectId = '';
-  
+
       // Safely extract project ID from nested projectsId array
       if (Array.isArray(job.projectId) && job.projectId.length > 0) {
         projectId = job.projectId[0]._id;
@@ -75,7 +88,7 @@ function AddJobTracker() {
           ? job.projectsId[0]._id
           : job.projectsId[0];
       }
-  
+
       setFormData((prev) => ({
         ...prev,
         ...job,
@@ -83,7 +96,7 @@ function AddJobTracker() {
       }));
     }
   }, [job, project?.data]);
-  
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -126,14 +139,17 @@ function AddJobTracker() {
     }
   };
 
-
-  // 
+  
+  
   const handleCancel = () => {
     navigate("/projectList");
   }
   const Cancel = () => {
     navigate('/ProjectOverview', { state: { openTab: 'jobs' } });
   }
+  
+  // Project name sho
+  const selectedProjectName = project?.data?.find(p => p._id === formData.projectsId)?.projectName || "";
   return (
     <>
       <ToastContainer />
@@ -159,7 +175,7 @@ function AddJobTracker() {
                     </option>
                   ))}
                 </select> */}
-                <select
+                {/* <select
                   name="projectsId"
                   className="form-control"
                   value={formData.projectsId}
@@ -171,6 +187,31 @@ function AddJobTracker() {
                       {project.projectName}
                     </option>
                   ))}
+                </select> */}
+            {/* ok map  */}
+                {/* <select
+                  name="projectsId"
+                  className="form-control"
+                  value={formData.projectsId || ""}
+                  onChange={handleChange}
+                >
+                  <option value="" disabled>Select a project</option>
+                  {project?.data?.map((project) => (
+                    <option key={project._id} value={project._id}>
+                      {project.projectName}
+                    </option>
+                  ))}
+                </select> */}
+
+                <select
+                  name="projectsId"
+                  className="form-control"
+                  value={formData.projectsId || ""}
+                  onChange={handleChange}
+                >
+                  <option value={selectedProjectName}>
+                    {selectedProjectName}
+                  </option>
                 </select>
 
               </div>
@@ -185,6 +226,8 @@ function AddJobTracker() {
                     setFormData((prev) => ({ ...prev, brandName: option?.value || '' }))
                   }
                   isClearable
+                  required
+
                 />
               </div>
 
@@ -197,6 +240,8 @@ function AddJobTracker() {
                   name="subBrand"
                   value={formData.subBrand}
                   onChange={handleChange}
+                  required
+
                 />
               </div>
 
@@ -210,6 +255,8 @@ function AddJobTracker() {
                     setFormData((prev) => ({ ...prev, flavour: option?.value || '' }))
                   }
                   isClearable
+                  required
+
                 />
               </div>
 
@@ -222,6 +269,8 @@ function AddJobTracker() {
                   name="packType"
                   value={formData.packType}
                   onChange={handleChange}
+                  required
+
                 />
               </div>
 
@@ -235,6 +284,8 @@ function AddJobTracker() {
                     setFormData((prev) => ({ ...prev, packSize: option?.value || '' }))
                   }
                   isClearable
+                  required
+
                 />
               </div>
 
@@ -246,6 +297,8 @@ function AddJobTracker() {
                   name="priority"
                   value={formData.priority}
                   onChange={handleChange}
+                  required
+
                 >
                   <option value="">Select</option>
                   <option value="low">Low</option>
@@ -262,16 +315,17 @@ function AddJobTracker() {
                   name="Status"
                   value={formData.Status}
                   onChange={handleChange}
+                  required
                 >
                   <option value="">Select</option>
-                  <option value="open">Open</option>
+                  <option value="completed">Cancelled</option>
                   <option value="in_progress">In Progress</option>
                   <option value="completed">Completed</option>
                 </select>
               </div>
 
               {/* Total Time Logged */}
-              <div className="col-md-6">
+              {/* <div className="col-md-6">
                 <label className="form-label">Total Time Logged</label>
                 <input
                   type="time"
@@ -282,10 +336,10 @@ function AddJobTracker() {
                     setFormData((prev) => ({ ...prev, totalTime: e.target.value }))
                   }
                 />
-              </div>
+              </div> */}
 
               {/* assign */}
-              <div className="col-md-6">
+              {/* <div className="col-md-6">
                 <label className="form-label">assign</label>
                 <select
                   className="form-select"
@@ -297,17 +351,35 @@ function AddJobTracker() {
                   <option value="Production">Production</option>
                   <option value="Designer">Designer</option>
                 </select>
-              </div>
+              </div> */}
 
               {/* Barcode */}
-              <div className="col-md-1">
-                <Barcode value="POS-123456" />
+              {/* Barcode Input */}
+              <div className="col-md-6">
+                <label className="form-label">Barcode</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  name="barcode"
+                  value={formData.barcode}
+                  onChange={handleInputChange}
+                  required
+                  placeholder="Enter barcode"
+                />
               </div>
+
+              {/* Barcode Preview */}
+              {formData.barcode && (
+                <div className="col-md-6 d-flex align-items-center">
+                  <Barcode value={formData.barcode} />
+                </div>
+              )}
+
 
               {/* Buttons */}
               <div className="col-12 d-flex justify-content-end gap-2 mt-4">
                 <button type="button" className="btn btn-outline-secondary" onClick={() => Cancel()}>Cancel</button>
-                <button type="submit" className="btn btn-dark">Add Jobs</button>
+                <button type="submit" className="btn btn-dark">Create</button>
               </div>
 
             </form>

@@ -111,7 +111,8 @@ function AddProjectList() {
   return (
     <Container className="py-4">
       <div className="form-container p-4 rounded shadow-sm" style={{ backgroundColor: "white", margin: "0 auto" }}>
-        <h2 className="mb-4">{id ? "Edit Project" : "New Project"}</h2>
+       <h2 className="mb-4">{id || project?._id ? "Edit Project" : "New Project"}</h2>
+
         <Form onSubmit={handleSubmit}>
           <Row className="mb-3">
             <Col md={6}>
@@ -222,7 +223,7 @@ function AddProjectList() {
                 </Form.Select>
               </Form.Group>
             </Col>
-            <Col md={6}>
+            {/* <Col md={6}>
               <Form.Group>
                 <Form.Label className="text-muted mb-1">Total Time Logged</Form.Label>
                 <Form.Control
@@ -232,7 +233,7 @@ function AddProjectList() {
                   onChange={handleInputChange}
                 />
               </Form.Group>
-            </Col>
+            </Col> */}
           </Row>
 
           <Form.Group className="mb-3">
