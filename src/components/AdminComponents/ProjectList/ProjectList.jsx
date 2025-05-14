@@ -6,6 +6,7 @@ import './Project.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { deleteproject, fetchProject } from '../../../redux/slices/ProjectsSlice';
 import Swal from 'sweetalert2';
+import { fetchClient } from '../../../redux/slices/ClientSlice';
 
 function ProjectList() {
   const [activeTab, setActiveTab] = useState('All');
@@ -103,6 +104,7 @@ function ProjectList() {
         return "bg-light text-dark";
     }
   };
+
 
   return (
     <div className="project-container">

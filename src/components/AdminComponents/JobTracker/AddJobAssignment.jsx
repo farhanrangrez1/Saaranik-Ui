@@ -5,7 +5,7 @@ function AddJobAssignment() {
     <div className="container py-5">
       <h4 className="fw-bold mb-4">Job Assignments</h4>
       <div className="bg-white p-4 rounded shadow-sm border">
-        <h5 className="fw-semibold mb-4">Assign New Job</h5>
+        <h5 className="fw-semibold mb-4">Assign Job</h5>
         <form>
           <div className="row">
             {/* Left Column */}

@@ -165,7 +165,7 @@ function AddJobTracker() {
       <div className="container mt-5">
         <div className="card shadow-sm">
           <div className="card-body">
-            <h2 className="mb-4">{id || job?._id ? "Edit Jobs" : "Add New Jobs"}</h2>
+            <h2 className="mb-4">{id || job?._id ? "Edit Jobs" : "Add Jobs"}</h2>
 
             <form className="row g-3" onSubmit={handleSubmit}>
               {/* Project Name */}
@@ -290,16 +290,30 @@ function AddJobTracker() {
               {/* Pack Type */}
               <div className="col-md-6">
                 <label className="form-label">Pack Type</label>
-                <input
-                  type="text"
-                  className="form-control"
+                <select
+                  className="form-select"
                   name="packType"
                   value={formData.packType}
                   onChange={handleChange}
                   required
-
-                />
+                >
+                  <option value="">Select</option>
+                  <option value="FW">Firstwrap – FW</option>
+                  <option value="SB">Showbox – SB</option>
+                  <option value="OC">Outercase – OC</option>
+                  <option value="Can">Can</option>
+                  <option value="BOT">Bottle – BOT</option>
+                  <option value="PH">Pouch – PH</option>
+                  <option value="Bag">Bag</option>
+                  <option value="DC">DisplayCase – DC</option>
+                  <option value="PET">Plastic Bottle – PET</option>
+                  <option value="BNR">Banner – BNR</option>
+                  <option value="PST">Poster – PST</option>
+                  <option value="HDR">Header – HDR</option>
+                  <option value="SHF">Shelf – SHF</option>
+                </select>
               </div>
+
 
               {/* Pack Size */}
               <div className="col-md-6">
@@ -345,7 +359,7 @@ function AddJobTracker() {
                   required
                 >
                   <option value="">Select</option>
-                  <option value="completed">Cancelled</option>
+                  <option value="Cancelled">Cancelled</option>
                   <option value="in_progress">In Progress</option>
                   <option value="completed">Completed</option>
                 </select>
@@ -406,7 +420,9 @@ function AddJobTracker() {
               {/* Buttons */}
               <div className="col-12 d-flex justify-content-end gap-2 mt-4">
                 <button type="button" className="btn btn-outline-secondary" onClick={() => Cancel()}>Cancel</button>
-                <button type="submit" className="btn btn-dark">Create</button>
+                <button type="submit" className="btn btn-dark">
+                  {id || job?._id ? "Save" : "Create Jobs"}
+                </button>
               </div>
 
             </form>

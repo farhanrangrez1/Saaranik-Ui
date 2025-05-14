@@ -5,6 +5,7 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { createProject, fetchProjectById, updateProject } from '../../../redux/slices/ProjectsSlice';
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { fetchClient } from '../../../redux/slices/ClientSlice';
 
 function AddProjectList() {
   const navigate = useNavigate();
@@ -81,7 +82,6 @@ function AddProjectList() {
       ...formData,
       projectRequirements: [formData.projectRequirements]
     };
-
     if (id) {
       dispatch(updateProject({ id, data: payload }))
         .unwrap()
@@ -108,6 +108,29 @@ function AddProjectList() {
   const handleCancel = () => {
     navigate("/projectList");
   }
+
+
+      //  all client 
+    const { Clients } = useSelector((state) => state.client);
+    console.log(Clients);
+  
+  useEffect(() => {
+    if (Clients  && project?.data?.length) {
+      const foundProject = project.data.find(p => p._id === Clients );
+      if (foundProject) {
+        setFormData(prev => ({
+          ...prev,
+          projectsId: foundProject._id,
+        }));
+      }
+    }
+  }, [Clients , project]);
+
+    useEffect(() => {
+      dispatch(fetchClient());
+    }, [dispatch]);
+
+
   return (
     <Container className="py-4">
       <div className="form-container p-4 rounded shadow-sm" style={{ backgroundColor: "white", margin: "0 auto" }}>
@@ -138,6 +161,11 @@ function AddProjectList() {
                 >
                   <option value="">Select Client</option>
                   <option value="662fb9cba77b2e0012345679">Client 1</option>
+                  {Clients?.data?.map((client) => (
+                    <option key={client._id} value={client._id}>
+                      {client.clientName}
+                    </option>
+                  ))}
                 </Form.Select>
               </Form.Group>
             </Col>
@@ -306,7 +334,8 @@ function AddProjectList() {
           <div className="d-flex justify-content-end gap-2 mt-4">
             <Button variant="secondary" className="px-4" style={{ minWidth: "120px" }} onClick={handleCancel}>Cancel</Button>
             <Button variant="dark" type="submit" className="px-4" style={{ minWidth: "120px" }}>
-              {id ? "Update Project" : "Create Project"}
+        
+               {id || project?._id ? "Save" : "Create Project"}
             </Button>
           </div>
         </Form>

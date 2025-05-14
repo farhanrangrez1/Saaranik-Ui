@@ -223,7 +223,8 @@ import axios from 'axios';
 import Base_Url from '../../ApiUrl/ApiUrl';
 import './ClientManagement.css';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchClient } from '../../../redux/slices/ClientSlice';
+import { deleteClients, fetchClient } from '../../../redux/slices/ClientSlice';
+import Swal from 'sweetalert2';
 
 function ClientManagement() {
   const navigate = useNavigate();
@@ -254,17 +255,6 @@ function ClientManagement() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this client?")) {
-      try {
-        await axios.delete(`${Base_Url}/client/deleteClient/${id}`);
-        setClients(clients.filter(client => client.id !== id));
-      } catch (err) {
-        console.error("Error deleting client", err);
-      }
-    }
-  };
-
   // Filtering logic
   const filteredClients = clients.filter(client => {
     const matchesSearch = (client.clientName || "").toLowerCase().includes(searchTerm.toLowerCase());
@@ -289,7 +279,6 @@ function ClientManagement() {
     }
   };
 
-
   //  all client 
   const { Clients, error } = useSelector((state) => state.client);
   console.log(Clients);
@@ -298,7 +287,37 @@ function ClientManagement() {
     dispatch(fetchClient());
   }, [dispatch]);
 
-  return (
+
+  // Delete
+   const handleDelete = (id) => {
+      console.log(id);
+      Swal.fire({
+        title: "Are you sure?",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, delete it!",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          dispatch(deleteClients(id))
+            .then(() => {
+              Swal.fire("Deleted!", "The document has been deleted.", "success");
+                dispatch(fetchClient());
+            })
+            .catch(() => {
+              Swal.fire("Error!", "Something went wrong.", "error");
+            });
+        }
+      });
+    }
+
+    const UpdateData =(client)=>{
+    navigate(`/AddClientManagement`, { state: { client } });
+    }
+
+    return (
     <Container fluid className="p-4">
       <Row className="align-items-center p-3" style={{ backgroundColor: "white", borderRadius: "10px" }}>
         <Row className="mb-4 align-items-center">
@@ -350,74 +369,67 @@ function ClientManagement() {
         </Row>
 
         <div className="table-responsive">
-          <Table responsive className="align-middle client-table">
-            <thead>
-              <tr>
-                <th>SL</th>
-                <th>Client Name</th>
-                <th>Contact Person</th>
-                <th>Email</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Clients?.data?.length > 0 ? (
-                Clients?.data?.slice().reverse().map((client, index) => (
-                  <tr key={client._id}>
-                    <td>{indexOfFirstClient + index + 1}</td>
-                    <td>
-                      <div>{client.clientName || 'N/A'}</div>
-                      <small className="text-muted">{client.email || 'No email'}</small>
-                    </td>
-                    <td>
-                      <div>{client.contactName || 'N/A'}</div>
-                      <small className="text-muted">{client.phone || 'No phone'}</small>
-                    </td>
-                    <td>{client.email || 'N/A'}</td>
-                    <td>
-                      <span className={getStatusBadgeClass(client.clientStatus)}>
-                        {client.clientStatus || 'Unknown'}
-                      </span>
-                    </td>
-                    <td>
-                      <Dropdown align="end">
-                        <Dropdown.Toggle variant="link" className="text-dark no-caret">
-                          <FaEllipsisV />
-                        </Dropdown.Toggle>
-                        <Dropdown.Menu>
-                          <Dropdown.Item onClick={() => navigate(`/client-details/${client._id}`)}>
-                            View Details
-                          </Dropdown.Item>
-                          <Dropdown.Item onClick={() => handleDelete(client.id)}>
-                            Delete
-                          </Dropdown.Item>
-                        </Dropdown.Menu>
-                      </Dropdown>
-                      <div className="action-buttons d-flex">
-                        <Button id="icone_btn" size="sm">
-                          <FaEdit />
-                        </Button>
-                        <Button
-                          onClick={() => handleDelete(project.id)}
-                          id="icone_btn" size="sm"
-                        >
-                          <FaTrash />
-                        </Button>
-                        <Button id="icone_btn" size="sm" >
-                          <FaEye />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="6" className="text-center">No clients found.</td>
-                </tr>
-              )}
-            </tbody>
-          </Table>
+         <Table responsive className="align-middle client-table">
+  <thead>
+    <tr>
+      <th>SL</th>
+      <th style={{ whiteSpace: 'nowrap' }}>Client Name</th>
+      <th style={{ whiteSpace: 'nowrap' }}>Contact Person</th>
+      <th>Email</th>
+      <th>Phone</th>
+      <th>Industry</th>
+      <th>Status</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {Clients?.data?.length > 0 ? (
+      Clients.data.slice().reverse().map((client, index) => (
+        <tr key={client.id}>
+          <td>{indexOfFirstClient + index + 1}</td>
+          <td style={{ whiteSpace: 'nowrap' }}>
+            <div>{client.clientName || 'N/A'}</div>
+          </td>
+          <td>
+            <div style={{ whiteSpace: 'nowrap' }}>{client.contactPersons?.[0]?.contactName || 'N/A'}</div>
+          </td>
+          <td style={{ whiteSpace: 'nowrap' }}>{client.contactPersons?.[0]?.email || 'N/A'}</td>
+          <td style={{ whiteSpace: 'nowrap' }}>{client.contactPersons?.[0]?.phone || 'N/A'}</td> 
+          <td style={{ whiteSpace: 'nowrap' }}>{client.industry || 'N/A'}</td>           
+          <td>
+            <span className={getStatusBadgeClass(client.Status)}>
+              {client.Status || 'Unknown'}
+            </span>
+          </td>
+          <td>
+            <div className="action-buttons d-flex">
+              <Button
+              onClick={()=>UpdateData(client)}
+              id="icone_btn" size="sm">
+                <FaEdit />
+              </Button>
+              {/* <Button id="icone_btn" size="sm">
+                <FaEye />
+              </Button> */}
+              <Button
+                onClick={() => handleDelete(client.id)}
+                id="icone_btn"
+                size="sm"
+              >
+                <FaTrash />
+              </Button>
+            </div>
+          </td>
+        </tr>
+      ))
+    ) : (
+      <tr>
+        <td colSpan="8" className="text-center">No clients found.</td> 
+      </tr>
+    )}
+  </tbody>
+</Table>
+
         </div>
 
         {/* Pagination */}

@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import UserRoleModal from './UserRoleModal';
 import { FaEdit, FaTrashAlt } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchusers } from '../../../redux/slices/userSlice';
 
 function UserRoles() {
+  const dispatch = useDispatch()
   const [users, setUsers] = useState([
     {
       id: 1,
@@ -88,8 +91,15 @@ function UserRoles() {
     setEditingUser(null);
   };
 
+  const { userAll, loading, error } = useSelector((state) => state.user);
+  console.log("data user", userAll?.data?.users);
+
+  useEffect(() => {
+    dispatch(fetchusers());
+  }, [dispatch]);
+
   return (
-    <div className=" p-4 m-3" style={{backgroundColor:"white",borderRadius:"10px",}}>
+    <div className=" p-4 m-3" style={{ backgroundColor: "white", borderRadius: "10px", }}>
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div className="d-flex gap-2 align-items-center">
           <input
@@ -102,7 +112,7 @@ function UserRoles() {
           />
           <button className="btn btn-outline-secondary">All Roles</button>
         </div>
-       <Link to={"/UserRoleModal"}> <button id="All_btn" className="btn btn-dark">
+        <Link to={"/UserRoleModal"}> <button id="All_btn" className="btn btn-dark">
           + Add User
         </button></Link>
       </div>
@@ -121,30 +131,40 @@ function UserRoles() {
                 </tr>
               </thead>
               <tbody>
-                {currentUsers.map(user => (
-                  <tr key={user.id}>
+                {userAll?.data?.users?.slice().reverse().map(user => (
+                  <tr key={user?.id}>
                     <td>
                       <div className="d-flex align-items-center">
                         <div className="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" style={{ width: '32px', height: '32px' }}>
-                          {user.name.charAt(0)}
+                          {user.firstName.charAt(0)}
                         </div>
                         <div>
-                          <div className="fw-semibold">{user.name}</div>
+                          <div className="fw-semibold">{user.firstName} {user.lastName}</div>
                           <div className="text-muted small">{user.email}</div>
                         </div>
                       </div>
                     </td>
+
                     <td>
                       <span className={`badge ${user.role === 'Admin' ? 'text-bg-dark' : user.role === 'Manager' ? 'text-bg-primary' : 'text-bg-info'}`}>
-                        {user.role}
+                        {user?.role}
                       </span>
                     </td>
-                    <td>
-                      <span className={`badge ${user.status === 'Active' ? 'text-bg-success' : 'text-bg-warning'}`}>
-                        {user.status}
+                     <td>
+                      <span className={`badge ${user.state === 'Active' ? 'text-bg-success' : 'text-bg-warning'}`}>
+                        {user?.state}
                       </span>
                     </td>
-                    <td>{user.permissions}</td>
+                  <th style={{fontWeight:"400"}}>
+                      {user && user.permissions
+                        ? Object.entries(user.permissions)
+                          .filter(([_, value]) => value === true)
+                          .map(([key]) => key)
+                          .join(', ')
+                        : 'N/A'}
+                    </th>
+                   
+                    {/* <td>{user.permissions}</td> */}
                     <td>
                       <div className="d-flex gap-2">
                         <button

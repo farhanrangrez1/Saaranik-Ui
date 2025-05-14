@@ -90,24 +90,56 @@ function NewJobsList() {
     setShowAssignModal(true);
   };
 
-  const handleRejectJobs = () => {
-    const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
-    if (selectedJobIds.length === 0) {
-      setErrorMessage("Please select at least 1 job to reject.");
-      setTimeout(() => setErrorMessage(""), 3000);
-      return;
-    }
-    // Success message
-    setSuccessMessage("Jobs rejected successfully.");
-    setTimeout(() => setSuccessMessage(""), 3000);
-    setSelectedJobs({});
-  };
+  // const handleRejectJobs = () => {
+  //   const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
+  //   if (selectedJobIds.length === 0) {
+  //     setErrorMessage("Please select at least 1 job to reject.");
+  //     setTimeout(() => setErrorMessage(""), 3000);
+  //     return;
+  //   }
+  //   // Success message
+  //   setSuccessMessage("Jobs rejected successfully.");
+  //   setTimeout(() => setSuccessMessage(""), 3000);
+  //   setSelectedJobs({});
+  // };
 
-  const handleSubmitRejection = () => {
-    console.log("Rejected job(s):", selectedJobs, "Reason:", rejectionReason);
-    setShowRejectModal(false);
-    setRejectionReason("");
-  };
+  const handleRejectJobs = () => {
+  const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
+  if (selectedJobIds.length === 0) {
+    setErrorMessage("Please select at least 1 job to reject.");
+    setTimeout(() => setErrorMessage(""), 3000);
+    return;
+  }
+  // Show rejection modal instead of success message
+  setShowRejectModal(true);
+};
+
+const handleSubmitRejection = () => {
+  const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
+
+  if (!rejectionReason.trim()) {
+    setErrorMessage("Please enter a reason for rejection.");
+    setTimeout(() => setErrorMessage(""), 3000);
+    return;
+  }
+
+  console.log("Rejected job(s):", selectedJobIds, "Reason:", rejectionReason);
+
+  // Here, call your API if needed to mark jobs as rejected
+
+  setSuccessMessage("Jobs rejected successfully.");
+  setTimeout(() => setSuccessMessage(""), 3000);
+
+  setSelectedJobs({});
+  setRejectionReason("");
+  setShowRejectModal(false);
+};
+
+  // const handleSubmitRejection = () => {
+  //   console.log("Rejected job(s):", selectedJobs, "Reason:", rejectionReason);
+  //   setShowRejectModal(false);
+  //   setRejectionReason("");
+  // };
 
 
   // ///

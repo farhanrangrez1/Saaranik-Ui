@@ -1,16 +1,21 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Base_Url from '../../ApiUrl/ApiUrl';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useDispatch } from 'react-redux';
-import { createClients } from '../../../redux/slices/ClientSlice';
+import { createClients, fetchClient, updateClients } from '../../../redux/slices/ClientSlice';
 import "react-toastify/dist/ReactToastify.css";
 
 
 function AddClientManagement() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { id } = useParams(); // for edit mode
+  const location = useLocation();
+  const { client } = location.state || {};
+  console.log(client);
+
   // Initial form state
   const [formData, setFormData] = useState({
     clientName: '',
@@ -87,6 +92,45 @@ function AddClientManagement() {
     notes: ''
   });
 
+
+useEffect(() => {
+  const updateStates = (clientData) => {
+    setFormData({
+      clientName: clientData.clientName || '',
+      industry: clientData.industry || '',
+      website: clientData.website || '',
+      clientAddress: clientData.clientAddress || '',
+      TaxID_VATNumber: clientData.TaxID_VATNumber || '',
+      CSRCode: clientData.CSRCode || '',
+      Status: clientData.Status || 'Active'
+    });
+
+    setContactPersons(clientData.contactPersons || []);
+    setBillingInformation(clientData.billingInformation || []);
+    setShippingInformation(clientData.shippingInformation || []);
+    setFinancialInformation(clientData.financialInformation || []);
+    setLedgerInformation(clientData.ledgerInformation || []);
+    setAdditionalInformation(clientData.additionalInformation || {
+      paymentTerms: '',
+      creditLimit: '',
+      notes: ''
+    });
+  };
+
+  if (client) {
+    updateStates(client);
+  } else if (id) {
+    dispatch(fetchclientById(id)).then((res) => {
+      const fetchedclient = res.payload;
+      if (fetchedclient) {
+        updateStates(fetchedclient);
+      }
+    });
+  }
+}, [id, dispatch, client]);
+
+
+
   // Handle basic form field changes
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -161,49 +205,8 @@ function AddClientManagement() {
   };
 
   // Handle form submission
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-
-//     const fullData = {
-//       ...formData,
-//       contactPersons,
-//       billingInformation,
-//       shippingInformation,
-//       financialInformation,
-//       ledgerInformation,
-//       additionalInformation
-//     };
-
-//     console.log('Full Data Object:', fullData);
-//  dispatch(createClients(fullData))
-//     if (id) {
-//       dispatch(createClients(fullData))
-//         .unwrap()
-//         .then(() => {
-//           toast.success("Project updated successfully!");
-//           // navigate("/plantMachinery");
-//         })
-//         .catch(() => {
-//           toast.error("Failed to update project!");
-//         });
-//     } else {
-//           dispatch(createClients(fullData))
-//         .unwrap()
-//         .then(() => {
-//           toast.success("Project created successfully!");
-//           // navigate("/projectList");
-//         })
-//         .catch(() => {
-//           toast.error("Error creating project");
-//         });
-//     }
-//   };
-
-
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const fullData = {
       ...formData,
       contactPersons,
@@ -213,18 +216,55 @@ function AddClientManagement() {
       ledgerInformation,
       additionalInformation
     };
+    console.log('Full Data Object:', fullData);
+    if (id) {
+      dispatch(updateClients(fullData))
+        .unwrap()
+        .then(() => {
+          toast.success("clientupdated successfully!");
+          navigate("/clientManagement");
+              dispatch(fetchClient());
+        })
+        .catch(() => {
+          toast.error("Failed to update client!");
+        });
+    } else {
           dispatch(createClients(fullData))
         .unwrap()
         .then(() => {
-          toast.success("Project created successfully!");
+          toast.success("clientcreated successfully!");
           navigate("/clientManagement");
+              dispatch(fetchClient());
         })
         .catch(() => {
-          toast.error("Error creating project");
+          toast.error("Error creating client");
         });
-    
+    }
   };
 
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+
+  //   const fullData = {
+  //     ...formData,
+  //     contactPersons,
+  //     billingInformation,
+  //     shippingInformation,
+  //     financialInformation,
+  //     ledgerInformation,
+  //     additionalInformation
+  //   };
+  //         dispatch(createClients(fullData))
+  //       .unwrap()
+  //       .then(() => {
+  //         toast.success("clientcreated successfully!");
+  //         navigate("/clientManagement");
+  //       })
+  //       .catch(() => {
+  //         toast.error("Error creating client");
+  //       });
+    
+  // };
 
   return (
     <>
@@ -232,7 +272,8 @@ function AddClientManagement() {
       <div className="container mt-5">
         <div className="card shadow-sm">
           <div className="card-body">
-            <h1 className="card-title h4 mb-4">Add Company</h1>
+            {/* <h1 className="card-title h4 mb-4">Add Company</h1> */}
+                   <h2 className="mb-4">{id || client?._id ? "Edit client" : "New Company"}</h2>
             <form className="row g-3" onSubmit={handleSubmit}>
               <div className='col-md-3'>  <h6 className="mb-3">Client/Supplier Information</h6></div>
               <div className="col-md-6"></div>

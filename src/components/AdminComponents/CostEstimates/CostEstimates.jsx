@@ -312,6 +312,10 @@ function CostEstimates() {
               {/* ✅ Status Dropdown */}
               <td>
                 <div className="d-flex gap-2">
+                    <button   //ye button list ko copy  kare ga 
+                    className="btn btn-sm btn-primary">
+                    Duplicate
+                  </button>
                   <button
                     className="btn btn-sm btn-primary"
                     onClick={() => handleConvertToInvoice(po)}

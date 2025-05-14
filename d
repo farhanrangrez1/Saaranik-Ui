@@ -3450,10 +3450,1377 @@ export default AddProjectList;
                     // export default AddClientManagement;
                     
                     
+
+
+
+
+
+                    // ////////////
+                    import React, { useState } from 'react';
+                    import Base_Url from '../../ApiUrl/ApiUrl';
+                    import { useLocation, useNavigate, useParams } from 'react-router-dom';
+                    import { toast, ToastContainer } from 'react-toastify';
+                    import 'react-toastify/dist/ReactToastify.css';
+                    import { useDispatch } from 'react-redux';
+                    import { createClients } from '../../../redux/slices/ClientSlice';
+                    import "react-toastify/dist/ReactToastify.css";
+                    
+                    
+                    function AddClientManagement() {
+                      const navigate = useNavigate();
+                      const dispatch = useDispatch();
+                      const { id } = useParams(); // for edit mode
+                      const location = useLocation();
+                      const { client } = location.state || {};
+                      console.log(client);
+                    
+                      // Initial form state
+                      const [formData, setFormData] = useState({
+                        clientName: '',
+                        industry: '',
+                        website: '',
+                        clientAddress: '',
+                        TaxID_VATNumber: '',
+                        CSRCode: '',
+                        Status: 'Active'
+                      });
+                    
+                      // Contact persons state
+                      const [contactPersons, setContactPersons] = useState([
+                        {
+                          contactName: '',
+                          jobTitle: '',
+                          email: '',
+                          phone: '',
+                          department: '',
+                          salesRepresentative: ''
+                        }
+                      ]);
+                    
+                      // Billing information state
+                      const [billingInformation, setBillingInformation] = useState([
+                        {
+                          billingAddress: '',
+                          billingContactName: '',
+                          billingEmail: '',
+                          billingPhone: '',
+                          currency: '',
+                          preferredPaymentMethod: ''
+                        }
+                      ]);
+                      // Shipping information state
+                      const [shippingInformation, setShippingInformation] = useState([
+                        {
+                          shippingAddress: '',
+                          shippingContactName: '',
+                          shippingEmail: '',
+                          shippingPhone: '',
+                          preferredShippingMethod: '',
+                          specialInstructions: ''
+                        }
+                      ]);
+                      // Financial information state
+                      const [financialInformation, setFinancialInformation] = useState([
+                        {
+                          annualRevenue: '',
+                          creditRating: '',
+                          bankName: '',
+                          accountNumber: '',
+                          fiscalYearEnd: '',
+                          financialContact: ''
+                        }
+                      ]);
+                    
+                      // Ledger information state
+                      const [ledgerInformation, setLedgerInformation] = useState([
+                        {
+                          accountCode: '',
+                          accountType: '',
+                          openingBalance: '',
+                          balanceDate: '',
+                          taxCategory: '',
+                          costCenter: ''
+                        }
+                      ]);
+                    
+                      // Additional information state
+                      const [additionalInformation, setAdditionalInformation] = useState({
+                        paymentTerms: '',
+                        creditLimit: '',
+                        notes: ''
+                      });
+                    
+                    
+                    
+                      
+                      // Handle basic form field changes
+                      const handleChange = (e) => {
+                        const { name, value } = e.target;
+                        setFormData(prev => ({
+                          ...prev,
+                          [name]: value
+                        }));
+                      };
+                    
+                      // Handle contact person changes
+                      const handleContactChange = (index, e) => {
+                        const { name, value } = e.target;
+                        const updatedContacts = [...contactPersons];
+                        updatedContacts[index] = {
+                          ...updatedContacts[index],
+                          [name]: value
+                        };
+                        setContactPersons(updatedContacts);
+                      };
+                    
+                      // Handle billing information changes
+                      const handleBillingChange = (index, e) => {
+                        const { name, value } = e.target;
+                        const updatedBilling = [...billingInformation];
+                        updatedBilling[index] = {
+                          ...updatedBilling[index],
+                          [name]: value
+                        };
+                        setBillingInformation(updatedBilling);
+                      };
+                    
+                      // Handle shipping information changes
+                      const handleShippingChange = (index, e) => {
+                        const { name, value } = e.target;
+                        const updatedShipping = [...shippingInformation];
+                        updatedShipping[index] = {
+                          ...updatedShipping[index],
+                          [name]: value
+                        };
+                        setShippingInformation(updatedShipping);
+                      };
+                    
+                      // Handle financial information changes
+                      const handleFinancialChange = (index, e) => {
+                        const { name, value } = e.target;
+                        const updatedFinancial = [...financialInformation];
+                        updatedFinancial[index] = {
+                          ...updatedFinancial[index],
+                          [name]: value
+                        };
+                        setFinancialInformation(updatedFinancial);
+                      };
+                    
+                      // Handle ledger information changes
+                      const handleLedgerChange = (index, e) => {
+                        const { name, value } = e.target;
+                        const updatedLedger = [...ledgerInformation];
+                        updatedLedger[index] = {
+                          ...updatedLedger[index],
+                          [name]: value
+                        };
+                        setLedgerInformation(updatedLedger);
+                      };
+                    
+                    
+                      const handleAdditionalChange = (e) => {
+                        const { name, value } = e.target;
+                        setAdditionalInformation(prev => ({
+                          ...prev,
+                          [name]: value
+                        }));
+                      };
+                    
+                      // Handle form submission
+                    //   const handleSubmit = async (e) => {
+                    //     e.preventDefault();
+                    
+                    //     const fullData = {
+                    //       ...formData,
+                    //       contactPersons,
+                    //       billingInformation,
+                    //       shippingInformation,
+                    //       financialInformation,
+                    //       ledgerInformation,
+                    //       additionalInformation
+                    //     };
+                    
+                    //     console.log('Full Data Object:', fullData);
+                    //  dispatch(createClients(fullData))
+                    //     if (id) {
+                    //       dispatch(createClients(fullData))
+                    //         .unwrap()
+                    //         .then(() => {
+                    //           toast.success("Project updated successfully!");
+                    //           // navigate("/plantMachinery");
+                    //         })
+                    //         .catch(() => {
+                    //           toast.error("Failed to update project!");
+                    //         });
+                    //     } else {
+                    //           dispatch(createClients(fullData))
+                    //         .unwrap()
+                    //         .then(() => {
+                    //           toast.success("Project created successfully!");
+                    //           // navigate("/projectList");
+                    //         })
+                    //         .catch(() => {
+                    //           toast.error("Error creating project");
+                    //         });
+                    //     }
+                    //   };
+                    
+                    
+                    
+                      const handleSubmit = async (e) => {
+                        e.preventDefault();
+                    
+                        const fullData = {
+                          ...formData,
+                          contactPersons,
+                          billingInformation,
+                          shippingInformation,
+                          financialInformation,
+                          ledgerInformation,
+                          additionalInformation
+                        };
+                              dispatch(createClients(fullData))
+                            .unwrap()
+                            .then(() => {
+                              toast.success("Project created successfully!");
+                              navigate("/clientManagement");
+                            })
+                            .catch(() => {
+                              toast.error("Error creating project");
+                            });
+                        
+                      };
+                    
+                    
+                      return (
+                        <>
+                          <ToastContainer />
+                          <div className="container mt-5">
+                            <div className="card shadow-sm">
+                              <div className="card-body">
+                                <h1 className="card-title h4 mb-4">Add Company</h1>
+                                <form className="row g-3" onSubmit={handleSubmit}>
+                                  <div className='col-md-3'>  <h6 className="mb-3">Client/Supplier Information</h6></div>
+                                  <div className="col-md-6"></div>
+                                  <div className="col-md-6">
+                                    <label className="form-label">Name</label>
+                                    <input type="text" name="clientName" value={formData.clientName} onChange={handleChange} className="form-control" placeholder="Enter  name" />
+                                  </div>
+                                  <div className="col-md-6">
+                                    <label className="form-label">Industry</label>
+                                    <select className="form-select" name="industry" value={formData.industry} onChange={handleChange}>
+                                      <option value="">Select industry</option>
+                                      <option value="manufacturing">Manufacturing</option>
+                                      <option value="tech">Technology</option>
+                                      <option value="retail">Retail</option>
+                                    </select>
+                                  </div>
+                                  <div className="col-md-6">
+                                    <label className="form-label">Website</label>
+                                    <input type="url" name="website" value={formData.website} onChange={handleChange} className="form-control" placeholder="https://" />
+                                  </div>
+                                  <div className="col-md-6">
+                                    <label className="form-label">Client Address</label>
+                                    <textarea className="form-control" name="clientAddress" value={formData.clientAddress} onChange={handleChange}></textarea>
+                                  </div>
+                                  <div className="col-md-6">
+                                    <label className="form-label">Tax ID/VAT Number</label>
+                                    <input type="text" name="TaxID_VATNumber" value={formData.TaxID_VATNumber} onChange={handleChange} className="form-control" />
+                                  </div>
+                                  <div className="col-md-6">
+                                    <label className="form-label">CSR Code</label>
+                                    <input type="text" name="CSRCode" value={formData.CSRCode} onChange={handleChange} className="form-control" />
+                                  </div>
+                                  <div className="col-md-6">
+                                    <label className="form-label">Status</label>
+                                    <select className="form-select" name="Status" value={formData.Status} onChange={handleChange}>
+                                      <option value="active">Active</option>
+                                      <option value="inactive">Inactive</option>
+                                    </select>
+                                  </div>
+                                  <div className='col-md-12 row'>
+                                    <h5 className="mb-3 mt-4">Contact Persons</h5>
+                    
+                                    {contactPersons.map((contact, index) => (
+                                      <div className="border p-3 mb-3" key={index}>
+                                        <div className="row">
+                                          <div className="col-md-6">
+                                            <label className="form-label">Contact Name</label>
+                                            <input
+                                              type="text"
+                                              name="contactName"
+                                              value={contact.contactName}
+                                              onChange={(e) => handleContactChange(index, e)}
+                                              className="form-control"
+                                              placeholder="Enter Contact Name"
+                                            />
+                                          </div>
+                    
+                                          <div className="col-md-6">
+                                            <label className="form-label">Job Title</label>
+                                            <input
+                                              type="text"
+                                              name="jobTitle"
+                                              value={contact.jobTitle}
+                                              onChange={(e) => handleContactChange(index, e)}
+                                              className="form-control"
+                                              placeholder="Enter Job Title"
+                                            />
+                                          </div>
+                    
+                                          <div className="col-md-6">
+                                            <label className="form-label">Email</label>
+                                            <input
+                                              type="email"
+                                              name="email"
+                                              value={contact.email}
+                                              onChange={(e) => handleContactChange(index, e)}
+                                              className="form-control"
+                                              placeholder="Enter Email"
+                                            />
+                                          </div>
+                    
+                                          <div className="col-md-6">
+                                            <label className="form-label">Phone</label>
+                                            <input
+                                              type="tel"
+                                              name="phone"
+                                              value={contact.phone}
+                                              onChange={(e) => handleContactChange(index, e)}
+                                              className="form-control"
+                                              placeholder="Enter Phone"
+                                            />
+                                          </div>
+                    
+                                          <div className="col-md-6">
+                                            <label className="form-label">Department</label>
+                                            <input
+                                              type="text"
+                                              name="department"
+                                              value={contact.department}
+                                              onChange={(e) => handleContactChange(index, e)}
+                                              className="form-control"
+                                              placeholder="Enter Department"
+                                            />
+                                          </div>
+                    
+                                          <div className="col-md-6">
+                                            <label className="form-label">Sales Representative</label>
+                                            <input
+                                              type="text"
+                                              name="salesRepresentative"
+                                              value={contact.salesRepresentative}
+                                              onChange={(e) => handleContactChange(index, e)}
+                                              className="form-control"
+                                              placeholder="Enter Sales Representative"
+                                            />
+                                          </div>
+                    
+                                          <div className="col-md-12 mt-2 d-flex justify-content-end">
+                                            {contactPersons.length > 1 && (
+                                              <button
+                                                type="button"
+                                                className="btn btn-danger btn-sm"
+                                                onClick={() => {
+                                                  const updatedContacts = [...contactPersons];
+                                                  updatedContacts.splice(index, 1);
+                                                  setContactPersons(updatedContacts);
+                                                }}
+                                              >
+                                                Remove
+                                              </button>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ))}
+                    
+                                    {/* Add More Button */}
+                                    <div className="mb-3">
+                                      <button
+                                        type="button"
+                                        className="btn btn-primary"
+                                        onClick={() => {
+                                          setContactPersons([
+                                            ...contactPersons,
+                                            {
+                                              contactName: '',
+                                              jobTitle: '',
+                                              email: '',
+                                              phone: '',
+                                              department: '',
+                                              salesRepresentative: ''
+                                            }
+                                          ]);
+                                        }}
+                                      >
+                                        + Add Another Contact
+                                      </button>
+                                    </div>
+                                  </div>
+                    
+                                  {/* Billing Information */}
+                                  <div className='col-md-12 row'>
+                                    <h5 className="mb-3 mt-4">Billing Information</h5>
+                                    <div className="col-md-12">
+                                      <label className="form-label">Billing Address</label>
+                                      <textarea className="form-control" rows="3" name="billingAddress" value={billingInformation[0].billingAddress} onChange={(e) => handleBillingChange(0, e)}></textarea>
+                                    </div>
+                                    <div className="col-md-6">
+                                      <label className="form-label">Billing Contact Name</label>
+                                      <input type="text" className="form-control" name="billingContactName" value={billingInformation[0].billingContactName} onChange={(e) => handleBillingChange(0, e)} />
+                                    </div>
+                                    <div className="col-md-6">
+                                      <label className="form-label">Billing Email</label>
+                                      <input type="email" className="form-control" name="billingEmail" value={billingInformation[0].billingEmail} onChange={(e) => handleBillingChange(0, e)} />
+                                    </div>
+                                    <div className="col-md-6">
+                                      <label className="form-label">Billing Phone</label>
+                                      <input type="tel" className="form-control" name="billingPhone" value={billingInformation[0].billingPhone} onChange={(e) => handleBillingChange(0, e)} />
+                                    </div>
+                                    <div className="col-md-6">
+                                      <label className="form-label">Currency</label>
+                                      <select className="form-select" name="currency" value={billingInformation[0].currency} onChange={(e) => handleBillingChange(0, e)}>
+                                        <option value="USD">USD</option>
+                                        <option value="EUR">EUR</option>
+                                        <option value="GBP">GBP</option>
+                                      </select>
+                                    </div>
+                                    <div className="col-md-6">
+                                      <label className="form-label">Preferred Payment Method</label>
+                                      <select className="form-select" name="preferredPaymentMethod" value={billingInformation[0].preferredPaymentMethod} onChange={(e) => handleBillingChange(0, e)}>
+                                        <option value="">Select Payment Method</option>
+                                        <option value="BankTransfer">BankTransfer</option>
+                                        <option value="CreditCard">CreditCard</option>
+                                        <option value="Check">Check</option>
+                                      </select>
+                                    </div>
+                    
+                                    {/* Shipping Information */}
+                                    <h5 className="mb-3 mt-4">Shipping Information</h5>
+                                    <div className="col-md-12">
+                                      <label className="form-label">Shipping Address</label>
+                                      <textarea className="form-control" rows="3" name="shippingAddress" value={shippingInformation[0].shippingAddress} onChange={(e) => handleShippingChange(0, e)}></textarea>
+                                    </div>
+                                    <div className="col-md-6">
+                                      <label className="form-label">Shipping Contact Name</label>
+                                      <input type="text" className="form-control" name="shippingContactName" value={shippingInformation[0].shippingContactName} onChange={(e) => handleShippingChange(0, e)} />
+                                    </div>
+                                    <div className="col-md-6">
+                                      <label className="form-label">Shipping Email</label>
+                                      <input type="email" className="form-control" name="shippingEmail" value={shippingInformation[0].shippingEmail} onChange={(e) => handleShippingChange(0, e)} />
+                                    </div>
+                                    <div className="col-md-6">
+                                      <label className="form-label">Shipping Phone</label>
+                                      <input type="tel" className="form-control" name="shippingPhone" value={shippingInformation[0].shippingPhone} onChange={(e) => handleShippingChange(0, e)} />
+                                    </div>
+                                    <div className="col-md-6">
+                                      <label className="form-label">Preferred Shipping Method</label>
+                                      <select className="form-select" name="preferredShippingMethod" value={shippingInformation[0].preferredShippingMethod} onChange={(e) => handleShippingChange(0, e)}>
+                                        <option value="">Select Shipping Method</option>
+                                        <option value="Standard">Standard</option>
+                                        <option value="Express">Express</option>
+                                        <option value="Overnight">Overnight</option>
+                                        <option value="Ground">Ground</option>
+                                      </select>
+                                    </div>
+                                    <div className="col-md-12">
+                                      <label className="form-label">Special Instructions</label>
+                                      <textarea className="form-control" rows="3" name="specialInstructions" value={shippingInformation[0].specialInstructions} onChange={(e) => handleShippingChange(0, e)}></textarea>
+                                    </div>
+                    
+                                    {/* Financial Information */}
+                                    <h5 className="mb-3 mt-4">Financial Information</h5>
+                                    <div className="col-md-6">
+                                      <label className="form-label">Annual Revenue</label>
+                                      <input type="number" className="form-control" name="annualRevenue" value={financialInformation[0].annualRevenue} onChange={(e) => handleFinancialChange(0, e)} />
+                                    </div>
+                                    <div className="col-md-6">
+                                      <label className="form-label">Credit Rating</label>
+                                      <input type="text" className="form-control" name="creditRating" value={financialInformation[0].creditRating} onChange={(e) => handleFinancialChange(0, e)} />
+                                    </div>
+                                    <div className="col-md-6">
+                                      <label className="form-label">Bank Name</label>
+                                      <input type="text" className="form-control" name="bankName" value={financialInformation[0].bankName} onChange={(e) => handleFinancialChange(0, e)} />
+                                    </div>
+                                    <div className="col-md-6">
+                                      <label className="form-label">Account Number</label>
+                                      <input type="text" className="form-control" name="accountNumber" value={financialInformation[0].accountNumber} onChange={(e) => handleFinancialChange(0, e)} />
+                                    </div>
+                                    <div className="col-md-6">
+                                      <label className="form-label">Fiscal Year End</label>
+                                      <input type="date" className="form-control" name="fiscalYearEnd" value={financialInformation[0].fiscalYearEnd} onChange={(e) => handleFinancialChange(0, e)} />
+                                    </div>
+                                    <div className="col-md-6">
+                                      <label className="form-label">Financial Contact</label>
+                                      <input type="text" className="form-control" name="financialContact" value={financialInformation[0].financialContact} onChange={(e) => handleFinancialChange(0, e)} />
+                                    </div>
+                    
+                                    {/* Ledger Information */}
+                                    <h5 className="mb-3 mt-4">Ledger Information</h5>
+                                    <div className="col-md-6">
+                                      <label className="form-label">Account Code</label>
+                                      <input type="text" className="form-control" name="accountCode" value={ledgerInformation[0].accountCode} onChange={(e) => handleLedgerChange(0, e)} />
+                                    </div>
+                                    <div className="col-md-6">
+                                      <label className="form-label">Account Type</label>
+                                      <select className="form-select" name="accountType" value={ledgerInformation[0].accountType} onChange={(e) => handleLedgerChange(0, e)}>
+                                        <option value="">Select Account Type</option>
+                                        <option value="AccountsReceivable">AccountsReceivable</option>
+                                        <option value="AccountsPayable">AccountsPayable</option>
+                                      </select>
+                                    </div>
+                                    <div className="col-md-6">
+                                      <label className="form-label">Opening Balance</label>
+                                      <input type="number" className="form-control" name="openingBalance" value={ledgerInformation[0].openingBalance} onChange={(e) => handleLedgerChange(0, e)} />
+                                    </div>
+                                    <div className="col-md-6">
+                                      <label className="form-label">Balance Date</label>
+                                      <input type="date" className="form-control" name="balanceDate" value={ledgerInformation[0].balanceDate} onChange={(e) => handleLedgerChange(0, e)} />
+                                    </div>
+                                    <div className="col-md-6">
+                                      <label className="form-label">Tax Category</label>
+                                      <select className="form-select" name="taxCategory" value={ledgerInformation[0].taxCategory} onChange={(e) => handleLedgerChange(0, e)}>
+                                        <option value="standard">Standard Rate</option>
+                                        <option value="reduced">Reduced Rate</option>
+                                        <option value="zero">Zero Rate</option>
+                                      </select>
+                                    </div>
+                                    <div className="col-md-6">
+                                      <label className="form-label">Cost Center</label>
+                                      <input type="text" className="form-control" name="costCenter" value={ledgerInformation[0].costCenter} onChange={(e) => handleLedgerChange(0, e)} />
+                                    </div>
+                    
+                                    {/* Additional Information */}
+                                    <h5 className="mb-3 mt-4">Additional Information</h5>
+                                    <div className="col-md-6">
+                                      <label className="form-label">Payment Terms</label>
+                                      <select className="form-select" name="paymentTerms" value={additionalInformation.paymentTerms} onChange={handleAdditionalChange}>
+                                        <option value="net30">Net 30</option>
+                                        <option value="net60">Net 60</option>
+                                        <option value="net90">Net 90</option>
+                                      </select>
+                                    </div>
+                                    <div className="col-md-6">
+                                      <label className="form-label">Credit Limit</label>
+                                      <input type="number" className="form-control" name="creditLimit" value={additionalInformation.creditLimit} onChange={handleAdditionalChange} />
+                                    </div>
+                                  </div>
+                                  <div className="col-md-12">
+                                    <label className="form-label">Notes</label>
+                                    <textarea className="form-control" rows="3" name="notes" value={additionalInformation.notes} onChange={handleAdditionalChange} placeholder="Additional notes"></textarea>
+                                  </div>
+                    
+                    
+                                  <div className="col-12 d-flex justify-content-end gap-2 mt-4">
+                                    <button type="button" className="btn btn-outline-secondary">Cancel</button>
+                                    <button type="submit" id="btn-All" className="btn btn-dark">Create </button>
+                                  </div>
+                                </form>
+                              </div>
+                            </div>
+                          </div>
+                        </>
+                    
+                      );
+                    }
+                    
+                    export default AddClientManagement;
+                    
+                    
+                    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    
+// Api complete code api working rol ok 
+// import React, { useState } from "react";
+// import { useDispatch } from "react-redux";
+// import { Link, useNavigate } from "react-router-dom";
+// import { usersLogin } from "../../redux/slices/userSlice";
+// import axios from "axios";
+// import { toast } from "react-toastify";
+// import "react-toastify/dist/ReactToastify.css";
+
+// const Login = () => {
+//   const navigate = useNavigate();
+//   const dispatch = useDispatch();
+
+//   const [formData, setFormData] = useState({
+//     email: "",
+//     password: "",
+//   });
+
+//   const [loading, setLoading] = useState(false);
+
+//   const handleChange = (e) => {
+//     setFormData({
+//       ...formData,
+//       [e.target.name]: e.target.value,
+//     });
+//   };
+
+//   const handleLogin = async (e) => {
+//     e.preventDefault();
+//     const { email, password } = formData;
+
+//     try {
+//       setLoading(true);
+//       const res = await axios.post("https://xt2cpwt7-8000.inc1.devtunnels.ms/api/user/login", { email, password });
+//       console.log("API Response:", res.data);
+
+//       const { role, token } = res.data.user;
+//       // if (!role) {
+//       //   alert("Role is undefined in the response.");
+//       //   return;
+//       // }
+//       localStorage.setItem("authToken", token);
+//       localStorage.setItem("userRole", role);
+        
+//           toast.success("Project created successfully!");
+//       if (role === "admin") {
+//         navigate("/admin/dashboard");
+//       } else if (role === "productionManager") {
+//         navigate("/production/dashboard");
+//       } else if (role === "employee") {
+//         navigate("/employee/tasks");
+//       } else if (role === "client") {
+//         navigate("/client/overview");
+//       } else {
+//         navigate("/dashboard");
+//       }
+//     } catch (error) {
+//        toast.error(res.data.message ||"Error Login");
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   return (
+//     <div className="auth-container d-flex justify-content-center align-items-center min-vh-100 bg-light">
+//       <main className="w-100" style={{ maxWidth: "550px" }}>
+//         <div className="login-container bg-white p-4 rounded shadow-sm">
+//           <h4 className="text-center mb-4">Welcome Back</h4>
+
+//           <form onSubmit={handleLogin}>
+//             <div className="form-floating mb-3">
+//               <input
+//                 type="email"
+//                 name="email"
+//                 className="form-control"
+//                 id="email"
+//                 value={formData.email}
+//                 onChange={handleChange}
+//                 required
+//               />
+//               <label htmlFor="email">Email address</label>
+//             </div>
+
+//             <div className="form-floating mb-3">
+//               <input
+//                 type="password"
+//                 name="password"
+//                 className="form-control"
+//                 id="password"
+//                 placeholder="Password"
+//                 value={formData.password}
+//                 onChange={handleChange}
+//                 autoComplete="off"
+//                 required
+//               />
+//               <label htmlFor="password">Password</label>
+//             </div>
+
+//             <div className="d-flex justify-content-between mb-4">
+//               <div className="form-check">
+//                 <input className="form-check-input" type="checkbox" id="remember" />
+//                 <label className="form-check-label text-secondary" htmlFor="remember">
+//                   Remember me
+//                 </label>
+//               </div>
+//               <a href="#" className="text-decoration-none text-secondary">
+//                 Forgot password?
+//               </a>
+//             </div>
+
+//             <button
+//               type="submit"
+//               className="btn w-100 text-white"
+//               id="All_btn"
+//               style={{ padding: "10px", borderRadius: "5px" }}
+//               disabled={loading}
+//             >
+//               {loading ? "Logging in..." : "Log In"}
+//             </button>
+
+//             <p className="text-center mt-3 mb-0">
+//               <span className="text-secondary">Don't have an account?</span>
+//               <Link to="/signup" className="text-decoration-none ms-1">
+//                 Sign up
+//               </Link>
+//             </p>
+
+//             <button
+//               className="social-signup btn w-100 mb-3 d-flex align-items-center justify-content-center"
+//               style={{
+//                 backgroundColor: "#ffffff",
+//                 color: "#5F6368",
+//                 border: "1px solid #dadce0",
+//                 fontSize: "14px",
+//                 fontWeight: "500",
+//                 padding: "10px 0",
+//                 borderRadius: "4px",
+//                 transition: "all 0.3s ease",
+//                 marginTop: "20px",
+//               }}
+//               type="button"
+//             >
+//               <i className="fab fa-google me-2" style={{ fontSize: "18px", color: "#4285F4" }} />
+//               Continue with Google
+//             </button>
+//           </form>
+//         </div>
+//       </main>
+//     </div>
+//   );
+// };
+
+// export default Login;
+
                     
                     
                     
                     
                     
                     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    import React, { useState } from 'react';
+                    import UserRoleModal from './UserRoleModal';
+                    import { FaEdit, FaTrashAlt } from 'react-icons/fa';
+                    import { Link } from 'react-router-dom';
+                    
+                    function UserRoles() {
+                      const [users, setUsers] = useState([
+                        {
+                          id: 1,
+                          name: 'John Smith',
+                          email: 'john.smith@example.com',
+                          role: 'Admin',
+                          status: 'Active',
+                          permissions: 'Full Access'
+                        },
+                        {
+                          id: 2,
+                          name: 'Sarah Johnson',
+                          email: 'sarah.j@example.com',
+                          role: 'Manager',
+                          status: 'Active',
+                          permissions: 'Limited Access'
+                        },
+                        {
+                          id: 3,
+                          name: 'Michael Brown',
+                          email: 'm.brown@example.com',
+                          role: 'Designer',
+                          status: 'Pending',
+                          permissions: 'Design Tools Only'
+                        }
+                      ]);
+                    
+                      const [searchTerm, setSearchTerm] = useState('');
+                      const [currentPage, setCurrentPage] = useState(1);
+                      const itemsPerPage = 12;
+                    
+                      // Filter users based on search term
+                      const filteredUsers = users.filter(user =>
+                        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        user.email.toLowerCase().includes(searchTerm.toLowerCase())
+                      );
+                    
+                      // Calculate pagination
+                      const indexOfLastItem = currentPage * itemsPerPage;
+                      const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+                      const currentUsers = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
+                      const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+                    
+                      const handleSearch = (e) => {
+                        setSearchTerm(e.target.value);
+                        setCurrentPage(1);
+                      };
+                    
+                      const handlePageChange = (pageNumber) => {
+                        setCurrentPage(pageNumber);
+                      };
+                    
+                      const [showModal, setShowModal] = useState(false);
+                      const [editingUser, setEditingUser] = useState(null);
+                    
+                      const handleEditUser = (userId) => {
+                        const userToEdit = users.find(user => user.id === userId);
+                        setEditingUser(userToEdit);
+                        setShowModal(true);
+                      };
+                    
+                      const handleDeleteUser = (userId) => {
+                        if (window.confirm('Are you sure you want to delete this user?')) {
+                          setUsers(users.filter(user => user.id !== userId));
+                        }
+                      };
+                    
+                    
+                      return (
+                        <div className=" p-4 m-3" style={{backgroundColor:"white",borderRadius:"10px",}}>
+                          <div className="d-flex justify-content-between align-items-center mb-4">
+                            <div className="d-flex gap-2 align-items-center">
+                              <input
+                                type="text"
+                                className="form-control"
+                                placeholder="Search users..."
+                                value={searchTerm}
+                                onChange={handleSearch}
+                                style={{ width: '200px' }}
+                              />
+                              <button className="btn btn-outline-secondary">All Roles</button>
+                            </div>
+                           <Link to={"/UserRoleModal"}> <button id="All_btn" className="btn btn-dark">
+                              + Add User
+                            </button></Link>
+                          </div>
+                    
+                          <div className="card shadow-sm">
+                            <div className="card-body p-0">
+                              <div className="table-responsive">
+                                <table className="table table-hover mb-0">
+                                  <thead>
+                                    <tr>
+                                      <th>User</th>
+                                      <th>Role</th>
+                                      <th>Status</th>
+                                      <th>Permissions</th>
+                                      <th>Actions</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {currentUsers.map(user => (
+                                      <tr key={user.id}>
+                                        <td>
+                                          <div className="d-flex align-items-center">
+                                            <div className="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" style={{ width: '32px', height: '32px' }}>
+                                              {user.name.charAt(0)}
+                                            </div>
+                                            <div>
+                                              <div className="fw-semibold">{user.name}</div>
+                                              <div className="text-muted small">{user.email}</div>
+                                            </div>
+                                          </div>
+                                        </td>
+                                        <td>
+                                          <span className={`badge ${user.role === 'Admin' ? 'text-bg-dark' : user.role === 'Manager' ? 'text-bg-primary' : 'text-bg-info'}`}>
+                                            {user.role}
+                                          </span>
+                                        </td>
+                                        <td>
+                                          <span className={`badge ${user.status === 'Active' ? 'text-bg-success' : 'text-bg-warning'}`}>
+                                            {user.status}
+                                          </span>
+                                        </td>
+                                        <td>{user.permissions}</td>
+                                        <td>
+                                          <div className="d-flex gap-2">
+                                            <button
+                                              className="btn btn-sm btn-outline-secondary"
+                                              onClick={() => handleEditUser(user.id)}
+                                            >
+                                              <FaEdit />
+                                            </button>
+                                            <button
+                                              className="btn btn-sm btn-outline-danger"
+                                              onClick={() => handleDeleteUser(user.id)}
+                                            >
+                                              <FaTrashAlt />
+                                            </button>
+                                          </div>
+                                        </td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          </div>
+                    
+                          <div className="d-flex justify-content-between align-items-center mt-3">
+                            <div className="text-muted small">
+                              Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredUsers.length)} of {filteredUsers.length} entries
+                            </div>
+                            <nav>
+                              <ul className="pagination mb-0">
+                                <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                                  <button className="page-link" onClick={() => handlePageChange(currentPage - 1)}>Previous</button>
+                                </li>
+                                {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
+                                  <li key={number} className={`page-item ${currentPage === number ? 'active' : ''}`}>
+                                    <button className="page-link" onClick={() => handlePageChange(number)}>{number}</button>
+                                  </li>
+                                ))}
+                                <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                                  <button className="page-link" onClick={() => handlePageChange(currentPage + 1)}>Next</button>
+                                </li>
+                              </ul>
+                            </nav>
+                          </div>
+                    
+                    
+                     
+                        </div>
+                      );
+                    }
+                    
+                    export default UserRoles;
+                    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    import React, { useEffect, useState } from 'react';
+                    import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+                    import { Modal, Form, Button } from 'react-bootstrap';
+                    import { useDispatch, useSelector } from 'react-redux';
+                    import { deletejob, fetchjobs, UpdateJobAssign } from '../../../../redux/slices/JobsSlice';
+                    import Swal from 'sweetalert2';
+                    
+                    function ProjectJobsTab() {
+                      const location = useLocation();
+                      const params = useParams();
+                      const id = location.state?.id || params.id;
+                      console.log("hello me project id", id);
+                    
+                    
+                    
+                      const [selectedProduction, setSelectedProduction] = useState('');
+                      const [selectedAdditional, setSelectedAdditional] = useState('');
+                      const [selectedJob, setSelectedJob] = useState(null);
+                      const [attachedFile, setAttachedFile] = useState(null);
+                      const [selectedJobs, setSelectedJobs] = useState({});
+                      const [errorMessage, setErrorMessage] = useState('');
+                    
+                      const [showAssignModal, setShowAssignModal] = useState(false);
+                      const [selectedDesigner, setSelectedDesigner] = useState('');
+                      const [assignmentDescription, setAssignmentDescription] = useState('');
+                    
+                      const jobs = [
+                        {
+                          id: "00001",
+                          brandName: "Brand1",
+                          subBrand: "SubBrand1",
+                          flavour: "Flavour1",
+                          packType: "Type1",
+                          packSize: "Size 1ml",
+                          packCode: "Code1",
+                          deadline: "2024/01/20",
+                          brief: "ViewBrief",
+                          status: "Pending Upload",
+                          statusVariant: "warning",
+                        },
+                        {
+                          id: "00002",
+                          brandName: "Brand2",
+                          subBrand: "SubBrand2",
+                          flavour: "Flavour2",
+                          packType: "Type2",
+                          packSize: "Size 2ml",
+                          packCode: "Code2",
+                          deadline: "2024/01/25",
+                          brief: "ViewBrief",
+                          status: "In Progress",
+                          statusVariant: "info",
+                        },
+                        {
+                          id: "00003",
+                          brandName: "Brand3",
+                          subBrand: "SubBrand3",
+                          flavour: "Flavour3",
+                          packType: "Type3",
+                          packSize: "Size 3ml",
+                          packCode: "Code3",
+                          deadline: "2024/02/01",
+                          brief: "ViewBrief",
+                          status: "DraftSaved",
+                          statusVariant: "secondary",
+                        },
+                      ];
+                    
+                      const handleCheckboxChange = (jobId) => {
+                        setSelectedJobs((prev) => ({
+                          ...prev,
+                          [jobId]: !prev[jobId],
+                        }));
+                      };
+                    
+                      const handleSubmitAssignment = () => {
+                        const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
+                    
+                        if (selectedJobIds.length === 0) {
+                          setErrorMessage("Please select at least 1 job to assign.");
+                          setTimeout(() => setErrorMessage(""), 3000);
+                          return;
+                        }
+                    
+                        if (!selectedDesigner) {
+                          setErrorMessage("Please select a designer.");
+                          setTimeout(() => setErrorMessage(""), 3000);
+                          return;
+                        }
+                    
+                        // ✅ Now send data to handleJobAssign
+                        handleJobAssign(selectedJobIds, selectedDesigner);
+                    
+                        // Reset state and close modal
+                        setShowAssignModal(false);
+                        setSelectedProduction('');
+                        setSelectedAdditional('');
+                        setSelectedJob(null);
+                        setSelectedDesigner('');
+                        setAssignmentDescription('');
+                      };
+                    
+                      const handleCSVImport = (event) => {
+                        const file = event.target.files[0];
+                        if (file) {
+                          console.log("CSV file selected:", file.name);
+                        }
+                      };
+                    
+                      const getPriorityClass = (priority) => {
+                        switch (priority.toLowerCase()) {
+                          case "high":
+                            return "text-danger";
+                          case "medium":
+                            return "text-warning";
+                          case "low":
+                            return "text-success";
+                          default:
+                            return "";
+                        }
+                      };
+                      // ////////////////////////////////////////
+                      const navigate = useNavigate();
+                      const dispatch = useDispatch();
+                      // const location = useLocation();
+                      // const params = useParams();
+                      // const id = location.state?.id || params.id;
+                      useEffect(() => {
+                        console.log("Project ID:", id);
+                      }, [id]);
+                    
+                    
+                      // ///
+                      const { job } = useSelector((state) => state.jobs);
+                      console.log(job.jobs, "all jobs");
+                    
+                      useEffect(() => {
+                        dispatch(fetchjobs());
+                      }, [dispatch]);
+                    
+                    
+                      const handleDelete = (_id) => {
+                        console.log(_id);
+                        Swal.fire({
+                          title: "Are you sure?",
+                          text: "You won't be able to revert this!",
+                          icon: "warning",
+                          showCancelButton: true,
+                          confirmButtonColor: "#3085d6",
+                          cancelButtonColor: "#d33",
+                          confirmButtonText: "Yes, delete it!",
+                        }).then((result) => {
+                          if (result.isConfirmed) {
+                            dispatch(deletejob(_id))
+                              .then(() => {
+                                Swal.fire("Deleted!", "The document has been deleted.", "success");
+                                dispatch(fetchjobs());
+                              })
+                              .catch(() => {
+                                Swal.fire("Error!", "Something went wrong.", "error");
+                              });
+                          }
+                        });
+                      }
+                    
+                    
+                      const handleUpdate = (job) => {
+                        navigate(`/AddJobTracker`, { state: { job } });
+                      };
+                    
+                      const JobDetails = (job) => {
+                        navigate(`/OvervieJobsTracker`, { state: { job } });
+                      }
+                    
+                    
+                    const getStatusClass = (status) => {
+                      switch (status.toLowerCase().trim()) {
+                        case "in progress":
+                        case "in_progress":
+                          return "bg-warning text-dark";
+                        case "review":
+                          return "bg-info text-dark";
+                        case "not started":
+                          return "bg-secondary text-white";
+                        case "completed":
+                          return "bg-success text-white";
+                        case "open":
+                          return "bg-primary text-white";
+                        case "cancelled":
+                          return "bg-dark text-white";
+                        default:
+                          return "bg-light text-dark";
+                      }
+                    };
+                    
+                      const handleJobAssign = (selectedIds, assignTo) => {
+                    
+                        const payload = {
+                          id: selectedIds,
+                          assign: assignTo,
+                        };
+                        console.log("Assignment Payload:", payload);
+                        dispatch(UpdateJobAssign(payload))
+                          .then(() => {
+                            // Swal.fire("Success!", "Jobs assigned successfully", "success");
+                            dispatch(fetchjobs());
+                          })
+                          .catch(() => {
+                            Swal.fire("Error!", "Something went wrong", "error");
+                          });
+                      };
+                    
+                      return (
+                        <div className="card">
+                          <div className="card-header d-flex align-content-center justify-content-between mt-3">
+                            <h5 className="card-title mb-0">Jobs List</h5>
+                            <div className="text-end">
+                              {/* ✅ Assign Button always enabled, shows error if none selected */}
+                              <Button
+                                id="All_btn"
+                                className="m-2"
+                                variant="primary"
+                                onClick={() => {
+                                  const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
+                                  if (selectedJobIds.length === 0) {
+                                    setErrorMessage("Please select at least 1 job to assign.");
+                                    setTimeout(() => setErrorMessage(""), 3000);
+                                  } else {
+                                    handleJobAssign(selectedJobIds); // ✅ Call with selected IDs
+                                    setShowAssignModal(true);
+                                  }
+                                }}
+                              >
+                                Assign
+                              </Button>
+                    
+                    
+                              <label className="btn btn-success m-2">
+                                <i className="bi bi-upload"></i> Import CSV
+                                <input
+                                  type="file"
+                                  accept=".csv"
+                                  onChange={handleCSVImport}
+                                  hidden
+                                />
+                              </label>
+                    
+                              <Link
+                                to="/AddJobTracker"
+                                state={{ id }} // ID pass kar rahe hain yahan
+                              >
+                                <button id="All_btn" className="btn btn-primary">
+                                  <i className="bi bi-plus"></i> Add Job
+                                </button>
+                              </Link>
+                            </div>
+                          </div>
+                    
+                          <div className="card-body">
+                            {/* ✅ Error message block */}
+                            {errorMessage && (
+                              <div className="alert alert-danger py-2" role="alert">
+                                {errorMessage}
+                              </div>
+                            )}
+                    
+                            <div className="table-responsive">
+                              <table className="table table-hover">
+                                <thead>
+                                  <tr>
+                                    <th>
+                                      <input
+                                        type="checkbox"
+                                        onChange={(e) => {
+                                          const checked = e.target.checked;
+                                          const newSelectedJobs = {};
+                                          job?.jobs?.forEach((job) => {
+                                            newSelectedJobs[job._id] = checked;
+                                          });
+                                          setSelectedJobs(newSelectedJobs);
+                                        }}
+                                        checked={
+                                          job?.jobs?.length > 0 &&
+                                          job?.jobs?.every((j) => selectedJobs[j._id])
+                                        }
+                                      />
+                                    </th>
+                                    <th>JobsNo</th>
+                                    <th style={{ whiteSpace: 'nowrap' }}>Project Name</th>
+                                    <th>Brand</th>
+                                    <th>SubBrand</th>
+                                    <th>Flavour</th>
+                                    <th>PackType</th>
+                                    <th>PackSize</th>
+                                    <th>Priority</th>
+                                    <th style={{ whiteSpace: 'nowrap' }}>Due Date</th>
+                                    <th>Assing</th>
+                                    <th>TotalTime</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {job?.jobs?.slice().reverse().map((job, index) => (
+                                    <tr key={job._id}>
+                                      <td>
+                                        <input
+                                          type="checkbox"
+                                          checked={selectedJobs[job._id] || false}
+                                          onChange={() => handleCheckboxChange(job._id)}
+                                        />
+                                      </td>
+                                      <td>
+                                        <Link>
+                                          {String(index + 1).padStart(4, '0')}
+                                        </Link>
+                                      </td>
+                                      <td style={{ whiteSpace: 'nowrap' }}>{job.projectId?.[0]?.projectName || 'N/A'}</td>
+                                      <td style={{ whiteSpace: 'nowrap' }}>{job.brandName}</td>
+                                      <td style={{ whiteSpace: 'nowrap' }}>{job.subBrand}</td>
+                                      <td style={{ whiteSpace: 'nowrap' }}>{job.flavour}</td>
+                                      <td style={{ whiteSpace: 'nowrap' }}>{job.packType}</td>
+                                      <td style={{ whiteSpace: 'nowrap' }}>{job.packSize}</td>
+                                      <td>
+                                        <span className={getPriorityClass(job.priority)}>
+                                          {job.priority}
+                                        </span>
+                                      </td>
+                                      <td>{new Date(job?.createdAt).toLocaleDateString('en-GB').replace(/\/20/, '/')}</td>
+                                      <td>{job.assign}</td>
+                                      <td>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
+                                      {/* <th>
+                                        <Button id='All_btn' variant="success" style={{ width: "130px" }} size="sm" >
+                                          {job.Status || "Active"}
+                                        </Button></th> */}
+                                      <td>
+                                        <span
+                                          className={`badge ${getStatusClass(job.Status)} px-2 py-1`}
+                                        >
+                                          {job.Status}
+                                        </span>
+                                      </td>
+                                      <td className="d-flex">
+                                        <button className="btn btn-sm btn-outline-primary me-1" onClick={() => JobDetails(job)}>
+                                          <i className="bi bi-eye"></i> View
+                                        </button>
+                                        <button className="btn btn-sm btn-outline-primary me-1" onClick={() => handleUpdate(job)}>
+                                          <i className="bi bi-pencil"></i> Edit
+                                        </button>
+                                        <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(job._id)}>
+                                          <i className="bi bi-trash"></i> Remove 
+                                        </button>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                    
+                          {/* ✅ Job Assignment Modal */}
+                          <Modal show={showAssignModal} onHide={() => setShowAssignModal(false)}>
+                            <Modal.Header closeButton>
+                              <Modal.Title>Assign Job</Modal.Title>
+                            </Modal.Header>
+                            <Modal.Body>
+                              <Form>
+                                <Form.Group className="mb-3">
+                                  <Form.Label>Select Designer</Form.Label>
+                                  <Form.Select
+                                    value={selectedDesigner}
+                                    onChange={(e) => setSelectedDesigner(e.target.value)}
+                                  >
+                                    <option value="">-- Select --</option>
+                                    <option value="Production">Production</option>
+                                    <option value="Designer">Designer</option>
+                                  </Form.Select>
+                                </Form.Group>
+                    
+                                <Form.Group className="mb-3">
+                                  <Form.Label>Description</Form.Label>
+                                  <Form.Control
+                                    as="textarea"
+                                    rows={3}
+                                    value={assignmentDescription}
+                                    onChange={(e) => setAssignmentDescription(e.target.value)}
+                                    placeholder="Enter assignment details or instructions..."
+                                  />
+                                </Form.Group>
+                              </Form>
+                            </Modal.Body>
+                            <Modal.Footer>
+                              <Button variant="secondary" onClick={() => setShowAssignModal(false)}>
+                                Cancel
+                              </Button>
+                              <Button variant="primary" onClick={handleSubmitAssignment}>
+                                Assign
+                              </Button>
+                            </Modal.Footer>
+                          </Modal>
+                    
+                        </div>
+                      );
+                    }
+                    
+                    export default ProjectJobsTab;
                     

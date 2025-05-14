@@ -186,6 +186,8 @@ function ProjectJobsTab() {
         return "bg-success text-white";
       case "open":
         return "bg-primary text-white";
+      case "cancelled":
+        return "bg-dark text-white";
       default:
         return "bg-light text-dark";
     }
@@ -207,6 +209,26 @@ function ProjectJobsTab() {
         Swal.fire("Error!", "Something went wrong", "error");
       });
   };
+
+
+  // // ✅ Copy File Name & Download CSV
+  const handleDownloadFileNamesCSV = () => {
+    const rows = [["JobFileName"]];
+    job?.jobs?.forEach((j, index) => {
+      const jobNo = String(index + 1).padStart(5, '0');
+      const fileName = `${jobNo}_${j.brandName}_${j.subBrand}_${j.flavour}_${j.packType}_${j.packSize}_${j.packCode}`;
+      rows.push([fileName]);
+    });
+    const csvContent = rows.map((r) => r.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "JobFileNames.csv";
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
 
   return (
     <div className="card">
@@ -231,7 +253,9 @@ function ProjectJobsTab() {
           >
             Assign
           </Button>
-
+          <Button className="btn btn-secondary m-2" onClick={handleDownloadFileNamesCSV}>
+            📄 Copy File Name
+          </Button>
 
           <label className="btn btn-success m-2">
             <i className="bi bi-upload"></i> Import CSV
@@ -328,9 +352,9 @@ function ProjectJobsTab() {
                   <td>{job.assign}</td>
                   <td>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
                   {/* <th>
-                    <Button id='All_btn' variant="success" style={{ width: "130px" }} size="sm" >
-                      {job.Status || "Active"}
-                    </Button></th> */}
+                                        <Button id='All_btn' variant="success" style={{ width: "130px" }} size="sm" >
+                                          {job.Status || "Active"}
+                                        </Button></th> */}
                   <td>
                     <span
                       className={`badge ${getStatusClass(job.Status)} px-2 py-1`}
@@ -346,7 +370,7 @@ function ProjectJobsTab() {
                       <i className="bi bi-pencil"></i> Edit
                     </button>
                     <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(job._id)}>
-                      <i className="bi bi-trash"></i> Delete
+                      <i className="bi bi-trash"></i> Remove
                     </button>
                   </td>
                 </tr>

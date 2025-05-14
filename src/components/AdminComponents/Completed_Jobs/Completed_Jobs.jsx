@@ -268,7 +268,7 @@ function Completed_Jobs() {
                 <th>PackSize</th>
                 <th>Priority</th>
                 <th style={{ whiteSpace: "nowrap" }}>Date Completed</th>
-                <th>Assign</th>
+                <th>Designer</th>
                 <th>TimeLogged</th>
                 <th style={{ whiteSpace: "nowrap" }}>Time Budget</th>
                 <th style={{ whiteSpace: "nowrap" }}>Time Spent</th>
