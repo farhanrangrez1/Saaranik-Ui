@@ -313,6 +313,32 @@ function InProgressDashboardProject() {
    };
 
 
+  const getStatusClass = (status) => {
+    switch ((status || "").toLowerCase().trim()) {
+      case "active project":
+        return "bg-primary text-white";
+      case "in progress":
+      case "in_progress":
+        return "bg-warning text-dark";
+      case "completed":
+        return "bg-success text-white";
+      case "closed":
+        return "bg-dark text-white";
+      case "cancelled":
+        return "bg-danger text-white";
+      case "on hold":
+        return "bg-info text-dark";
+      case "review":
+        return "bg-info text-dark";
+      case "not started":
+        return "bg-secondary text-white";
+      case "open":
+        return "bg-primary text-white";
+      default:
+        return "bg-light text-dark";
+    }
+  };
+
   return (
     <div className="container bg-white p-4 mt-4 rounded shadow-sm">
       {/* Title */}
@@ -362,18 +388,15 @@ function InProgressDashboardProject() {
                 <td>{job.project}</td>
                 {/* <td onClick={() => handleDesignerClick(job)} style={{ cursor: 'pointer' }}>{job.designer}</td> */}
                 <td>{job.timeSpent}</td>
-                <td style={{ minWidth: "150px" }}>
-                  <ProgressBar now={job.progress} variant="success" />
+                <td>
+                  <span className={`badge ${getStatusClass(job.status)} px-2 py-1`}>
+                    {job.status}
+                  </span>
                 </td>
+
                 <td>{job.brief}</td>
                 <td style={{ whiteSpace: "nowrap" }}>
                   <div className="d-flex gap-1 justify-content-center">
-                    <button className="btn btn-sm btn-outline-primary">
-                      <FaComments />
-                    </button>
-                    <button className="btn btn-sm btn-outline-primary">
-                      <BsPencil />
-                    </button>
                     <button
                       className="btn btn-sm btn-outline-warning"
                       onClick={() => handleSwitchDesigner(job.id)}
@@ -381,12 +404,8 @@ function InProgressDashboardProject() {
                     >
                       <FaExchangeAlt />
                     </button>
-                    <button
-                      className="btn btn-sm btn-outline-danger"
-                      onClick={() => handleCancelBrief(job.id)}
-                      title="Cancel Brief"
-                    >
-                      <BsXCircle />
+                       <button className="btn btn-sm btn-outline-primary">
+                      <BsPencil />
                     </button>
                   </div>
                 </td>

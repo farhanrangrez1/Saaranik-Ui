@@ -6,6 +6,7 @@ import ProjectDocumentsTab from './ProjectTabs/ProjectDocumentsTab';
 import ProjectTeamTab from './ProjectTabs/ProjectTeamTab';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useDispatch ,useSelector} from 'react-redux';
+import { Button } from 'react-bootstrap';
 
 
 function ProjectOverview() {
@@ -81,7 +82,8 @@ function ProjectOverview() {
           </div>
         </div>
         <div>
-          <button className="btn btn-outline-secondary me-2">Import File</button>
+          <Link to={"/projectList"}><button className="btn btn-outline-secondary me-2">← Back to Projects</button></Link>
+           <button className="btn btn-outline-secondary me-2">Import File</button>
          <Link to={"/UpdateProjectLis"}><button id='All_btn' className="btn btn-dark">Create Project</button></Link>
         </div>
       </div>

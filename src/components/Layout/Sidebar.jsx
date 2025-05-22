@@ -26,7 +26,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       title: "Production",
       icon: <FaIndustry className="menu-icon" />,
       submenu: [
-        { title: "Job Assign", path: "/newJobsList" },
+        { title: "Assign Job", path: "/newJobsList" },
         { title: "In Progress", path: "/inProgress" },
         { title: "Completed", path: "/completedJobs" },
         // { title: "Production", path: "/ProductionManager" },

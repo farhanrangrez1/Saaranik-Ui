@@ -3,7 +3,6 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import Base_Url from "../../ApiUrl/ApiUrl";
 
 function AddIssuablePurchase() {
   const navigate = useNavigate();
@@ -71,7 +70,6 @@ function AddIssuablePurchase() {
       };
 
       const res = await axios.post(
-        `${Base_Url}/purchase/createPurchase`,
         payload
       );
 
@@ -97,17 +95,7 @@ function AddIssuablePurchase() {
     }
   };
 
-  useEffect(() => {
-    const fetchClients = async () => {
-      try {
-        const response = await axios.get(`${Base_Url}/client/getAllClient`);
-        setClients(response.data.data || []);
-      } catch (error) {
-        console.error('Error fetching clients:', error);
-      }
-    };
-    fetchClients();
-  }, []);
+
 
   const subtotal = items.reduce((sum, item) => sum + item.total, 0);
   const vatAmount = (subtotal * parseFloat(formData.vat || 0)) / 100;

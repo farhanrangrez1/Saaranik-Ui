@@ -271,7 +271,7 @@ function InProgress() {
               <th>PackSize</th>
               <th>Priority</th>
               <th>Due Date</th>
-              <th>Designer</th>
+              <th>Assign</th>
               <th>TimeLogged</th>
               <th>Status</th>
               <th></th>

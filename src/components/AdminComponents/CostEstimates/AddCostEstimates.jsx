@@ -1,9 +1,12 @@
+
+
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import Base_Url from "../../ApiUrl/ApiUrl";
 import { Link, useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useDispatch } from "react-redux";
+import { createCostEstimate } from "../../../redux/slices/costEstimatesSlice";
 
 const currencies = [
   { label: "USD - US Dollar", value: "USD" },
@@ -15,23 +18,31 @@ const currencies = [
   { label: "SAR - Saudi Riyal", value: "SAR" },
 ];
 
+const poStatuses = ["Pending", "Approved", "Rejected"];
+const statuses = ["Active", "Inactive", "Completed"];
+
 function AddCostEstimates() {
-  const navigate = useNavigate();
+const navigate = useNavigate();
+const dispatch = useDispatch()
+
   const [clients, setClients] = useState([]);
   const [items, setItems] = useState([
     { description: "", quantity: 0, rate: 0, amount: 0 },
   ]);
+
   const [formData, setFormData] = useState({
-    clientId: "",
-    projectNo: "",
-    projectName: "",
+    clientId: ["6821a7b537e654e25af3da1d"],
+    projectsId: ["681f1eb87397dc2b7e25eba2"],
+    projectName: "681f1eb87397dc2b7e25eba2",
     estimateDate: "",
     validUntil: "",
-    notes: "",
+    Notes: "",
     currency: "USD",
+    POStatus: "Pending",
+    Status: "Active",
   });
 
-  const [taxRate, setTaxRate] = useState(0.1);
+  const [taxRate, setTaxRate] = useState(0.05);
 
   const calculateAmount = (quantity, rate) => quantity * rate;
 
@@ -48,38 +59,10 @@ function AddCostEstimates() {
   const handleFormChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-
-  const handleProjectNumberChange = async (e) => {
-    const projectNo = e.target.value;
-    setFormData({ ...formData, projectNo });
-
-    try {
-      if (projectNo) {
-        const response = await axios.get(
-          `${Base_Url}/project/getProjectByNumber/${projectNo}`
-        );
-        const project = response.data.data;
-        if (project) {
-          setFormData((prev) => ({
-            ...prev,
-            projectName: project.projectName,
-          }));
-        } else {
-          setFormData((prev) => ({ ...prev, projectName: "" }));
-        }
-      } else {
-        setFormData((prev) => ({ ...prev, projectName: "" }));
-      }
-    } catch (error) {
-      console.error("Error fetching project name:", error);
-      toast.error("Project not found!");
-    }
-  };
-
+    
   const addItem = () => {
     setItems([...items, { description: "", quantity: 0, rate: 0, amount: 0 }]);
   };
-
   const removeItem = (index) => {
     const newItems = [...items];
     newItems.splice(index, 1);
@@ -90,55 +73,21 @@ function AddCostEstimates() {
   const tax = subtotal * taxRate;
   const total = subtotal + tax;
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
-      const generatedEstimateNumber = `EST-${Math.floor(
-        1000 + Math.random() * 9000
-      )}`; // Auto Generate
-
       const payload = {
         ...formData,
-        estimateNumber: generatedEstimateNumber,
-        items,
+        VATRate: taxRate * 100,
+        lineItems: items,
       };
-
-      const res = await axios.post(
-        `${Base_Url}/costestimates/createCostEstimate`,
-        payload
-      );
-      toast.success("Estimate created successfully!");
-
-      setFormData({
-        clientId: "",
-        projectNo: "",
-        projectName: "",
-        estimateDate: "",
-        validUntil: "",
-        notes: "",
-        currency: "USD",
-      });
-      setItems([{ description: "", quantity: 0, rate: 0, amount: 0 }]);
-
-      setTimeout(() => {
-        navigate("/CostEstimates");
-      }, 1000);
+      console.log("Submitted Data:", payload);
+      dispatch(createCostEstimate(payload))
     } catch (err) {
       console.error("Submit Error:", err);
       toast.error("Failed to create estimate!");
     }
   };
-
-  useEffect(() => {
-    const fetchClients = async () => {
-      try {
-        const response = await axios.get(`${Base_Url}/client/getAllClient`);
-        setClients(response.data.data);
-      } catch (error) {
-        console.error("Error fetching clients:", error);
-      }
-    };
-    fetchClients();
-  }, []);
 
   return (
     <>
@@ -149,29 +98,44 @@ function AddCostEstimates() {
           <h6 className="fw-semibold mb-4">Create New Estimate</h6>
 
           <div className="row mb-3">
-            <div className="col-md-6 mb-3">
+            <div className="col-md-4 mb-3">
+              <label className="form-label">Client</label>
+              <select
+                className="form-select"
+                name="clientId"
+                value={formData.clientId}
+                onChange={handleFormChange}
+              >
+                <option value="">Select Client</option>
+                {clients.map((client) => (
+                  <option key={client._id} value={client._id}>
+                    {client.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="col-md-4 mb-3">
               <label className="form-label">Project Number</label>
               <input
                 type="text"
                 className="form-control"
-                name="projectNo"
-                value={formData.projectNo}
-                onChange={handleProjectNumberChange}
+                name="projectsId"
+                value={formData.projectsId}
+                // onChange={handleProjectNumberChange}
                 placeholder="Enter project number"
               />
             </div>
 
-            <div className="col-md-6 mb-3">
+            <div className="col-md-4 mb-3">
               <label className="form-label">Project Name</label>
-             <input
-  type="text"
-  className="form-control"
-  name="projectName"
-  value={formData.projectName}
-  readOnly   
-  placeholder="Project name will auto-fill"
-/>
-
+              <input
+                type="text"
+                className="form-control"
+                name="projectName"
+                value={formData.projectName}
+                readOnly
+              />
             </div>
 
             <div className="col-md-4 mb-3">
@@ -211,17 +175,49 @@ function AddCostEstimates() {
                 ))}
               </select>
             </div>
+
+            <div className="col-md-4 mb-3">
+              <label className="form-label">PO Status</label>
+              <select
+                className="form-select"
+                name="POStatus"
+                value={formData.POStatus}
+                onChange={handleFormChange}
+              >
+                {poStatuses.map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="col-md-4 mb-3">
+              <label className="form-label">Status</label>
+              <select
+                className="form-select"
+                name="Status"
+                value={formData.Status}
+                onChange={handleFormChange}
+              >
+                {statuses.map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <h6 className="fw-semibold mb-3">Line Items</h6>
-          <div className="row fw-semibold text-muted mb-2 px-2">
+           <div className="row fw-semibold text-muted mb-2 px-2">
             <div className="col-md-5">Description</div>
             <div className="col-md-2">Quantity</div>
             <div className="col-md-2">Rate</div>
             <div className="col-md-2">Amount</div>
             <div className="col-md-1 text-end"></div>
           </div>
-
+          {/* Line Items UI (Same as before) */}
           {items.map((item, index) => (
             <div
               className="row gx-2 gy-2 align-items-center mb-2 px-2 py-2"
@@ -245,11 +241,7 @@ function AddCostEstimates() {
                   className="form-control"
                   value={item.quantity}
                   onChange={(e) =>
-                    handleItemChange(
-                      index,
-                      "quantity",
-                      parseInt(e.target.value)
-                    )
+                    handleItemChange(index, "quantity", parseInt(e.target.value))
                   }
                 />
               </div>
@@ -281,7 +273,6 @@ function AddCostEstimates() {
 
           <button
             className="btn border rounded px-3 py-1 mb-4 text-dark"
-            style={{ borderColor: "#dee2e6", backgroundColor: "#fff" }}
             onClick={addItem}
           >
             + Add Line Item
@@ -289,53 +280,38 @@ function AddCostEstimates() {
 
           <div className="row mt-4">
             <div className="col-md-6">
-              <div className="mb-3">
-                <label className="form-label">VAT Rate (%)</label>
-                <input
-                  type="number"
-                  className="form-control"
-                  value={(taxRate * 100).toFixed(2)}
-                  onChange={(e) => {
-                    const value = parseFloat(e.target.value);
-                    setTaxRate(isNaN(value) ? 0 : value / 100);
-                  }}
-                />
-              </div>
-
-              <div className="mb-2">
-                Subtotal: {formData.currency} {subtotal.toFixed(2)}
-              </div>
-              <div className="mb-2">
-                VAT ({(taxRate * 100).toFixed(0)}%): {formData.currency}{" "}
-                {tax.toFixed(2)}
-              </div>
-              <div className="fw-bold mb-2">
-                Total: {formData.currency} {total.toFixed(2)}
+              <label className="form-label">VAT Rate (%)</label>
+              <input
+                type="number"
+                className="form-control"
+                value={(taxRate * 100).toFixed(2)}
+                onChange={(e) =>
+                  setTaxRate(isNaN(parseFloat(e.target.value)) ? 0 : parseFloat(e.target.value) / 100)
+                }
+              />
+              <div className="mt-3">
+                Subtotal: {formData.currency} {subtotal.toFixed(2)}<br />
+                VAT: {formData.currency} {tax.toFixed(2)}<br />
+                <strong>Total: {formData.currency} {total.toFixed(2)}</strong>
               </div>
             </div>
-
             <div className="col-md-6">
               <label className="form-label">Notes</label>
               <textarea
-                rows="4"
                 className="form-control"
-                name="notes"
-                value={formData.notes}
+                rows="4"
+                name="Notes"
+                value={formData.Notes}
                 onChange={handleFormChange}
-                placeholder="Enter any additional notes"
               ></textarea>
             </div>
           </div>
 
           <div className="text-end mt-4">
-            <Link to={"/CostEstimates"}>
+            <Link to="/CostEstimates">
               <button className="btn btn-light me-2">Cancel</button>
             </Link>
-            <button
-              id="btn-All"
-              className="btn btn-dark"
-              onClick={handleSubmit}
-            >
+            <button className="btn btn-dark" onClick={handleSubmit}>
               Create Estimate
             </button>
           </div>

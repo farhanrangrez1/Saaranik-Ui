@@ -1,12 +1,16 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Modal, Form, Table, Badge, Dropdown, Button } from "react-bootstrap";
 import { BsPlusLg, BsPencil, BsTrash, BsUpload } from "react-icons/bs";
 import { Link } from "react-router-dom";
+import { fetchCostEstimates } from "../../../redux/slices/costEstimatesSlice";
+import { useDispatch, useSelector } from "react-redux";
 
 function CostEstimates() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState(null);
   const [sortDirection, setSortDirection] = useState("asc");
+
+  const dispatch = useDispatch()
 
   const initialPurchaseOrders = [
     {
@@ -130,6 +134,14 @@ function CostEstimates() {
     setPurchaseOrders(updatedPOs);
   };
 
+
+  const { estimates, loading, error } = useSelector((state) => state.costEstimates);
+  console.log("Cost Estimates:", estimates.costEstimates);
+
+  useEffect(() => {
+    dispatch(fetchCostEstimates());
+  }, [dispatch]);
+
   return (
     <div
       className="p-4 m-3"
@@ -154,7 +166,7 @@ function CostEstimates() {
               id="designer-dropdown"
               className="custom-dropdown"
             >
-              Sort by Client
+            Sort by Client
             </Dropdown.Toggle>
             <Dropdown.Menu>
               <Dropdown.Item>Sort by Client</Dropdown.Item>
@@ -214,131 +226,71 @@ function CostEstimates() {
         </div>
       </div>
 
-      <Table hover responsive>
-        <thead>
-          <tr>
-            <th
-              onClick={() => handleSort("estimateRef")}
-              style={{ cursor: "pointer" }}
-            >
-              CENo
-            </th>
-            <th
-              onClick={() => handleSort("receivedDate")}
-              style={{ cursor: "pointer" }}
-            >
-              Date
-            </th>
-            <th
-              onClick={() => handleSort("client")}
-              style={{ cursor: "pointer" }}
-            >
-              Client
-            </th>
-            <th
-              onClick={() => handleSort("projectNo")}
-              style={{ cursor: "pointer" }}
-            >
-              ProjectNo
-            </th>
-            <th
-              onClick={() => handleSort("projectName")}
-              style={{ cursor: "pointer" }}
-            >
-              ProjectName
-            </th>
-            <th
-              onClick={() => handleSort("amount")}
-              style={{ cursor: "pointer" }}
-            >
-              Amount
-            </th>
-            <th
-              onClick={() => handleSort("status")}
-              style={{ cursor: "pointer" }}
-            >
-              POStatus
-            </th>
-            <th>Status</th> {/* ✅ New Status column */}
-            <th>Actions</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {purchaseOrders.map((po, index) => (
-            <tr style={{ whiteSpace: "nowrap" }} key={po.poNumber}>
-              <td>{po.estimateRef}</td>
-              <td>{po.receivedDate}</td>
-              <td>{po.client}</td>
-              <td>{po.projectNo}</td>
-              <td>{po.projectName}</td>
-              <td>${po.amount.toFixed(2)}</td>
-              <td>
-                <Badge bg={getStatusBadgeVariant(po.status)}>{po.status}</Badge>
-              </td>
-              <td>
-              <Button style={{width:"100px"}} variant="success" size="sm" >
+  <div className="table-responsive" style={{ maxHeight: "900px", overflowY: "auto" }}>
+  <Table hover className="align-middle sticky-header">
+    <thead style={{ backgroundColor: "#f8f9fa", position: "sticky", top: 0, zIndex: 1 }}>
+      <tr>
+        <th><input type="checkbox" /></th>
+        <th>CENo</th>
+        <th>Date</th>
+        <th>Client</th>
+        <th>ProjectNo</th>
+        <th>ProjectName</th>
+        <th>Amount</th>
+        <th>POStatus</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {estimates?.costEstimates?.map((po, index) => (
+        <tr style={{ whiteSpace: "nowrap" }} key={po.poNumber}>
+          <td><input type="checkbox" /></td>
+          <td onClick={() => CreatJobs(po.projectId)}>
+            <Link style={{ textDecoration: 'none', border: 'none', color: 'inherit' }}>
+              CE-{String(index + 1).padStart(4, '0')}
+            </Link>
+          </td>
+          <td>{new Date(po.estimateDate).toLocaleDateString("en-GB").slice(0, 8)}</td>
+          <td>
+            {
+              Array.isArray(po.clientId)
+                ? po.clientId.map((client, i) => `${String(i + 1).padStart(4, '0')} (${client._id})`).join(", ")
+                : po.clientId
+                  ? `${String(1).padStart(4, '0')} `
+                  : "N/A"
+            }
+          </td>
+          <td>
+            {po.projectId?.map((project, i) => `${String(i + 1).padStart(4, '0')}`).join(", ")}
+          </td>
+          <td>
+            {po.projectId?.map((project) => project.projectName || project.name).join(", ")}
+          </td>
+          <td>
+            {po.lineItems?.reduce((total, item) => total + (item.amount || 0), 0).toFixed(2)}
+          </td>
+          <td>POstatus</td>
+          <td>
+            <Button style={{ width: "100px" }} variant="success" size="sm">
               {po.invoiceStatus || "Active"}
-             </Button>
+            </Button>
+          </td>
+          <td>
+            <div className="d-flex gap-2">
+              <button className="btn btn-sm btn-primary">Duplicate</button>
+              <button className="btn btn-sm btn-primary" onClick={() => handleConvertToInvoice(po)}>ConvertInvoice</button>
+              <button className="btn btn-sm btn-success" onClick={() => setShowAddPOModal(true)}>AddPO</button>
+              <button className="btn btn-sm btn-outline-primary"><BsPencil /></button>
+            </div>
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </Table>
+</div>
 
-                {/* <Dropdown>
-                  <Dropdown.Toggle
-                    variant="success"
-                    size="sm"
-                    id={`status-dropdown-${index}`}
-                  >
-                    {po.invoiceStatus || "Select Status"}
-                  </Dropdown.Toggle>
-
-                  <Dropdown.Menu>
-                    <Dropdown.Item
-                      onClick={() => updateInvoiceStatus(index, "Active")}
-                    >
-                      Active
-                    </Dropdown.Item>
-                    <Dropdown.Item
-                      onClick={() => updateInvoiceStatus(index, "Invoiced")}
-                    >
-                      Invoiced
-                    </Dropdown.Item>
-                    <Dropdown.Item
-                      onClick={() => updateInvoiceStatus(index, "Cancelled")}
-                    >
-                      Cancelled
-                    </Dropdown.Item>
-                  </Dropdown.Menu>
-                </Dropdown> */}
-              </td>{" "}
-              {/* ✅ Status Dropdown */}
-              <td>
-                <div className="d-flex gap-2">
-                    <button   //ye button list ko copy  kare ga 
-                    className="btn btn-sm btn-primary">
-                    Duplicate
-                  </button>
-                  <button
-                    className="btn btn-sm btn-primary"
-                    onClick={() => handleConvertToInvoice(po)}
-                  >
-                    ConvertInvoice
-                  </button>
-                  <button
-                    className="btn btn-sm btn-success"
-                    onClick={() => setShowAddPOModal(true)}
-                  >
-                    AddPO
-                  </button>
-                  <button className="btn btn-sm btn-outline-primary">
-                    <BsPencil />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
-
-      <ul className="pagination mb-0">
+            <ul className="pagination mb-0">
         <li className="page-item">
           <button className="page-link">Previous</button>
         </li>

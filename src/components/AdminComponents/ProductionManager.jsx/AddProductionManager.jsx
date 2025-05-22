@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import Base_Url from "../../ApiUrl/ApiUrl";
+// import Base_Url from "../../ApiUrl/ApiUrl";
 
 const ProductionManagerForm = () => {
   const [formData, setFormData] = useState({
@@ -39,15 +39,7 @@ const ProductionManagerForm = () => {
       form.append(key, formData[key]);
     }
 
-    try {
-      const res = await axios.post(`${Base_Url}/productionManager/createProductionManager`, form, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      alert("Production Manager Created Successfully");
-      console.log(res.data);
-    } catch (error) {
-      console.error("Error submitting form:", error);
-    }
+   
   };
 
   return (

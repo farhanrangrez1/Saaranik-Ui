@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axiosInstance from '../../utils/axiosInstance';
-import { apiUrl } from '../../utils/config';
+import { apiUrl } from '../../redux/utils/config';
 
 // 📌 GET all annotations
 export const fetchAnnotations = createAsyncThunk(

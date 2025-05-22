@@ -69,10 +69,6 @@ function MyJobs() {
     },
   ];
 
-
-
-
-
   // fild add 
   const fileInputRef = useRef(null);
 
@@ -122,12 +118,12 @@ function MyJobs() {
 
         {/* Action Buttons */}
         <Col xs={12} lg={3} className="text-lg-end d-flex flex-wrap justify-content-lg-end gap-2">
-          <Link to={"/MyJobsHolidayPackageDesign"}>
+          {/* <Link to={"/MyJobsHolidayPackageDesign"}>
             <Button id="All_btn" variant="dark" className="w-100 w-lg-auto">
               <FaPlus className="me-1" />
               Log Time
             </Button>
-          </Link>
+          </Link> */}
           <Button id="All_btn" variant="dark" className="w-lg-auto" onClick={() => handleReturnJob()}>
             Return Job
           </Button>
@@ -138,10 +134,10 @@ function MyJobs() {
       <Table responsive hover className="align-middle bg-white rounded shadow-sm overflow-hidden">
         <thead className="table-light">
           <tr>
-              <th>
-                            <input type="checkbox" onChange={handleSelectAll} />
-                          </th>
-            <th  className="text-nowrap">Job No</th>
+            <th>
+              <input type="checkbox" onChange={handleSelectAll} />
+            </th>
+            <th className="text-nowrap">Job No</th>
             <th className="text-nowrap">Brand</th>
             <th className="text-nowrap">SubBrand</th>
             <th className="text-nowrap">Flavour</th>
@@ -157,7 +153,7 @@ function MyJobs() {
         <tbody>
           {jobs.map((job) => (
             <tr key={job.id}>
-                <th>
+              <th>
                 <input type="checkbox" onChange={handleSelectAll} />
               </th>
               <td><Link to={"/OvervieMyJobs"}>{job.id}</Link></td>
@@ -187,13 +183,13 @@ function MyJobs() {
                 <Badge bg={job.statusVariant}>{job.status}</Badge>
               </td>
               <td className="d-flex gap-2">
-              <input
-        type="file"
-        ref={fileInputRef}
-        style={{ display: 'none' }}
-        onChange={handleFileChange}
-      />
-  {/* <Button
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  style={{ display: 'none' }}
+                  onChange={handleFileChange}
+                />
+                {/* <Button
         size="sm"
         variant="dark"
         className="me-2"
@@ -218,18 +214,21 @@ function MyJobs() {
         <FaUpload className="me-1" />
         Excel
       </Button> */}
-      <Button
-        size="sm"
-        variant="dark"
-        className="me-2 d-flex"
-        onClick={handleUploadClick}
-        id="All_btn"
-      >
-        <FaUpload className="me-1" />
-        Upload
-      </Button>
-                <Button id="All_btn" size="sm" variant="dark" onClick={() => handleLogTime(job.id)}>
+                <Button
+                  size="sm"
+                  variant="dark"
+                  className="me-2 d-flex"
+                  onClick={handleUploadClick}
+                  id="All_btn"
+                >
+                  <FaUpload className="me-1" />
+                  Upload
+                </Button>
+                <Link to={"/MyJobsHolidayPackageDesign"}> <Button id="All_btn" size="sm" variant="dark" onClick={() => handleLogTime(job.id)}>
                   LogTime
+                </Button></Link>
+                <Button id="All_btn" size="sm" variant="dark" onClick={() => handleLogTime(job.id)}>
+                  CopyFN
                 </Button>
               </td>
             </tr>
@@ -238,7 +237,7 @@ function MyJobs() {
       </Table>
 
       {/* Pagination */}
-      <div  className="d-flex justify-content-between align-items-center mt-3">
+      <div className="d-flex justify-content-between align-items-center mt-3">
         <div >Showing 1 to 3 of 8 active jobs</div>
         <Pagination className="m-0">
           <Pagination.Prev disabled>Previous</Pagination.Prev>

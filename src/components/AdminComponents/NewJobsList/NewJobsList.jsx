@@ -374,7 +374,7 @@ const handleSubmitRejection = () => {
               <th>PackSize</th>
               <th>TimeLogged</th>
               <th>Due Date</th>
-              <th>Assign</th>
+              {/* <th>Assign</th> */}
               <th>Priority</th>
               <th>Status</th>
               <th>Actions</th>
@@ -408,7 +408,7 @@ const handleSubmitRejection = () => {
                 <td style={{ whiteSpace: 'nowrap' }}>{job.packSize}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
-                <td style={{ whiteSpace: 'nowrap' }}>{job.assign}</td>
+                {/* <td style={{ whiteSpace: 'nowrap' }}>{job.assign}</td> */}
                 <td>
                   <span className={getPriorityClass(job.priority)}>{job.priority}</span>
                 </td>

@@ -4824,3 +4824,1661 @@ export default AddProjectList;
                     
                     export default ProjectJobsTab;
                     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    import React, { useState, useEffect } from 'react';
+
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+
+function UserRoleModal() {
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const location = useLocation();
+  const {user} = location.state || {};
+  const userId = location.state?.id;
+console.log("hhhhhhhhhh",user);
+
+  const [formData, setFormData] = useState({
+    roleName: '',
+    roleDescription: '',
+    permissions: {
+      dashboardAccess: false,
+      clientManagement: false,
+      projectManagement: false,
+      designTools: false,
+      financialManagement: false,
+      userManagement: false,
+      reportGeneration: false,
+      systemSettings: false
+    },
+    accessLevel: 'fullAccess'
+  });
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+ useEffect(() => {
+  if (user) {
+    setFormData(prev => ({
+      ...prev,
+      roleName: user.roleName || '',
+      roleDescription: user.roleDescription || '',
+      permissions: {
+        ...prev.permissions,
+        ...user.permissions
+      },
+      accessLevel: user.accessLevel || 'fullAccess'
+    }));
+  }
+}, [user]);
+
+
+  const handlePermissionChange = (e) => {
+    const { name, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      permissions: {
+        ...prev.permissions,
+        [name]: checked
+      }
+    }));
+  };
+
+  const handleAccessLevelChange = (e) => {
+    setFormData(prev => ({
+      ...prev,
+      accessLevel: e.target.value
+    }));
+  };
+
+ const handleSubmit = (e) => {
+    e.preventDefault();
+
+    // Wrap projectsId as array
+    const payload = {
+      ...formData,
+      projectsId: [formData.projectsId],  // convert to array
+    };
+
+    if (id) {
+      dispatch(updatejob({ id, data: payload }))
+        .unwrap()
+        .then(() => {
+          toast.success("Job updated successfully!");
+          navigate('/ProjectOverview', { state: { openTab: 'jobs' } });
+          dispatch(fetchProject());
+        })
+        .catch(() => {
+          toast.error("Failed to update job!");
+        });
+    } else {
+      dispatch(createjob(payload))  // send payload with array
+        .unwrap()
+        .then(() => {
+          toast.success("Job created successfully!");
+          navigate('/ProjectOverview', { state: { openTab: 'jobs' } });
+          dispatch(fetchProject());
+        })
+        .catch(() => {
+          toast.error("Error creating job");
+        });
+    }
+  };
+
+  const handleCancel = () => {
+    navigate(-1);
+  };
+
+  return (
+    <div className="container py-4">
+      <div className="card shadow-sm">
+        <div className="card-body">
+          <h5 className="card-title mb-4">Add New Role</h5>
+          <form onSubmit={handleSubmit}>
+            <div className="mb-3">
+              <label className="form-label">Role Name</label>
+              <input type="text"
+                className="form-control"
+                name="roleName"
+                value={formData.roleName}
+                onChange={handleInputChange}
+                placeholder="Enter role name"
+                required/>
+            </div>
+
+            <div className="mb-3">
+              <label className="form-label">Role Description</label>
+              <textarea
+                className="form-control"
+                name="roleDescription"
+                value={formData.roleDescription}
+                onChange={handleInputChange}
+                placeholder="Brief description of the role"
+                rows="3" />
+            </div>
+
+            <div className="mb-4">
+              <label className="form-label">Permissions</label>
+              <div className="row g-3">
+                <div className="col-md-6">
+                  <div className="form-check">
+                    <input type="checkbox"  className="form-check-input"
+                      name="dashboardAccess"
+                      checked={formData.permissions.dashboardAccess}
+                      onChange={handlePermissionChange}
+                    />
+                    <label className="form-check-label">Dashboard Access</label>
+                  </div>
+                  <div className="form-check">
+                    <input type="checkbox" className="form-check-input"
+                      name="clientManagement"
+                      checked={formData.permissions.clientManagement}
+                      onChange={handlePermissionChange}/>
+                    <label className="form-check-label">Client Management</label>
+                  </div>
+                  <div className="form-check">
+                    <input type="checkbox"
+                      className="form-check-input"
+                      name="projectManagement"
+                      checked={formData.permissions.projectManagement}
+                      onChange={handlePermissionChange}
+                    />
+                    <label className="form-check-label">Project Management</label>
+                  </div>
+                  <div className="form-check">
+                    <input
+                      type="checkbox"
+                      className="form-check-input"
+                      name="designTools"
+                      checked={formData.permissions.designTools}
+                      onChange={handlePermissionChange}
+                    />
+                    <label className="form-check-label">Design Tools</label>
+                  </div>
+                </div>
+                <div className="col-md-6">
+                  <div className="form-check">
+                    <input
+                      type="checkbox"
+                      className="form-check-input"
+                      name="financialManagement"
+                      checked={formData.permissions.financialManagement}
+                      onChange={handlePermissionChange}
+                    />
+                    <label className="form-check-label">Financial Management</label>
+                  </div>
+                  <div className="form-check">
+                    <input
+                      type="checkbox"
+                      className="form-check-input"
+                      name="userManagement"
+                      checked={formData.permissions.userManagement}
+                      onChange={handlePermissionChange}
+                    />
+                    <label className="form-check-label">User Management</label>
+                  </div>
+                  <div className="form-check">
+                    <input
+                      type="checkbox"
+                      className="form-check-input"
+                      name="reportGeneration"
+                      checked={formData.permissions.reportGeneration}
+                      onChange={handlePermissionChange}
+                    />
+                    <label className="form-check-label">Report Generation</label>
+                  </div>
+                  <div className="form-check">
+                    <input type="checkbox"
+                      className="form-check-input"
+                      name="systemSettings"
+                      checked={formData.permissions.systemSettings}
+                      onChange={handlePermissionChange}
+                    />
+                    <label className="form-check-label">System Settings</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+            <div className="mb-4">
+              <label className="form-label">Access Level</label>
+              <div>
+                <div className="form-check">
+                  <input
+                    type="radio"
+                    className="form-check-input"
+                    name="accessLevel"
+                    value="fullAccess"
+                    checked={formData.accessLevel === 'fullAccess'}
+                    onChange={handleAccessLevelChange}
+                  />
+                  <label className="form-check-label">Full Access</label>
+                </div>
+                <div className="form-check">
+                  <input
+                     type="radio"
+                    className="form-check-input"
+                    name="accessLevel"
+                    value="limitedAccess"
+                    checked={formData.accessLevel === 'limitedAccess'}
+                    onChange={handleAccessLevelChange}
+                  />
+                  <label className="form-check-label">Limited Access</label>
+                </div>
+                <div className="form-check">
+                  <input
+                    type="radio"
+                    className="form-check-input"
+                    name="accessLevel"
+                    value="viewOnly"
+                    checked={formData.accessLevel === 'viewOnly'}
+                    onChange={handleAccessLevelChange}
+                  />
+                  <label className="form-check-label">View Only</label>
+                </div>
+              </div>
+            </div>
+
+            <div className="d-flex justify-content-end gap-2">
+              <button type="button" className="btn btn-outline-secondary" onClick={handleCancel}>Cancel</button>
+              <button type="submit" className="btn btn-dark">Create Role</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default UserRoleModal;
+
+
+
+
+
+
+
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import axios from 'axios';
+import { useDispatch } from 'react-redux';
+
+function UserRoleModal() {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const { id } = useParams();
+  const location = useLocation();
+  const { user } = location.state || {};
+  const userId = location.state?.id;
+  console.log("hhhhhhhhhh", user);
+
+  const [formData, setFormData] = useState({
+    roleName: '',
+    roleDescription: '',
+    permissions: {
+      dashboardAccess: false,
+      clientManagement: false,
+      projectManagement: false,
+      designTools: false,
+      financialManagement: false,
+      userManagement: false,
+      reportGeneration: false,
+      systemSettings: false
+    },
+    accessLevel: 'fullAccess'
+  });
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+  useEffect(() => {
+    if (job && project?.data?.length) {
+      let projectId = '';
+
+      // Safely extract project ID from nested projectsId array
+      if (Array.isArray(job.projectId) && job.projectId.length > 0) {
+        projectId = job.projectId[0]._id;
+      } else if (Array.isArray(job.projectsId) && job.projectsId.length > 0) {
+        projectId = typeof job.projectsId[0] === 'object'
+          ? job.projectsId[0]._id
+          : job.projectsId[0];
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        ...job,
+        projectsId: projectId,
+      }));
+    }
+  }, [job, project?.data]);
+
+  const handlePermissionChange = (e) => {
+    const { name } = e.target;
+    const updatedPermissions = Object.fromEntries(
+      Object.keys(formData.permissions).map((key) => [key, key === name])
+    );
+
+    setFormData(prev => ({
+      ...prev,
+      permissions: updatedPermissions
+    }));
+  };
+
+  const handleAccessLevelChange = (e) => {
+    setFormData(prev => ({
+      ...prev,
+      accessLevel: e.target.value
+    }));
+  };
+
+
+
+
+   const handleSubmit = (e) => {
+      e.preventDefault();
+  
+    const filteredPermissions = Object.fromEntries(
+      Object.entries(formData.permissions).filter(([_, value]) => value === true)
+    );
+
+    const payload = {
+      roleName: formData.roleName,
+      roleDescription: formData.roleDescription,
+      permissions: filteredPermissions,
+      accessLevel: formData.accessLevel
+    };
+
+    console.log('Payload to be sent:', payload);
+    
+      // Wrap projectsId as array
+      // const payload = {
+      //   ...formData,
+      //   projectsId: [formData.projectsId],  
+      // };
+  
+      if (id) {
+        dispatch(updatejob({ id, data: payload }))
+          .unwrap()
+          .then(() => {
+            toast.success("Job updated successfully!");
+            navigate('/ProjectOverview', { state: { openTab: 'jobs' } });
+            dispatch(fetchProject());
+          })
+          .catch(() => {
+            toast.error("Failed to update job!");
+          });
+      } else {
+        dispatch(createjob(payload))  // send payload with array
+          .unwrap()
+          .then(() => {
+            toast.success("Job created successfully!");
+            navigate('/ProjectOverview', { state: { openTab: 'jobs' } });
+            dispatch(fetchProject());
+          })
+          .catch(() => {
+            toast.error("Error creating job");
+          });
+      }
+    };
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+
+  //   const filteredPermissions = Object.fromEntries(
+  //     Object.entries(formData.permissions).filter(([_, value]) => value === true)
+  //   );
+
+  //   const payload = {
+  //     roleName: formData.roleName,
+  //     roleDescription: formData.roleDescription,
+  //     permissions: filteredPermissions,
+  //     accessLevel: formData.accessLevel
+  //   };
+
+  //   console.log('Payload to be sent:', payload);
+  //   try {
+  //     await axios.post('/api/roles', payload);
+  //     navigate(-1);
+  //   } catch (error) {
+  //     console.error('Error submitting form:', error);
+  //     alert('Failed to create role. Please try again.');
+  //   }
+  // };
+
+  const handleCancel = () => {
+    navigate(-1);
+  };
+
+  return (
+    <div className="container py-4">
+      <div className="card shadow-sm">
+        <div className="card-body">
+          <h5 className="card-title mb-4">Add New Role</h5>
+          <form onSubmit={handleSubmit}>
+            <div className="mb-3">
+              <label className="form-label">Role Name</label>
+              <select
+                className="form-select"
+                name="roleName"
+                value={formData.roleName}
+                onChange={handleInputChange}
+                required
+              >
+                <option value="">Select a role</option>
+                <option value="Admin">Admin</option>
+                <option value="Client">Client</option>
+                <option value="Production">Production</option>
+                <option value="Employee">Employee</option>
+              </select>
+            </div>
+
+
+            <div className="mb-3">
+              <label className="form-label">Role Description</label>
+              <textarea
+                className="form-control"
+                name="roleDescription"
+                value={formData.roleDescription}
+                onChange={handleInputChange}
+                placeholder="Brief description of the role"
+                rows="3" />
+            </div>
+
+            <div className="mb-4">
+              <label className="form-label">Permissions (Select Only One)</label>
+              <div className="row g-3">
+                {Object.keys(formData.permissions).map((key) => (
+                  <div className="col-md-6" key={key}>
+                    <div className="form-check">
+                      <input
+                        type="checkbox"
+                        className="form-check-input"
+                        name={key}
+                        checked={formData.permissions[key]}
+                        onChange={handlePermissionChange}
+                      />
+                      <label className="form-check-label text-capitalize">
+                        {key.replace(/([A-Z])/g, ' $1')}
+                      </label>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label className="form-label">Access Level</label>
+              <div>
+                {['fullAccess', 'limitedAccess', 'viewOnly'].map((level) => (
+                  <div className="form-check" key={level}>
+                    <input
+                      type="radio"
+                      className="form-check-input"
+                      name="accessLevel"
+                      value={level}
+                      checked={formData.accessLevel === level}
+                      onChange={handleAccessLevelChange}
+                    />
+                    <label className="form-check-label text-capitalize">{level.replace(/([A-Z])/g, ' $1')}</label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="d-flex justify-content-end gap-2">
+              <button type="button" className="btn btn-outline-secondary" onClick={handleCancel}>Cancel</button>
+              <button type="submit" className="btn btn-dark">Create Role</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default UserRoleModal;
+
+
+
+
+
+
+// ////////////////////////////////////////////
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import axios from 'axios';
+import { useDispatch } from 'react-redux';
+
+function UserRoleModal() {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const { id } = useParams();
+  const location = useLocation();
+  const { user } = location.state || {};
+  const userId = location.state?.id;
+  console.log("hhhhhhhhhh", user);
+
+  
+  const [formData, setFormData] = useState({
+    roleName: '',
+    roleDescription: '',
+    permissions: {
+      dashboardAccess: false,
+      clientManagement: false,
+      projectManagement: false,
+      designTools: false,
+      financialManagement: false,
+      userManagement: false,
+      reportGeneration: false,
+      systemSettings: false
+    },
+    accessLevel: 'fullAccess'
+  });
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+  useEffect(() => {
+    if (user && project?.data?.length) {
+      let userId = '';
+
+      // Safely extract project ID from nested projectsId array
+      if (Array.isArray(user.userId) && user.userId.length > 0) {
+        userId = user.userId[0]._id;
+      } else if (Array.isArray(user.projectsId) && user.projectsId.length > 0) {
+        userId = typeof user.projectsId[0] === 'object'
+          ? user.projectsId[0]._id
+          : user.projectsId[0];
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        ...user,
+        projectsId: userId,
+      }));
+    }
+  }, [user, project?.data]);
+
+  const handlePermissionChange = (e) => {
+    const { name } = e.target;
+    const updatedPermissions = Object.fromEntries(
+      Object.keys(formData.permissions).map((key) => [key, key === name])
+    );
+
+    setFormData(prev => ({
+      ...prev,
+      permissions: updatedPermissions
+    }));
+  };
+
+  const handleAccessLevelChange = (e) => {
+    setFormData(prev => ({
+      ...prev,
+      accessLevel: e.target.value
+    }));
+  };
+
+
+
+
+   const handleSubmit = (e) => {
+      e.preventDefault();
+  
+    const filteredPermissions = Object.fromEntries(
+      Object.entries(formData.permissions).filter(([_, value]) => value === true)
+    );
+
+    const payload = {
+      roleName: formData.roleName,
+      roleDescription: formData.roleDescription,
+      permissions: filteredPermissions,
+      accessLevel: formData.accessLevel
+    };
+
+    console.log('Payload to be sent:', payload);
+    
+      // Wrap projectsId as array
+      // const payload = {
+      //   ...formData,
+      //   projectsId: [formData.projectsId],  
+      // };
+  
+      if (id) {
+        dispatch(updateuser({ id, data: payload }))
+          .unwrap()
+          .then(() => {
+            toast.success("user updated successfully!");
+            navigate('/ProjectOverview', { state: { openTab: 'users' } });
+            dispatch(fetchProject());
+          })
+          .catch(() => {
+            toast.error("Failed to update user!");
+          });
+      } else {
+        dispatch(createuser(payload))  // send payload with array
+          .unwrap()
+          .then(() => {
+            toast.success("user created successfully!");
+            navigate('/ProjectOverview', { state: { openTab: 'users' } });
+            dispatch(fetchProject());
+          })
+          .catch(() => {
+            toast.error("Error creating user");
+          });
+      }
+    };
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+
+  //   const filteredPermissions = Object.fromEntries(
+  //     Object.entries(formData.permissions).filter(([_, value]) => value === true)
+  //   );
+
+  //   const payload = {
+  //     roleName: formData.roleName,
+  //     roleDescription: formData.roleDescription,
+  //     permissions: filteredPermissions,
+  //     accessLevel: formData.accessLevel
+  //   };
+
+  //   console.log('Payload to be sent:', payload);
+  //   try {
+  //     await axios.post('/api/roles', payload);
+  //     navigate(-1);
+  //   } catch (error) {
+  //     console.error('Error submitting form:', error);
+  //     alert('Failed to create role. Please try again.');
+  //   }
+  // };
+
+  const handleCancel = () => {
+    navigate(-1);
+  };
+
+  return (
+    <div className="container py-4">
+      <div className="card shadow-sm">
+        <div className="card-body">
+          <h5 className="card-title mb-4">Add New Role</h5>
+          <form onSubmit={handleSubmit}>
+            <div className="mb-3">
+              <label className="form-label">Role Name</label>
+              <select
+                className="form-select"
+                name="roleName"
+                value={formData.roleName}
+                onChange={handleInputChange}
+                required
+              >
+                <option value="">Select a role</option>
+                <option value="Admin">Admin</option>
+                <option value="Client">Client</option>
+                <option value="Production">Production</option>
+                <option value="Employee">Employee</option>
+              </select>
+            </div>
+
+
+            <div className="mb-3">
+              <label className="form-label">Role Description</label>
+              <textarea
+                className="form-control"
+                name="roleDescription"
+                value={formData.roleDescription}
+                onChange={handleInputChange}
+                placeholder="Brief description of the role"
+                rows="3" />
+            </div>
+
+            <div className="mb-4">
+              <label className="form-label">Permissions (Select Only One)</label>
+              <div className="row g-3">
+                {Object.keys(formData.permissions).map((key) => (
+                  <div className="col-md-6" key={key}>
+                    <div className="form-check">
+                      <input
+                        type="checkbox"
+                        className="form-check-input"
+                        name={key}
+                        checked={formData.permissions[key]}
+                        onChange={handlePermissionChange}
+                      />
+                      <label className="form-check-label text-capitalize">
+                        {key.replace(/([A-Z])/g, ' $1')}
+                      </label>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label className="form-label">Access Level</label>
+              <div>
+                {['fullAccess', 'limitedAccess', 'viewOnly'].map((level) => (
+                  <div className="form-check" key={level}>
+                    <input
+                      type="radio"
+                      className="form-check-input"
+                      name="accessLevel"
+                      value={level}
+                      checked={formData.accessLevel === level}
+                      onChange={handleAccessLevelChange}
+                    />
+                    <label className="form-check-label text-capitalize">{level.replace(/([A-Z])/g, ' $1')}</label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="d-flex justify-content-end gap-2">
+              <button type="button" className="btn btn-outline-secondary" onClick={handleCancel}>Cancel</button>
+              <button type="submit" className="btn btn-dark">Create Role</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default UserRoleModal;
+
+
+
+
+
+
+
+
+
+////////////////////////////
+import React, { useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import axios from 'axios';
+import { useDispatch } from 'react-redux';
+
+function UserRoleModal() {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const { id } = useParams();
+  const location = useLocation();
+  const {user} = location.state || {};
+  const userId = location.state?.id;
+  console.log("hhhhhhhhhh",user);
+  
+  const [formData, setFormData] = useState({
+    roleName: '',
+    roleDescription: '',
+    permissions: {
+      dashboardAccess: false,
+      clientManagement: false,
+      projectManagement: false,
+      designTools: false,
+      financialManagement: false,
+      userManagement: false,
+      reportGeneration: false,
+      systemSettings: false
+    },
+    accessLevel: 'fullAccess'
+  });
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handlePermissionChange = (e) => {
+    const { name } = e.target;
+    const updatedPermissions = Object.fromEntries(
+      Object.keys(formData.permissions).map((key) => [key, key === name])
+    );
+
+    setFormData(prev => ({
+      ...prev,
+      permissions: updatedPermissions
+    }));
+  };
+
+  const handleAccessLevelChange = (e) => {
+    setFormData(prev => ({
+      ...prev,
+      accessLevel: e.target.value
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const filteredPermissions = Object.fromEntries(
+      Object.entries(formData.permissions).filter(([_, value]) => value === true)
+    );
+
+    const payload = {
+      roleName: formData.roleName,
+      roleDescription: formData.roleDescription,
+      permissions: filteredPermissions,
+      accessLevel: formData.accessLevel
+    };
+
+    console.log('Payload to be sent:', payload);
+    try {
+      await axios.post('/api/roles', payload);
+      navigate(-1);
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      alert('Failed to create role. Please try again.');
+    }
+  };
+
+  const handleCancel = () => {
+    navigate(-1);
+  };
+
+  return (
+    <div className="container py-4">
+      <div className="card shadow-sm">
+        <div className="card-body">
+          <h5 className="card-title mb-4">Add New Role</h5>
+          <form onSubmit={handleSubmit}>
+            <div className="mb-3">
+              <label className="form-label">Role Name</label>
+              <select
+                className="form-select"
+                name="roleName"
+                value={formData.roleName}
+                onChange={handleInputChange}
+                required
+              >
+                <option value="">Select a role</option>
+                <option value="Admin">Admin</option>
+                <option value="Client">Client</option>
+                <option value="Production">Production</option>
+                <option value="Employee">Employee</option>
+              </select>
+            </div>
+
+
+            <div className="mb-3">
+              <label className="form-label">Role Description</label>
+              <textarea
+                className="form-control"
+                name="roleDescription"
+                value={formData.roleDescription}
+                onChange={handleInputChange}
+                placeholder="Brief description of the role"
+                rows="3" />
+            </div>
+
+            <div className="mb-4">
+              <label className="form-label">Permissions (Select Only One)</label>
+              <div className="row g-3">
+                {Object.keys(formData.permissions).map((key) => (
+                  <div className="col-md-6" key={key}>
+                    <div className="form-check">
+                      <input
+                        type="checkbox"
+                        className="form-check-input"
+                        name={key}
+                        checked={formData.permissions[key]}
+                        onChange={handlePermissionChange}
+                      />
+                      <label className="form-check-label text-capitalize">
+                        {key.replace(/([A-Z])/g, ' $1')}
+                      </label>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label className="form-label">Access Level</label>
+              <div>
+                {['fullAccess', 'limitedAccess', 'viewOnly'].map((level) => (
+                  <div className="form-check" key={level}>
+                    <input
+                      type="radio"
+                      className="form-check-input"
+                      name="accessLevel"
+                      value={level}
+                      checked={formData.accessLevel === level}
+                      onChange={handleAccessLevelChange}
+                    />
+                    <label className="form-check-label text-capitalize">{level.replace(/([A-Z])/g, ' $1')}</label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="d-flex justify-content-end gap-2">
+              <button type="button" className="btn btn-outline-secondary" onClick={handleCancel}>Cancel</button>
+              <button type="submit" className="btn btn-dark">Create Role</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default UserRoleModal;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// 
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { Link, useNavigate } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { useDispatch } from "react-redux";
+import { createCostEstimate } from "../../../redux/slices/costEstimatesSlice";
+
+const currencies = [
+  { label: "USD - US Dollar", value: "USD" },
+  { label: "EUR - Euro", value: "EUR" },
+  { label: "INR - Indian Rupee", value: "INR" },
+  { label: "GBP - British Pound", value: "GBP" },
+  { label: "JPY - Japanese Yen", value: "JPY" },
+  { label: "AED - UAE Dirham", value: "AED" },
+  { label: "SAR - Saudi Riyal", value: "SAR" },
+];
+
+const poStatuses = ["Pending", "Approved", "Rejected"];
+const statuses = ["Active", "Inactive", "Completed"];
+
+function AddCostEstimates() {
+const navigate = useNavigate();
+const dispatch = useDispatch()
+
+  const [clients, setClients] = useState([]);
+  const [items, setItems] = useState([
+    { description: "", quantity: 0, rate: 0, amount: 0 },
+  ]);
+
+  const [formData, setFormData] = useState({
+    clientId: ["6821a7b537e654e25af3da1d"],
+    projectsId: ["681f1eb87397dc2b7e25eba2"],
+    projectName: "681f1eb87397dc2b7e25eba2",
+    estimateDate: "",
+    validUntil: "",
+    Notes: "",
+    currency: "USD",
+    POStatus: "Pending",
+    Status: "Active",
+  });
+
+  const [taxRate, setTaxRate] = useState(0.05);
+
+  const calculateAmount = (quantity, rate) => quantity * rate;
+
+  const handleItemChange = (index, field, value) => {
+    const newItems = [...items];
+    newItems[index][field] = value;
+    newItems[index].amount = calculateAmount(
+      newItems[index].quantity,
+      newItems[index].rate
+    );
+    setItems(newItems);
+  };
+
+  const handleFormChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+    
+  const addItem = () => {
+    setItems([...items, { description: "", quantity: 0, rate: 0, amount: 0 }]);
+  };
+  const removeItem = (index) => {
+    const newItems = [...items];
+    newItems.splice(index, 1);
+    setItems(newItems);
+  };
+
+  const subtotal = items.reduce((acc, item) => acc + item.amount, 0);
+  const tax = subtotal * taxRate;
+  const total = subtotal + tax;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const payload = {
+        ...formData,
+        VATRate: taxRate * 100,
+        lineItems: items,
+      };
+      console.log("Submitted Data:", payload);
+      dispatch(createCostEstimate(payload))
+    } catch (err) {
+      console.error("Submit Error:", err);
+      toast.error("Failed to create estimate!");
+    }
+  };
+
+  return (
+    <>
+      <ToastContainer />
+      <div className="container py-4">
+        <h5 className="fw-bold mb-4">Cost Estimates</h5>
+        <div className="bg-white border rounded-3 p-4 shadow-sm">
+          <h6 className="fw-semibold mb-4">Create New Estimate</h6>
+
+          <div className="row mb-3">
+            <div className="col-md-4 mb-3">
+              <label className="form-label">Client</label>
+              <select
+                className="form-select"
+                name="clientId"
+                value={formData.clientId}
+                onChange={handleFormChange}
+              >
+                <option value="">Select Client</option>
+                {clients.map((client) => (
+                  <option key={client._id} value={client._id}>
+                    {client.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="col-md-4 mb-3">
+              <label className="form-label">Project Number</label>
+              <input
+                type="text"
+                className="form-control"
+                name="projectsId"
+                value={formData.projectsId}
+                // onChange={handleProjectNumberChange}
+                placeholder="Enter project number"
+              />
+            </div>
+
+            <div className="col-md-4 mb-3">
+              <label className="form-label">Project Name</label>
+              <input
+                type="text"
+                className="form-control"
+                name="projectName"
+                value={formData.projectName}
+                readOnly
+              />
+            </div>
+
+            <div className="col-md-4 mb-3">
+              <label className="form-label">Estimate Date</label>
+              <input
+                type="date"
+                className="form-control"
+                name="estimateDate"
+                value={formData.estimateDate}
+                onChange={handleFormChange}
+              />
+            </div>
+
+            <div className="col-md-4 mb-3">
+              <label className="form-label">Valid Until</label>
+              <input
+                type="date"
+                className="form-control"
+                name="validUntil"
+                value={formData.validUntil}
+                onChange={handleFormChange}
+              />
+            </div>
+
+            <div className="col-md-4 mb-3">
+              <label className="form-label">Currency</label>
+              <select
+                className="form-select"
+                name="currency"
+                value={formData.currency}
+                onChange={handleFormChange}
+              >
+                {currencies.map((curr) => (
+                  <option key={curr.value} value={curr.value}>
+                    {curr.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="col-md-4 mb-3">
+              <label className="form-label">PO Status</label>
+              <select
+                className="form-select"
+                name="POStatus"
+                value={formData.POStatus}
+                onChange={handleFormChange}
+              >
+                {poStatuses.map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="col-md-4 mb-3">
+              <label className="form-label">Status</label>
+              <select
+                className="form-select"
+                name="Status"
+                value={formData.Status}
+                onChange={handleFormChange}
+              >
+                {statuses.map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <h6 className="fw-semibold mb-3">Line Items</h6>
+          {/* Line Items UI (Same as before) */}
+          {items.map((item, index) => (
+            <div
+              className="row gx-2 gy-2 align-items-center mb-2 px-2 py-2"
+              key={index}
+              style={{ background: "#f9f9f9", borderRadius: "8px" }}
+            >
+              <div className="col-md-5">
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Item description"
+                  value={item.description}
+                  onChange={(e) =>
+                    handleItemChange(index, "description", e.target.value)
+                  }
+                />
+              </div>
+              <div className="col-md-2">
+                <input
+                  type="number"
+                  className="form-control"
+                  value={item.quantity}
+                  onChange={(e) =>
+                    handleItemChange(index, "quantity", parseInt(e.target.value))
+                  }
+                />
+              </div>
+              <div className="col-md-2">
+                <input
+                  type="number"
+                  className="form-control"
+                  value={item.rate}
+                  onChange={(e) =>
+                    handleItemChange(index, "rate", parseFloat(e.target.value))
+                  }
+                />
+              </div>
+              <div className="col-md-2">
+                <span>
+                  {formData.currency} {item.amount.toFixed(2)}
+                </span>
+              </div>
+              <div className="col-md-1 text-end">
+                <button
+                  className="btn btn-link text-danger p-0"
+                  onClick={() => removeItem(index)}
+                >
+                  remove
+                </button>
+              </div>
+            </div>
+          ))}
+
+          <button
+            className="btn border rounded px-3 py-1 mb-4 text-dark"
+            onClick={addItem}
+          >
+            + Add Line Item
+          </button>
+
+          <div className="row mt-4">
+            <div className="col-md-6">
+              <label className="form-label">VAT Rate (%)</label>
+              <input
+                type="number"
+                className="form-control"
+                value={(taxRate * 100).toFixed(2)}
+                onChange={(e) =>
+                  setTaxRate(isNaN(parseFloat(e.target.value)) ? 0 : parseFloat(e.target.value) / 100)
+                }
+              />
+              <div className="mt-3">
+                Subtotal: {formData.currency} {subtotal.toFixed(2)}<br />
+                VAT: {formData.currency} {tax.toFixed(2)}<br />
+                <strong>Total: {formData.currency} {total.toFixed(2)}</strong>
+              </div>
+            </div>
+            <div className="col-md-6">
+              <label className="form-label">Notes</label>
+              <textarea
+                className="form-control"
+                rows="4"
+                name="Notes"
+                value={formData.Notes}
+                onChange={handleFormChange}
+              ></textarea>
+            </div>
+          </div>
+
+          <div className="text-end mt-4">
+            <Link to="/CostEstimates">
+              <button className="btn btn-light me-2">Cancel</button>
+            </Link>
+            <button className="btn btn-dark" onClick={handleSubmit}>
+              Create Estimate
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export default AddCostEstimates;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { Link, useNavigate } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { useDispatch } from "react-redux";
+import { createCostEstimate } from "../../../redux/slices/costEstimatesSlice";
+
+const currencies = [
+  { label: "USD - US Dollar", value: "USD" },
+  { label: "EUR - Euro", value: "EUR" },
+  { label: "INR - Indian Rupee", value: "INR" },
+  { label: "GBP - British Pound", value: "GBP" },
+  { label: "JPY - Japanese Yen", value: "JPY" },
+  { label: "AED - UAE Dirham", value: "AED" },
+  { label: "SAR - Saudi Riyal", value: "SAR" },
+];
+
+const poStatuses = ["Pending", "Approved", "Rejected"];
+const statuses = ["Active", "Inactive", "Completed"];
+
+function AddCostEstimates() {
+const navigate = useNavigate();
+const dispatch = useDispatch()
+
+  const [clients, setClients] = useState([]);
+  const [items, setItems] = useState([
+    { description: "", quantity: 0, rate: 0, amount: 0 },
+  ]);
+
+  const [formData, setFormData] = useState({
+    clientId: ["6821a7b537e654e25af3da1d"],
+    projectsId: ["681f1eb87397dc2b7e25eba2"],
+    projectName: "681f1eb87397dc2b7e25eba2",
+    estimateDate: "",
+    validUntil: "",
+    Notes: "",
+    currency: "USD",
+    POStatus: "Pending",
+    Status: "Active",
+  });
+
+  const [taxRate, setTaxRate] = useState(0.05);
+
+  const calculateAmount = (quantity, rate) => quantity * rate;
+
+  const handleItemChange = (index, field, value) => {
+    const newItems = [...items];
+    newItems[index][field] = value;
+    newItems[index].amount = calculateAmount(
+      newItems[index].quantity,
+      newItems[index].rate
+    );
+    setItems(newItems);
+  };
+
+  const handleFormChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+    
+  const addItem = () => {
+    setItems([...items, { description: "", quantity: 0, rate: 0, amount: 0 }]);
+  };
+  const removeItem = (index) => {
+    const newItems = [...items];
+    newItems.splice(index, 1);
+    setItems(newItems);
+  };
+
+  const subtotal = items.reduce((acc, item) => acc + item.amount, 0);
+  const tax = subtotal * taxRate;
+  const total = subtotal + tax;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const payload = {
+        ...formData,
+        VATRate: taxRate * 100,
+        lineItems: items,
+      };
+      console.log("Submitted Data:", payload);
+      dispatch(createCostEstimate(payload))
+    } catch (err) {
+      console.error("Submit Error:", err);
+      toast.error("Failed to create estimate!");
+    }
+  };
+
+  return (
+    <>
+      <ToastContainer />
+      <div className="container py-4">
+        <h5 className="fw-bold mb-4">Cost Estimates</h5>
+        <div className="bg-white border rounded-3 p-4 shadow-sm">
+          <h6 className="fw-semibold mb-4">Create New Estimate</h6>
+
+          <div className="row mb-3">
+            <div className="col-md-4 mb-3">
+              <label className="form-label">Client</label>
+              <select
+                className="form-select"
+                name="clientId"
+                value={formData.clientId}
+                onChange={handleFormChange}
+              >
+                <option value="">Select Client</option>
+                {clients.map((client) => (
+                  <option key={client._id} value={client._id}>
+                    {client.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="col-md-4 mb-3">
+              <label className="form-label">Project Number</label>
+              <input
+                type="text"
+                className="form-control"
+                name="projectsId"
+                value={formData.projectsId}
+                // onChange={handleProjectNumberChange}
+                placeholder="Enter project number"
+              />
+            </div>
+
+            <div className="col-md-4 mb-3">
+              <label className="form-label">Project Name</label>
+              <input
+                type="text"
+                className="form-control"
+                name="projectName"
+                value={formData.projectName}
+                readOnly
+              />
+            </div>
+
+            <div className="col-md-4 mb-3">
+              <label className="form-label">Estimate Date</label>
+              <input
+                type="date"
+                className="form-control"
+                name="estimateDate"
+                value={formData.estimateDate}
+                onChange={handleFormChange}
+              />
+            </div>
+
+            <div className="col-md-4 mb-3">
+              <label className="form-label">Valid Until</label>
+              <input
+                type="date"
+                className="form-control"
+                name="validUntil"
+                value={formData.validUntil}
+                onChange={handleFormChange}
+              />
+            </div>
+
+            <div className="col-md-4 mb-3">
+              <label className="form-label">Currency</label>
+              <select
+                className="form-select"
+                name="currency"
+                value={formData.currency}
+                onChange={handleFormChange}
+              >
+                {currencies.map((curr) => (
+                  <option key={curr.value} value={curr.value}>
+                    {curr.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="col-md-4 mb-3">
+              <label className="form-label">PO Status</label>
+              <select
+                className="form-select"
+                name="POStatus"
+                value={formData.POStatus}
+                onChange={handleFormChange}
+              >
+                {poStatuses.map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="col-md-4 mb-3">
+              <label className="form-label">Status</label>
+              <select
+                className="form-select"
+                name="Status"
+                value={formData.Status}
+                onChange={handleFormChange}
+              >
+                {statuses.map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <h6 className="fw-semibold mb-3">Line Items</h6>
+           <div className="row fw-semibold text-muted mb-2 px-2">
+            <div className="col-md-5">Description</div>
+            <div className="col-md-2">Quantity</div>
+            <div className="col-md-2">Rate</div>
+            <div className="col-md-2">Amount</div>
+            <div className="col-md-1 text-end"></div>
+          </div>
+          {/* Line Items UI (Same as before) */}
+          {items.map((item, index) => (
+            <div
+              className="row gx-2 gy-2 align-items-center mb-2 px-2 py-2"
+              key={index}
+              style={{ background: "#f9f9f9", borderRadius: "8px" }}
+            >
+              <div className="col-md-5">
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Item description"
+                  value={item.description}
+                  onChange={(e) =>
+                    handleItemChange(index, "description", e.target.value)
+                  }
+                />
+              </div>
+              <div className="col-md-2">
+                <input
+                  type="number"
+                  className="form-control"
+                  value={item.quantity}
+                  onChange={(e) =>
+                    handleItemChange(index, "quantity", parseInt(e.target.value))
+                  }
+                />
+              </div>
+              <div className="col-md-2">
+                <input
+                  type="number"
+                  className="form-control"
+                  value={item.rate}
+                  onChange={(e) =>
+                    handleItemChange(index, "rate", parseFloat(e.target.value))
+                  }
+                />
+              </div>
+              <div className="col-md-2">
+                <span>
+                  {formData.currency} {item.amount.toFixed(2)}
+                </span>
+              </div>
+              <div className="col-md-1 text-end">
+                <button
+                  className="btn btn-link text-danger p-0"
+                  onClick={() => removeItem(index)}
+                >
+                  remove
+                </button>
+              </div>
+            </div>
+          ))}
+
+          <button
+            className="btn border rounded px-3 py-1 mb-4 text-dark"
+            onClick={addItem}
+          >
+            + Add Line Item
+          </button>
+
+          <div className="row mt-4">
+            <div className="col-md-6">
+              <label className="form-label">VAT Rate (%)</label>
+              <input
+                type="number"
+                className="form-control"
+                value={(taxRate * 100).toFixed(2)}
+                onChange={(e) =>
+                  setTaxRate(isNaN(parseFloat(e.target.value)) ? 0 : parseFloat(e.target.value) / 100)
+                }
+              />
+              <div className="mt-3">
+                Subtotal: {formData.currency} {subtotal.toFixed(2)}<br />
+                VAT: {formData.currency} {tax.toFixed(2)}<br />
+                <strong>Total: {formData.currency} {total.toFixed(2)}</strong>
+              </div>
+            </div>
+            <div className="col-md-6">
+              <label className="form-label">Notes</label>
+              <textarea
+                className="form-control"
+                rows="4"
+                name="Notes"
+                value={formData.Notes}
+                onChange={handleFormChange}
+              ></textarea>
+            </div>
+          </div>
+
+          <div className="text-end mt-4">
+            <Link to="/CostEstimates">
+              <button className="btn btn-light me-2">Cancel</button>
+            </Link>
+            <button className="btn btn-dark" onClick={handleSubmit}>
+              Create Estimate
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export default AddCostEstimates;

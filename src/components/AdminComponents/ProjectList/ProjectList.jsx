@@ -78,7 +78,6 @@ function ProjectList() {
   navigate('/ProjectOverview', { state: { id, openTab: 'jobs' } });
 };
 
-
   const getStatusClass = (status) => {
     switch ((status || "").toLowerCase().trim()) {
       case "active project":
@@ -104,7 +103,6 @@ function ProjectList() {
         return "bg-light text-dark";
     }
   };
-
 
   return (
     <div className="project-container">
@@ -253,8 +251,6 @@ function ProjectList() {
         </Table>
       )} 
        
-       
-
       {/* Pagination */}
       {!loading && !error && (
         <div className="d-flex justify-content-between align-items-center mb-4">

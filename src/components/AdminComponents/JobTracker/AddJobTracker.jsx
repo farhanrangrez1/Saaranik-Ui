@@ -7,8 +7,7 @@ import Barcode from 'react-barcode';
 import Select from 'react-select';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProject } from '../../../redux/slices/ProjectsSlice';
-import { createjob, fetchjobById, updatejob } from '../../../redux/slices/JobsSlice';
-
+import { createjob } from '../../../redux/slices/JobsSlice';
 
 function AddJobTracker() {
   const navigate = useNavigate();
@@ -35,7 +34,6 @@ function AddJobTracker() {
   useEffect(() => {
     dispatch(fetchProject());
   }, [dispatch]);
-
 
   // Form submit f
   const [formData, setFormData] = useState({
@@ -79,8 +77,6 @@ function AddJobTracker() {
   useEffect(() => {
     if (job && project?.data?.length) {
       let projectId = '';
-
-      // Safely extract project ID from nested projectsId array
       if (Array.isArray(job.projectId) && job.projectId.length > 0) {
         projectId = job.projectId[0]._id;
       } else if (Array.isArray(job.projectsId) && job.projectsId.length > 0) {
@@ -88,7 +84,6 @@ function AddJobTracker() {
           ? job.projectsId[0]._id
           : job.projectsId[0];
       }
-
       setFormData((prev) => ({
         ...prev,
         ...job,
@@ -105,15 +100,14 @@ function AddJobTracker() {
       [name]: value
     }));
   };
+
+
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    // Wrap projectsId as array
     const payload = {
       ...formData,
-      projectsId: [formData.projectsId],  // convert to array
+      projectsId: [formData.projectsId],  
     };
-
     if (id) {
       dispatch(updatejob({ id, data: payload }))
         .unwrap()
@@ -126,7 +120,7 @@ function AddJobTracker() {
           toast.error("Failed to update job!");
         });
     } else {
-      dispatch(createjob(payload))  // send payload with array
+      dispatch(createjob(payload))  
         .unwrap()
         .then(() => {
           toast.success("Job created successfully!");
@@ -138,8 +132,6 @@ function AddJobTracker() {
         });
     }
   };
-
-
 
   const handleCancel = () => {
     navigate("/projectList");
@@ -157,8 +149,6 @@ function AddJobTracker() {
   reversedProjectList.forEach((project, index) => {
     idToIndexMap[project._id] = String(index + 1).padStart(4, '0');
   });
-
-
   return (
     <>
       <ToastContainer />

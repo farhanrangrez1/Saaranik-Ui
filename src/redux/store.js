@@ -4,12 +4,14 @@ import ProjectsReducer from './slices/ProjectsSlice';
 import jobsReducer from "./slices/JobsSlice"
 import ClientReducer from "../redux/slices/ClientSlice"
 import userReducer from "../redux/slices/userSlice"
+import costEstimatesReducer from "../redux/slices/costEstimatesSlice"
 
 export const store = configureStore({
   reducer: {
     projects:ProjectsReducer,
     jobs:jobsReducer,
     client:ClientReducer,
-    user:userReducer
+    user:userReducer,
+    costEstimates:costEstimatesReducer
 }
 });

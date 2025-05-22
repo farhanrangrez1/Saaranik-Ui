@@ -3,30 +3,15 @@ import { Button, Form, Table, Container, Row, Col, Dropdown } from 'react-bootst
 import { FaEdit, FaEllipsisV } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import Base_Url from '../../ApiUrl/ApiUrl';
 
 function IssuablePurchase() {
   const [purchaseOrders, setPurchaseOrders] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const fetchPurchaseOrders = async () => {
-    try {
-      const response = await axios.get(`${Base_Url}/purchase/getAllPurchase`);
-      setPurchaseOrders(response.data.data);
-      console.log("purchase",response.data.data);
-    } catch (error) {
-      console.error("Error fetching purchase orders:", error);
-    }
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this purchase order?")) {
-      try {
-        await axios.delete(`${Base_Url}/purchase/deletePurchase/${id}`);
-        fetchPurchaseOrders(); // Refresh the list
-      } catch (error) {
-        console.error("Error deleting purchase order:", error);
-      }
-    }
+
   };
 
   useEffect(() => {

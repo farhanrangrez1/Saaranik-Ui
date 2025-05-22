@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import UserRoleModal from './UserRoleModal';
 import { FaEdit, FaTrashAlt } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchusers } from '../../../redux/slices/userSlice';
+import { deleteusers, fetchusers } from '../../../redux/slices/userSlice';
+import Swal from 'sweetalert2';
 
 function UserRoles() {
   const dispatch = useDispatch()
+  const navigate =useNavigate()
   const [users, setUsers] = useState([
     {
       id: 1,
@@ -59,44 +61,40 @@ function UserRoles() {
     setCurrentPage(pageNumber);
   };
 
-  const [showModal, setShowModal] = useState(false);
-  const [editingUser, setEditingUser] = useState(null);
-
-  const handleEditUser = (userId) => {
-    const userToEdit = users.find(user => user.id === userId);
-    setEditingUser(userToEdit);
-    setShowModal(true);
-  };
-
-  const handleDeleteUser = (userId) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
-      setUsers(users.filter(user => user.id !== userId));
-    }
-  };
-
-  const handleSaveUser = (userData) => {
-    if (editingUser) {
-      // Update existing user
-      setUsers(users.map(user =>
-        user.id === editingUser.id ? { ...user, ...userData } : user
-      ));
-    } else {
-      // Add new user
-      setUsers([...users, { id: users.length + 1, ...userData }]);
-    }
-  };
-
-  const handleCloseModal = () => {
-    setShowModal(false);
-    setEditingUser(null);
-  };
-
+// ///////
   const { userAll, loading, error } = useSelector((state) => state.user);
   console.log("data user", userAll?.data?.users);
 
   useEffect(() => {
     dispatch(fetchusers());
   }, [dispatch]);
+
+  const handleDeleteUser = (_id) => {
+    console.log(_id);
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        dispatch(deleteusers(_id))
+          .then(() => {
+            Swal.fire("Deleted!", "The document has been deleted.", "success");
+            dispatch(fetchusers());
+          })
+          .catch(() => {
+            Swal.fire("Error!", "Something went wrong.", "error");
+          });
+      }
+    });
+  }
+  const handleEditUser = (user) => {
+  navigate(`/UserRoleModal`, { state: {user} });
+  };
 
   return (
     <div className=" p-4 m-3" style={{ backgroundColor: "white", borderRadius: "10px", }}>
@@ -132,7 +130,7 @@ function UserRoles() {
               </thead>
               <tbody>
                 {userAll?.data?.users?.slice().reverse().map(user => (
-                  <tr key={user?.id}>
+                  <tr key={user._id}>
                     <td>
                       <div className="d-flex align-items-center">
                         <div className="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" style={{ width: '32px', height: '32px' }}>
@@ -150,12 +148,12 @@ function UserRoles() {
                         {user?.role}
                       </span>
                     </td>
-                     <td>
+                    <td>
                       <span className={`badge ${user.state === 'Active' ? 'text-bg-success' : 'text-bg-warning'}`}>
                         {user?.state}
                       </span>
                     </td>
-                  <th style={{fontWeight:"400"}}>
+                    <th style={{ fontWeight: "400" }}>
                       {user && user.permissions
                         ? Object.entries(user.permissions)
                           .filter(([_, value]) => value === true)
@@ -163,19 +161,19 @@ function UserRoles() {
                           .join(', ')
                         : 'N/A'}
                     </th>
-                   
+
                     {/* <td>{user.permissions}</td> */}
                     <td>
                       <div className="d-flex gap-2">
                         <button
                           className="btn btn-sm btn-outline-secondary"
-                          onClick={() => handleEditUser(user.id)}
+                          onClick={() => handleEditUser(user)}
                         >
                           <FaEdit />
                         </button>
                         <button
                           className="btn btn-sm btn-outline-danger"
-                          onClick={() => handleDeleteUser(user.id)}
+                          onClick={() => handleDeleteUser(user._id)}
                         >
                           <FaTrashAlt />
                         </button>

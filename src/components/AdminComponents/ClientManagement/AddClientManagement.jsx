@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import Base_Url from '../../ApiUrl/ApiUrl';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
