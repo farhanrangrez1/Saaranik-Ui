@@ -104,36 +104,36 @@ function NewJobsList() {
   // };
 
   const handleRejectJobs = () => {
-  const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
-  if (selectedJobIds.length === 0) {
-    setErrorMessage("Please select at least 1 job to reject.");
-    setTimeout(() => setErrorMessage(""), 3000);
-    return;
-  }
-  // Show rejection modal instead of success message
-  setShowRejectModal(true);
-};
+    const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
+    if (selectedJobIds.length === 0) {
+      setErrorMessage("Please select at least 1 job to reject.");
+      setTimeout(() => setErrorMessage(""), 3000);
+      return;
+    }
+    // Show rejection modal instead of success message
+    setShowRejectModal(true);
+  };
 
-const handleSubmitRejection = () => {
-  const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
+  const handleSubmitRejection = () => {
+    const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
 
-  if (!rejectionReason.trim()) {
-    setErrorMessage("Please enter a reason for rejection.");
-    setTimeout(() => setErrorMessage(""), 3000);
-    return;
-  }
+    if (!rejectionReason.trim()) {
+      setErrorMessage("Please enter a reason for rejection.");
+      setTimeout(() => setErrorMessage(""), 3000);
+      return;
+    }
 
-  console.log("Rejected job(s):", selectedJobIds, "Reason:", rejectionReason);
+    console.log("Rejected job(s):", selectedJobIds, "Reason:", rejectionReason);
 
-  // Here, call your API if needed to mark jobs as rejected
+    // Here, call your API if needed to mark jobs as rejected
 
-  setSuccessMessage("Jobs rejected successfully.");
-  setTimeout(() => setSuccessMessage(""), 3000);
+    setSuccessMessage("Jobs rejected successfully.");
+    setTimeout(() => setSuccessMessage(""), 3000);
 
-  setSelectedJobs({});
-  setRejectionReason("");
-  setShowRejectModal(false);
-};
+    setSelectedJobs({});
+    setRejectionReason("");
+    setShowRejectModal(false);
+  };
 
   // const handleSubmitRejection = () => {
   //   console.log("Rejected job(s):", selectedJobs, "Reason:", rejectionReason);
@@ -143,7 +143,7 @@ const handleSubmitRejection = () => {
 
 
   // ///
-  const { job } = useSelector((state) => state.jobs);
+  const { job, loading, error } = useSelector((state) => state.jobs);
 
   useEffect(() => {
     dispatch(fetchjobs());
@@ -275,6 +275,16 @@ const handleSubmitRejection = () => {
   };
 
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const filteredProjects = job?.jobs || [];
+  const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
+
+  const paginatedProjects = filteredProjects.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
   return (
     <div className="container bg-white p-4 mt-4 rounded shadow-sm">
       {/* Title */}
@@ -295,13 +305,13 @@ const handleSubmitRejection = () => {
                 setErrorMessage("Please select at least 1 job to assign.");
                 setTimeout(() => setErrorMessage(""), 3000);
               } else {
-                handleJobAssign(selectedJobIds); 
+                handleJobAssign(selectedJobIds);
                 setShowAssignModal(true);
               }
             }}
           >
             Assign
-          </Button> 
+          </Button>
         </div>
       </div>
 
@@ -344,7 +354,7 @@ const handleSubmitRejection = () => {
       </div>
 
       {/* Table */}
-      <div className="table-responsive" style={{ maxHeight: "500px", overflowY: "auto" }}>
+      <div className="table-responsive" >
         <Table hover className="align-middle sticky-header">
           <thead className="bg-light">
             <tr>
@@ -381,7 +391,7 @@ const handleSubmitRejection = () => {
             </tr>
           </thead>
           <tbody>
-            {filteredJobs.slice().reverse().map((job, index) => (
+            {paginatedProjects.slice().reverse().map((job, index) => (
               <tr key={job._id}>
                 <td>
                   <input
@@ -390,13 +400,9 @@ const handleSubmitRejection = () => {
                     onChange={() => handleCheckboxChange(job._id)}
                   />
                 </td>
-                <td>
-                  <span
-                    style={{ color: "blue", cursor: "pointer", textDecoration: "underline" }}
-                    onClick={() => JobDetails(job)}
-                  >
-                    {String(index + 1).padStart(4, '0')}
-                  </span>
+                <td onClick={() => CreatJobs(project.id)}>
+                  <Link>
+                    {String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}</Link>
                 </td>
 
                 <td>{job.projectId?.[0]?.projectName || 'N/A'}</td>
@@ -438,7 +444,7 @@ const handleSubmitRejection = () => {
         </Table>
       </div>
       {/* Pagination */}
-      <div className="d-flex justify-content-between align-items-center">
+      {/* <div className="d-flex justify-content-between align-items-center">
         <div>Showing 1 to 3 of 12 entries</div>
         <Pagination className="m-0">
           <Pagination.Prev disabled />
@@ -447,7 +453,7 @@ const handleSubmitRejection = () => {
           <Pagination.Item>{3}</Pagination.Item>
           <Pagination.Next />
         </Pagination>
-      </div>
+      </div> */}
 
       {/* Assign Modal */}
       <Modal show={showAssignModal} onHide={() => setShowAssignModal(false)}>
@@ -519,6 +525,33 @@ const handleSubmitRejection = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+
+      {!loading && !error && (
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <div className="text-muted small">
+            Showing {(currentPage - 1) * itemsPerPage + 1} to {(currentPage - 1) * itemsPerPage + paginatedProjects.length} of {filteredProjects.length} entries
+          </div>
+          <ul className="pagination pagination-sm mb-0">
+            <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
+                Previous
+              </button>
+            </li>
+            {Array.from({ length: totalPages }, (_, i) => (
+              <li key={i + 1} className={`page-item ${currentPage === i + 1 ? 'active' : ''}`}>
+                <button className="page-link" onClick={() => setCurrentPage(i + 1)}>
+                  {i + 1}
+                </button>
+              </li>
+            ))}
+            <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
+                Next
+              </button>
+            </li>
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

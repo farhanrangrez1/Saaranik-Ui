@@ -1,15 +1,24 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Container, Row, Col, Button, Form, Table, Pagination, Badge, Modal } from "react-bootstrap";
-import { FaPlus, FaUpload } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { useRef } from 'react';
 import * as XLSX from 'xlsx';
+import { useDispatch, useSelector } from "react-redux";
+import { fetchjobs } from "../../../redux/slices/JobsSlice";
+import {
+  FaFilePdf,
+  FaUpload,
+  FaLink,
+  FaClock,
+  FaEdit,
+} from "react-icons/fa";
+
 function MyJobs() {
   const [showTimesheetModal, setShowTimesheetModal] = React.useState(false);
   const [selectedJobId, setSelectedJobId] = React.useState(null);
   const [showBriefModal, setShowBriefModal] = React.useState(false);
   const [selectedBrief, setSelectedBrief] = React.useState("");
-
+  const dispatch = useDispatch()
   const handleReturnJob = () => {
     const hasTimesheet = false;
     if (!hasTimesheet) {
@@ -95,6 +104,64 @@ function MyJobs() {
     setSelectedJobs(allJobs);
   };
 
+  const getPriorityClass = (priority) => {
+    switch ((priority || "").toLowerCase()) {
+      case "high":
+        return "text-danger";
+      case "medium":
+        return "text-warning";
+      case "low":
+        return "text-success";
+      default:
+        return "";
+    }
+  };
+
+  const getStatusClass = (status) => {
+    switch ((status || "").toLowerCase().trim()) {
+      case "in progress":
+      case "in_progress":
+        return "bg-warning text-dark";
+      case "review":
+        return "bg-info text-dark";
+      case "not started":
+        return "bg-secondary text-white";
+      case "completed":
+        return "bg-success text-white";
+      case "open":
+        return "bg-primary text-white";
+      default:
+        return "bg-light text-dark";
+      case "cancelled":
+        return "bg-dark text-white";
+    }
+  };
+
+  const { job, loading, error } = useSelector((state) => state.jobs);
+
+  useEffect(() => {
+    dispatch(fetchjobs());
+  }, [dispatch]);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const filteredProjects = job?.jobs || [];
+  const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
+
+  const paginatedProjects = filteredProjects.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // Copy list
+  const handleCopyFileName = (job) => {
+    const fileName = `${job.jobNo || job._id}_${job.brandName}_${job.subBrand}_${job.flavour}_${job.packType}_${job.packSize}_${job.packCode || ''}`;
+    navigator.clipboard.writeText(fileName)
+      .then(() => alert("Copied to clipboard: " + fileName))
+      .catch((err) => console.error("Failed to copy!", err));
+  };
+
   return (
     <div className="p-4 m-2" style={{ backgroundColor: "white", borderRadius: "10px" }}>
       <h5 className="fw-bold mb-3 text-start">My Jobs</h5>
@@ -131,65 +198,65 @@ function MyJobs() {
       </Row>
 
       {/* Table */}
-      <Table responsive hover className="align-middle bg-white rounded shadow-sm overflow-hidden">
-        <thead className="table-light">
-          <tr>
-            <th>
-              <input type="checkbox" onChange={handleSelectAll} />
-            </th>
-            <th className="text-nowrap">Job No</th>
-            <th className="text-nowrap">Brand</th>
-            <th className="text-nowrap">SubBrand</th>
-            <th className="text-nowrap">Flavour</th>
-            <th className="text-nowrap">PackType</th>
-            <th className="text-nowrap">PackSize</th>
-            <th className="text-nowrap">PackCode</th>
-            <th className="text-nowrap">Deadline</th>
-            <th className="text-nowrap">Brief</th>
-            <th className="text-nowrap">Status</th>
-            <th className="text-nowrap">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {jobs.map((job) => (
-            <tr key={job.id}>
+      <div className="table-responsive" >
+        <Table hover className="align-middle sticky-header">
+          <thead className="bg-light">
+            <tr>
               <th>
                 <input type="checkbox" onChange={handleSelectAll} />
               </th>
-              <td><Link to={"/OvervieMyJobs"}>{job.id}</Link></td>
-              <td>{job.brandName}</td>
-              <td>{job.subBrand}</td>
-              <td>{job.flavour}</td>
-              <td>{job.packType}</td>
-              <td>{job.packSize}</td>
-              <td>{job.packCode}</td>
-              <td className={job.status === "Pending Upload" ? "text-danger" : ""}>
-                {job.deadline}
-              </td>
-              <td>
-                <a
-                  href="#"
-                  className="text-primary text-decoration-none"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setSelectedBrief(`Brief details for Job #${job.id}`);
-                    setShowBriefModal(true);
-                  }}
-                >
-                  {job.brief}
-                </a>
-              </td>
-              <td>
-                <Badge bg={job.statusVariant}>{job.status}</Badge>
-              </td>
-              <td className="d-flex gap-2">
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  style={{ display: 'none' }}
-                  onChange={handleFileChange}
-                />
-                {/* <Button
+              <th>JobNo</th>
+              <th>ProjectName</th>
+              <th>Brand</th>
+              <th>SubBrand</th>
+              <th>Flavour</th>
+              <th>PackType</th>
+              <th>PackSize</th>
+              <th>Priority</th>
+              <th>Due Date</th>
+              <th>Assign</th>
+              <th>TimeLogged</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {paginatedProjects.slice().reverse().map((job, index) => (
+              <tr key={job._id}>
+                <th>
+                  <input type="checkbox" onChange={handleSelectAll} />
+                </th>
+                <td onClick={() => CreatJobs(project.id)}>
+                  <Link>
+                    {String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}</Link>
+                </td>
+
+                <td style={{ whiteSpace: 'nowrap' }}>{job.projectId?.[0]?.projectName || 'N/A'}</td>
+
+                <td style={{ whiteSpace: "nowrap" }}>{job.brandName}</td>
+                <td style={{ whiteSpace: "nowrap" }}>{job.subBrand}</td>
+                <td style={{ whiteSpace: "nowrap" }}>{job.flavour}</td>
+                <td style={{ whiteSpace: "nowrap" }}>{job.packType}</td>
+                <td style={{ whiteSpace: "nowrap" }}>{job.packSize}</td>
+                <td>
+                  <span className={getPriorityClass(job.priority)}>{job.priority}</span>
+                </td>
+                <td>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
+                <td style={{ whiteSpace: "nowrap" }}>{job.assign}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
+                <td>
+                  <span className={`badge ${getStatusClass(job.Status)} px-2 py-1`}>
+                    {job.Status}
+                  </span>
+                </td>
+                <td className="d-flex gap-2">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    style={{ display: 'none' }}
+                    onChange={handleFileChange}
+                  />
+                  {/* <Button
         size="sm"
         variant="dark"
         className="me-2"
@@ -214,38 +281,33 @@ function MyJobs() {
         <FaUpload className="me-1" />
         Excel
       </Button> */}
-                <Button
-                  size="sm"
-                  variant="dark"
-                  className="me-2 d-flex"
-                  onClick={handleUploadClick}
-                  id="All_btn"
-                >
-                  <FaUpload className="me-1" />
-                  Upload
-                </Button>
-                <Link to={"/MyJobsHolidayPackageDesign"}> <Button id="All_btn" size="sm" variant="dark" onClick={() => handleLogTime(job.id)}>
-                  LogTime
-                </Button></Link>
-                <Button id="All_btn" size="sm" variant="dark" onClick={() => handleLogTime(job.id)}>
-                  CopyFN
-                </Button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
+                  <Button
+                    size="sm"
+                    variant="dark"
+                    className="me-2 d-flex"
+                    onClick={handleUploadClick}
+                    id="All_btn"
+                  >
+                    <FaUpload className="me-1" />
+                    Upload
+                  </Button>
+                  <Link to={"/MyJobsHolidayPackageDesign"}> <Button id="All_btn" size="sm" variant="dark" onClick={() => handleLogTime(job.id)}>
+                    LogTime
+                  </Button></Link>
+                  <Button
+                    id="All_btn"
+                    size="sm"
+                    variant="dark"
+                    onClick={() => handleCopyFileName(job)}
+                  >
+                    CopyFN
+                  </Button>
 
-      {/* Pagination */}
-      <div className="d-flex justify-content-between align-items-center mt-3">
-        <div >Showing 1 to 3 of 8 active jobs</div>
-        <Pagination className="m-0">
-          <Pagination.Prev disabled>Previous</Pagination.Prev>
-          <Pagination.Item active>{1}</Pagination.Item>
-          <Pagination.Item>{2}</Pagination.Item>
-          <Pagination.Item>{3}</Pagination.Item>
-          <Pagination.Next>Next</Pagination.Next>
-        </Pagination>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
       </div>
 
       {/* Brief Modal */}
@@ -262,6 +324,33 @@ function MyJobs() {
           </Button>
         </Modal.Footer>
       </Modal>
+
+      {!loading && !error && (
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <div className="text-muted small">
+            Showing {(currentPage - 1) * itemsPerPage + 1} to {(currentPage - 1) * itemsPerPage + paginatedProjects.length} of {filteredProjects.length} entries
+          </div>
+          <ul className="pagination pagination-sm mb-0">
+            <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
+                Previous
+              </button>
+            </li>
+            {Array.from({ length: totalPages }, (_, i) => (
+              <li key={i + 1} className={`page-item ${currentPage === i + 1 ? 'active' : ''}`}>
+                <button className="page-link" onClick={() => setCurrentPage(i + 1)}>
+                  {i + 1}
+                </button>
+              </li>
+            ))}
+            <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
+                Next
+              </button>
+            </li>
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

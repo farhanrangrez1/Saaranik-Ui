@@ -131,7 +131,7 @@ function ProjectJobsTab() {
 
 
   // ///
-  const { job } = useSelector((state) => state.jobs);
+  const { job, loading, error } = useSelector((state) => state.jobs);
   console.log(job.jobs, "all jobs");
 
   useEffect(() => {
@@ -230,6 +230,18 @@ function ProjectJobsTab() {
   };
 
 
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const filteredProjects = job?.jobs || [];
+  const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
+
+  const paginatedProjects = filteredProjects.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   return (
     <div className="card">
       <div className="card-header d-flex align-content-center justify-content-between mt-3">
@@ -278,6 +290,22 @@ function ProjectJobsTab() {
         </div>
       </div>
 
+
+
+      {/* Loader */}
+      {loading && (
+        <div className="text-center my-5">
+          <Spinner animation="border" variant="primary" />
+          <div className="mt-2">Loading projects...</div>
+        </div>
+      )}
+
+      {/* Error */}
+      {error && (
+        <div className="text-danger text-center my-5">
+          Failed to load projects. Please try again later.
+        </div>
+      )}
       <div className="card-body">
         {/* ✅ Error message block */}
         {errorMessage && (
@@ -323,7 +351,8 @@ function ProjectJobsTab() {
               </tr>
             </thead>
             <tbody>
-              {job?.jobs?.slice().reverse().map((job, index) => (
+              {paginatedProjects?.slice().reverse().map((job, index) => (
+
                 <tr key={job._id}>
                   <td>
                     <input
@@ -332,10 +361,14 @@ function ProjectJobsTab() {
                       onChange={() => handleCheckboxChange(job._id)}
                     />
                   </td>
-                  <td>
+                  {/* <td>
                     <Link>
                       {String(index + 1).padStart(4, '0')}
                     </Link>
+                  </td> */}
+                  <td onClick={() => CreatJobs(project.id)}>
+                    <Link>
+                      {String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}</Link>
                   </td>
                   <td style={{ whiteSpace: 'nowrap' }}>{job.projectId?.[0]?.projectName || 'N/A'}</td>
                   <td style={{ whiteSpace: 'nowrap' }}>{job.brandName}</td>
@@ -421,6 +454,33 @@ function ProjectJobsTab() {
         </Modal.Footer>
       </Modal>
 
+
+      {!loading && !error && (
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <div className="text-muted small">
+            Showing {(currentPage - 1) * itemsPerPage + 1} to {(currentPage - 1) * itemsPerPage + paginatedProjects.length} of {filteredProjects.length} entries
+          </div>
+          <ul className="pagination pagination-sm mb-0">
+            <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
+                Previous
+              </button>
+            </li>
+            {Array.from({ length: totalPages }, (_, i) => (
+              <li key={i + 1} className={`page-item ${currentPage === i + 1 ? 'active' : ''}`}>
+                <button className="page-link" onClick={() => setCurrentPage(i + 1)}>
+                  {i + 1}
+                </button>
+              </li>
+            ))}
+            <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
+                Next
+              </button>
+            </li>
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

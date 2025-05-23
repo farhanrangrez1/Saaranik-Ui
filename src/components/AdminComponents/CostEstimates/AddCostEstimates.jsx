@@ -1,12 +1,12 @@
-
-
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useDispatch } from "react-redux";
-import { createCostEstimate } from "../../../redux/slices/costEstimatesSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { createCostEstimate, updateCostEstimate } from "../../../redux/slices/costEstimatesSlice";
+import { fetchProject } from "../../../redux/slices/ProjectsSlice";
+import { fetchClient } from "../../../redux/slices/ClientSlice";
 
 const currencies = [
   { label: "USD - US Dollar", value: "USD" },
@@ -22,18 +22,44 @@ const poStatuses = ["Pending", "Approved", "Rejected"];
 const statuses = ["Active", "Inactive", "Completed"];
 
 function AddCostEstimates() {
-const navigate = useNavigate();
-const dispatch = useDispatch()
+  const location = useLocation();
+  const po = location.state?.po;
+  const id = po?._id;
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const [clients, setClients] = useState([]);
+  console.log("hhhhhhh",po);
+  
+  const { project } = useSelector((state) => state.projects);
+  useEffect(() => {
+    dispatch(fetchProject());
+  }, [dispatch]);
+  const reversedProjectList = project?.data?.slice().reverse() || [];
+
+  const { Clients } = useSelector((state) => state.client);
+  useEffect(() => {
+    if (Clients && project?.data?.length) {
+      const foundProject = project.data.find(p => p._id === Clients);
+      if (foundProject) {
+        setFormData(prev => ({
+          ...prev,
+          projectsId: foundProject._id,
+        }));
+      }
+    }
+  }, [Clients, project]);
+
+  useEffect(() => {
+    dispatch(fetchClient());
+  }, [dispatch]);
+
   const [items, setItems] = useState([
     { description: "", quantity: 0, rate: 0, amount: 0 },
   ]);
 
   const [formData, setFormData] = useState({
-    clientId: ["6821a7b537e654e25af3da1d"],
-    projectsId: ["681f1eb87397dc2b7e25eba2"],
-    projectName: "681f1eb87397dc2b7e25eba2",
+    clientId: [""],
+    projectsId: [""],
     estimateDate: "",
     validUntil: "",
     Notes: "",
@@ -41,6 +67,41 @@ const dispatch = useDispatch()
     POStatus: "Pending",
     Status: "Active",
   });
+
+ useEffect(() => {
+  if (po && project?.data?.length) {
+    let projectId = '';
+    if (Array.isArray(po.projectId) && po.projectId.length > 0) {
+      projectId = po.projectId[0]._id;
+    } else if (Array.isArray(po.projects) && po.projects.length > 0) {
+      projectId = typeof po.projects[0] === 'object'
+        ? po.projects[0]._id
+        : po.projects[0];
+    }
+
+    let clientId = "";
+    if (po.clientId && typeof po.clientId === "object") {
+      clientId = po.clientId._id;
+    } else if (Array.isArray(po.clients) && po.clients.length > 0) {
+      clientId = po.clients[0]?.clientId || "";
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      ...po,
+      projectsId: projectId ? [projectId] : [""],
+      clientId: clientId ? [clientId] : [""],
+      Notes: po.Notes || "",
+      currency: po.currency || "USD",
+      estimateDate: po.estimateDate ? po.estimateDate.substring(0, 10) : "",
+      validUntil: po.validUntil ? po.validUntil.substring(0, 10) : "",
+    }));
+
+    if (Array.isArray(po.lineItems) && po.lineItems.length > 0) {
+      setItems(po.lineItems);
+    }
+  }
+}, [po, project?.data]);
 
   const [taxRate, setTaxRate] = useState(0.05);
 
@@ -59,10 +120,11 @@ const dispatch = useDispatch()
   const handleFormChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-    
+
   const addItem = () => {
     setItems([...items, { description: "", quantity: 0, rate: 0, amount: 0 }]);
   };
+
   const removeItem = (index) => {
     const newItems = [...items];
     newItems.splice(index, 1);
@@ -73,21 +135,37 @@ const dispatch = useDispatch()
   const tax = subtotal * taxRate;
   const total = subtotal + tax;
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const payload = {
-        ...formData,
-        VATRate: taxRate * 100,
-        lineItems: items,
-      };
-      console.log("Submitted Data:", payload);
-      dispatch(createCostEstimate(payload))
-    } catch (err) {
-      console.error("Submit Error:", err);
-      toast.error("Failed to create estimate!");
-    }
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  const payload = {
+    ...formData,
+    VATRate: taxRate * 100,
+    lineItems: items,
   };
+
+  const isDuplicate = location.state?.isDuplicate;
+  if (isDuplicate || !id) {
+    dispatch(createCostEstimate(payload))
+      .unwrap()
+      .then(() => {
+        toast.success("Estimates created successfully!");
+        navigate('/CostEstimates', { state: { openTab: 'jobs' } });
+      })
+      .catch(() => {
+        toast.error("Failed to create estimates");
+      });
+  } else {
+    dispatch(updateCostEstimate({ id, data: payload }))
+      .unwrap()
+      .then(() => {
+        toast.success("Estimates updated successfully!");
+        navigate('/CostEstimates', { state: { openTab: 'jobs' } });
+      })
+      .catch(() => {
+        toast.error("Failed to update estimates");
+      });
+  }
+};
 
   return (
     <>
@@ -98,44 +176,52 @@ const dispatch = useDispatch()
           <h6 className="fw-semibold mb-4">Create New Estimate</h6>
 
           <div className="row mb-3">
+           <div className="col-md-4 mb-3">
+  <label className="form-label">Client</label>
+  <select
+    className="form-select"
+    name="clientId"
+    value={formData.clientId[0] || ""}
+    onChange={(e) =>
+      setFormData({
+        ...formData,
+        clientId: [e.target.value],
+      })
+    }
+  >
+    <option value="">Select Client</option>
+    {Clients?.data?.map((client) => (
+      <option key={client._id} value={client._id}>
+        {client.clientName}
+      </option>
+    ))}
+  </select>
+</div>
+
+
             <div className="col-md-4 mb-3">
-              <label className="form-label">Client</label>
+              <label className="form-label">Project</label>
               <select
                 className="form-select"
-                name="clientId"
-                value={formData.clientId}
-                onChange={handleFormChange}
+                name="projectsId"
+                value={formData.projectsId[0] || ""}
+                onChange={(e) => {
+                  const selectedId = e.target.value;
+                  const selectedProject = project?.data?.find(p => p._id === selectedId);
+                  setFormData({
+                    ...formData,
+                    projectsId: [selectedId],
+                    projectName: selectedProject?.projectName || "",
+                  });
+                }}
               >
-                <option value="">Select Client</option>
-                {clients.map((client) => (
-                  <option key={client._id} value={client._id}>
-                    {client.name}
+                <option value="">Select a project</option>
+                {reversedProjectList.map((proj) => (
+                  <option key={proj._id} value={proj._id}>
+                    {proj.projectName}
                   </option>
                 ))}
               </select>
-            </div>
-
-            <div className="col-md-4 mb-3">
-              <label className="form-label">Project Number</label>
-              <input
-                type="text"
-                className="form-control"
-                name="projectsId"
-                value={formData.projectsId}
-                // onChange={handleProjectNumberChange}
-                placeholder="Enter project number"
-              />
-            </div>
-
-            <div className="col-md-4 mb-3">
-              <label className="form-label">Project Name</label>
-              <input
-                type="text"
-                className="form-control"
-                name="projectName"
-                value={formData.projectName}
-                readOnly
-              />
             </div>
 
             <div className="col-md-4 mb-3">
@@ -210,14 +296,14 @@ const dispatch = useDispatch()
           </div>
 
           <h6 className="fw-semibold mb-3">Line Items</h6>
-           <div className="row fw-semibold text-muted mb-2 px-2">
+          <div className="row fw-semibold text-muted mb-2 px-2">
             <div className="col-md-5">Description</div>
             <div className="col-md-2">Quantity</div>
             <div className="col-md-2">Rate</div>
             <div className="col-md-2">Amount</div>
             <div className="col-md-1 text-end"></div>
           </div>
-          {/* Line Items UI (Same as before) */}
+
           {items.map((item, index) => (
             <div
               className="row gx-2 gy-2 align-items-center mb-2 px-2 py-2"

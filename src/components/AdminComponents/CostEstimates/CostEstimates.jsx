@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Modal, Form, Table, Badge, Dropdown, Button } from "react-bootstrap";
 import { BsPlusLg, BsPencil, BsTrash, BsUpload } from "react-icons/bs";
-import { Link } from "react-router-dom";
-import { fetchCostEstimates } from "../../../redux/slices/costEstimatesSlice";
+import { Link, useNavigate } from "react-router-dom";
+import { deleteCostEstimate, fetchCostEstimates } from "../../../redux/slices/costEstimatesSlice";
 import { useDispatch, useSelector } from "react-redux";
+import { FaTrash } from "react-icons/fa";
+import Swal from 'sweetalert2';
 
 function CostEstimates() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -11,6 +13,7 @@ function CostEstimates() {
   const [sortDirection, setSortDirection] = useState("asc");
 
   const dispatch = useDispatch()
+  const navigate = useNavigate()
 
   const initialPurchaseOrders = [
     {
@@ -50,16 +53,16 @@ function CostEstimates() {
 
   const [purchaseOrders, setPurchaseOrders] = useState(initialPurchaseOrders);
 
-  const getStatusBadgeVariant = (status) => {
-    switch (status.toLowerCase()) {
-      case "pending":
-        return "warning";
-      case "received ":
-        return "success";
-      default:
-        return "secondary";
-    }
-  };
+  // const getStatusBadgeVariant = (status) => {
+  //   switch (status.toLowerCase()) {
+  //     case "pending":
+  //       return "warning";
+  //     case "received ":
+  //       return "success";
+  //     default:
+  //       return "secondary";
+  //   }
+  // };
 
   const handleSearch = (e) => {
     const query = e.target.value.toLowerCase();
@@ -91,9 +94,9 @@ function CostEstimates() {
     setPurchaseOrders(sorted);
   };
 
-  const pendingPOs = purchaseOrders.filter(
-    (po) => po.status === "Pending"
-  ).length;
+  // const pendingPOs = purchaseOrders.filter(
+  //   (po) => po.status === "Pending"
+  // ).length;
 
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [selectedPO, setSelectedPO] = useState(null);
@@ -142,6 +145,92 @@ function CostEstimates() {
     dispatch(fetchCostEstimates());
   }, [dispatch]);
 
+
+
+  const Duplicate = (po) => {
+    navigate(`/AddCostEstimates`, {
+      state: {
+        po,
+        isDuplicate: true
+      }
+    });
+  }
+  const UpdateEstimate = (po) => {
+    navigate(`/AddCostEstimates`, {
+      state: {
+        po,
+      }
+    });
+  }
+  //     const Duplicate =(po)=>{    
+  //  navigate(`/duplicate/AddCostEstimates/${po._id}`, { state: { po}});
+  //   }
+
+const getStatusClass = (status) => {
+  switch ((status || "").toLowerCase().trim()) {
+    case "active":
+    case "active project":
+    case "open":
+      return "bg-primary text-white"; 
+    case "inactive":
+      return "bg-secondary text-white"; 
+    case "in progress":
+    case "pending":
+      return "bg-warning text-dark";
+    case "completed":
+      return "bg-success text-white"; 
+    case "closed":
+      return "bg-dark text-white";
+    case "cancelled":
+      return "bg-danger text-white"; 
+    case "on hold":
+    case "review":
+      return "bg-info text-dark"; 
+    case "not started":
+      return "bg-secondary text-white";
+    default:
+      return "bg-light text-dark";
+  }
+};
+
+  const handleDelete = (_id) => {
+    console.log(_id);
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        dispatch(deleteCostEstimate(_id))
+          .then(() => {
+            Swal.fire("Deleted!", "The document has been deleted.", "success");
+            dispatch(fetchCostEstimates());
+          })
+          .catch(() => {
+            Swal.fire("Error!", "Something went wrong.", "error");
+          });
+      }
+    });
+  }
+
+
+
+   // PAGINATION SETUP FOR ESTIMATES
+const [currentPage, setCurrentPage] = useState(1);
+const itemsPerPage = 10;
+
+const totalItems = estimates?.costEstimates?.length || 0;
+const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+const paginatedEstimates = estimates?.costEstimates
+  ?.slice()
+  .reverse()
+  .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   return (
     <div
       className="p-4 m-3"
@@ -166,7 +255,7 @@ function CostEstimates() {
               id="designer-dropdown"
               className="custom-dropdown"
             >
-            Sort by Client
+              Sort by Client
             </Dropdown.Toggle>
             <Dropdown.Menu>
               <Dropdown.Item>Sort by Client</Dropdown.Item>
@@ -219,88 +308,85 @@ function CostEstimates() {
           </Dropdown>
 
           <Link to={"/AddCostEstimates"}>
-            <button id="btn-All" className="btn btn-dark">
+            <button id="btn-All" className=" btn-dark" style={{border:"none",borderRadius:"10px"}}>
               <BsPlusLg className="me-2" /> New Estimate
             </button>
           </Link>
         </div>
       </div>
 
-  <div className="table-responsive" style={{ maxHeight: "900px", overflowY: "auto" }}>
-  <Table hover className="align-middle sticky-header">
-    <thead style={{ backgroundColor: "#f8f9fa", position: "sticky", top: 0, zIndex: 1 }}>
-      <tr>
-        <th><input type="checkbox" /></th>
-        <th>CENo</th>
-        <th>Date</th>
-        <th>Client</th>
-        <th>ProjectNo</th>
-        <th>ProjectName</th>
-        <th>Amount</th>
-        <th>POStatus</th>
-        <th>Status</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {estimates?.costEstimates?.map((po, index) => (
-        <tr style={{ whiteSpace: "nowrap" }} key={po.poNumber}>
-          <td><input type="checkbox" /></td>
-          <td onClick={() => CreatJobs(po.projectId)}>
-            <Link style={{ textDecoration: 'none', border: 'none', color: 'inherit' }}>
-              CE-{String(index + 1).padStart(4, '0')}
-            </Link>
-          </td>
-          <td>{new Date(po.estimateDate).toLocaleDateString("en-GB").slice(0, 8)}</td>
-          <td>
-            {
-              Array.isArray(po.clientId)
-                ? po.clientId.map((client, i) => `${String(i + 1).padStart(4, '0')} (${client._id})`).join(", ")
-                : po.clientId
-                  ? `${String(1).padStart(4, '0')} `
-                  : "N/A"
-            }
-          </td>
-          <td>
-            {po.projectId?.map((project, i) => `${String(i + 1).padStart(4, '0')}`).join(", ")}
-          </td>
-          <td>
-            {po.projectId?.map((project) => project.projectName || project.name).join(", ")}
-          </td>
-          <td>
-            {po.lineItems?.reduce((total, item) => total + (item.amount || 0), 0).toFixed(2)}
-          </td>
-          <td>POstatus</td>
-          <td>
-            <Button style={{ width: "100px" }} variant="success" size="sm">
-              {po.invoiceStatus || "Active"}
-            </Button>
-          </td>
-          <td>
-            <div className="d-flex gap-2">
-              <button className="btn btn-sm btn-primary">Duplicate</button>
-              <button className="btn btn-sm btn-primary" onClick={() => handleConvertToInvoice(po)}>ConvertInvoice</button>
-              <button className="btn btn-sm btn-success" onClick={() => setShowAddPOModal(true)}>AddPO</button>
-              <button className="btn btn-sm btn-outline-primary"><BsPencil /></button>
-            </div>
-          </td>
-        </tr>
-      ))}
-    </tbody>
-  </Table>
-</div>
+      <div className="table-responsive" style={{ maxHeight: "900px", overflowY: "auto" }}>
+        <Table hover className="align-middle sticky-header">
+          <thead style={{ backgroundColor: "#f8f9fa", position: "sticky", top: 0, zIndex: 1 }}>
+            <tr>
+              <th><input type="checkbox" /></th>
+              <th>CENo</th>
+              <th>Date</th>
+              <th>Client</th>
+              <th>ProjectNo</th>
+              <th>ProjectName</th>
+              <th>Amount</th>
+              <th>POStatus</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+           {paginatedEstimates?.map((po, index) => (
 
-            <ul className="pagination mb-0">
-        <li className="page-item">
-          <button className="page-link">Previous</button>
-        </li>
-        <li className="page-item active">
-          <button className="page-link">1</button>
-        </li>
-        <li className="page-item">
-          <button className="page-link">Next</button>
-        </li>
-      </ul>
+              <tr style={{ whiteSpace: "nowrap" }} key={po.poNumber}>
+                <td><input type="checkbox" /></td>
+                <td onClick={() => CreatJobs(po.projectId)}>
+                  <Link style={{ textDecoration: 'none', border: 'none', color: 'inherit' }}>
+                   CE-{String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}
+                  </Link>
+                </td>
+                <td>{new Date(po.estimateDate).toLocaleDateString("en-GB").slice(0, 8)}</td>
+                <td>
+                  {
+                    Array.isArray(po.clientId)
+                      ? po.clientId.map((client, i) => `${String(i + 1).padStart(4, '0')} (${client._id})`).join(", ")
+                      : po.clientId
+                        ? `${String(1).padStart(4, '0')} `
+                        : "N/A"
+                  }
+                </td>
+                <td>
+                  {po.projectId?.map((project, i) => `${String(i + 1).padStart(4, '0')}`).join(", ")}
+                </td>
+                <td>
+                  {po.projectId?.map((project) => project.projectName || project.name).join(", ")}
+                </td>
+                <td>
+                  {po.lineItems?.reduce((total, item) => total + (item.amount || 0), 0).toFixed(2)}
+                </td>
+            <td>
+                  <span className={`badge ${getStatusClass(po.Status)} px-2 py-1`}>
+                    {po.POStatus}
+                  </span>
+                </td>
+                <td>
+                  <span className={`badge ${getStatusClass(po.Status)} px-2 py-1`}>
+                    {po.Status}
+                  </span>
+                </td>
+                <td>
+                  <div className="d-flex gap-2">
+                    <button className="btn btn-sm btn-primary" onClick={() => Duplicate(po)}>Duplicate</button>
+                    <button className="btn btn-sm btn-primary" onClick={() => handleConvertToInvoice(po)}>ConvertInvoice</button>
+                    <button className="btn btn-sm btn-success" onClick={() => setShowAddPOModal(true)}>AddPO</button>
+                    <button className="btn btn-sm btn-outline-primary" onClick={() => UpdateEstimate(po)}><BsPencil /></button>
+                       <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(po._id)}>
+                          <FaTrash />
+                        </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      </div>
+
 
       {/* Modal for converting to invoice */}
       <Modal
@@ -315,7 +401,7 @@ function CostEstimates() {
           <Form>
             <Form.Group className="mb-3">
               <Form.Label>Invoice Number</Form.Label>
-              <Form.Control
+              {/* <Form.Control
                 type="text"
                 defaultValue={
                   selectedPO
@@ -323,7 +409,7 @@ function CostEstimates() {
                     : ""
                 }
                 disabled
-              />
+              /> */}
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Invoice Date</Form.Label>
@@ -358,7 +444,7 @@ function CostEstimates() {
               <Form.Label>Amount</Form.Label>
               <Form.Control
                 type="text"
-                value={`$${selectedPO?.amount.toFixed(2)}`}
+                // value={`$${selectedPO?.amount.toFixed(2)}`}
                 disabled
               />
             </Form.Group>
@@ -366,15 +452,15 @@ function CostEstimates() {
             <div className="d-flex justify-content-between">
               <div>
                 <strong>Subtotal:</strong>
-                <span> ${selectedPO?.amount.toFixed(2)}</span>
+                {/* <span> ${selectedPO?.amount.toFixed(2)}</span> */}
               </div>
               <div>
                 <strong>Tax (10%):</strong>
-                <span> ${calculateTax(selectedPO?.amount).toFixed(2)}</span>
+                {/* <span> ${calculateTax(selectedPO?.amount).toFixed(2)}</span> */}
               </div>
               <div>
                 <strong>Total:</strong>
-                <span> ${calculateTotal(selectedPO?.amount).toFixed(2)}</span>
+                {/* <span> ${calculateTotal(selectedPO?.amount).toFixed(2)}</span> */}
               </div>
             </div>
           </Form>
@@ -455,6 +541,35 @@ function CostEstimates() {
           </Button>
         </Modal.Footer>
       </Modal>
+
+            {!loading && !error && (
+         <div className="d-flex justify-content-between align-items-center mt-3">
+  <div className="text-muted small">
+    Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} entries
+  </div>
+  <ul className="pagination pagination-sm mb-0">
+    <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+      <button className="page-link" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
+        Previous
+      </button>
+    </li>
+    {Array.from({ length: totalPages }, (_, i) => (
+      <li key={i + 1} className={`page-item ${currentPage === i + 1 ? 'active' : ''}`}>
+        <button className="page-link" onClick={() => setCurrentPage(i + 1)}>
+          {i + 1}
+        </button>
+      </li>
+    ))}
+    <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+      <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
+        Next
+      </button>
+    </li>
+  </ul>
+</div>
+
+        )}
+
     </div>
   );
 }

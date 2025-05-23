@@ -138,7 +138,7 @@ function InProgress() {
   const params = useParams();
   const id = location.state?.id || params.id;
 
-  const { job } = useSelector((state) => state.jobs);
+  const { job, loading, error  } = useSelector((state) => state.jobs);
 
   useEffect(() => {
     dispatch(fetchjobs());
@@ -228,6 +228,17 @@ function InProgress() {
     navigate(`/OvervieJobsTracker`, { state: { job } });
   }
 
+  
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
+  
+const filteredProjects = (job?.jobs || []).filter(j => (j?.Status || "").toLowerCase() === "in_progress");
+    const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
+    const paginatedProjects = filteredProjects.slice(
+      (currentPage - 1) * itemsPerPage,
+      currentPage * itemsPerPage
+    );
+
   return (
     <div className="container bg-white p-4 mt-4 rounded shadow-sm">
       {/* Title */}
@@ -257,7 +268,7 @@ function InProgress() {
       </div>
 
       {/* Table */}
-      <div className="table-responsive" style={{ maxHeight: "500px", overflowY: "auto" }}>
+      <div className="table-responsive">
         <Table hover className="align-middle sticky-header">
           <thead className="bg-light">
             <tr>
@@ -278,7 +289,7 @@ function InProgress() {
             </tr>
           </thead>
           <tbody>
-            {filteredJobs.slice().reverse().map((job, index) => (
+            {paginatedProjects.slice().reverse().map((job, index) => (
               <tr key={job._id}>
                 <td>
                   <input
@@ -287,14 +298,10 @@ function InProgress() {
                     onChange={() => handleCheckboxChange(job._id)}
                   />
                 </td>
-                <td>
-                  <span
-                    style={{ color: "blue", cursor: "pointer", textDecoration: "underline" }}
-                    onClick={() => JobDetails(job)}
-                  >
-                    {String(index + 1).padStart(4, '0')}
-                  </span>
-                </td>
+                    <td onClick={() => CreatJobs(project.id)}>
+                                  <Link>
+                                    {String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}</Link>
+                                </td>
 
                 <td>{job.projectId?.[0]?.projectName || 'N/A'}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.brandName}</td>
@@ -309,7 +316,7 @@ function InProgress() {
                 <td onClick={() => handleDesignerClick(job)} style={{ cursor: 'pointer', color: 'darkblue' }}>
                   {job.assign}
                 </td>
-                <td>{job.totalTime}</td>
+              <td style={{ whiteSpace: 'nowrap' }}>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
                 <td>
                   <span className={`badge ${getStatusClass(job.Status)} px-2 py-1`}>
                     {job.Status}
@@ -324,14 +331,14 @@ function InProgress() {
       </div>
 
       {/* Pagination */}
-      <div className="d-flex justify-content-between align-items-center mt-3">
+      {/* <div className="d-flex justify-content-between align-items-center mt-3">
         <div>Showing 1 to {jobs.length} of {jobs.length} in-progress jobs</div>
         <Pagination className="m-0">
           <Pagination.Prev disabled />
           <Pagination.Item active>{1}</Pagination.Item>
           <Pagination.Next disabled />
         </Pagination>
-      </div>
+      </div> */}
 
       {/* Change Designer Modal */}
       <Modal show={showDesignerModal} onHide={() => setShowDesignerModal(false)}>
@@ -350,6 +357,33 @@ function InProgress() {
           </Form.Group>
         </Modal.Body>
       </Modal>
+
+         {!loading && !error && (
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <div className="text-muted small">
+            Showing {(currentPage - 1) * itemsPerPage + 1} to {(currentPage - 1) * itemsPerPage + paginatedProjects.length} of {filteredProjects.length} entries
+          </div>
+          <ul className="pagination pagination-sm mb-0">
+            <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
+                Previous
+              </button>
+            </li>
+            {Array.from({ length: totalPages }, (_, i) => (
+              <li key={i + 1} className={`page-item ${currentPage === i + 1 ? 'active' : ''}`}>
+                <button className="page-link" onClick={() => setCurrentPage(i + 1)}>
+                  {i + 1}
+                </button>
+              </li>
+            ))}
+            <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
+                Next
+              </button>
+            </li>
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

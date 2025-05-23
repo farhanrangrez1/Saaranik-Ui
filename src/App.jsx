@@ -95,6 +95,7 @@ function App() {
            <Route path="/ViewdetailsClientManagement" element={<ViewdetailsClientManagement/>} />
            <Route path="/CostEstimates" element={<CostEstimates/>} />
            <Route path="/AddCostEstimates" element={<AddCostEstimates/>} />
+                <Route path="/duplicate/AddCostEstimates/:id" element={<AddCostEstimates/>} />
            <Route path="/receivable" element={<ReciveablePurchase/>} />
            <Route path="/IssuablePurchase" element={<IssuablePurchase/>} />
            <Route path="/AddIssuablePurchase" element={<AddIssuablePurchase/>} />

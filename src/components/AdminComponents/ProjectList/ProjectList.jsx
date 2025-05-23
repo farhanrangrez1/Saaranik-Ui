@@ -75,8 +75,8 @@ function ProjectList() {
     navigate(`/AddProjectList`, { state: { project } });
   };
   const CreatJobs = (id) => {
-  navigate('/ProjectOverview', { state: { id, openTab: 'jobs' } });
-};
+    navigate('/ProjectOverview', { state: { id, openTab: 'jobs' } });
+  };
 
   const getStatusClass = (status) => {
     switch ((status || "").toLowerCase().trim()) {
@@ -103,6 +103,13 @@ function ProjectList() {
         return "bg-light text-dark";
     }
   };
+
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil((filteredProjects?.length || 0) / itemsPerPage);
+  const paginatedProjects = filteredProjects?.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   return (
     <div className="project-container">
@@ -195,7 +202,7 @@ function ProjectList() {
             </tr>
           </thead>
           <tbody>
-            {filteredProjects.slice().reverse().map((project, index) => (
+            {paginatedProjects.slice().reverse().map((project, index) => (
               <tr key={project.id}>
                 <td>
                   <input
@@ -204,13 +211,17 @@ function ProjectList() {
                     onChange={() => handleCheckboxChange(project.id)}
                   />
                 </td>
-                <td onClick={() => CreatJobs(project.id)}>
+                {/* <td onClick={() => CreatJobs(project.id)}>
                   <Link>
                     {String(index + 1).padStart(4, '0')}
                   </Link>
+                </td> */}
+                <td onClick={() => CreatJobs(project.id)}>
+                  <Link>
+                    {String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}</Link>
                 </td>
-                <td  style={{ whiteSpace: 'nowrap' }}>{project.projectName}</td>
-                <td  style={{ whiteSpace: 'nowrap' }}>{project.description}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{project.projectName}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{project.description}</td>
                 <td>{new Date(project.startDate).toLocaleDateString('en-GB').replace(/\/20/, '/')}</td>
                 <td>{new Date(project.endDate).toLocaleDateString('en-GB').replace(/\/20/, '/')}</td>
                 <td>{project.client}Client</td>
@@ -249,8 +260,8 @@ function ProjectList() {
             ))}
           </tbody>
         </Table>
-      )} 
-       
+      )}
+
       {/* Pagination */}
       {!loading && !error && (
         <div className="d-flex justify-content-between align-items-center mb-4">
@@ -258,22 +269,25 @@ function ProjectList() {
             Showing 1 to {filteredProjects?.length || 0} of {project.data?.length || 0} entries
           </div>
           <ul className="pagination pagination-sm mb-0">
-            <li className="page-item">
-              <button className="page-link">Previous</button>
+            <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
+                Previous
+              </button>
             </li>
-            <li className="page-item active">
-              <button className="page-link">1</button>
-            </li>
-            <li className="page-item">
-              <button className="page-link">2</button>
-            </li>
-            <li className="page-item">
-              <button className="page-link">3</button>
-            </li>
-            <li className="page-item">
-              <button className="page-link">Next</button>
+            {Array.from({ length: totalPages }, (_, i) => (
+              <li key={i + 1} className={`page-item ${currentPage === i + 1 ? 'active' : ''}`}>
+                <button className="page-link" onClick={() => setCurrentPage(i + 1)}>
+                  {i + 1}
+                </button>
+              </li>
+            ))}
+            <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
+                Next
+              </button>
             </li>
           </ul>
+
         </div>
       )}
     </div>

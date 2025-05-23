@@ -113,7 +113,7 @@ function Completed_Jobs() {
   const params = useParams();
   const id = location.state?.id || params.id;
 
-  const { job } = useSelector((state) => state.jobs);
+  const { job, loading } = useSelector((state) => state.jobs);
 
   useEffect(() => {
     dispatch(fetchjobs());
@@ -202,6 +202,16 @@ function Completed_Jobs() {
   const JobDetails = (job) => {
     navigate(`/OvervieJobsTracker`, { state: { job } });
   }
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const filteredProjects = (job?.jobs || []).filter(j => (j?.Status || "").toLowerCase() === "completed");
+  const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
+  const paginatedProjects = filteredProjects.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
   return (
     <div className="container-fluid mt-4">
       <div className="d-flex justify-content-between align-items-center mb-3">
@@ -254,7 +264,7 @@ function Completed_Jobs() {
         </div>
 
         {/* Table Section */}
-        <div className="table-responsive" style={{ maxHeight: "500px", overflowY: "auto" }}>
+        <div className="table-responsive">
           <Table hover className="align-middle sticky-header">
             <thead className="bg-light">
               <tr>
@@ -277,7 +287,7 @@ function Completed_Jobs() {
               </tr>
             </thead>
             <tbody>
-              {filteredJobs.slice().reverse().map((job, index) => (
+              {paginatedProjects.slice().reverse().map((job, index) => (
                 <tr key={job._id}>
                   <td>
                     <input
@@ -286,13 +296,9 @@ function Completed_Jobs() {
                       onChange={() => handleCheckboxChange(job._id)}
                     />
                   </td>
-                  <td>
-                    <span
-                      style={{ color: "blue", cursor: "pointer", textDecoration: "underline" }}
-                      onClick={() => JobDetails(job)}
-                    >
-                      {String(index + 1).padStart(4, '0')}
-                    </span>
+                  <td onClick={() => CreatJobs(project.id)}>
+                    <Link>
+                      {String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}</Link>
                   </td>
 
                   <td>{job.projectId?.[0]?.projectName || 'N/A'}</td>
@@ -305,11 +311,12 @@ function Completed_Jobs() {
                   <td>
                     <span className={getPriorityClass(job.priority)}>{job.priority}</span>
                   </td>
+                  
                   <td>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
                   <td onClick={() => handleDesignerClick(job)} style={{ cursor: 'pointer', color: 'darkblue' }}>
                     {job.assign}
                   </td>
-                  <td>{job.totalTime}</td>
+                  <td style={{ whiteSpace: 'nowrap' }}>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
                   <th>2h 15m</th>
                   <th>3h 30m</th>
                   <td>
@@ -334,29 +341,34 @@ function Completed_Jobs() {
             </tbody>
           </Table>
         </div>
-        {/* Pagination Section */}
-        <div className="d-flex flex-column flex-md-row justify-content-between align-items-center mt-3">
-          <div className="mb-2 mb-md-0">Showing 1 to 3 of 12 completed jobs</div>
-          <nav>
-            <ul className="pagination mb-0">
-              <li className="page-item disabled">
-                <button className="page-link">Previous</button>
+
+        {!loading && !error && (
+          <div className="d-flex justify-content-between align-items-center mb-4">
+            <div className="text-muted small">
+              Showing {(currentPage - 1) * itemsPerPage + 1} to {(currentPage - 1) * itemsPerPage + paginatedProjects.length} of {filteredProjects.length} entries
+            </div>
+            <ul className="pagination pagination-sm mb-0">
+              <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                <button className="page-link" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
+                  Previous
+                </button>
               </li>
-              <li className="page-item active">
-                <button className="page-link">1</button>
-              </li>
-              <li className="page-item">
-                <button className="page-link">2</button>
-              </li>
-              <li className="page-item">
-                <button className="page-link">3</button>
-              </li>
-              <li className="page-item">
-                <button className="page-link">Next</button>
+              {Array.from({ length: totalPages }, (_, i) => (
+                <li key={i + 1} className={`page-item ${currentPage === i + 1 ? 'active' : ''}`}>
+                  <button className="page-link" onClick={() => setCurrentPage(i + 1)}>
+                    {i + 1}
+                  </button>
+                </li>
+              ))}
+              <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
+                  Next
+                </button>
               </li>
             </ul>
-          </nav>
-        </div>
+          </div>
+        )}
+
       </div>
     </div>
   );

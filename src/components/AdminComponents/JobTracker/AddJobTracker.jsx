@@ -108,6 +108,7 @@ function AddJobTracker() {
       ...formData,
       projectsId: [formData.projectsId],  
     };
+    
     if (id) {
       dispatch(updatejob({ id, data: payload }))
         .unwrap()
@@ -149,6 +150,7 @@ function AddJobTracker() {
   reversedProjectList.forEach((project, index) => {
     idToIndexMap[project._id] = String(index + 1).padStart(4, '0');
   });
+  
   return (
     <>
       <ToastContainer />
