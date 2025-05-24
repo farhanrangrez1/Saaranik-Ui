@@ -178,16 +178,18 @@
 import React, { useEffect, useState } from "react";
 import { Form, Table, Badge, InputGroup } from "react-bootstrap";
 import { FaSearch, FaFilter, FaSort } from "react-icons/fa";
+import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
+import { fetchReceivablePurchases } from "../../../redux/slices/receivablePurchaseSlice";
 
 function ReciveablePurchase() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState(null);
   const [sortDirection, setSortDirection] = useState("asc");
   const [status, setStatus] = useState("");
+const dispatch = useDispatch();
 
   const invoicedEstimates = ["EST-2024-001", "EST-2024-003"]; // ✅ Example: Invoiced Cost Estimates
-
   const initialPurchaseOrders = [
     {
       poNumber: "PO-2024-001",
@@ -218,19 +220,6 @@ function ReciveablePurchase() {
     },
   ];
 
-  const [purchaseOrders, setPurchaseOrders] = useState(initialPurchaseOrders);
-
-  useEffect(() => {
-    // ✅ Automatically update PO status if related Cost Estimate is Invoiced
-    const updatedOrders = initialPurchaseOrders.map((po) => {
-      if (invoicedEstimates.includes(po.estimateRef)) {
-        return { ...po, status: "Invoiced" };
-      }
-      return po;
-    });
-    setPurchaseOrders(updatedOrders);
-  }, []);
-
   const getStatusBadgeVariant = (status) => {
     switch (status.toLowerCase()) {
       case "open":
@@ -241,6 +230,27 @@ function ReciveablePurchase() {
         return "secondary";
     }
   };
+
+
+    const [purchaseOrders, setPurchaseOrders] = useState(initialPurchaseOrders);
+
+  useEffect(() => {
+    const updatedOrders = initialPurchaseOrders.map((po) => {
+      if (invoicedEstimates.includes(po.estimateRef)) {
+        return { ...po, status: "Invoiced" };
+      }
+      return po;
+    });
+    setPurchaseOrders(updatedOrders);
+  }, []);
+
+const { purchases, error } = useSelector((state) => state.receivablePurchases);
+
+  console.log(purchases);
+  
+    useEffect(() => {
+      dispatch(fetchReceivablePurchases());
+    }, [dispatch]);
 
   const handleSearch = (e) => {
     const query = e.target.value.toLowerCase();
@@ -280,6 +290,7 @@ function ReciveablePurchase() {
   const pendingPOs = purchaseOrders.filter(
     (po) => po.status === "Pending"
   ).length;
+
 
   return (
     <div

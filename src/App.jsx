@@ -57,9 +57,10 @@ import OvervieJobsProject from "./components/AdminComponents/ProjectList/Project
 import Profile from "./components/AdminComponents/Profile/Profile";
 import Extrahr from "./components/AdminComponents/TimeLogs/Extrahr";
 import InProgressDashboard from "./components/AdminComponents/Dashbord/InProgressDashboard.jsx";
-import InProgressDashboardJobsDueToday from "./components/AdminComponents/Dashbord/InProgressDashboardJobsDueToday.jsx";
+import JobsDueTodayDashboard from "./components/AdminComponents/Dashbord/JobsDueTodayDashboard.jsx";
 import InProgressDashboardProject from "./components/AdminComponents/Dashbord/InProgressDashboardProject.jsx";
 import { ToastContainer } from 'react-toastify';
+import CostEstimatesDashbord from "./components/AdminComponents/Dashbord/CostEstimatesDashbord.jsx";
 
 
 function App() {
@@ -88,7 +89,8 @@ function App() {
           <Route path="/dashboard" element={<Dashbord />} />
             <Route path="/InProgressDashboard" element={<InProgressDashboard/>} />     
             <Route path="/InProgressDashboardProject" element={<InProgressDashboardProject/>} />
-            <Route path="/InProgressDashboardJobsDueToday" element={<InProgressDashboardJobsDueToday/>} />
+            <Route path="/JobsDueTodayDashboard" element={<JobsDueTodayDashboard/>} />
+            <Route path="/CostEstimatesDashbord" element={<CostEstimatesDashbord/>} />
 
            <Route path="/clientManagement" element={<ClientManagement/>} />
            <Route path="/AddClientManagement" element={<AddClientManagement/>} />

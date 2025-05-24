@@ -276,6 +276,7 @@ function Completed_Jobs() {
                 <th>Flavour</th>
                 <th>PackType</th>
                 <th>PackSize</th>
+                <th style={{ whiteSpace: 'nowrap' }}>PackCode</th>
                 <th>Priority</th>
                 <th style={{ whiteSpace: "nowrap" }}>Date Completed</th>
                 <th>Assign</th>
@@ -296,10 +297,10 @@ function Completed_Jobs() {
                       onChange={() => handleCheckboxChange(job._id)}
                     />
                   </td>
-                  <td onClick={() => CreatJobs(project.id)}>
-                    <Link>
-                      {String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}</Link>
-                  </td>
+                  <td onClick={() => JobDetails(job)}>
+                                  <Link>
+                                    {String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}</Link>
+                                </td>
 
                   <td>{job.projectId?.[0]?.projectName || 'N/A'}</td>
 
@@ -308,6 +309,7 @@ function Completed_Jobs() {
                   <td>{job.flavour}</td>
                   <td>{job.packType}</td>
                   <td>{job.packSize}</td>
+                   <td style={{ whiteSpace: 'nowrap' }}>{job?.packCode}</td>
                   <td>
                     <span className={getPriorityClass(job.priority)}>{job.priority}</span>
                   </td>

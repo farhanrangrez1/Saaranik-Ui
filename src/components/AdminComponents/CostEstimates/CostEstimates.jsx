@@ -6,138 +6,228 @@ import { deleteCostEstimate, fetchCostEstimates } from "../../../redux/slices/co
 import { useDispatch, useSelector } from "react-redux";
 import { FaTrash } from "react-icons/fa";
 import Swal from 'sweetalert2';
+import { fetchProject } from "../../../redux/slices/ProjectsSlice";
+import { fetchClient } from "../../../redux/slices/ClientSlice";
+import { createReceivablePurchase } from "../../../redux/slices/receivablePurchaseSlice";
 
 function CostEstimates() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortField, setSortField] = useState(null);
-  const [sortDirection, setSortDirection] = useState("asc");
-
   const dispatch = useDispatch()
   const navigate = useNavigate()
 
-  const initialPurchaseOrders = [
-    {
-      poNumber: "PO/2024/001",
-      client: "AcmeCorp",
-      project: "PackageRedesign",
-      projectNo: "P789",
-      projectName: "New Building Construction",
-      estimateRef: "CE-00001",
-      status: "Pending",
-      receivedDate: "2024/01/15",
-      amount: 3000.0,
-    },
-    {
-      poNumber: "PO/2024/002",
-      client: "TechStartInc",
-      project: "BrandIdentity",
-      projectNo: "P789",
-      projectName: "New Building Construction",
-      estimateRef: "CE-00002",
-      status: "received",
-      receivedDate: "2024/01/14",
-      amount: 3500.0,
-    },
-    {
-      poNumber: "PO/2024/003",
-      client: "GlobalFoods",
-      project: "LabelDesign",
-      projectNo: "P789",
-      projectName: "New Building Construction",
-      estimateRef: "CE-00003",
-      status: "Pending",
-      receivedDate: "2024/01/13",
-      amount: 2800.0,
-    },
-  ];
-
-  const [purchaseOrders, setPurchaseOrders] = useState(initialPurchaseOrders);
-
-  // const getStatusBadgeVariant = (status) => {
-  //   switch (status.toLowerCase()) {
-  //     case "pending":
-  //       return "warning";
-  //     case "received ":
-  //       return "success";
-  //     default:
-  //       return "secondary";
-  //   }
-  // };
-
-  const handleSearch = (e) => {
-    const query = e.target.value.toLowerCase();
-    setSearchQuery(query);
-
-    const filtered = initialPurchaseOrders.filter(
-      (po) =>
-        po.poNumber.toLowerCase().includes(query) ||
-        po.client.toLowerCase().includes(query) ||
-        po.project.toLowerCase().includes(query) ||
-        po.estimateRef.toLowerCase().includes(query)
-    );
-    setPurchaseOrders(filtered);
-  };
-
-  const handleSort = (field) => {
-    const isAsc = sortField === field && sortDirection === "asc";
-    setSortDirection(isAsc ? "desc" : "asc");
-    setSortField(field);
-
-    const sorted = [...purchaseOrders].sort((a, b) => {
-      if (field === "amount") {
-        return isAsc ? b[field] - a[field] : a[field] - b[field];
-      }
-      return isAsc
-        ? b[field].localeCompare(a[field])
-        : a[field].localeCompare(b[field]);
-    });
-    setPurchaseOrders(sorted);
-  };
-
-  // const pendingPOs = purchaseOrders.filter(
-  //   (po) => po.status === "Pending"
-  // ).length;
-
+  // State declarations
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortField, setSortField] = useState(null);
+  const [sortDirection, setSortDirection] = useState("asc");
+  const [showAddPOModal, setShowAddPOModal] = useState(false);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [selectedPO, setSelectedPO] = useState(null);
 
+  // PO Form states
+  const [selectedProjectId, setSelectedProjectId] = useState("");
+  const [selectedClientId, setSelectedClientId] = useState("");
+  const [poDate, setPODate] = useState("");
+  const [status, setStatus] = useState("");
+  const [amount, setAmount] = useState("");
+  const [poDocument, setPODocument] = useState(null);
+
+  const { project } = useSelector((state) => state.projects);
+  const { Clients } = useSelector((state) => state.client);
+  const statuses = ["Pending", "Received", "Cancelled", "Completed"];
+
+  useEffect(() => {
+    dispatch(fetchProject());
+    dispatch(fetchClient());
+    dispatch(fetchCostEstimates());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (Clients && project?.data?.length) {
+      const foundProject = project.data.find(p => p._id === selectedClientId);
+      if (foundProject) {
+        setSelectedProjectId(foundProject._id);
+      }
+    }
+  }, [Clients, project, selectedClientId]);
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        Swal.fire({
+          icon: 'error',
+          title: 'File too large',
+          text: 'Please upload a file smaller than 10MB'
+        });
+        return;
+      }
+      setPODocument(file);
+    }
+  };
+
+  const handleSavePO = () => {
+    if (!selectedProjectId || !selectedClientId || !poDate || !status || !amount) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Required Fields Missing',
+        text: 'Please fill all required fields'
+      });
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('projectsId', JSON.stringify([selectedProjectId]));
+    formData.append('ClientId', selectedClientId);
+    formData.append('ReceivedDate', poDate);
+    formData.append('Status', status);
+    formData.append('Amount', amount);
+
+    if (poDocument) {
+      formData.append('image', poDocument);
+    }
+
+    dispatch(createReceivablePurchase(formData));
+
+    setSelectedProjectId("");
+    setSelectedClientId("");
+    setPODate("");
+    setStatus("");
+    setAmount("");
+    setPODocument(null);
+    setShowAddPOModal(false);
+  };
+
+
+  // Convert to Invoice handler
   const handleConvertToInvoice = (po) => {
     setSelectedPO(po);
     setShowInvoiceModal(true);
   };
 
-  const calculateTax = (amount) => amount * 0.1;
-  const calculateTotal = (amount) => amount + calculateTax(amount);
-
-  // PO Add Form
-  const [showAddPOModal, setShowAddPOModal] = useState(false);
-  const [poNumber, setPONumber] = useState("");
-  const [poDate, setPODate] = useState("");
-  const [poAmount, setPOAmount] = useState("");
-  const [poDocument, setPODocument] = useState(null);
-
-  const handleFileUpload = (e) => {
-    setPODocument(e.target.files[0]);
-  };
-
-  const handleSavePO = () => {
-    console.log("PO Number:", poNumber);
-    console.log("PO Date:", poDate);
-    console.log("PO Amount:", poAmount);
-    console.log("PO Document:", poDocument);
-    setShowAddPOModal(false);
-  };
-
-  // const [purchaseOrders, setPurchaseOrders] = useState(
-  //   initialPurchaseOrders.map(po => ({ ...po, invoiceStatus: 'Active' }))
-  // );
-  const updateInvoiceStatus = (index, newStatus) => {
-    const updatedPOs = [...purchaseOrders];
-    updatedPOs[index].invoiceStatus = newStatus;
-    setPurchaseOrders(updatedPOs);
-  };
 
 
+  // Add PO Modal
+  const renderAddPOModal = () => (
+    <Modal show={showAddPOModal} onHide={() => setShowAddPOModal(false)} size="lg">
+      <Modal.Header closeButton>
+        <Modal.Title>Add Purchase Order</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <Form>
+          <Form.Group className="mb-2">
+            <div className="row justify-content-center">
+              <div className="col-md-6">
+                <Form.Label className="d-block ">Project</Form.Label>
+                <Form.Select
+                  value={selectedProjectId}
+                  onChange={(e) => setSelectedProjectId(e.target.value)}
+                  className="form-control"
+                  required
+                >
+                  <option value="">-- Select Project --</option>
+                  {project?.data?.map((proj) => (
+                    <option key={proj._id} value={proj._id}>
+                      {proj.projectName || proj.name}
+                    </option>
+                  ))}
+                </Form.Select>
+              </div>
+
+              <div className="col-md-6">
+                <Form.Label className="d-block ">Client</Form.Label>
+                <Form.Select
+                  value={selectedClientId}
+                  onChange={(e) => setSelectedClientId(e.target.value)}
+                  className="form-control"
+                  required
+                >
+                  <option value="">-- Select Client --</option>
+                  {Clients?.data?.map((client) => (
+                    <option key={client._id} value={client._id}>
+                      {client.clientName}
+                    </option>
+                  ))}
+                </Form.Select>
+              </div>
+            </div>
+          </Form.Group>
+
+
+          <Form.Group className="mb-3">
+            <div className="row justify-content-center">
+              <div className="col-md-6">
+                <Form.Label className="d-block ">PO Date</Form.Label>
+                <Form.Control
+                  type="date"
+                  value={poDate}
+                  onChange={(e) => setPODate(e.target.value)}
+                  className="form-control"
+                  required
+                />
+              </div>
+
+              <div className="col-md-6">
+                <Form.Label className="d-block ">PO Status</Form.Label>
+                <Form.Select
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                  className="form-control"
+                  required
+                >
+                  <option value="">-- Select Status --</option>
+                  {statuses.map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </Form.Select>
+              </div>
+            </div>
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <div className="row justify-content-center align-items-start">
+              {/* PO Amount Field */}
+              <div className="col-md-6 mb-3 mb-md-0">
+                <Form.Label className="d-block ">PO Amount</Form.Label>
+                <Form.Control
+                  type="number"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  className="form-control"
+                  placeholder="Enter amount"
+                  required
+                />
+              </div>
+
+              {/* File Upload Field */}
+              <div className="col-md-6">
+                <Form.Label className="d-block ">Upload Document</Form.Label>
+                <div className="file-upload">
+                  <Form.Control
+                    type="file"
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                    onChange={handleFileUpload}
+                    className="form-control"
+                  />
+
+                  <small className="text-muted d-flex align-items-center mt-1">
+                    <BsUpload className="me-2" /> Upload a file (PDF, DOC up to 10MB)
+                  </small>
+                </div>
+              </div>
+            </div>
+          </Form.Group>
+
+        </Form>
+      </Modal.Body>
+      <Modal.Footer className="d-flex justify-content-end gap-2">
+        <Button variant="secondary" onClick={() => setShowAddPOModal(false)}>Cancel</Button>
+        <Button variant="primary" onClick={handleSavePO}>Save PO</Button>
+      </Modal.Footer>
+    </Modal>
+  );
+
+
+
+  // //////////
   const { estimates, loading, error } = useSelector((state) => state.costEstimates);
   console.log("Cost Estimates:", estimates.costEstimates);
 
@@ -146,52 +236,33 @@ function CostEstimates() {
   }, [dispatch]);
 
 
-
-  const Duplicate = (po) => {
-    navigate(`/AddCostEstimates`, {
-      state: {
-        po,
-        isDuplicate: true
-      }
-    });
-  }
-  const UpdateEstimate = (po) => {
-    navigate(`/AddCostEstimates`, {
-      state: {
-        po,
-      }
-    });
-  }
-  //     const Duplicate =(po)=>{    
-  //  navigate(`/duplicate/AddCostEstimates/${po._id}`, { state: { po}});
-  //   }
-
-const getStatusClass = (status) => {
-  switch ((status || "").toLowerCase().trim()) {
-    case "active":
-    case "active project":
-    case "open":
-      return "bg-primary text-white"; 
-    case "inactive":
-      return "bg-secondary text-white"; 
-    case "in progress":
-    case "pending":
-      return "bg-warning text-dark";
-    case "completed":
-      return "bg-success text-white"; 
-    case "closed":
-      return "bg-dark text-white";
-    case "cancelled":
-      return "bg-danger text-white"; 
-    case "on hold":
-    case "review":
-      return "bg-info text-dark"; 
-    case "not started":
-      return "bg-secondary text-white";
-    default:
-      return "bg-light text-dark";
-  }
-};
+  // ye ok code hai 
+  const getStatusClass = (status) => {
+    switch ((status || "").toLowerCase().trim()) {
+      case "active":
+      case "active project":
+      case "open":
+        return "bg-primary text-white";
+      case "inactive":
+        return "bg-secondary text-white";
+      case "in progress":
+      case "pending":
+        return "bg-warning text-dark";
+      case "completed":
+        return "bg-success text-white";
+      case "closed":
+        return "bg-dark text-white";
+      case "cancelled":
+        return "bg-danger text-white";
+      case "on hold":
+      case "review":
+        return "bg-info text-dark";
+      case "not started":
+        return "bg-secondary text-white";
+      default:
+        return "bg-light text-dark";
+    }
+  };
 
   const handleDelete = (_id) => {
     console.log(_id);
@@ -217,19 +288,37 @@ const getStatusClass = (status) => {
     });
   }
 
+  const Duplicate = (po) => {
+    navigate(`/AddCostEstimates`, {
+      state: {
+        po,
+        isDuplicate: true
+      }
+    });
+  }
+  const UpdateEstimate = (po) => {
+    navigate(`/AddCostEstimates`, {
+      state: {
+        po,
+      }
+    });
+  }
+
+  //     const Duplicate =(po)=>{    
+  //  navigate(`/duplicate/AddCostEstimates/${po._id}`, { state: { po}});
+  //   }
 
 
-   // PAGINATION SETUP FOR ESTIMATES
-const [currentPage, setCurrentPage] = useState(1);
-const itemsPerPage = 10;
+  // PAGINATION SETUP FOR ESTIMATES
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 7;
+  const totalItems = estimates?.costEstimates?.length || 0;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-const totalItems = estimates?.costEstimates?.length || 0;
-const totalPages = Math.ceil(totalItems / itemsPerPage);
-
-const paginatedEstimates = estimates?.costEstimates
-  ?.slice()
-  .reverse()
-  .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const paginatedEstimates = estimates?.costEstimates
+    ?.slice()
+    .reverse()
+    .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <div
@@ -308,7 +397,7 @@ const paginatedEstimates = estimates?.costEstimates
           </Dropdown>
 
           <Link to={"/AddCostEstimates"}>
-            <button id="btn-All" className=" btn-dark" style={{border:"none",borderRadius:"10px"}}>
+            <button id="btn-All" className=" btn-dark" style={{ border: "none", borderRadius: "10px" }}>
               <BsPlusLg className="me-2" /> New Estimate
             </button>
           </Link>
@@ -332,13 +421,13 @@ const paginatedEstimates = estimates?.costEstimates
             </tr>
           </thead>
           <tbody>
-           {paginatedEstimates?.map((po, index) => (
+            {paginatedEstimates?.map((po, index) => (
 
               <tr style={{ whiteSpace: "nowrap" }} key={po.poNumber}>
                 <td><input type="checkbox" /></td>
                 <td onClick={() => CreatJobs(po.projectId)}>
                   <Link style={{ textDecoration: 'none', border: 'none', color: 'inherit' }}>
-                   CE-{String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}
+                    CE-{String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}
                   </Link>
                 </td>
                 <td>{new Date(po.estimateDate).toLocaleDateString("en-GB").slice(0, 8)}</td>
@@ -360,7 +449,7 @@ const paginatedEstimates = estimates?.costEstimates
                 <td>
                   {po.lineItems?.reduce((total, item) => total + (item.amount || 0), 0).toFixed(2)}
                 </td>
-            <td>
+                <td>
                   <span className={`badge ${getStatusClass(po.Status)} px-2 py-1`}>
                     {po.POStatus}
                   </span>
@@ -374,11 +463,12 @@ const paginatedEstimates = estimates?.costEstimates
                   <div className="d-flex gap-2">
                     <button className="btn btn-sm btn-primary" onClick={() => Duplicate(po)}>Duplicate</button>
                     <button className="btn btn-sm btn-primary" onClick={() => handleConvertToInvoice(po)}>ConvertInvoice</button>
-                    <button className="btn btn-sm btn-success" onClick={() => setShowAddPOModal(true)}>AddPO</button>
-                    <button className="btn btn-sm btn-outline-primary" onClick={() => UpdateEstimate(po)}><BsPencil /></button>
-                       <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(po._id)}>
+                    <button className="btn btn-sm btn-success" onClick={() => setShowAddPOModal(true)}>
+                      AddPO
+                    </button>                    <button className="btn btn-sm btn-outline-primary" onClick={() => UpdateEstimate(po)}><BsPencil /></button>
+                    {/* <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(po._id)}>
                           <FaTrash />
-                        </button>
+                        </button> */}
                   </div>
                 </td>
               </tr>
@@ -386,7 +476,6 @@ const paginatedEstimates = estimates?.costEstimates
           </tbody>
         </Table>
       </div>
-
 
       {/* Modal for converting to invoice */}
       <Modal
@@ -476,100 +565,34 @@ const paginatedEstimates = estimates?.costEstimates
         </Modal.Footer>
       </Modal>
 
-      {/* Modal for Add Purchase Order */}
-      <Modal
-        show={showAddPOModal}
-        onHide={() => setShowAddPOModal(false)}
-        size="lg"
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>Add Purchase Order</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form>
-            <Form.Group className="mb-3">
-              <Form.Label>PO Number</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter PO number"
-                value={poNumber}
-                onChange={(e) => setPONumber(e.target.value)}
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>PO Date</Form.Label>
-              <Form.Control
-                type="date"
-                value={poDate}
-                onChange={(e) => setPODate(e.target.value)}
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>PO Amount</Form.Label>
-              <Form.Control
-                type="number"
-                placeholder="Enter PO amount"
-                value={poAmount}
-                onChange={(e) => setPOAmount(e.target.value)}
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Upload PO Document</Form.Label>
-              <div className="file-upload">
-                <input
-                  type="file"
-                  accept=".pdf,.doc,.docx"
-                  onChange={handleFileUpload}
-                />
-                <div className="upload-info">
-                  <BsUpload className="me-2" /> Upload a file (PDF, DOC up to
-                  10MB)
-                </div>
-              </div>
-            </Form.Group>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowAddPOModal(false)}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={handleSavePO}>
-            Save PO
-          </Button>
-        </Modal.Footer>
-      </Modal>
-
-            {!loading && !error && (
-         <div className="d-flex justify-content-between align-items-center mt-3">
-  <div className="text-muted small">
-    Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} entries
-  </div>
-  <ul className="pagination pagination-sm mb-0">
-    <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-      <button className="page-link" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
-        Previous
-      </button>
-    </li>
-    {Array.from({ length: totalPages }, (_, i) => (
-      <li key={i + 1} className={`page-item ${currentPage === i + 1 ? 'active' : ''}`}>
-        <button className="page-link" onClick={() => setCurrentPage(i + 1)}>
-          {i + 1}
-        </button>
-      </li>
-    ))}
-    <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-      <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
-        Next
-      </button>
-    </li>
-  </ul>
-</div>
-
-        )}
-
+      {renderAddPOModal()}
+      {/* Modal for converting to invoice */}
+      {!loading && !error && (
+        <div className="d-flex justify-content-between align-items-center mt-3">
+          <div className="text-muted small">
+            Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} entries
+          </div>
+          <ul className="pagination pagination-sm mb-0">
+            <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
+                Previous
+              </button>
+            </li>
+            {Array.from({ length: totalPages }, (_, i) => (
+              <li key={i + 1} className={`page-item ${currentPage === i + 1 ? 'active' : ''}`}>
+                <button className="page-link" onClick={() => setCurrentPage(i + 1)}>
+                  {i + 1}
+                </button>
+              </li>
+            ))}
+            <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
+                Next
+              </button>
+            </li>
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

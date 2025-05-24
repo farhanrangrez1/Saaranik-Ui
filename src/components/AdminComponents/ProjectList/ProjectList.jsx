@@ -9,7 +9,7 @@ import Swal from 'sweetalert2';
 import { fetchClient } from '../../../redux/slices/ClientSlice';
 
 function ProjectList() {
-  const [activeTab, setActiveTab] = useState('All');
+  const [activeTab, setActiveTab] = useState('Active Project');
   const [currentPage, setCurrentPage] = useState(1);
 
   const dispatch = useDispatch();
@@ -18,13 +18,13 @@ function ProjectList() {
   const [selectedJobs, setSelectedJobs] = useState({});
 
   const tabs = [
-    'All',
     'Active Project',
     'In Progress',
     'Completed',
     'Closed',
     'Cancelled',
     'On Hold',
+    'All',
     // 'Completed (To Be Invoiced)',
   ];
 

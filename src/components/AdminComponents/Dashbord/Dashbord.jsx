@@ -9,6 +9,7 @@ import { useEffect } from 'react';
 import { fetchjobs } from '../../../redux/slices/JobsSlice';
 import { Dropdown } from "react-bootstrap";
 import { fetchProject } from '../../../redux/slices/ProjectsSlice';
+import { fetchCostEstimates } from '../../../redux/slices/costEstimatesSlice';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -40,34 +41,46 @@ function Dashbord() {
     { type: 'po', title: 'New PO received', description: 'Design Update - Client DEF', time: '1 day ago' },
   ];
 
-
   // Fetch jobs on component mount
   useEffect(() => {
     dispatch(fetchjobs());
   }, [dispatch]);
 
-
   // Job In Progress 
-  const { job } = useSelector((state) => state.jobs);
-      const { project, loading, error } = useSelector((state) => state.projects);
+  const { job ,loading, error} = useSelector((state) => state.jobs);  
+  const { project} = useSelector((state) => state.projects);
+  const { estimates } = useSelector((state) => state.costEstimates);
 
   useEffect(() => {
     dispatch(fetchjobs());
-     dispatch(fetchProject());
+    dispatch(fetchProject());
+    dispatch(fetchCostEstimates());
   }, [dispatch]);
 
-  const inProgressJobs = (job?.jobs || []).filter(
-    (j) => j.Status?.toLowerCase() === "in progress"
-  );
-  const inProgressCount = inProgressJobs.length;
-
-
-    const inProgressProjects = (project?.data || []).filter(
+  const inProgressProjects = (project?.data || []).filter(
     (j) => j.status?.toLowerCase() === "in progress"
   );
   const inProgressProjectsCount = inProgressProjects.length;
 
-  
+ const inProgressJobs = (job?.jobs || []).filter(
+  (j) => j.Status?.toLowerCase() === "in_progress"
+);
+const inProgressCount = inProgressJobs.length;
+
+
+const Costestimates = (estimates?.costEstimates || []).filter(
+  (j) => (j.POStatus || "").toLowerCase().replace(/\s|_/g, "") === "pending"
+);
+const CostestimatesCount = Costestimates.length;
+
+
+const today = new Date().toLocaleDateString("en-CA");
+const todaysJobs = (job?.jobs || []).filter((j) => {
+  const dueDate = new Date(j.dueDate || j.createdAt).toLocaleDateString("en-CA");
+  return dueDate === today;
+});
+const todaysJobsCount = todaysJobs.length;
+
   return (
     <Container fluid className="container p-3">
       <Row className="g-4 mb-4">
@@ -115,14 +128,14 @@ function Dashbord() {
 
         {/* Jobs Due Today */}
         <Col md={4} lg={4}>
-          <Link to="/InProgressDashboardJobsDueToday" className="text-decoration-none w-100 d-block">
+          <Link to="/JobsDueTodayDashboard" className="text-decoration-none w-100 d-block">
             <Card className="h-100 shadow-sm">
               <Card.Body className="d-flex align-items-center">
                 <div className="rounded-circle p-3 bg-light-yellow me-3">
                   <FaFileInvoiceDollar className="text-warning" size={24} />
                 </div>
                 <div>
-                  <h3 className="mb-0">18</h3>
+                  <h3 className="mb-0">{todaysJobsCount}</h3>
                   <p className="text-muted mb-0">Jobs Due Today</p>
                   <small className="text-warning">Requires attention</small>
                 </div>
@@ -133,14 +146,14 @@ function Dashbord() {
 
         {/* Cost Estimates Awaiting POs */}
         <Col md={4} lg={4}>
-          <Link to="/CostEstimates" className="text-decoration-none w-100 d-block">
+          <Link to="/CostEstimatesDashbord" className="text-decoration-none w-100 d-block">
             <Card className="h-100 shadow-sm">
               <Card.Body className="d-flex align-items-center">
                 <div className="rounded-circle p-3 bg-light-purple me-3">
                   <FaClipboardCheck className="text-purple" size={24} />
                 </div>
                 <div>
-                  <h3 className="mb-0">892</h3>
+                  <h3 className="mb-0">{CostestimatesCount}</h3>
                   <p className="text-muted mb-0">Cost Estimates</p>
                   <small className="text-danger">Waiting to receive POs</small>
                 </div>

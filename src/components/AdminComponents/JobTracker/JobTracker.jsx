@@ -108,9 +108,6 @@ function JobTracker() {
     navigate(`/AddJobTracker`, { state: { job } });
   };
 
-  const JobDetails = (job) => {
-    navigate(`/OvervieJobsTracker`, { state: { job } });
-  }
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -122,6 +119,11 @@ function JobTracker() {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+
+    const JobDetails = (job) => {
+    navigate(`/OvervieJobsTracker`, { state: { job } });
+  }
+
   return (
     <div className="p-4 m-3" style={{ backgroundColor: "white", borderRadius: "10px" }}>
       <div className="d-flex justify-content-between align-items-center mb-4">
@@ -193,6 +195,7 @@ function JobTracker() {
               <th>Flavour</th>
               <th>PackType</th>
               <th>PackSize</th>
+              <th>PackCode</th>
               <th>Priority</th>
               <th>Due Date</th>
               <th>Assign</th>
@@ -211,10 +214,10 @@ function JobTracker() {
                     onChange={() => handleCheckboxChange(job._id)}
                   />
                 </td>
-                <td onClick={() => CreatJobs(project.id)}>
-                  <Link>
-                    {String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}</Link>
-                </td>
+                  <td onClick={() => JobDetails(job)}>
+                                  <Link>
+                                    {String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}</Link>
+                                </td>
 
                 <td style={{ whiteSpace: 'nowrap' }}>{job.projectId?.[0]?.projectName || 'N/A'}</td>
 
@@ -223,6 +226,7 @@ function JobTracker() {
                 <td>{job.flavour}</td>
                 <td>{job.packType}</td>
                 <td>{job.packSize}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{job?.packCode}</td>
                 <td>
                   <span className={getPriorityClass(job.priority)}>{job.priority}</span>
                 </td>

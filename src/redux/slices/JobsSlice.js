@@ -49,30 +49,36 @@ export const deletejob = createAsyncThunk(
 );
 
 
-export const fetchjobById = createAsyncThunk('jobs/fetchById', async (id) => {
-    const response = await fetch(`/api/jobs/${id}`);
-    if (!response.ok) throw new Error("Failed to fetch job");
-    return await response.json();
-  });
-
-  export const updatejob = createAsyncThunk('jobs/updatejob', async ({ id, data }) => {
-    const response = await fetch(`/api/jobs/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
+// Update Job
+export const updatejob = createAsyncThunk('jobs/updatejob', async ({ id, data }, thunkAPI) => {
+  try {
+    const response = await fetch(`${apiUrl}/jobs/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify(data),
     });
-    if (!response.ok) throw new Error("Failed to update job");
-    return await response.json();
-  });
-  
 
+    if (!response.ok) {
+      const errorText = await response.text(); 
+      throw new Error(`Failed to update job: ${errorText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    return thunkAPI.rejectWithValue(error.message);
+  }
+});
+
+  // Assign Job
 export const UpdateJobAssign = createAsyncThunk('jobs/updatejob', async ({ id, assign }) => {
-  const response = await fetch(`${apiUrl}/jobs`, {
+  const response = await fetch(`${apiUrl}/jobs/${id}`, {
     method: "put",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ id, assign }),  // Ensure 'ids' and 'assign' are passed here
+    body: JSON.stringify({ id, assign }),  
   });
 
   if (!response.ok) throw new Error("Failed to update jobs");

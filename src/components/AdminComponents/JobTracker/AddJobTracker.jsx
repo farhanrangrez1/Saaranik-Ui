@@ -7,16 +7,20 @@ import Barcode from 'react-barcode';
 import Select from 'react-select';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProject } from '../../../redux/slices/ProjectsSlice';
-import { createjob } from '../../../redux/slices/JobsSlice';
+import { createjob, updatejob } from '../../../redux/slices/JobsSlice';
 
 function AddJobTracker() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   // Project name sho
-  const { id } = useParams();
-  const location = useLocation();
-  const { job } = location.state || {};
-  const projectId = location.state?.id;
+const { id: paramId } = useParams();
+const location = useLocation();
+const { job } = location.state || {};
+const projectId = location.state?.id;
+
+const id = paramId || job?._id;
+
+
 
   const { project, loading, error } = useSelector((state) => state.projects);
   useEffect(() => {
@@ -42,6 +46,7 @@ function AddJobTracker() {
     subBrand: '',
     flavour: '',
     packType: '',
+    packCode:'',
     packSize: '',
     priority: '',
     Status: '',
@@ -103,36 +108,37 @@ function AddJobTracker() {
 
 
   const handleSubmit = (e) => {
-    e.preventDefault();
-    const payload = {
-      ...formData,
-      projectsId: [formData.projectsId],  
-    };
-    
-    if (id) {
-      dispatch(updatejob({ id, data: payload }))
-        .unwrap()
-        .then(() => {
-          toast.success("Job updated successfully!");
-          navigate('/ProjectOverview', { state: { openTab: 'jobs' } });
-          dispatch(fetchProject());
-        })
-        .catch(() => {
-          toast.error("Failed to update job!");
-        });
-    } else {
-      dispatch(createjob(payload))  
-        .unwrap()
-        .then(() => {
-          toast.success("Job created successfully!");
-          navigate('/ProjectOverview', { state: { openTab: 'jobs' } });
-          dispatch(fetchProject());
-        })
-        .catch(() => {
-          toast.error("Error creating job");
-        });
-    }
+  e.preventDefault();
+  const payload = {
+    ...formData,
+    projectsId: [formData.projectsId],
   };
+
+  if (id) {
+    dispatch(updatejob({ id, data: payload }))
+      .unwrap()
+      .then(() => {
+        toast.success("Job updated successfully!");
+        navigate('/ProjectOverview', { state: { openTab: 'jobs' } });
+        dispatch(fetchProject());
+      })
+      .catch(() => {
+        toast.error("Failed to update job!");
+      });
+  } else {
+    dispatch(createjob(payload))
+      .unwrap()
+      .then(() => {
+        toast.success("Job created successfully!");
+        navigate('/ProjectOverview', { state: { openTab: 'jobs' } });
+        dispatch(fetchProject());
+      })
+      .catch(() => {
+        toast.error("Failed to create job!");
+      });
+  }
+};
+
 
   const handleCancel = () => {
     navigate("/projectList");
@@ -150,7 +156,7 @@ function AddJobTracker() {
   reversedProjectList.forEach((project, index) => {
     idToIndexMap[project._id] = String(index + 1).padStart(4, '0');
   });
-  
+
   return (
     <>
       <ToastContainer />
@@ -306,6 +312,25 @@ function AddJobTracker() {
                 </select>
               </div>
 
+              {/* Pack Code */}
+              <div className="col-md-6">
+                <label className="form-label">Pack Code</label>
+                <select
+                  className="form-select"
+                  name="packCode"
+                  value={formData.packCode}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="">Select</option>
+                  <option value="FW">Firstwrap – FW</option>
+                  <option value="SB"> Showbox – SB</option>
+                  <option value="OC"> Outercase – OC</option>
+                  <option value="Can"> Can – Can</option>
+                  <option value="BOT"> Bottle – BOT</option>
+                  <option value="PH"> Pouch – PH</option>
+                </select>
+              </div>
 
               {/* Pack Size */}
               <div className="col-md-6">
@@ -318,7 +343,6 @@ function AddJobTracker() {
                   }
                   isClearable
                   required
-
                 />
               </div>
 

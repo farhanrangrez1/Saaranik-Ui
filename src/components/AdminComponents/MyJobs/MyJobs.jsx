@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Container, Row, Col, Button, Form, Table, Pagination, Badge, Modal } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useRef } from 'react';
 import * as XLSX from 'xlsx';
 import { useDispatch, useSelector } from "react-redux";
@@ -19,6 +19,8 @@ function MyJobs() {
   const [showBriefModal, setShowBriefModal] = React.useState(false);
   const [selectedBrief, setSelectedBrief] = React.useState("");
   const dispatch = useDispatch()
+  const navigate = useNavigate();
+
   const handleReturnJob = () => {
     const hasTimesheet = false;
     if (!hasTimesheet) {
@@ -155,8 +157,10 @@ function MyJobs() {
   );
 
   // Copy list
-  const handleCopyFileName = (job) => {
-    const fileName = `${job.jobNo || job._id}_${job.brandName}_${job.subBrand}_${job.flavour}_${job.packType}_${job.packSize}_${job.packCode || ''}`;
+  const handleCopyFileName = (job, index, currentPage, itemsPerPage) => {
+    const displayId = String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0');
+    const fileName = `${displayId}_${job.projectName || ''}__${job.brandName || ''}_${job.subBrand || ''}_${job.flavour || ''}_${job.packType || ''}_${job.packSize || ''}_${job.packCode || ''}_${job.priority || ''}_${job.dueDate || ''}_${job.assign || ''}_${job.timeLogged || ''}_${job.status || ''}`;
+
     navigator.clipboard.writeText(fileName)
       .then(() => alert("Copied to clipboard: " + fileName))
       .catch((err) => console.error("Failed to copy!", err));
@@ -212,6 +216,7 @@ function MyJobs() {
               <th>Flavour</th>
               <th>PackType</th>
               <th>PackSize</th>
+              <th>PackCode</th>
               <th>Priority</th>
               <th>Due Date</th>
               <th>Assign</th>
@@ -226,7 +231,7 @@ function MyJobs() {
                 <th>
                   <input type="checkbox" onChange={handleSelectAll} />
                 </th>
-                <td onClick={() => CreatJobs(project.id)}>
+                <td onClick={() => JobDetails(job)}>
                   <Link>
                     {String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}</Link>
                 </td>
@@ -238,6 +243,7 @@ function MyJobs() {
                 <td style={{ whiteSpace: "nowrap" }}>{job.flavour}</td>
                 <td style={{ whiteSpace: "nowrap" }}>{job.packType}</td>
                 <td style={{ whiteSpace: "nowrap" }}>{job.packSize}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{job?.packCode}</td>
                 <td>
                   <span className={getPriorityClass(job.priority)}>{job.priority}</span>
                 </td>
@@ -298,10 +304,11 @@ function MyJobs() {
                     id="All_btn"
                     size="sm"
                     variant="dark"
-                    onClick={() => handleCopyFileName(job)}
+                    onClick={() => handleCopyFileName(job, index, currentPage, itemsPerPage)}
                   >
                     CopyFN
                   </Button>
+
 
                 </td>
               </tr>

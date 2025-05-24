@@ -382,6 +382,7 @@ function NewJobsList() {
               <th>Flavour</th>
               <th>PackType</th>
               <th>PackSize</th>
+              <th>PackCode</th>
               <th>TimeLogged</th>
               <th>Due Date</th>
               {/* <th>Assign</th> */}
@@ -400,18 +401,17 @@ function NewJobsList() {
                     onChange={() => handleCheckboxChange(job._id)}
                   />
                 </td>
-                <td onClick={() => CreatJobs(project.id)}>
-                  <Link>
-                    {String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}</Link>
-                </td>
-
+                   <td onClick={() => JobDetails(job)}>
+                                   <Link>
+                                     {String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}</Link>
+                                 </td>
                 <td>{job.projectId?.[0]?.projectName || 'N/A'}</td>
-
                 <td style={{ whiteSpace: 'nowrap' }}>{job.brandName}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.subBrand}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.flavour}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.packType}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.packSize}</td>
+                 <td style={{ whiteSpace: 'nowrap' }}>{job?.packCode}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
                 {/* <td style={{ whiteSpace: 'nowrap' }}>{job.assign}</td> */}

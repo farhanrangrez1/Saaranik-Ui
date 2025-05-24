@@ -65,7 +65,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       path: "/TimesheetWorklog"
     },
     {
-      title: "Client Management",
+      title: "Client/Supplier",
       icon: <FaUsersCog className="menu-icon" />,
       path: "/clientManagement"
     },

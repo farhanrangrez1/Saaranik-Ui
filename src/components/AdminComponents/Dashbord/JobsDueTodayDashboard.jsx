@@ -12,7 +12,7 @@ import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchjobs } from "../../../redux/slices/JobsSlice";
 
-function InProgressDashboardJobsDueToday() {
+function JobsDueTodayDashboard() {
   const dispatch = useDispatch();
   const fileInputRef = useRef(null);
 
@@ -44,8 +44,6 @@ function InProgressDashboardJobsDueToday() {
   }, [dispatch]);
 
   const today = new Date().toLocaleDateString("en-CA");
-
-  // 🟡 Filter jobs due today – adjust this to use job.dueDate if you have it
   const todaysJobs = job?.jobs?.filter((j) => {
     const dueDate = new Date(j.dueDate || j.createdAt).toLocaleDateString("en-CA");
     return dueDate === today;
@@ -151,14 +149,14 @@ function InProgressDashboardJobsDueToday() {
                 />
               </th>
               <th>JobNo</th>
-              <th>Project Name</th>
-              <th>Brand</th>
+              <th  style={{ whiteSpace: 'nowrap' }}>Project Name</th>
+              <th  style={{ whiteSpace: 'nowrap' }}>Brand</th>
               <th>SubBrand</th>
               <th>Flavour</th>
               <th>PackType</th>
               <th>PackSize</th>
               <th>Priority</th>
-              <th>Due Date</th>
+              <th  style={{ whiteSpace: 'nowrap' }}>Due Date</th>
               <th>Assign</th>
               <th>TotalTime</th>
               <th>Status</th>
@@ -178,12 +176,12 @@ function InProgressDashboardJobsDueToday() {
                 <td>
                   <Link>{String(index + 1).padStart(4, "0")}</Link>
                 </td>
-                <td>{job.projectId?.[0]?.projectName || "N/A"}</td>
-                <td>{job.brandName}</td>
-                <td>{job.subBrand}</td>
-                <td>{job.flavour}</td>
-                <td>{job.packType}</td>
-                <td>{job.packSize}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{job.projectId?.[0]?.projectName || "N/A"}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{job.brandName}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{job.subBrand}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{job.flavour}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{job.packType}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{job.packSize}</td>
                 <td>
                   <span className={getPriorityClass(job.priority)}>
                     {job.priority}
@@ -192,7 +190,7 @@ function InProgressDashboardJobsDueToday() {
                 <td>
                   {new Date(job.dueDate || job.createdAt).toLocaleDateString("en-GB")}
                 </td>
-                <td>{job.assign}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{job.assign}</td>
                 <td>
                   {new Date(job.updatedAt).toLocaleTimeString("en-US", {
                     hour: "2-digit",
@@ -264,4 +262,4 @@ function InProgressDashboardJobsDueToday() {
   );
 }
 
-export default InProgressDashboardJobsDueToday;
+export default JobsDueTodayDashboard;

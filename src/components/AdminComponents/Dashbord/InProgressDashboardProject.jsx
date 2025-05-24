@@ -385,7 +385,7 @@ function InProgressDashboardProject() {
                 <td>
                   <Link to={"/ProjectOverview"}>{job.id}</Link>
                 </td>
-                <td>{job.project}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{job.project}</td>
                 {/* <td onClick={() => handleDesignerClick(job)} style={{ cursor: 'pointer' }}>{job.designer}</td> */}
                 <td>{job.timeSpent}</td>
                 <td>

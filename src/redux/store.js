@@ -5,6 +5,7 @@ import jobsReducer from "./slices/JobsSlice"
 import ClientReducer from "../redux/slices/ClientSlice"
 import userReducer from "../redux/slices/userSlice"
 import costEstimatesReducer from "../redux/slices/costEstimatesSlice"
+import receivablePurchaseReducer from "../redux/slices/receivablePurchaseSlice"
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +13,7 @@ export const store = configureStore({
     jobs:jobsReducer,
     client:ClientReducer,
     user:userReducer,
-    costEstimates:costEstimatesReducer
+    costEstimates:costEstimatesReducer,
+    receivablePurchases: receivablePurchaseReducer
 }
 });

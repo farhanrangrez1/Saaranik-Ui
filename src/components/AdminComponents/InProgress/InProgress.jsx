@@ -243,8 +243,8 @@ const filteredProjects = (job?.jobs || []).filter(j => (j?.Status || "").toLower
     <div className="container bg-white p-4 mt-4 rounded shadow-sm">
       {/* Title */}
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <h5 className="fw-bold m-0">In Progress Jobs</h5>
-        <Button id="All_btn" variant="dark" onClick={() => setShowDesignerModal(true)}>Change Designer</Button>
+        <h5 className="fw-bold m-0">Jobs In Progress </h5>
+        {/* <Button id="All_btn" variant="dark" onClick={() => setShowDesignerModal(true)}>Change Designer</Button> */}
       </div>
 
       {/* Filters */}
@@ -280,6 +280,7 @@ const filteredProjects = (job?.jobs || []).filter(j => (j?.Status || "").toLower
               <th>Flavour</th>
               <th>PackType</th>
               <th>PackSize</th>
+              <th>PackCode</th>
               <th>Priority</th>
               <th>Due Date</th>
               <th>Assign</th>
@@ -298,10 +299,10 @@ const filteredProjects = (job?.jobs || []).filter(j => (j?.Status || "").toLower
                     onChange={() => handleCheckboxChange(job._id)}
                   />
                 </td>
-                    <td onClick={() => CreatJobs(project.id)}>
-                                  <Link>
-                                    {String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}</Link>
-                                </td>
+                      <td onClick={() => JobDetails(job)}>
+                                      <Link>
+                                        {String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}</Link>
+                                    </td>
 
                 <td>{job.projectId?.[0]?.projectName || 'N/A'}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.brandName}</td>
@@ -309,6 +310,7 @@ const filteredProjects = (job?.jobs || []).filter(j => (j?.Status || "").toLower
                 <td style={{ whiteSpace: 'nowrap' }}>{job.flavour}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.packType}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.packSize}</td>
+                 <td style={{ whiteSpace: 'nowrap' }}>{job?.packCode}</td>
                 <td>
                   <span className={getPriorityClass(job.priority)}>{job.priority}</span>
                 </td>

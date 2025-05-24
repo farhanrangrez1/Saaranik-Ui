@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Modal, Form, Button } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
-import { deletejob, fetchjobs, UpdateJobAssign } from '../../../../redux/slices/JobsSlice';
+import { deletejob, fetchjobs, updatejob, UpdateJobAssign } from '../../../../redux/slices/JobsSlice';
 import Swal from 'sweetalert2';
 
 function ProjectJobsTab() {
@@ -139,29 +139,31 @@ function ProjectJobsTab() {
   }, [dispatch]);
 
 
-  const handleDelete = (_id) => {
-    console.log(_id);
-    Swal.fire({
-      title: "Are you sure?",
-      text: "You won't be able to revert this!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, delete it!",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        dispatch(deletejob(_id))
-          .then(() => {
-            Swal.fire("Deleted!", "The document has been deleted.", "success");
-            dispatch(fetchjobs());
-          })
-          .catch(() => {
-            Swal.fire("Error!", "Something went wrong.", "error");
-          });
-      }
-    });
-  }
+const handleDelete = (_id) => {
+  console.log(_id);
+  Swal.fire({
+    title: "Are you sure?",
+    text: "You want to mark this job as Cancelled?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Yes, mark as Cancelled!",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // dispatch(deletejob({ id: _id, data: { status: "Cancelled" } }))
+      dispatch(updatejob({ id: _id, data: { Status: "Cancelled" } }))
+        .unwrap()
+        .then(() => {
+          Swal.fire("Updated!", "The job has been marked as Cancelled.", "success");
+          dispatch(fetchjobs());
+        })
+        .catch(() => {
+          Swal.fire("Error!", "Something went wrong while updating.", "error");
+        });
+    }
+  });
+};
 
 
   const handleUpdate = (job) => {
@@ -265,9 +267,9 @@ function ProjectJobsTab() {
           >
             Assign
           </Button>
-          <Button className="btn btn-secondary m-2" onClick={handleDownloadFileNamesCSV}>
+          {/* <Button className="btn btn-secondary m-2" onClick={handleDownloadFileNamesCSV}>
             📄 Copy File Name
-          </Button>
+          </Button> */}
 
           <label className="btn btn-success m-2">
             <i className="bi bi-upload"></i> Import CSV
@@ -342,6 +344,7 @@ function ProjectJobsTab() {
                 <th>Flavour</th>
                 <th>PackType</th>
                 <th>PackSize</th>
+                <th>PackCode</th>
                 <th>Priority</th>
                 <th style={{ whiteSpace: 'nowrap' }}>Due Date</th>
                 <th>Assing</th>
@@ -351,8 +354,7 @@ function ProjectJobsTab() {
               </tr>
             </thead>
             <tbody>
-              {paginatedProjects?.slice().reverse().map((job, index) => (
-
+              {paginatedProjects?.map((job, index) => (
                 <tr key={job._id}>
                   <td>
                     <input
@@ -366,7 +368,7 @@ function ProjectJobsTab() {
                       {String(index + 1).padStart(4, '0')}
                     </Link>
                   </td> */}
-                  <td onClick={() => CreatJobs(project.id)}>
+                  <td onClick={() => JobDetails(job)}>
                     <Link>
                       {String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}</Link>
                   </td>
@@ -376,13 +378,14 @@ function ProjectJobsTab() {
                   <td style={{ whiteSpace: 'nowrap' }}>{job.flavour}</td>
                   <td style={{ whiteSpace: 'nowrap' }}>{job.packType}</td>
                   <td style={{ whiteSpace: 'nowrap' }}>{job.packSize}</td>
+                  <td style={{ whiteSpace: 'nowrap' }}>{job?.packCode}</td>
                   <td>
                     <span className={getPriorityClass(job.priority)}>
                       {job.priority}
                     </span>
                   </td>
                   <td>{new Date(job?.createdAt).toLocaleDateString('en-GB').replace(/\/20/, '/')}</td>
-                  <td>{job.assign}</td>
+                  <td style={{ whiteSpace: 'nowrap' }}>{job.assign}</td>
                   <td>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
                   {/* <th>
                                         <Button id='All_btn' variant="success" style={{ width: "130px" }} size="sm" >
