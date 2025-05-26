@@ -70,11 +70,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       path: "/clientManagement"
     },
     {
-      title: "Notiifcations",
-      icon: <FaBell className="menu-icon" />,
-      path: "/Notiifcations"
-    },
-    {
       title: "Reports & Analytics",
       icon: <FaChartLine className="menu-icon" />,
       path: "/Reports"
@@ -83,6 +78,11 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       title: "User Permissions",
       icon: <FaUsersCog className="menu-icon" />,
       path: "/UserRoles"
+    },
+     {
+      title: "Notiifcations",
+      icon: <FaBell className="menu-icon" />,
+      path: "/Notiifcations"
     },
     {
       title: "Settings",

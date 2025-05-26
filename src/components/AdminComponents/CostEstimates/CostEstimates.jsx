@@ -32,7 +32,7 @@ function CostEstimates() {
 
   const { project } = useSelector((state) => state.projects);
   const { Clients } = useSelector((state) => state.client);
-  const statuses = ["Pending", "Received", "Cancelled", "Completed"];
+  const statuses = ["Pending", "Received", "Cancelled", "Completed","open","invoiced"];
 
   useEffect(() => {
     dispatch(fetchProject());

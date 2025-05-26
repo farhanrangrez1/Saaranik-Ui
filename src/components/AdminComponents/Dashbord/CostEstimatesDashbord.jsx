@@ -172,25 +172,13 @@ function CostEstimatesDashbord() {
             case "active":
             case "active project":
             case "open":
-                return "bg-primary text-white";
+                return "bg-warning text-dark";
             case "inactive":
-                return "bg-secondary text-white";
+                return "bg-warningtext-dark";
             case "in progress":
             case "pending":
                 return "bg-warning text-dark";
-            case "completed":
-                return "bg-success text-white";
-            case "closed":
-                return "bg-dark text-white";
-            case "cancelled":
-                return "bg-danger text-white";
-            case "on hold":
-            case "review":
-                return "bg-info text-dark";
-            case "not started":
-                return "bg-secondary text-white";
-            default:
-                return "bg-light text-dark";
+      
         }
     };
 
@@ -373,7 +361,7 @@ const paginatedEstimates = filteredEstimates
                                     </span>
                                 </td>
                                 <td>
-                                    <span className={`badge ${getStatusClass(po.Status)} px-2 py-1`}>
+                                    <span className={` badge ${getStatusClass(po.Status)} px-2 py-1`}>
                                         {po.Status}
                                     </span>
                                 </td>

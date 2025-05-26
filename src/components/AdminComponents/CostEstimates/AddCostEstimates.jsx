@@ -28,8 +28,8 @@ function AddCostEstimates() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  console.log("hhhhhhh",po);
-  
+  console.log("hhhhhhh", po);
+
   const { project } = useSelector((state) => state.projects);
   useEffect(() => {
     dispatch(fetchProject());
@@ -68,40 +68,40 @@ function AddCostEstimates() {
     Status: "Active",
   });
 
- useEffect(() => {
-  if (po && project?.data?.length) {
-    let projectId = '';
-    if (Array.isArray(po.projectId) && po.projectId.length > 0) {
-      projectId = po.projectId[0]._id;
-    } else if (Array.isArray(po.projects) && po.projects.length > 0) {
-      projectId = typeof po.projects[0] === 'object'
-        ? po.projects[0]._id
-        : po.projects[0];
-    }
+  useEffect(() => {
+    if (po && project?.data?.length) {
+      let projectId = '';
+      if (Array.isArray(po.projectId) && po.projectId.length > 0) {
+        projectId = po.projectId[0]._id;
+      } else if (Array.isArray(po.projects) && po.projects.length > 0) {
+        projectId = typeof po.projects[0] === 'object'
+          ? po.projects[0]._id
+          : po.projects[0];
+      }
 
-    let clientId = "";
-    if (po.clientId && typeof po.clientId === "object") {
-      clientId = po.clientId._id;
-    } else if (Array.isArray(po.clients) && po.clients.length > 0) {
-      clientId = po.clients[0]?.clientId || "";
-    }
+      let clientId = "";
+      if (po.clientId && typeof po.clientId === "object") {
+        clientId = po.clientId._id;
+      } else if (Array.isArray(po.clients) && po.clients.length > 0) {
+        clientId = po.clients[0]?.clientId || "";
+      }
 
-    setFormData((prev) => ({
-      ...prev,
-      ...po,
-      projectsId: projectId ? [projectId] : [""],
-      clientId: clientId ? [clientId] : [""],
-      Notes: po.Notes || "",
-      currency: po.currency || "USD",
-      estimateDate: po.estimateDate ? po.estimateDate.substring(0, 10) : "",
-      validUntil: po.validUntil ? po.validUntil.substring(0, 10) : "",
-    }));
+      setFormData((prev) => ({
+        ...prev,
+        ...po,
+        projectsId: projectId ? [projectId] : [""],
+        clientId: clientId ? [clientId] : [""],
+        Notes: po.Notes || "",
+        currency: po.currency || "USD",
+        estimateDate: po.estimateDate ? po.estimateDate.substring(0, 10) : "",
+        validUntil: po.validUntil ? po.validUntil.substring(0, 10) : "",
+      }));
 
-    if (Array.isArray(po.lineItems) && po.lineItems.length > 0) {
-      setItems(po.lineItems);
+      if (Array.isArray(po.lineItems) && po.lineItems.length > 0) {
+        setItems(po.lineItems);
+      }
     }
-  }
-}, [po, project?.data]);
+  }, [po, project?.data]);
 
   const [taxRate, setTaxRate] = useState(0.05);
 
@@ -135,37 +135,37 @@ function AddCostEstimates() {
   const tax = subtotal * taxRate;
   const total = subtotal + tax;
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
-  const payload = {
-    ...formData,
-    VATRate: taxRate * 100,
-    lineItems: items,
-  };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const payload = {
+      ...formData,
+      VATRate: taxRate * 100,
+      lineItems: items,
+    };
 
-  const isDuplicate = location.state?.isDuplicate;
-  if (isDuplicate || !id) {
-    dispatch(createCostEstimate(payload))
-      .unwrap()
-      .then(() => {
-        toast.success("Estimates created successfully!");
-        navigate('/CostEstimates', { state: { openTab: 'jobs' } });
-      })
-      .catch(() => {
-        toast.error("Failed to create estimates");
-      });
-  } else {
-    dispatch(updateCostEstimate({ id, data: payload }))
-      .unwrap()
-      .then(() => {
-        toast.success("Estimates updated successfully!");
-        navigate('/CostEstimates', { state: { openTab: 'jobs' } });
-      })
-      .catch(() => {
-        toast.error("Failed to update estimates");
-      });
-  }
-};
+    const isDuplicate = location.state?.isDuplicate;
+    if (isDuplicate || !id) {
+      dispatch(createCostEstimate(payload))
+        .unwrap()
+        .then(() => {
+          toast.success("Estimates created successfully!");
+          navigate('/CostEstimates', { state: { openTab: 'jobs' } });
+        })
+        .catch(() => {
+          toast.error("Failed to create estimates");
+        });
+    } else {
+      dispatch(updateCostEstimate({ id, data: payload }))
+        .unwrap()
+        .then(() => {
+          toast.success("Estimates updated successfully!");
+          navigate('/CostEstimates', { state: { openTab: 'jobs' } });
+        })
+        .catch(() => {
+          toast.error("Failed to update estimates");
+        });
+    }
+  };
 
   return (
     <>
@@ -176,27 +176,27 @@ function AddCostEstimates() {
           <h6 className="fw-semibold mb-4">Create New Estimate</h6>
 
           <div className="row mb-3">
-           <div className="col-md-4 mb-3">
-  <label className="form-label">Client</label>
-  <select
-    className="form-select"
-    name="clientId"
-    value={formData.clientId[0] || ""}
-    onChange={(e) =>
-      setFormData({
-        ...formData,
-        clientId: [e.target.value],
-      })
-    }
-  >
-    <option value="">Select Client</option>
-    {Clients?.data?.map((client) => (
-      <option key={client._id} value={client._id}>
-        {client.clientName}
-      </option>
-    ))}
-  </select>
-</div>
+            <div className="col-md-4 mb-3">
+              <label className="form-label">Client</label>
+              <select
+                className="form-select"
+                name="clientId"
+                value={formData.clientId[0] || ""}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    clientId: [e.target.value],
+                  })
+                }
+              >
+                <option value="">Select Client</option>
+                {Clients?.data?.map((client) => (
+                  <option key={client._id} value={client._id}>
+                    {client.clientName}
+                  </option>
+                ))}
+              </select>
+            </div>
 
 
             <div className="col-md-4 mb-3">

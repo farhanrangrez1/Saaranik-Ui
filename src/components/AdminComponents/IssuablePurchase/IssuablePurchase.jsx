@@ -7,11 +7,41 @@ import axios from 'axios';
 function IssuablePurchase() {
   const [purchaseOrders, setPurchaseOrders] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+
   const fetchPurchaseOrders = async () => {
+    // Random dummy data for testing
+    const dummyData = [
+      {
+        _id: "1",
+        clientName: "ABC Corp",
+        projectId: "PRJ-101",
+        issueDate: "2025-05-20T00:00:00Z",
+        total: 1200
+      },
+      {
+        _id: "2",
+        clientName: "XYZ Ltd",
+        projectId: "PRJ-102",
+        issueDate: "2025-05-22T00:00:00Z",
+        total: 850
+      },
+      {
+        _id: "3",
+        clientName: "LMN Industries",
+        projectId: "PRJ-103",
+        issueDate: "2025-05-25T00:00:00Z",
+        total: 1500
+      }
+    ];
+    setPurchaseOrders(dummyData);
   };
 
   const handleDelete = async (id) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this PO?");
+    if (!confirmDelete) return;
 
+    const updatedOrders = purchaseOrders.filter(po => po._id !== id);
+    setPurchaseOrders(updatedOrders);
   };
 
   useEffect(() => {
@@ -21,7 +51,6 @@ function IssuablePurchase() {
   const filteredOrders = purchaseOrders.filter(po =>
     (po.clientName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) 
   );
-   
       
   return (
     <Container fluid className="p-4 m-3" style={{ backgroundColor: "white", borderRadius: "10px" }}>
@@ -61,7 +90,7 @@ function IssuablePurchase() {
             {filteredOrders.length > 0 ? (
               filteredOrders.map((po,index) => (
                 <tr key={po._id}>
-                  <td>{index+1}</td>
+                  <td>{index + 1}</td>
                   <td>{po.clientName}</td>
                   <td>{po.projectId}</td>
                   <td>{new Date(po.issueDate).toLocaleDateString()}</td>
@@ -73,7 +102,7 @@ function IssuablePurchase() {
                       </Dropdown.Toggle>
                       <Dropdown.Menu>
                         <Dropdown.Item>View Details</Dropdown.Item>
-                        <Dropdown.Item onClick={() => handleDelete(po.id)}>Delete</Dropdown.Item>
+                        <Dropdown.Item onClick={() => handleDelete(po._id)}>Delete</Dropdown.Item>
                       </Dropdown.Menu>
                     </Dropdown>
                   </td>

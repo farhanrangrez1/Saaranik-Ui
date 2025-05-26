@@ -3,9 +3,13 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useDispatch, useSelector } from "react-redux";
+import { fetchProject } from "../../../redux/slices/ProjectsSlice";
+import { fetchjobs } from "../../../redux/slices/JobsSlice";
 
 function AddIssuablePurchase() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [clients, setClients] = useState([]);
   const [items, setItems] = useState([
     { description: "", quantity: 0, unitPrice: 0, total: 0 },
@@ -94,8 +98,14 @@ function AddIssuablePurchase() {
       toast.error("Failed to create purchase!");
     }
   };
+// /
+  const { project } = useSelector((state) => state.projects);
+  const { job } = useSelector((state) => state.jobs);
 
-
+  useEffect(() => {
+    dispatch(fetchProject());
+    dispatch(fetchjobs());
+  }, [dispatch]);
 
   const subtotal = items.reduce((sum, item) => sum + item.total, 0);
   const vatAmount = (subtotal * parseFloat(formData.vat || 0)) / 100;
