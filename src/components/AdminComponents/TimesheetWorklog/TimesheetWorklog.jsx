@@ -1,13 +1,17 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FaSearch, FaCalendarAlt, FaPencilAlt, FaTrashAlt } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import './TimesheetWorklog.css';
+import { useDispatch, useSelector } from 'react-redux';
+import { deleteTimesheetWorklog, fetchTimesheetWorklogs } from '../../../redux/slices/TimesheetWorklogSlice';
+import Swal from 'sweetalert2';
 
 function TimesheetWorklog() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedProject, setSelectedProject] = useState('All Projects');
-  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedProject, setSelectedProject] = useState('All timesheet');
 
+  const dispatch = useDispatch()
+  const navigate = useNavigate();
   const timeEntries = [
     {
       date: '2024-01-15',
@@ -50,15 +54,81 @@ function TimesheetWorklog() {
     overtime: '2.5 hrs'
   };
 
-  const formatDate = (dateStr) => {
-    const [year, month, day] = dateStr.split('-');
-    return `${day}/${month}/${year}`;
-  };
-
   const formatHours = (hoursDecimal) => {
     const hours = Math.floor(hoursDecimal);
     const minutes = Math.round((hoursDecimal - hours) * 60);
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} hrs`;
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  //  const { timesheetWorklog, loading, error } = useSelector((state) => state.TimesheetWorklogs);
+  //  console.log('timesheetWorklog', timesheetWorklog);
+
+  //   useEffect(() => {
+  //     dispatch(fetchTimesheetWorklogs());
+  //   }, [dispatch]);
+
+  // const itemsPerPage = 10;
+  // const totalPages = Math.ceil((timesheetWorklog?.length || 0) / itemsPerPage);
+  // const paginatedtimesheetWorklog = timesheetWorklog?.slice(
+  //   (currentPage - 1) * itemsPerPage,
+  //   currentPage * itemsPerPage
+  // );
+  // console.log(paginatedtimesheetWorklog);
+
+
+  const { timesheetWorklog, loading, error } = useSelector((state) => state.TimesheetWorklogs);
+  console.log(timesheetWorklog.TimesheetWorklogs);
+
+  useEffect(() => {
+    dispatch(fetchTimesheetWorklogs());
+  }, [dispatch]);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+  const filteredtimesheet = timesheetWorklog.TimesheetWorklogs || [];
+  const totalPages = Math.ceil(filteredtimesheet.length / itemsPerPage);
+  const paginatedtimesheet = filteredtimesheet.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handleDelete = (_id) => {
+    console.log(_id);
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You want to mark this job as Cancelled?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, mark as Cancelled!",
+    }).then((result) => {
+      if (result.isConfirmed) {
+       dispatch(deleteTimesheetWorklog(_id))
+
+          .unwrap()
+          .then(() => {
+            Swal.fire("Updated!", "The job has been marked as Cancelled.", "success");
+            dispatch(fetchTimesheetWorklogs());
+          })
+          .catch(() => {
+            Swal.fire("Error!", "Something went wrong while updating.", "error");
+          });
+      }
+    });
+  };
+  
+
+   const handleUpdate = (entry) => {
+    navigate(`/AddTimesheetWorklog`, { state: { entry } });
   };
 
   return (
@@ -72,7 +142,7 @@ function TimesheetWorklog() {
       </div>
 
       {/* Summary Cards */}
-      <div className="row g-3 mb-4">
+      {/* <div className="row g-3 mb-4">
         <div className="col-sm-6 col-md-3">
           <div className="card h-100 shadow-sm border-0 summary-card summary-card-primary">
             <div className="card-body p-4">
@@ -105,7 +175,7 @@ function TimesheetWorklog() {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Filters */}
       <div className="row g-3 mb-4">
@@ -129,7 +199,7 @@ function TimesheetWorklog() {
             value={selectedProject}
             onChange={(e) => setSelectedProject(e.target.value)}
           >
-            <option>All Projects</option>
+            <option>All timesheet</option>
             <option>Project A</option>
             <option>Project B</option>
             <option>Project C</option>
@@ -145,29 +215,32 @@ function TimesheetWorklog() {
               <tr className="bg-light">
                 <th className="py-3">Date</th>
                 <th className="py-3">JobID</th>
-                <th className="py-3">Task Description</th>
+                <th style={{ whiteSpace: 'nowrap' }} className="py-3">Task Description</th>
                 <th className="py-3">Hours</th>
                 <th className="py-3">Status</th>
                 <th className="py-3 text-end">Actions</th>
               </tr>
             </thead>
+
             <tbody>
-              {timeEntries.map((entry, index) => (
+              {paginatedtimesheet?.map((entry, index) => (
                 <tr key={index}>
                   <td className="py-3">{formatDate(entry.date)}</td>
-                  <td className="py-3">{entry.jobId}</td>
-                  <td className="py-3">{entry.taskDescription}</td>
-                  <td className="py-3">{formatHours(entry.hours)}</td>
+                  <td onClick={() => JobDetails(entry.jobId[0])}>              
+                     JOB-{String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}
+                  </td>
+                  <td style={{ whiteSpace: 'nowrap' }} className="py-3">{entry.taskDescription}</td>
+                  <td style={{ whiteSpace: 'nowrap' }} className="py-3">{formatHours(entry.hours)}</td>
                   <td className="py-3">
                     <span className={`badge rounded-pill ${entry.status === 'Approved' ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning'} px-3 py-2`}>
                       {entry.status}
                     </span>
                   </td>
-                  <td className="py-3 text-end">
-                    <button className="btn btn-link text-dark p-0 me-3 action-btn">
+                  <td style={{ whiteSpace: 'nowrap' }} className="py-3 text-end">
+                    <button className="btn btn-link text-dark p-0 me-3 action-btn" onClick={() => handleUpdate(entry)}>
                       <FaPencilAlt />
                     </button>
-                    <button className="btn btn-link text-danger p-0 action-btn">
+                    <button className="btn btn-link text-danger p-0 action-btn" onClick={() => handleDelete(entry._id)}>
                       <FaTrashAlt />
                     </button>
                   </td>
@@ -204,7 +277,7 @@ function TimesheetWorklog() {
       </div>
 
       {/* Pagination */}
-      <div className="d-flex justify-content-between align-items-center mt-4 py-3 border-top">
+      {/* <div className="d-flex justify-content-between align-items-center mt-4 py-3 border-top">
         <div className="text-muted">
           <small>Showing <span className="fw-semibold">1</span> to <span className="fw-semibold">3</span> of <span className="fw-semibold">12</span> entries</small>
         </div>
@@ -227,8 +300,36 @@ function TimesheetWorklog() {
             </li>
           </ul>
         </nav>
-      </div>
+      </div> */}
 
+
+      {/* Pagination */}
+      {!loading && !error && (
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <div className="text-muted small">
+            Showing {(currentPage - 1) * itemsPerPage + 1} to {(currentPage - 1) * itemsPerPage + paginatedtimesheet.length} of {filteredtimesheet.length} entries
+          </div>
+          <ul className="pagination pagination-sm mb-0">
+            <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
+                Previous
+              </button>
+            </li>
+            {Array.from({ length: totalPages }, (_, i) => (
+              <li key={i + 1} className={`page-item ${currentPage === i + 1 ? 'active' : ''}`}>
+                <button className="page-link" onClick={() => setCurrentPage(i + 1)}>
+                  {i + 1}
+                </button>
+              </li>
+            ))}
+            <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
+                Next
+              </button>
+            </li>
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

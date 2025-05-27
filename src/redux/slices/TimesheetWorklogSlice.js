@@ -20,7 +20,7 @@ export const createTimesheetWorklog = createAsyncThunk(
   async (submissionData, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.post(
-        `${apiUrl}/TimesheetWorklog`,
+        `${apiUrl}/timesheetWorklog`,
         submissionData,
         {
           headers: {
@@ -38,13 +38,14 @@ export const deleteTimesheetWorklog = createAsyncThunk(
   'TimesheetWorklogs/deleteTimesheetWorklog',
   async (_id, { rejectWithValue }) => {
     try {
-      await axiosInstance.delete(`${apiUrl}/TimesheetWorklog/${_id}`);
-      return id;
+      await axiosInstance.delete(`${apiUrl}/timesheetWorklog/${_id}`);
+      return _id;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
     }
   }
 );
+
 
 export const fetchTimesheetWorklogById = createAsyncThunk('TimesheetWorklogs/fetchById', async (id) => {
   const response = await fetch(`/api/jobs/${id}`);
@@ -56,12 +57,12 @@ export const fetchTimesheetWorklogById = createAsyncThunk('TimesheetWorklogs/fet
 export const updateTimesheetWorklog = createAsyncThunk(
   'TimesheetWorklogs/updateTimesheetWorklog',
   async ({ _id, data }, { rejectWithValue }) => {
-    try {
-      const response = await fetch(`${apiUrl}/TimesheetWorklog/${_id}`, {
-        method: "PATCH", // PATCH should be uppercase
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
+  try {
+    const response = await fetch(`${apiUrl}/TimesheetWorklog/${_id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         return rejectWithValue(errorData.message || "Failed to update time logs");
@@ -114,7 +115,7 @@ const TimesheetWorklogSlice = createSlice({
       })
       .addCase(fetchTimesheetWorklogs.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.TimesheetWorklog = action.payload;
+        state.timesheetWorklog = action.payload;
       })
       .addCase(fetchTimesheetWorklogs.rejected, (state, action) => {
         state.status = 'failed';

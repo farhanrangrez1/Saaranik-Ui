@@ -8,6 +8,7 @@ import costEstimatesReducer from "../redux/slices/costEstimatesSlice"
 import receivablePurchaseReducer from "../redux/slices/receivablePurchaseSlice"
 import TimeLogsReducer from "../redux/slices/TimeLogsSlice"
 import TimesheetWorklogReducer from "../redux/slices/TimesheetWorklogSlice"
+import InvoicingBillingReducer from "../redux/slices/InvoicingBillingSlice"
 
 export const store = configureStore({
   reducer: {
@@ -18,7 +19,8 @@ export const store = configureStore({
     costEstimates:costEstimatesReducer,
     receivablePurchases: receivablePurchaseReducer,
     TimeLogss: TimeLogsReducer,
-    TimesheetWorklogs:TimesheetWorklogReducer
+    TimesheetWorklogs:TimesheetWorklogReducer,
+    InvoicingBilling:InvoicingBillingReducer
 
 }
 });

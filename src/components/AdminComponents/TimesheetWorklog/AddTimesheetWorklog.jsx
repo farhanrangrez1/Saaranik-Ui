@@ -1,47 +1,141 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { fetchProject } from '../../../redux/slices/ProjectsSlice';
 import { fetchjobs } from '../../../redux/slices/JobsSlice';
+import { createTimesheetWorklog, updateTimesheetWorklog } from '../../../redux/slices/TimesheetWorklogSlice'; // Make sure this exists
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function AddTimesheetWorklog() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const location = useLocation();
+  const { entry } = location.state || {};
+const _id = entry?._id;
+
+  const { project } = useSelector(state => state.projects);
+  const { job } = useSelector(state => state.jobs);
+
+console.log(" Data:", entry);
 
   const [formData, setFormData] = useState({
     date: '',
-    projectsId: '',
+    projectId: '',
     jobId: '',
     status: '',
     startTime: '',
     endTime: '',
     hours: '',
     taskDescription: '',
-    tags: ''
+    tags: '',
+    projectName: '',
+    jobName: ''
   });
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prevState => ({
-      ...prevState,
-      [name]: value
-    }));
-  };
+useEffect(() => {
+  if (entry) {
+    const parsedDate = entry.date
+      ? new Date(entry.date).toISOString().split('T')[0]
+      : '';
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log('Form submitted:', formData); // ✅ Console output of full form data
-  };
-
-  const { project } = useSelector((state) => state.projects);
-  const { job } = useSelector((state) => state.jobs);
-
-  const reversedProjectList = project?.data?.slice().reverse() || [];
-  const reversedJobList = job?.jobs?.slice().reverse() || [];
+    setFormData({
+      date: parsedDate,
+      projectId: Array.isArray(entry.projectId) ? entry.projectId[0]._id : '',
+      jobId: Array.isArray(entry.jobId) ? entry.jobId[0]._id : '',
+      status: entry.status || '',
+      startTime: entry.startTime || '',
+      endTime: entry.endTime || '',
+      hours: entry.hours || '',
+      taskDescription: entry.taskDescription || '',
+      tags: entry.tags || '',
+      projectName: Array.isArray(entry.projectId) ? entry.projectId[0].projectName : '',
+      jobName: Array.isArray(entry.jobId) ? entry.jobId[0].jobName || '' : ''
+    });
+  }
+}, [entry]);
 
   useEffect(() => {
     dispatch(fetchProject());
     dispatch(fetchjobs());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (formData.startTime && formData.endTime) {
+      const [startHour, startMinute] = formData.startTime.split(':').map(Number);
+      const [endHour, endMinute] = formData.endTime.split(':').map(Number);
+
+      const start = new Date();
+      start.setHours(startHour, startMinute, 0);
+
+      const end = new Date();
+      end.setHours(endHour, endMinute, 0);
+
+      let diff = (end - start) / 1000 / 60 / 60; // hours
+
+      if (diff < 0) diff = 0;
+
+      setFormData(prev => ({
+        ...prev,
+        hours: diff.toFixed(2)
+      }));
+    }
+  }, [formData.startTime, formData.endTime]);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+ const handleSubmit = (e) => {
+  e.preventDefault();
+
+  const payload = {
+    projectId: [formData.projectId],
+    jobId: [formData.jobId],
+    date: formData.date,
+    startTime: formData.startTime,
+    endTime: formData.endTime,
+    hoursWorked: formData.hours,
+    hours: formData.hours,
+    taskDescription: formData.taskDescription,
+    status: formData.status,
+    tags: formData.tags,
+    projectName: formData.projectName,
+    jobName: formData.jobName
+  };
+
+  if (_id) {
+    dispatch(updateTimesheetWorklog({ _id, data: payload }))
+      .unwrap()
+      .then(() => {
+        toast.success("Timesheet updated successfully!");
+        navigate("/TimesheetWorklog");
+      })
+      .catch((err) => {
+        console.error("Update error:", err); 
+        toast.error("Failed to update timesheet!");
+      });
+  } else {
+    dispatch(createTimesheetWorklog(payload))
+      .unwrap()
+      .then(() => {
+        toast.success("Timesheet created successfully!");
+        navigate("/TimesheetWorklog");
+      })
+      .catch(() => {
+        toast.error("Error creating timesheet");
+      });
+  }
+};
+
+
+  const reversedProjectList = project?.data?.slice().reverse() || [];
+  const reversedJobList = job?.jobs?.slice().reverse() || [];
 
   return (
     <div className="container py-4">
@@ -57,16 +151,16 @@ function AddTimesheetWorklog() {
                     <label className="form-label">Project</label>
                     <select
                       className="form-select"
-                      name="projectsId"
-                      value={formData.projectsId}
+                      name="projectId"
+                      value={formData.projectId}
                       onChange={(e) => {
                         const selectedId = e.target.value;
                         const selectedProject = project?.data?.find(p => p._id === selectedId);
-                        setFormData({
-                          ...formData,
-                          projectsId: selectedId,
+                        setFormData(prev => ({
+                          ...prev,
+                          projectId: selectedId,
                           projectName: selectedProject?.projectName || ""
-                        });
+                        }));
                       }}
                       required
                     >
@@ -80,7 +174,7 @@ function AddTimesheetWorklog() {
                   </div>
 
                   <div className="col-md-6">
-                    <label className="form-label">Jobs</label>
+                    <label className="form-label">Job</label>
                     <select
                       className="form-select"
                       name="jobId"
@@ -88,11 +182,11 @@ function AddTimesheetWorklog() {
                       onChange={(e) => {
                         const selectedId = e.target.value;
                         const selectedJob = reversedJobList.find(j => j._id === selectedId);
-                        setFormData({
-                          ...formData,
+                        setFormData(prev => ({
+                          ...prev,
                           jobId: selectedId,
-                          jobName: selectedJob?.jobName || selectedJob?.brandName + ' ' + selectedJob?.subBrand || ""
-                        });
+                          jobName: selectedJob?.jobName || `${selectedJob?.brandName} ${selectedJob?.subBrand}`
+                        }));
                       }}
                       required
                     >
@@ -127,9 +221,10 @@ function AddTimesheetWorklog() {
                       required
                     >
                       <option value="">Select Status</option>
-                      <option value="pending">Pending</option>
-                      <option value="in_progress">In Progress</option>
-                      <option value="completed">Completed</option>
+                      <option value="Approved">Approved</option>
+                      <option value="Pending">Pending</option>
+                      <option value="In Progress">In Progress</option>
+                      <option value="Completed">Completed</option>
                     </select>
                   </div>
 
@@ -160,12 +255,14 @@ function AddTimesheetWorklog() {
                   <div className="col-md-6">
                     <label className="form-label">Hours</label>
                     <input
-                      type="text"
+                      type="number"
+                      step="0.1"
                       className="form-control"
                       name="hours"
                       value={formData.hours}
                       onChange={handleInputChange}
                       placeholder="e.g. 3.5"
+                      readOnly
                       required
                     />
                   </div>
@@ -197,7 +294,9 @@ function AddTimesheetWorklog() {
 
                 <div className="d-flex justify-content-end gap-2 mt-4">
                   <Link to="/TimesheetWorklog" className="btn btn-light">Cancel</Link>
-                  <button type="submit" className="btn btn-dark">Submit Time Entry</button>
+                  <button type="submit" className="btn btn-dark">
+                    {id ? "Update Time Entry" : "Submit Time Entry"}
+                  </button>
                 </div>
               </form>
             </div>

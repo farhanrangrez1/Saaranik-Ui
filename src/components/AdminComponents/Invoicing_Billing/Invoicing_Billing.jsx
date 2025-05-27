@@ -1,15 +1,19 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Form, Table, Badge, InputGroup, Modal } from 'react-bootstrap';
 import { FaSearch, FaFilter, FaSort, FaEdit, FaTrash, FaDownload } from 'react-icons/fa';
 import AddInvoice from './AddInvoice';
-import { Link } from 'react-router-dom';
-
+import { Link, useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
 import { jsPDF } from "jspdf";
+import { deleteInvoicingBilling, fetchInvoicingBilling } from '../../../redux/slices/InvoicingBillingSlice';
+import { useDispatch, useSelector } from 'react-redux';
 
 function Invoicing_Billing() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState(null);
   const [sortDirection, setSortDirection] = useState('asc');
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const initialInvoices = [
     {
@@ -52,7 +56,7 @@ function Invoicing_Billing() {
   const handleSearch = (e) => {
     const query = e.target.value.toLowerCase();
     setSearchQuery(query);
-    
+
     const filtered = initialInvoices.filter(invoice =>
       invoice.invoiceNumber.toLowerCase().includes(query) ||
       invoice.client.toLowerCase().includes(query) ||
@@ -98,20 +102,69 @@ function Invoicing_Billing() {
   };
 
 
-  const handleDownloadPDF  = () => {
+  const handleDownloadPDF = () => {
     const doc = new jsPDF();
     doc.text("This is a PDF content example.", 10, 10); // Replace with your actual data
     doc.save("document.pdf");
   };
+
+  const { invocing, loading, error } = useSelector((state) => state.InvoicingBilling);
+  console.log(invocing.InvoicingBilling);
+
+  useEffect(() => {
+    dispatch(fetchInvoicingBilling());
+  }, [dispatch]);
+
+  // PAGINATION SETUP FOR ESTIMATES
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 7;
+  const totalItems = invocing.InvoicingBilling?.length || 0;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+  const paginatedEstimates = invocing.InvoicingBilling
+    ?.slice()
+    .reverse()
+    .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+
+  const handleDelete = (_id) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You want to mark this job as Cancelled?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, mark as Cancelled!",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        dispatch(deleteInvoicingBilling(_id))
+          .unwrap()
+          .then(() => {
+            Swal.fire("Updated!", "The job has been marked as Cancelled.", "success");
+            dispatch(fetchInvoicingBilling());
+          })
+          .catch(() => {
+            Swal.fire("Error!", "Something went wrong while updating.", "error");
+          });
+      }
+    });
+  };
+
+  const UpdateInvocing = (invoice) => {
+    navigate(`/AddInvoice`, {
+      state: { invoice }
+    });
+  }
   return (
-    <div className=" p-4 m-3" style={{backgroundColor:"white",borderRadius:"10px",}}>
+    <div className=" p-4 m-3" style={{ backgroundColor: "white", borderRadius: "10px", }}>
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2>Invoicing & Billing</h2>
-       <Link to={"/AddInvoice"}> <button id="All_btn" className="btn btn-dark">
+        <Link to={"/AddInvoice"}> <button id="All_btn" className="btn btn-dark">
           Generate New Invoice
         </button></Link>
       </div>
-      
+
       <div className="d-flex justify-content-between align-items-center mb-4">
         <InputGroup className="w-25">
           <InputGroup.Text>
@@ -150,56 +203,69 @@ function Invoicing_Billing() {
           </tr>
         </thead>
         <tbody>
-          {invoices.map((invoice) => (
+          {paginatedEstimates?.map((invoice, index) => (
             <tr key={invoice.invoiceNumber}>
-              <td>{invoice.invoiceNumber}</td>
-              <td>{invoice.client}</td>
-              <td>{invoice.project}</td>
-              <td>${invoice.amount.toFixed(2)}</td>
+              <td onClick={() => JobDetails(invoice._id)}>
+                INV-{String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}
+              </td>
+
+              <td>{invoice.clients?.[0]?.clientName || "N/A"}</td>
+              <td>{invoice.projectId?.[0]?.projectName || "N/A"}</td>
+              <td>${invoice.lineItems?.[0]?.amount || "N/A"}</td>
               <td>
                 <Badge bg={getStatusBadgeVariant(invoice.status)}>
                   {invoice.status}
                 </Badge>
               </td>
-              <td>{invoice.dueDate}</td>
+              <td>{new Date(invoice.date).toLocaleDateString("en-GB")}</td>
               <td>
-  <div className="d-flex gap-2">
-    <button className="btn btn-sm btn-outline-primary">
-      <FaEdit />
-    </button>
-    <button className="btn btn-sm btn-outline-danger">
-      <FaTrash />
-    </button>
-    <button
-      className="btn btn-sm btn-outline-secondary"
-      onClick={handleDownloadPDF }
-    >
-      <FaDownload />
-    </button>
-  </div>
-</td>
+                <div className="d-flex gap-2">
+                  <button className="btn btn-sm btn-outline-primary" onClick={() => UpdateInvocing(invoice)}>
+                    <FaEdit />
+                  </button>
+                  <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(invoice._id)}>
+                    <FaTrash />
+                  </button>
+                  <button
+                    className="btn btn-sm btn-outline-secondary"
+                    onClick={handleDownloadPDF}
+                  >
+                    <FaDownload />
+                  </button>
+                </div>
+              </td>
 
             </tr>
           ))}
         </tbody>
       </Table>
-
-      <div className="d-flex justify-content-between align-items-center mt-4">
-        <div>Showing 1 to 3 of 15 entries</div>
-        <div className="d-flex gap-2">
-          <button className="btn btn-outline-secondary" disabled>Previous</button>
-          <button className="btn btn-dark">1</button>
-          <button className="btn btn-outline-secondary">2</button>
-          <button className="btn btn-outline-secondary">3</button>
-          <button className="btn btn-outline-secondary">Next</button>
+      {/* Modal for converting to invoice */}
+      {!loading && !error && (
+        <div className="d-flex justify-content-between align-items-center mt-3">
+          <div className="text-muted small">
+            Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} entries
+          </div>
+          <ul className="pagination pagination-sm mb-0">
+            <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
+                Previous
+              </button>
+            </li>
+            {Array.from({ length: totalPages }, (_, i) => (
+              <li key={i + 1} className={`page-item ${currentPage === i + 1 ? 'active' : ''}`}>
+                <button className="page-link" onClick={() => setCurrentPage(i + 1)}>
+                  {i + 1}
+                </button>
+              </li>
+            ))}
+            <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
+                Next
+              </button>
+            </li>
+          </ul>
         </div>
-      </div>
-
-      <Modal show={showAddInvoice} onHide={handleCloseAddInvoice} size="lg">
-        <Modal.Body>
-          <AddInvoice onClose={handleCloseAddInvoice} onSubmit={handleAddInvoice} />
-        </Modal.Body>
-      </Modal>
+      )}
     </div>
   );
 }
