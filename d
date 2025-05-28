@@ -12269,3 +12269,1689 @@ export default TimeLogs;
                       
                       export default AddInvoice;
                       
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                      import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import "./Sidebar.css";
+import { FaHome, FaFileInvoiceDollar, FaShoppingCart, FaProjectDiagram, FaTasks, FaIndustry, FaPencilRuler, FaFileAlt, FaClock, FaBell, FaChartLine, FaUsersCog, FaCog } from 'react-icons/fa';
+const Sidebar = ({ isOpen, toggleSidebar }) => {
+  const [openMenuIndex, setOpenMenuIndex] = useState(null);
+  const [activeMenuIndex, setActiveMenuIndex] = useState(null);
+  const [activeSubmenuPath, setActiveSubmenuPath] = useState(null);
+  const [roledata, setRoleData] = useState("admin");
+
+  const menuItems = [
+    {
+      title: "Dashboard",
+      icon: <FaHome className="menu-icon" />,
+      path: "/admin/dashboard"
+    },
+    {
+      title: "Projects & Jobs",
+      icon: <FaProjectDiagram className="menu-icon" />,
+      submenu: [
+        { title: "Projects", path: "/admin/projectList" },
+        { title: "Job Tracker", path: "/admin/JobTracker" },
+      ]
+    },
+    {
+      title: "Production",
+      icon: <FaIndustry className="menu-icon" />,
+      submenu: [
+        { title: "Assign Job", path: "/admin/newJobsList" },
+        { title: "In Progress", path: "/admin/inProgress" },
+        { title: "Completed", path: "/admin/completedJobs" },
+        // { title: "Production", path: "/ProductionManager" },
+      ]
+    },
+    {
+      title: "Designer Panel",
+      icon: <FaPencilRuler className="menu-icon" />,
+      submenu: [
+        { title: "My Jobs", path: "/admin/MyJobs" },
+        { title: "Time Logs", path: "/admin/TimeLogs" },
+      // { title: "Designers", path: "/DesignerPanel" },
+      ]
+    },
+    {
+      title: "Cost Estimates",
+      icon: <FaFileInvoiceDollar className="menu-icon" />,
+      path: "/admin/CostEstimates"
+    },
+    {
+      title: "Purchase Orders",
+      icon: <FaShoppingCart className="menu-icon" />,
+      submenu: [
+        { title: "Receivable POs", path: "/admin/receivable" },
+        { title: "Issuable POs", path: "/admin/IssuablePurchase" },
+      ]
+    },
+    {
+      title: "Invoicing & Billing",
+      icon: <FaFileAlt className="menu-icon" />,
+      path: "/admin/Invoicing_Billing"
+    },
+    {
+      title: "Timesheet & Worklog",
+      icon: <FaClock className="menu-icon" />,
+      path: "/admin/TimesheetWorklog"
+    },
+    {
+      title: "Client/Supplier",
+      icon: <FaUsersCog className="menu-icon" />,
+      path: "/admin/clientManagement"
+    },
+    {
+      title: "Reports & Analytics",
+      icon: <FaChartLine className="menu-icon" />,
+      path: "/admin/Reports"
+    },
+    {
+      title: "User Permissions",
+      icon: <FaUsersCog className="menu-icon" />,
+      path: "/admin/UserRoles"
+    },
+     {
+      title: "Notiifcations",
+      icon: <FaBell className="menu-icon" />,
+      path: "/admin/Notiifcations"
+    },
+    {
+      title: "Settings",
+      icon: <FaCog className="menu-icon" />,
+      path: "/admin/Settings"
+    },
+  ]
+
+
+  // 
+  const navigate = useNavigate();
+
+  const toggleMenu = (index) => {
+    setOpenMenuIndex(openMenuIndex === index ? null : index);
+  };
+
+  const handlesubmenuclick = (menuindex, path) => {
+    setActiveMenuIndex(menuindex);
+    setActiveSubmenuPath(path);
+    navigate(path);
+  };
+
+  useEffect(()=>{
+    const Role= localStorage.getItem("userRole")
+     if(Role){
+     setRoleData(Role)
+     }else{
+      setRoleData()
+     }
+  },[])
+  return (
+    <>
+      <div className={`sidebar ${isOpen ? "expanded" : "collapsed"}`}>
+        <div className="sidebar-header">
+          <div className="logo">
+            <span className="logo-text">Saaranik</span>
+          </div>
+        </div>
+        <ul className="menu" style={{ whiteSpace: 'nowrap' }}>
+          {menuItems.map((item, index) => (
+            <li
+              key={index}
+              // className={`menu-item ${
+              //   item.submenu
+              //     ? openMenuIndex === index
+              //       ? "open"
+              //       : ""
+              //     : activeMenuIndex === index
+              //     ? "active"
+              //     : ""
+              // }`}
+              className={`menu-item ${item.submenu ? openMenuIndex === index ? "open" : activeSubmenuPath?.startsWith(item.submenu[0].path.split('/')[1]) ? "submenu-active" : "" : activeMenuIndex === index ? "active" : ""}`}
+              onClick={() => {
+                if (item.submenu) {
+                  toggleMenu(index);
+                } else {
+                  handlesubmenuclick(index, item.path);
+                }
+              }}
+            >
+              <div className="menu-link menu-i">
+                {item.icon}
+                {isOpen && <span className="menu-text">{item.title}</span>}
+                {item.submenu && isOpen && (
+                  <i
+                    className={`fas fa-chevron-down menu-toggle-icon ${openMenuIndex === index ? "open" : ""}`}
+                  />
+                )}
+              </div>
+              {item.submenu && isOpen && (
+                <ul className={`submenu ${openMenuIndex === index ? "open" : ""}`}>
+                  {item.submenu.map((subItem, subIndex) => (
+                    <li
+                      key={subIndex}
+                      className={`submenu-item ${activeSubmenuPath === subItem.path ? "active-submenu-item" : ""}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlesubmenuclick(index, subItem.path);
+                      }}
+                    >
+                      {subItem.title}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </>
+  );
+       {/* client-dashboard */}
+       {roledata === "client" && (
+       <>
+       <li
+        className={`menu-item ${openMenuIndex === 6 ? "open" : ""} ${
+          activeMenuIndex === 6 ? "active" : ""
+        }`}
+        onClick={() => handlesubmenuclick(6, "/client-home")}>
+        <div className="menu-link menu-i">
+          <i  className="nav-icon fas fa-home menu-icon"
+            style={{ color: "#64748b" }}/>
+          {isOpen && <span className="menu-text">  Dashboard </span>}
+        
+        </div>
+      </li>
+      <li
+        className={`menu-item ${openMenuIndex === 7 ? "open" : ""} ${
+          activeMenuIndex === 7 ? "active" : ""
+        }`}
+        onClick={() => handlesubmenuclick(7, "/select-project")}>
+        <div className="menu-link menu-i">
+          <i  className="nav-icon fa-solid fa-diagram-project menu-icon"
+            style={{ color: "#64748b" }}/>
+          {isOpen && <span className="menu-text">  Select Project </span>}
+        
+        </div>
+      </li>
+      <li
+        className={`menu-item ${openMenuIndex === 8 ? "open" : ""} ${
+          activeMenuIndex === 8 ? "active" : ""
+        }`}
+        onClick={() => handlesubmenuclick(8, "/select-job")}>
+        <div className="menu-link menu-i">
+          <i className="nav-icon fa-solid fa-users-line menu-icon"
+            style={{ color: "#64748b" }}/>
+          {isOpen && <span className="menu-text">  Select Job </span>}
+        
+        </div>
+      </li>
+      <li
+        className={`menu-item ${openMenuIndex === 9 ? "open" : ""} ${
+          activeMenuIndex ===9 ? "active" : ""
+        }`}
+        onClick={() => handlesubmenuclick(9, "/notification")}>
+        <div className="menu-link menu-i"> 
+          <i className="nav-icon fa-regular fa-bell menu-icon"
+            style={{ color: "#64748b" }}/>
+          {isOpen && <span className="menu-text">Notification </span>}
+        
+        </div>
+      </li>
+      <li
+        className={`menu-item ${openMenuIndex === 10 ? "open" : ""} ${
+          activeMenuIndex ===10 ? "active" : ""
+        }`}
+        onClick={() => handlesubmenuclick(10, "/new-projects")}>
+        <div className="menu-link menu-i">
+          <i  className="nav-icon fa-solid fa-diagram-project menu-icon"
+            style={{ color: "#64748b" }}/>
+          {isOpen && <span className="menu-text">New Project </span>}
+        
+        </div>
+      </li>
+      </>
+       )}
+
+      {/* employee-dashboard */}
+      {(roledata === "employee" || roledata === "designer") && (
+         <>
+         <li
+            className={`menu-item ${openMenuIndex === 11 ? "open" : ""} ${
+              activeMenuIndex === 11 ? "active" : ""
+            }`}
+            onClick={() => handlesubmenuclick(11, "/emoloyeedashboard")}
+          >
+            <div className="menu-link menu-i">
+              <i
+                className="nav-icon fas fa-home menu-icon"
+                style={{ color: "#64748b" }}
+              />
+              {isOpen && <span className="menu-text">Employee Dashboard</span>}
+             
+            </div>
+          </li>
+          <li
+            className={`menu-item ${openMenuIndex === 12 ? "open" : ""} ${
+              activeMenuIndex === 12 ? "active" : ""
+            }`}
+            onClick={() => handlesubmenuclick(12, "/task")}
+          >
+            <div className="menu-link menu-i">
+              <i
+                className="fa-solid fa-bars-progress menu-icon"
+                style={{ color: "#64748b" }}
+              />
+              {isOpen && <span className="menu-text"> My Tasks</span>}
+           
+            </div>
+          </li>
+          <li
+            className={`menu-item ${openMenuIndex === 13 ? "open" : ""} ${
+              activeMenuIndex === 13 ? "active" : ""
+            }`}
+            onClick={() => handlesubmenuclick(13, "/picktask")}
+          >
+            <div className="menu-link menu-i">
+              <i
+                className="fa-solid fa-list-check menu-icon"
+                style={{ color: "#64748b" }}
+              />
+              {isOpen && <span className="menu-text">Pick Task</span>}
+          
+            </div>
+          </li>
+          <li
+            className={`menu-item ${openMenuIndex === 14 ? "open" : ""} ${
+              activeMenuIndex === 14 ? "active" : ""
+            }`}
+            onClick={() => handlesubmenuclick(14, "/submittask")}
+          >
+            <div className="menu-link menu-i">
+              <i
+                className="fa-solid fa-closed-captioning menu-icon"
+                style={{ color: "#64748b" }}
+              />
+              {isOpen && <span className="menu-text">Submit Task</span>}
+            
+            </div>
+          </li>
+          <li
+            className={`menu-item ${openMenuIndex === 15 ? "open" : ""} ${
+              activeMenuIndex === 15 ? "active" : ""
+            }`}
+            onClick={() => handlesubmenuclick(15, "/projectdetail")}
+          >
+            <div className="menu-link menu-i">
+              <i
+                className="fa-solid fa-street-view menu-icon"
+                style={{ color: "#64748b" }}
+              />
+              {isOpen && (
+                <span className="menu-text">View Project Details</span>
+              )}
+           
+            </div>
+          </li>
+          <li
+            className={`menu-item ${openMenuIndex === 16 ? "open" : ""} ${
+              activeMenuIndex === 16 ? "active" : ""
+            }`}
+            onClick={() => handlesubmenuclick(16, "/jobhistory")}
+          >
+            <div className="menu-link menu-i">
+              <i
+                className="fa-solid fa-clock-rotate-left menu-icon"
+                style={{ color: "#64748b" }}
+              />
+              {isOpen && <span className="menu-text">Job History</span>}
+            
+            </div>
+          </li>
+          <li
+            className={`menu-item ${openMenuIndex === 17 ? "open" : ""} ${
+              activeMenuIndex === 17 ? "active" : ""
+            }`}
+            onClick={() => handlesubmenuclick(17, "/timetracking")}
+          >
+            <div className="menu-link menu-i ">
+              <i
+                className="fa-solid fa-timeline menu-icon"
+                style={{ color: "#64748b" }}
+              />
+              {isOpen && <span className="menu-text">Time Tracking</span>}
+            
+            </div>
+          </li>
+          </>
+       )}
+
+
+        {/* ProductionManager */}
+       {(roledata === "productionManager" ) && (
+  <>
+    <li
+      className={`menu-item ${openMenuIndex === 18 ? "open" : ""} ${
+        activeMenuIndex === 18 ? "active" : ""
+      }`}
+      onClick={() => handlesubmenuclick(18, "/productiondasboard")}
+    >
+      <div className="menu-link menu-i">
+        <i
+          className="nav-icon fas fa-home menu-icon"
+          style={{ color: "#64748b" }}
+        />
+        {isOpen && <span className="menu-text">Production Dashboard</span>}
+      </div>
+    </li>
+
+    <li
+      className={`menu-item ${openMenuIndex === 19 ? "open" : ""} ${
+        activeMenuIndex === 19 ? "active" : ""
+      }`}
+      onClick={() => handlesubmenuclick(19, "/ProductionProjects")}
+    >
+      <div className="menu-link menu-i">
+        <i
+          className="fa-solid fa-diagram-project menu-icon"
+          style={{ color: "#64748b" }}
+        />
+        {isOpen && <span className="menu-text">Projects</span>}
+      </div>
+    </li>
+
+    <li
+      className={`menu-item ${openMenuIndex === 20 ? "open" : ""} ${
+        activeMenuIndex === 20 ? "active" : ""
+      }`}
+      onClick={() => handlesubmenuclick(20, "/ProductionJobs")}
+    >
+      <div className="menu-link menu-i">
+        <i
+          className="fa-solid fa-users menu-icon"
+          style={{ color: "#64748b" }}
+        />
+        {isOpen && <span className="menu-text">Jobs</span>}
+      </div>
+    </li>
+    <li
+      className={`menu-item ${openMenuIndex === 21 ? "open" : ""} ${
+        activeMenuIndex === 21 ? "active" : ""
+      }`}
+      onClick={() => handlesubmenuclick(21, "/ProductioneMployees")}
+    >
+      <div className="menu-link menu-i">
+        <i
+          className="fa-solid fa-tasks menu-icon"
+          style={{ color: "#64748b" }}
+        />
+        {isOpen && <span className="menu-text">Eployees</span>}
+      </div>
+    </li>
+    <li
+      className={`menu-item ${openMenuIndex === 22 ? "open" : ""} ${
+        activeMenuIndex === 22 ? "active" : ""
+      }`}
+      onClick={() => handlesubmenuclick(22, "/ProductionClients")}
+    >
+      <div className="menu-link menu-i">
+        <i
+          className="fa-solid fa-chart-line menu-icon"
+          style={{ color: "#64748b" }}
+        />
+        {isOpen && <span className="menu-text">Clients</span>}
+      </div>
+    </li>
+
+    <li
+      className={`menu-item ${openMenuIndex === 23 ? "open" : ""} ${
+        activeMenuIndex === 23 ? "active" : ""
+      }`}
+      onClick={() => handlesubmenuclick(23, "/ProductionTimeline")}
+    >
+      <div className="menu-link menu-i">
+        <i
+          className="fa-solid fa-calendar-alt menu-icon"
+          style={{ color: "#64748b" }}
+        />
+        {isOpen && <span className="menu-text">Timeline</span>}
+      </div>
+    </li>
+
+    <li
+      className={`menu-item ${openMenuIndex === 24 ? "open" : ""} ${
+        activeMenuIndex === 24 ? "active" : ""
+      }`}
+      onClick={() => handlesubmenuclick(24, "/ProductionReports")}
+    >
+      <div className="menu-link menu-i">
+        <i
+          className="fa-solid fa-check-circle menu-icon"
+          style={{ color: "#64748b" }}
+        />
+        {isOpen && <span className="menu-text">Reports</span>}
+      </div>
+    </li>
+  </>
+)}
+
+
+};
+
+export default Sidebar;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import React, { useEffect } from 'react';
+import { Container, Row, Col, Card, Badge, ProgressBar } from 'react-bootstrap';
+import { FaTasks, FaPlusCircle, FaCheckCircle, FaInfoCircle, FaClock } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchjobs } from '../../../redux/slices/JobsSlice';
+import { fetchProject } from '../../../redux/slices/ProjectsSlice';
+
+const EmployeeDashboard = () => {
+  const dispatch = useDispatch();
+  const { job } = useSelector((state) => state.jobs);
+  const { project } = useSelector((state) => state.projects);
+
+  useEffect(() => {
+    dispatch(fetchjobs());
+    dispatch(fetchProject());
+  }, [dispatch]);
+
+  const jobs = job?.jobs || [];
+  const totalTasks = jobs.length;
+  const inProgressTasks = jobs.filter(j => j.Status?.toLowerCase() === 'in_progress').length;
+  const completedTasks = jobs.filter(j => j.Status?.toLowerCase() === 'completed').length;
+  const pendingTasks = totalTasks - inProgressTasks - completedTasks;
+
+  return (
+    <Container fluid className="py-4">
+      <h2 className="mb-3">👋 Welcome to Your Dashboard</h2>
+
+      {/* Main Quick Actions */}
+      <Row className="g-4 mb-4">
+        <Col md={6} lg={3}>
+          <Link to="/employee/my-tasks" className="text-decoration-none">
+            <Card className="h-100 shadow-sm border-0 hover-shadow">
+              <Card.Body className="d-flex align-items-center">
+                <div className="rounded-circle bg-success bg-opacity-10 p-3 me-3 d-flex align-items-center justify-content-center" style={{ width: 50, height: 50 }}>
+                  <FaTasks className="text-success" size={24} />
+                </div>
+                <div>
+                  <h5>{inProgressTasks}</h5>
+                  <p className="mb-0">My Tasks</p>
+                  <small className="text-success">Ongoing assignments</small>
+                </div>
+              </Card.Body>
+            </Card>
+          </Link>
+        </Col>
+
+        <Col md={6} lg={3}>
+          <Link to="/employee/pick-task" className="text-decoration-none">
+            <Card className="h-100 shadow-sm border-0 hover-shadow">
+              <Card.Body className="d-flex align-items-center">
+                <div className="rounded-circle bg-primary bg-opacity-10 p-3 me-3 d-flex align-items-center justify-content-center" style={{ width: 50, height: 50 }}>
+                  <FaPlusCircle className="text-primary" size={24} />
+                </div>
+                <div>
+                  <h5>Pick Task</h5>
+                  <p className="mb-0">Browse available tasks</p>
+                  <small className="text-primary">Start a new assignment</small>
+                </div>
+              </Card.Body>
+            </Card>
+          </Link>
+        </Col>
+
+        <Col md={6} lg={3}>
+          <Link to="/employee/submit-task" className="text-decoration-none">
+            <Card className="h-100 shadow-sm border-0 hover-shadow">
+              <Card.Body className="d-flex align-items-center">
+                <div className="rounded-circle bg-info bg-opacity-10 p-3 me-3 d-flex align-items-center justify-content-center" style={{ width: 50, height: 50 }}>
+                  <FaCheckCircle className="text-info" size={24} />
+                </div>
+                <div>
+                  <h5>Submit Task</h5>
+                  <p className="mb-0">Mark task as done</p>
+                  <small className="text-info">Submit work to Production</small>
+                </div>
+              </Card.Body>
+            </Card>
+          </Link>
+        </Col>
+
+        <Col md={6} lg={3}>
+          <Link to="/employee/project-details" className="text-decoration-none">
+            <Card className="h-100 shadow-sm border-0 hover-shadow">
+              <Card.Body className="d-flex align-items-center">
+                <div className="rounded-circle bg-warning bg-opacity-10 p-3 me-3 d-flex align-items-center justify-content-center" style={{ width: 50, height: 50 }}>
+                  <FaInfoCircle className="text-warning" size={24} />
+                </div>
+                <div>
+                  <h5>Project Info</h5>
+                  <p className="mb-0">View project details</p>
+                  <small className="text-warning">Understand objectives</small>
+                </div>
+              </Card.Body>
+            </Card>
+          </Link>
+        </Col>
+      </Row>
+
+      {/* Quick Stats & Progress */}
+      <Row className="g-4">
+        <Col md={6}>
+          <Card className="shadow-sm border-0">
+            <Card.Body>
+              <h5 className="mb-3">📊 Task Overview</h5>
+              <p>Total Tasks: <Badge bg="secondary">{totalTasks}</Badge></p>
+              <p>Completed: <Badge bg="success">{completedTasks}</Badge></p>
+              <p>Pending: <Badge bg="warning">{pendingTasks}</Badge></p>
+              <ProgressBar now={(completedTasks / totalTasks) * 100} label={`${Math.round((completedTasks / totalTasks) * 100)}% completed`} />
+            </Card.Body>
+          </Card>
+        </Col>
+
+        <Col md={6}>
+          <Card className="shadow-sm border-0">
+            <Card.Body>
+              <h5 className="mb-3">🕒 Performance Today</h5>
+              <p><FaClock className="me-2 text-muted" />Time Logged Today: <strong>4h 30m</strong></p>
+              <p><FaClock className="me-2 text-muted" />Weekly Hours: <strong>22h / 40h</strong></p>
+              <ProgressBar striped variant="info" now={55} label="55%" />
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+      {/* Leaderboard */}
+      <Row className="g-4 mt-4">
+        <Col md={12}>
+          <Card className="shadow-sm border-0">
+            <Card.Body>
+              <h5 className="mb-3">🏆 Productivity Leaderboard</h5>
+              <ul className="list-group">
+                <li className="list-group-item d-flex justify-content-between">You <Badge bg="info">22h</Badge></li>
+                <li className="list-group-item d-flex justify-content-between">John D. <Badge bg="success">30h</Badge></li>
+                <li className="list-group-item d-flex justify-content-between">Ayesha S. <Badge bg="warning">18h</Badge></li>
+              </ul>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Deadlines */}
+      <Row className="g-4 mt-4">
+        <Col md={6}>
+          <Card className="shadow-sm border-0">
+            <Card.Body>
+              <h5 className="mb-3">📅 Upcoming Deadlines</h5>
+              <ul className="list-unstyled">
+                <li>Task #1001 - Due <strong>Tomorrow</strong></li>
+                <li>Project X Milestone - Due <strong>Friday</strong></li>
+                <li>Client Revision - Due <strong>Next Monday</strong></li>
+              </ul>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+      <Row className="g-4 mt-4">
+        <Col md={12}>
+          <Card className="shadow-sm border-0">
+            <Card.Body>
+              <h5 className="mb-3">🔔 Notifications</h5>
+              <ul className="list-unstyled mb-0">
+                <li className="mb-2"><Badge bg="danger" className="me-2">Urgent</Badge>Task #1023 is due today!</li>
+                <li className="mb-2"><Badge bg="info" className="me-2">Info</Badge>Project ABC updated with new specs.</li>
+                <li><Badge bg="success" className="me-2">Success</Badge>Your submission was approved.</li>
+              </ul>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+
+    </Container>
+  );
+};
+
+export default EmployeeDashboard;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+///////////////////////////////Employe Employee
+
+import React, { useState } from 'react';
+import { Card, Row, Col, Badge, ProgressBar, Dropdown } from 'react-bootstrap';
+import { BsCalendar, BsClock, BsCheckCircle, BsThreeDotsVertical, BsChevronDown } from 'react-icons/bs';
+import { FaTrophy, FaRegCalendarAlt, FaTasks } from 'react-icons/fa';
+
+// Import Inter font
+// import '@fontsource/inter/400.css';
+// import '@fontsource/inter/500.css';
+// import '@fontsource/inter/600.css';
+// import '@fontsource/inter/700.css';
+
+const EmployeeDashboard = () => {
+  const [selectedTimeframe, setSelectedTimeframe] = useState('This Week');
+
+  // Mock data for productivity leaderboard
+  const leaderboardData = [
+    {
+      name: 'Michael Chen',
+      avatar: 'MC',
+      efficiency: 98,
+      hoursWorked: 38,
+      tasksCompleted: 24,
+      isTopPerformer: true
+    },
+    {
+      name: 'You',
+      avatar: 'YO',
+      efficiency: 85,
+      hoursWorked: 32,
+      tasksCompleted: 18,
+      position: 2,
+      positionChange: '+1'
+    },
+    {
+      name: 'Sarah Williams',
+      avatar: 'SW',
+      efficiency: 75,
+      hoursWorked: 30,
+      tasksCompleted: 15,
+      risingTalent: true
+    }
+  ];
+
+  // Mock data for upcoming deadlines
+  const upcomingDeadlines = [
+    {
+      title: 'Website Redesign',
+      priority: 'High',
+      dueDate: 'Tomorrow',
+      assignedTo: 'Emma Davis',
+      time: '5:00 PM'
+    },
+    {
+      title: 'Q2 Sales Report',
+      priority: 'Medium', 
+      dueDate: 'Friday',
+      assignedTo: 'James Wilson',
+      time: '3:00 PM'
+    },
+    {
+      title: 'Client Presentation',
+      priority: 'Normal',
+      dueDate: 'Next Monday',
+      teamMembers: 2,
+      time: '2:00 PM'
+    }
+  ];
+
+  // Mock data for task overview
+  const taskOverview = {
+    total: 26,
+    completed: 14,
+    pending: 12,
+    completionPercentage: 54
+  };
+
+  // Mock data for today's performance
+  const todaysPerformance = {
+    timeLogged: '4h 30m',
+    weeklyHours: {
+      completed: 22,
+      total: 40,
+      percentage: 55
+    }
+  };
+
+  const getPriorityClass = (priority) => {
+    switch(priority.toLowerCase()) {
+      case 'high': return 'danger';
+      case 'medium': return 'warning';
+      case 'normal': return 'success';
+      default: return 'secondary';
+    }
+  };
+
+  const getPriorityBgClass = (priority) => {
+    switch(priority.toLowerCase()) {
+      case 'high': return 'bg-danger-subtle text-danger';
+      case 'medium': return 'bg-warning-subtle text-warning';
+      case 'normal': return 'bg-success-subtle text-success';
+      default: return 'bg-secondary-subtle text-secondary';
+    }
+  };
+
+  const getDueDateClass = (dueDate) => {
+    switch(dueDate.toLowerCase()) {
+      case 'tomorrow': return 'bg-danger-subtle text-danger';
+      case 'friday': return 'bg-warning-subtle text-warning';
+      default: return 'bg-warning-subtle text-warning';
+    }
+  };
+
+  return (
+    <div className="p-4" style={{ backgroundColor: '#F9FAFB', fontFamily: 'Inter, sans-serif' }}>
+      <div className="d-flex align-items-center mb-4">
+        <div className="me-2 d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', backgroundColor: '#FFF7CD', borderRadius: '12px' }}>
+          <FaTasks style={{ color: '#FFB020' }} size={24} />
+        </div>
+        <h4 className="mb-0" style={{ color: '#212B36', fontWeight: 700 }}>Welcome to Your Dashboard</h4>
+      </div>
+
+      {/* Metrics Cards */}
+      <Row className="g-4 mb-4">
+        <Col xs={6} md={3}>
+          <Card style={{ borderRadius: '16px', boxShadow: '0 2px 4px rgba(145, 158, 171, 0.16)', border: 'none' }}>
+            <Card.Body className="d-flex align-items-center">
+              <div className="me-3 d-flex align-items-center justify-content-center" style={{ width: '48px', height: '48px', backgroundColor: '#E8F6FF', borderRadius: '12px' }}>
+                <FaTasks style={{ color: '#2065D1' }} size={24} />
+              </div>
+              <div>
+                <div style={{ fontSize: '32px', fontWeight: '700', color: '#212B36', lineHeight: '1.2' }}>12</div>
+                <div style={{ color: '#637381', fontSize: '14px' }}>Active Tasks</div>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col xs={6} md={3}>
+          <Card style={{ borderRadius: '16px', boxShadow: '0 2px 4px rgba(145, 158, 171, 0.16)', border: 'none' }}>
+            <Card.Body className="d-flex align-items-center">
+              <div className="me-3 d-flex align-items-center justify-content-center" style={{ width: '48px', height: '48px', backgroundColor: '#FFF7CD', borderRadius: '12px' }}>
+                <BsClock style={{ color: '#FFB020' }} size={24} />
+              </div>
+              <div>
+                <div style={{ fontSize: '32px', fontWeight: '700', color: '#212B36', lineHeight: '1.2' }}>32.5h</div>
+                <div style={{ color: '#637381', fontSize: '14px' }}>Hours Logged</div>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col xs={6} md={3}>
+          <Card style={{ borderRadius: '16px', boxShadow: '0 2px 4px rgba(145, 158, 171, 0.16)', border: 'none' }}>
+            <Card.Body className="d-flex align-items-center">
+              <div className="me-3 d-flex align-items-center justify-content-center" style={{ width: '48px', height: '48px', backgroundColor: '#E8FFF3', borderRadius: '12px' }}>
+                <BsCheckCircle style={{ color: '#36B37E' }} size={24} />
+              </div>
+              <div>
+                <div style={{ fontSize: '32px', fontWeight: '700', color: '#212B36', lineHeight: '1.2' }}>8</div>
+                <div style={{ color: '#637381', fontSize: '14px' }}>Completed Tasks</div>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col xs={6} md={3}>
+          <Card style={{ borderRadius: '16px', boxShadow: '0 2px 4px rgba(145, 158, 171, 0.16)', border: 'none' }}>
+            <Card.Body className="d-flex align-items-center">
+              <div className="me-3 d-flex align-items-center justify-content-center" style={{ width: '48px', height: '48px', backgroundColor: '#FFE7E7', borderRadius: '12px' }}>
+                <FaTrophy style={{ color: '#FF4842' }} size={24} />
+              </div>
+              <div>
+                <div style={{ fontSize: '32px', fontWeight: '700', color: '#212B36', lineHeight: '1.2' }}>95%</div>
+                <div style={{ color: '#637381', fontSize: '14px' }}>Performance</div>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+      
+      <Row className="g-4">
+        {/* Productivity Leaderboard */}
+        <Col md={6}>
+          <Card style={{ borderRadius: '16px', boxShadow: '0 2px 4px rgba(145, 158, 171, 0.16)', border: 'none' }}>
+            <Card.Header className="bg-white border-0 d-flex justify-content-between align-items-center py-3">
+              <div className="d-flex align-items-center">
+                <FaTrophy style={{ color: '#FFB020' }} size={20} className="me-2" />
+                <h5 className="mb-0" style={{ color: '#212B36' }}>Productivity Leaderboard</h5>
+              </div>
+              <div className="d-flex align-items-center">
+                <Dropdown className="me-2">
+                  <Dropdown.Toggle variant="light" size="sm" style={{ backgroundColor: '#F4F6F8', border: 'none', fontSize: '13px' }}>
+                    {selectedTimeframe} <BsChevronDown size={12} className="ms-1" />
+                  </Dropdown.Toggle>
+                </Dropdown>
+                <button className="btn btn-light btn-sm" style={{ backgroundColor: '#F4F6F8', border: 'none', fontSize: '13px' }}>All Teams</button>
+              </div>
+            </Card.Header>
+            <Card.Body className="px-4">
+              {leaderboardData.map((user, index) => (
+                <div key={index} className="mb-4" style={{
+                  padding: '16px',
+                  borderRadius: '12px',
+                  backgroundColor: index === 0 ? '#FFF7CD' : 'transparent',
+                  border: index === 0 ? 'none' : '1px solid #F4F6F8'
+                }}>
+                  <div className="d-flex align-items-center">
+                    <div className="me-3" style={{ fontWeight: '700', color: '#212B36', fontSize: '16px' }}>{index + 1}</div>
+                    <div className="rounded-circle me-3 d-flex align-items-center justify-content-center" 
+                         style={{
+                           width: '40px',
+                           height: '40px',
+                           backgroundColor: index === 0 ? '#FFB020' : '#F4F6F8',
+                           color: index === 0 ? 'white' : '#637381',
+                           fontWeight: '600'
+                         }}>
+                      {user.avatar}
+                    </div>
+                    <div className="flex-grow-1">
+                      <div className="d-flex justify-content-between align-items-center mb-2">
+                        <div className="d-flex align-items-center">
+                          <h6 className="mb-0" style={{ color: '#212B36', fontWeight: '600' }}>{user.name}</h6>
+                          {user.isTopPerformer && (
+                            <span className="ms-2 px-2 py-1" style={{ 
+                              color: '#FFB020', 
+                              fontSize: '12px',
+                              backgroundColor: '#FFF7CD',
+                              borderRadius: '6px',
+                              fontWeight: '600'
+                            }}>Top Performer</span>
+                          )}
+                          {user.positionChange && (
+                            <span className="ms-2 px-2 py-1" style={{ 
+                              color: '#36B37E', 
+                              fontSize: '12px',
+                              backgroundColor: '#E8FFF3',
+                              borderRadius: '6px',
+                              fontWeight: '600'
+                            }}>+{user.positionChange} position</span>
+                          )}
+                        </div>
+                        <span style={{ fontWeight: '700', color: index === 0 ? '#FFB020' : '#2065D1', fontSize: '16px' }}>{user.efficiency}%</span>
+                      </div>
+                      <ProgressBar 
+                        now={user.efficiency} 
+                        style={{
+                          height: '8px',
+                          backgroundColor: '#F4F6F8',
+                          borderRadius: '4px'
+                        }}
+                        variant={index === 0 ? 'warning' : 'primary'}
+                        className="mb-2"
+                      />
+                      <div style={{ color: '#637381', fontSize: '13px' }}>
+                        <span className="me-2">{user.hoursWorked}h worked</span>
+                        <span style={{ color: '#919EAB' }}>•</span>
+                        <span className="ms-2">{user.tasksCompleted} tasks completed</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <div className="text-center">
+                <button className="btn btn-link" style={{ color: '#2065D1', textDecoration: 'none', fontSize: '13px' }}>View Full Leaderboard →</button>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+
+        {/* Upcoming Deadlines */}
+        <Col md={6}>
+          <Card className="h-100" style={{ borderRadius: '16px', boxShadow: '0 2px 4px rgba(145, 158, 171, 0.16)', border: 'none' }}>
+            <Card.Header className="bg-white border-0 d-flex justify-content-between align-items-center py-3">
+              <div className="d-flex align-items-center">
+                <div className="me-2 d-flex align-items-center justify-content-center" style={{ width: '32px', height: '32px', backgroundColor: '#FFE7E7', borderRadius: '8px' }}>
+                  <FaRegCalendarAlt style={{ color: '#FF4842' }} size={18} />
+                </div>
+                <h5 className="mb-0" style={{ color: '#212B36', fontWeight: '700' }}>Upcoming Deadlines</h5>
+              </div>
+              <button className="btn btn-light btn-sm d-flex align-items-center" style={{ backgroundColor: '#F4F6F8', border: 'none', fontSize: '13px', fontWeight: '600', padding: '8px 12px' }}>
+                <span className="me-1">+</span> Add Task
+              </button>
+            </Card.Header>
+            <Card.Body className="px-4 pb-3">
+              {upcomingDeadlines.map((task, index) => (
+                <div key={index} className="mb-3" style={{ padding: '16px', borderRadius: '12px', border: '1px solid #F4F6F8', transition: 'all 0.2s ease-in-out', cursor: 'pointer' }} className="hover-shadow">
+                  <div className="d-flex justify-content-between align-items-start mb-3">
+                    <h6 className="mb-0" style={{ color: '#212B36', fontWeight: '600' }}>{task.title}</h6>
+                    <div className="d-flex align-items-center">
+                      <span className="me-2" style={{
+                        padding: '4px 8px',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                        backgroundColor: task.priority === 'High' ? '#FFE7E7' : task.priority === 'Medium' ? '#FFF7CD' : '#E8FFF3',
+                        color: task.priority === 'High' ? '#FF4842' : task.priority === 'Medium' ? '#FFB020' : '#36B37E',
+                        fontWeight: '600'
+                      }}>{task.priority} Priority</span>
+                      <span style={{
+                        padding: '4px 8px',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                        backgroundColor: task.dueDate === 'Tomorrow' ? '#FFE7E7' : task.dueDate === 'Next Monday' ? '#E8FFF3' : '#FFF7CD',
+                        color: task.dueDate === 'Tomorrow' ? '#FF4842' : task.dueDate === 'Next Monday' ? '#36B37E' : '#FFB020',
+                        fontWeight: '600'
+                      }}>{task.dueDate}</span>
+                      <button className="btn btn-link p-0 ms-2" style={{ color: '#637381' }}>
+                        <BsThreeDotsVertical size={16} />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="d-flex align-items-center justify-content-between">
+                    <div className="d-flex align-items-center">
+                      <BsCalendar style={{ color: '#637381' }} className="me-2" />
+                      <span style={{ color: '#637381', fontSize: '13px' }}>Due {task.dueDate} at {task.time}</span>
+                    </div>
+                    <div>
+                      {task.assignedTo ? (
+                        <div className="d-flex align-items-center">
+                          <div className="rounded-circle me-2" style={{ width: '24px', height: '24px', backgroundColor: '#2065D1' }}></div>
+                          <span style={{ color: '#637381', fontSize: '13px' }}>Assigned to {task.assignedTo}</span>
+                        </div>
+                      ) : (
+                        <div className="d-flex align-items-center">
+                          <div className="d-flex">
+                            <div className="rounded-circle" style={{ width: '24px', height: '24px', backgroundColor: '#2065D1' }}></div>
+                            <div className="rounded-circle ms-n2" style={{ width: '24px', height: '24px', backgroundColor: '#36B37E' }}></div>
+                          </div>
+                          <span style={{ color: '#637381', fontSize: '13px' }} className="ms-2">{task.teamMembers} team members</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <div className="text-center mt-2">
+                <button className="btn btn-link d-flex align-items-center mx-auto" style={{ color: '#2065D1', textDecoration: 'none', fontSize: '13px', fontWeight: '600' }}>
+                  View All Deadlines
+                  <span className="ms-1" style={{ fontSize: '16px' }}>→</span>
+                </button>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+
+        {/* Task Overview */}
+        <Col md={6}>
+          <Card style={{ borderRadius: '16px', boxShadow: '0 2px 4px rgba(145, 158, 171, 0.16)', border: 'none' }}>
+            <Card.Header className="bg-white border-0 py-3">
+              <h5 className="mb-0" style={{ color: '#212B36', fontWeight: '700' }}>Task Overview</h5>
+            </Card.Header>
+            <Card.Body>
+              <div className="d-flex justify-content-between mb-4">
+                <div>
+                  <div style={{ fontSize: '32px', fontWeight: '700', color: '#212B36', lineHeight: '1.2' }}>{taskOverview.total}</div>
+                  <div style={{ color: '#637381', fontSize: '14px' }}>Total Tasks</div>
+                </div>
+                <div className="text-end">
+                  <div style={{ fontSize: '32px', fontWeight: '700', color: '#36B37E', lineHeight: '1.2' }}>{taskOverview.completed}</div>
+                  <div style={{ color: '#637381', fontSize: '14px' }}>Completed</div>
+                </div>
+                <div className="text-end">
+                  <div style={{ fontSize: '32px', fontWeight: '700', color: '#FFB020', lineHeight: '1.2' }}>{taskOverview.pending}</div>
+                  <div style={{ color: '#637381', fontSize: '14px' }}>Pending</div>
+                </div>
+              </div>
+              <ProgressBar 
+                style={{ height: '8px', backgroundColor: '#F4F6F8', borderRadius: '4px' }}
+                className="mb-2">
+                <ProgressBar 
+                  variant="success" 
+                  now={taskOverview.completionPercentage} 
+                  style={{ backgroundColor: '#36B37E', borderRadius: '4px' }}
+                />
+              </ProgressBar>
+              <div style={{ color: '#637381', fontSize: '13px' }} className="text-center">{taskOverview.completionPercentage}% Completed</div>
+            </Card.Body>
+          </Card>
+        </Col>
+
+        {/* Today's Performance */}
+        <Col md={6}>
+          <Card style={{ borderRadius: '16px', boxShadow: '0 2px 4px rgba(145, 158, 171, 0.16)', border: 'none' }}>
+            <Card.Header className="bg-white border-0 py-3">
+              <h5 className="mb-0" style={{ color: '#212B36', fontWeight: '700' }}>Today's Performance</h5>
+            </Card.Header>
+            <Card.Body>
+              <div className="mb-4">
+                <div className="d-flex align-items-center mb-2">
+                  <BsClock style={{ color: '#637381' }} size={16} className="me-2" />
+                  <span style={{ color: '#637381', fontSize: '13px' }}>Time Logged Today:</span>
+                  <span style={{ fontWeight: '600', color: '#212B36', fontSize: '13px' }} className="ms-2">{todaysPerformance.timeLogged}</span>
+                </div>
+                <div className="d-flex align-items-center">
+                  <span style={{ color: '#637381', fontSize: '13px' }}>Weekly Hours:</span>
+                  <span style={{ fontWeight: '600', color: '#212B36', fontSize: '13px' }} className="ms-2">
+                    {todaysPerformance.weeklyHours.completed}h / {todaysPerformance.weeklyHours.total}h
+                  </span>
+                </div>
+              </div>
+              <ProgressBar 
+                style={{ height: '8px', backgroundColor: '#F4F6F8', borderRadius: '4px' }}
+                className="mb-2">
+                <ProgressBar 
+                  variant="primary" 
+                  now={todaysPerformance.weeklyHours.percentage} 
+                  style={{ backgroundColor: '#2065D1', borderRadius: '4px' }}
+                />
+              </ProgressBar>
+              <div style={{ color: '#637381', fontSize: '13px' }} className="text-center">{todaysPerformance.weeklyHours.percentage}% Goal Completed</div>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+    </div>
+  );
+};
+
+export default EmployeeDashboard;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import { BsCalendar, BsClock, BsCheckCircle, BsThreeDotsVertical, BsChevronDown,BsFilter  } from 'react-icons/bs';
+
+
+  // Mock data for task overview
+  const taskOverview = {
+    total: 26,
+    completed: 14,
+    pending: 12,
+    completionPercentage: 54
+  };
+
+<Col md={6}>
+<div className="task-list-container">
+  <div className="task-list-header">
+    <h5 className="task-list-title">Task Overview</h5>
+    <button className="task-filter-btn">
+      <BsFilter size={18} />
+      Filter Tasks
+    </button>
+  </div>
+  
+  <div className="task-item">
+    <div className="task-icon task-icon-blue">
+      <FaTasks size={24} />
+    </div>
+    <div className="task-content">
+      <div className="task-name">Total Tasks</div>
+      <div className="task-meta">
+        <span className="task-stat-badge task-stat-badge-blue">{taskOverview.total}</span>
+        <span>Tasks in progress</span>
+      </div>
+    </div>
+    <div className="task-progress">
+      <div className="task-progress-bar">
+        <div 
+          className="task-progress-value" 
+          style={{ width: `${taskOverview.completionPercentage}%` }}
+        />
+      </div>
+      <div className="task-progress-text">{taskOverview.completionPercentage}% Done</div>
+    </div>
+  </div>
+
+  <div className="task-item">
+    <div className="task-icon task-icon-green">
+      <BsCheckCircle size={24} />
+    </div>
+    <div className="task-content">
+      <div className="task-name">Completed Tasks</div>
+      <div className="task-meta">
+        <span className="task-stat-badge task-stat-badge-green">{taskOverview.completed}</span>
+        <span>Tasks completed</span>
+      </div>
+    </div>
+  </div>
+
+  <div className="task-item">
+    <div className="task-icon task-icon-yellow">
+      <BsCalendar size={24} />
+    </div>
+    <div className="task-content">
+      <div className="task-name">Pending Tasks</div>
+      <div className="task-meta">
+        <span className="task-stat-badge task-stat-badge-yellow">{taskOverview.pending}</span>
+        <span>Tasks pending</span>
+      </div>
+    </div>
+  </div>
+</div>
+</Col>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import React, { useState } from 'react';
+import { Card, Row, Col, Badge, ProgressBar, Dropdown } from 'react-bootstrap';
+import { BsCalendar, BsClock, BsCheckCircle, BsThreeDotsVertical, BsChevronDown,BsFilter  } from 'react-icons/bs';
+import { FaTrophy, FaRegCalendarAlt, FaTasks } from 'react-icons/fa';
+
+// Import Inter font
+import '@fontsource/inter/400.css';
+import '@fontsource/inter/500.css';
+import '@fontsource/inter/600.css';
+import '@fontsource/inter/700.css';
+
+// Import custom styles
+import './Dashbord.css';
+
+const EmployeeDashboard = () => {
+  const [selectedTimeframe, setSelectedTimeframe] = useState('This Week');
+
+  // Mock data for productivity leaderboard
+  const leaderboardData = [
+    {
+      name: 'Michael Chen',
+      avatar: 'MC',
+      efficiency: 98,
+      hoursWorked: 38,
+      tasksCompleted: 24,
+      isTopPerformer: true
+    },
+    {
+      name: 'You',
+      avatar: 'YO',
+      efficiency: 85,
+      hoursWorked: 32,
+      tasksCompleted: 18,
+      position: 2,
+      positionChange: '+1'
+    },
+    {
+      name: 'Sarah Williams',
+      avatar: 'SW',
+      efficiency: 75,
+      hoursWorked: 30,
+      tasksCompleted: 15,
+      risingTalent: true
+    }
+  ];
+
+  // Mock data for upcoming deadlines
+  const upcomingDeadlines = [
+    {
+      title: 'Website Redesign',
+      priority: 'High',
+      dueDate: 'Tomorrow',
+      assignedTo: 'Emma Davis',
+      time: '5:00 PM'
+    },
+    {
+      title: 'Q2 Sales Report',
+      priority: 'Medium', 
+      dueDate: 'Friday',
+      assignedTo: 'James Wilson',
+      time: '3:00 PM'
+    },
+    {
+      title: 'Client Presentation',
+      priority: 'Normal',
+      dueDate: 'Next Monday',
+      teamMembers: 2,
+      time: '2:00 PM'
+    }
+  ];
+
+  // Mock data for task overview
+  const taskOverview = {
+    total: 26,
+    completed: 14,
+    pending: 12,
+    completionPercentage: 54
+  };
+
+  // Mock data for today's performance
+  const todaysPerformance = {
+    timeLogged: '4h 30m',
+    weeklyHours: {
+      completed: 22,
+      total: 40,
+      percentage: 55
+    }
+  };
+
+  const getPriorityClass = (priority) => {
+    switch(priority.toLowerCase()) {
+      case 'high': return 'danger';
+      case 'medium': return 'warning';
+      case 'normal': return 'success';
+      default: return 'secondary';
+    }
+  };
+
+  const getPriorityBgClass = (priority) => {
+    switch(priority.toLowerCase()) {
+      case 'high': return 'bg-danger-subtle text-danger';
+      case 'medium': return 'bg-warning-subtle text-warning';
+      case 'normal': return 'bg-success-subtle text-success';
+      default: return 'bg-secondary-subtle text-secondary';
+    }
+  };
+
+  const getDueDateClass = (dueDate) => {
+    switch(dueDate.toLowerCase()) {
+      case 'tomorrow': return 'bg-danger-subtle text-danger';
+      case 'friday': return 'bg-warning-subtle text-warning';
+      default: return 'bg-warning-subtle text-warning';
+    }
+  };
+
+  return (
+    <div className="p-4" >
+      {/* <div className="d-flex align-items-center mb-4">
+        <div className="me-2 d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', backgroundColor: '#FFF7CD', borderRadius: '12px' }}>
+          <FaTasks style={{ color: '#FFB020' }} size={24} />
+        </div>
+        <h4 className="mb-0" style={{ color: '#212B36', fontWeight: 700 }}>Welcome to Your Dashboard</h4>
+      </div> */}
+
+      {/* Metrics Cards */}
+      <Row className="g-4 mb-4">
+        <Col xs={6} md={3}>
+          <Card style={{ borderRadius: '16px', boxShadow: '0 2px 4px rgba(145, 158, 171, 0.16)', border: 'none' }}>
+            <Card.Body className="d-flex align-items-center">
+              <div className="me-3 d-flex align-items-center justify-content-center" style={{ width: '48px', height: '48px', backgroundColor: '#E8F6FF', borderRadius: '12px' }}>
+                <FaTasks style={{ color: '#2065D1' }} size={24} />
+              </div>
+              <div>
+                <div style={{ fontSize: '32px', fontWeight: '700', color: '#212B36', lineHeight: '1.2' }}>12</div>
+                <div style={{ color: '#637381', fontSize: '14px' }}>Active Tasks</div>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col xs={6} md={3}>
+          <Card style={{ borderRadius: '16px', boxShadow: '0 2px 4px rgba(145, 158, 171, 0.16)', border: 'none' }}>
+            <Card.Body className="d-flex align-items-center">
+              <div className="me-3 d-flex align-items-center justify-content-center" style={{ width: '48px', height: '48px', backgroundColor: '#FFF7CD', borderRadius: '12px' }}>
+                <BsClock style={{ color: '#FFB020' }} size={24} />
+              </div>
+              <div>
+                <div style={{ fontSize: '32px', fontWeight: '700', color: '#212B36', lineHeight: '1.2' }}>32.5h</div>
+                <div style={{ color: '#637381', fontSize: '14px' }}>Hours Logged</div>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col xs={6} md={3}>
+          <Card style={{ borderRadius: '16px', boxShadow: '0 2px 4px rgba(145, 158, 171, 0.16)', border: 'none' }}>
+            <Card.Body className="d-flex align-items-center">
+              <div className="me-3 d-flex align-items-center justify-content-center" style={{ width: '48px', height: '48px', backgroundColor: '#E8FFF3', borderRadius: '12px' }}>
+                <BsCheckCircle style={{ color: '#36B37E' }} size={24} />
+              </div>
+              <div>
+                <div style={{ fontSize: '32px', fontWeight: '700', color: '#212B36', lineHeight: '1.2' }}>8</div>
+                <div style={{ color: '#637381', fontSize: '14px' }}>Completed Tasks</div>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col xs={6} md={3}>
+          <Card style={{ borderRadius: '16px', boxShadow: '0 2px 4px rgba(145, 158, 171, 0.16)', border: 'none' }}>
+            <Card.Body className="d-flex align-items-center">
+              <div className="me-3 d-flex align-items-center justify-content-center" style={{ width: '48px', height: '48px', backgroundColor: '#FFE7E7', borderRadius: '12px' }}>
+                <FaTrophy style={{ color: '#FF4842' }} size={24} />
+              </div>
+              <div>
+                <div style={{ fontSize: '32px', fontWeight: '700', color: '#212B36', lineHeight: '1.2' }}>95%</div>
+                <div style={{ color: '#637381', fontSize: '14px' }}>Performance</div>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+      
+      <Row className="g-4">
+        {/* Productivity Leaderboard */}
+        <Col md={6}>
+          <Card style={{ borderRadius: '16px', boxShadow: '0 2px 4px rgba(145, 158, 171, 0.16)', border: 'none' }}>
+            <Card.Header className="bg-white border-0 d-flex justify-content-between align-items-center py-3">
+              <div className="d-flex align-items-center">
+                <FaTrophy style={{ color: '#FFB020' }} size={20} className="me-2" />
+                <h5 className="mb-0" style={{ color: '#212B36' }}>Productivity Leaderboard</h5>
+              </div>
+              <div className="d-flex align-items-center">
+                <Dropdown className="me-2">
+                  <Dropdown.Toggle variant="light" size="sm" style={{ backgroundColor: '#F4F6F8', border: 'none', fontSize: '13px' }}>
+                    {selectedTimeframe} <BsChevronDown size={12} className="ms-1" />
+                  </Dropdown.Toggle>
+                </Dropdown>
+                <button className="btn btn-light btn-sm" style={{ backgroundColor: '#F4F6F8', border: 'none', fontSize: '13px' }}>All Teams</button>
+              </div>
+            </Card.Header>
+            <Card.Body className="px-4">
+              {leaderboardData.map((user, index) => (
+                <div key={index} className="mb-4" style={{
+                  padding: '16px',
+                  borderRadius: '12px',
+                  backgroundColor: index === 0 ? '#FFF7CD' : 'transparent',
+                  border: index === 0 ? 'none' : '1px solid #F4F6F8'
+                }}>
+                  <div className="d-flex align-items-center">
+                    <div className="me-3" style={{ fontWeight: '700', color: '#212B36', fontSize: '16px' }}>{index + 1}</div>
+                    <div className="rounded-circle me-3 d-flex align-items-center justify-content-center" 
+                         style={{
+                           width: '40px',
+                           height: '40px',
+                           backgroundColor: index === 0 ? '#FFB020' : '#F4F6F8',
+                           color: index === 0 ? 'white' : '#637381',
+                           fontWeight: '600'
+                         }}>
+                      {user.avatar}
+                    </div>
+                    <div className="flex-grow-1">
+                      <div className="d-flex justify-content-between align-items-center mb-2">
+                        <div className="d-flex align-items-center">
+                          <h6 className="mb-0" style={{ color: '#212B36', fontWeight: '600' }}>{user.name}</h6>
+                          {user.isTopPerformer && (
+                            <span className="ms-2 px-2 py-1" style={{ 
+                              color: '#FFB020', 
+                              fontSize: '12px',
+                              backgroundColor: '#FFF7CD',
+                              borderRadius: '6px',
+                              fontWeight: '600'
+                            }}>Top Performer</span>
+                          )}
+                          {user.positionChange && (
+                            <span className="ms-2 px-2 py-1" style={{ 
+                              color: '#36B37E', 
+                              fontSize: '12px',
+                              backgroundColor: '#E8FFF3',
+                              borderRadius: '6px',
+                              fontWeight: '600'
+                            }}>+{user.positionChange} position</span>
+                          )}
+                        </div>
+                        <span style={{ fontWeight: '700', color: index === 0 ? '#FFB020' : '#2065D1', fontSize: '16px' }}>{user.efficiency}%</span>
+                      </div>
+                      <ProgressBar 
+                        now={user.efficiency} 
+                        style={{
+                          height: '8px',
+                          backgroundColor: '#F4F6F8',
+                          borderRadius: '4px'
+                        }}
+                        variant={index === 0 ? 'warning' : 'primary'}
+                        className="mb-2"
+                      />
+                      <div style={{ color: '#637381', fontSize: '13px' }}>
+                        <span className="me-2">{user.hoursWorked}h worked</span>
+                        <span style={{ color: '#919EAB' }}>•</span>
+                        <span className="ms-2">{user.tasksCompleted} tasks completed</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <div className="text-center">
+                <button className="btn btn-link" style={{ color: '#2065D1', textDecoration: 'none', fontSize: '13px' }}>View Full Leaderboard →</button>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+
+        {/* Upcoming Deadlines */}
+        <Col md={6}>
+          <Card className="h-100" style={{ borderRadius: '16px', boxShadow: '0 2px 4px rgba(145, 158, 171, 0.16)', border: 'none' }}>
+            <Card.Header className="bg-white border-0 d-flex justify-content-between align-items-center py-3">
+              <div className="d-flex align-items-center">
+                <div className="me-2 d-flex align-items-center justify-content-center" style={{ width: '32px', height: '32px', backgroundColor: '#FFE7E7', borderRadius: '8px' }}>
+                  <FaRegCalendarAlt style={{ color: '#FF4842' }} size={18} />
+                </div>
+                <h5 className="mb-0" style={{ color: '#212B36', fontWeight: '700' }}>Upcoming Deadlines</h5>
+              </div>
+              <button className="btn btn-light btn-sm d-flex align-items-center btn-action">
+                <span className="me-1">+</span> Add Task
+              </button>
+            </Card.Header>
+            <Card.Body className="px-4 pb-3">
+              {upcomingDeadlines.map((task, index) => (
+                <div key={index} className="mb-3 task-card" style={{ padding: '16px', borderRadius: '12px', border: '1px solid #F4F6F8', cursor: 'pointer' }}>
+                  <div className="d-flex justify-content-between align-items-start mb-3">
+                    <h6 className="mb-0" style={{ color: '#212B36', fontWeight: '600', fontSize: '14px' }}>{task.title}</h6>
+                    <div className="d-flex align-items-center gap-2">
+                      <span className="custom-badge" style={{
+                        padding: '6px 10px',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                        backgroundColor: task.priority === 'High' ? '#FFE7E7' : task.priority === 'Medium' ? '#FFF7CD' : '#E8FFF3',
+                        color: task.priority === 'High' ? '#FF4842' : task.priority === 'Medium' ? '#FFB020' : '#36B37E',
+                        fontWeight: '600',
+                        border: 'none'
+                      }}>{task.priority} Priority</span>
+                      <span className="custom-badge" style={{
+                        padding: '6px 10px',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                        backgroundColor: task.dueDate === 'Tomorrow' ? '#FFE7E7' : task.dueDate === 'Next Monday' ? '#E8FFF3' : '#FFF7CD',
+                        color: task.dueDate === 'Tomorrow' ? '#FF4842' : task.dueDate === 'Next Monday' ? '#36B37E' : '#FFB020',
+                        fontWeight: '600',
+                        border: 'none'
+                      }}>{task.dueDate}</span>
+                      <div className="dropdown">
+                        <button className="btn btn-link p-0 d-flex align-items-center justify-content-center" style={{ color: '#637381', width: '24px', height: '24px' }}>
+                          <BsThreeDotsVertical size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="d-flex align-items-center justify-content-between">
+                    <div className="d-flex align-items-center">
+                      <BsCalendar style={{ color: '#637381' }} size={14} className="me-2" />
+                      <span style={{ color: '#637381', fontSize: '13px' }}>Due {task.dueDate} at {task.time}</span>
+                    </div>
+                    <div>
+                      {task.assignedTo ? (
+                        <div className="d-flex align-items-center">
+                          <div className="avatar-circle me-2" style={{ backgroundColor: '#2065D1' }}>
+                            {task.assignedTo.split(' ').map(name => name[0]).join('')}
+                          </div>
+                          <span style={{ color: '#637381', fontSize: '13px' }}>Assigned to {task.assignedTo}</span>
+                        </div>
+                      ) : (
+                        <div className="d-flex align-items-center">
+                          <div className="avatar-stack">
+                            <div className="avatar-circle" style={{ backgroundColor: '#2065D1', zIndex: 1 }}>T1</div>
+                            <div className="avatar-circle" style={{ backgroundColor: '#36B37E', zIndex: 0 }}>T2</div>
+                          </div>
+                          <span style={{ color: '#637381', fontSize: '13px' }} className="ms-2">{task.teamMembers} team members</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <div className="text-center mt-2">
+                <button className="btn btn-link d-flex align-items-center mx-auto deadline-link">
+                  View All Deadlines
+                  <span className="ms-1" style={{ fontSize: '16px' }}>→</span>
+                </button>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+
+        {/* Task Overview */}
+        <Col md={6}>
+          <div className="task-list-container">
+            <div className="task-list-header">
+              <h5 className="task-list-title">Task Overview</h5>
+              <button className="task-filter-btn">
+                <BsFilter size={18} />
+                Filter Tasks
+              </button>
+            </div>
+            
+            <div className="task-item">
+              <div className="task-icon task-icon-blue">
+                <FaTasks size={24} />
+              </div>
+              <div className="task-content">
+                <div className="task-name">Total Tasks</div>
+                <div className="task-meta">
+                  <span className="task-stat-badge task-stat-badge-blue">{taskOverview.total}</span>
+                  <span>Tasks in progress</span>
+                </div>
+              </div>
+              <div className="task-progress">
+                <div className="task-progress-bar">
+                  <div 
+                    className="task-progress-value" 
+                    style={{ width: `${taskOverview.completionPercentage}%` }}
+                  />
+                </div>
+                <div className="task-progress-text">{taskOverview.completionPercentage}% Done</div>
+              </div>
+            </div>
+
+            <div className="task-item">
+              <div className="task-icon task-icon-green">
+                <BsCheckCircle size={24} />
+              </div>
+              <div className="task-content">
+                <div className="task-name">Completed Tasks</div>
+                <div className="task-meta">
+                  <span className="task-stat-badge task-stat-badge-green">{taskOverview.completed}</span>
+                  <span>Tasks completed</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="task-item">
+              <div className="task-icon task-icon-yellow">
+                <BsCalendar size={24} />
+              </div>
+              <div className="task-content">
+                <div className="task-name">Pending Tasks</div>
+                <div className="task-meta">
+                  <span className="task-stat-badge task-stat-badge-yellow">{taskOverview.pending}</span>
+                  <span>Tasks pending</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Col>
+
+        {/* Today's Performance */}
+        <Col md={6}>
+          <Card className="performance-card">
+            <Card.Header className="bg-white border-0 py-3">
+              <h5 className="mb-0" style={{ color: '#212B36', fontWeight: '700' }}>Today's Performance</h5>
+            </Card.Header>
+            <Card.Body>
+              <div className="mb-4">
+                <div className="performance-meta mb-2">
+                  <BsClock size={16} className="me-2" />
+                  <span>Time Logged Today:</span>
+                  <span className="performance-value ms-2">{todaysPerformance.timeLogged}</span>
+                </div>
+                <div className="performance-meta">
+                  <span>Weekly Hours:</span>
+                  <span className="performance-value ms-2">
+                    {todaysPerformance.weeklyHours.completed}h / {todaysPerformance.weeklyHours.total}h
+                  </span>
+                </div>
+              </div>
+              <ProgressBar 
+                className="progress-bar-container mb-2">
+                <ProgressBar 
+                  variant="primary" 
+                  now={todaysPerformance.weeklyHours.percentage} 
+                  className="progress-bar-primary"
+                />
+              </ProgressBar>
+              <div className="progress-text text-center">{todaysPerformance.weeklyHours.percentage}% Goal Completed</div>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+    </div>
+  );
+};
+
+export default EmployeeDashboard;
