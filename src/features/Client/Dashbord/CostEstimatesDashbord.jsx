@@ -540,14 +540,14 @@ const paginatedEstimates = filteredEstimates
             {!loading && !error && (
                 <div className="d-flex justify-content-between align-items-center mt-3">
                     <div className="text-muted small">
-                        Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems}
+                        Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} entries
                     </div>
                     <ul className="pagination pagination-sm mb-0">
-                 <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
-                 <span aria-hidden="true">&laquo;</span>
-              </button>
-            </li>
+                        <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                            <button className="page-link" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
+                                Previous
+                            </button>
+                        </li>
                         {Array.from({ length: totalPages }, (_, i) => (
                             <li key={i + 1} className={`page-item ${currentPage === i + 1 ? 'active' : ''}`}>
                                 <button className="page-link" onClick={() => setCurrentPage(i + 1)}>
@@ -555,11 +555,11 @@ const paginatedEstimates = filteredEstimates
                                 </button>
                             </li>
                         ))}
-               <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
-                 <span aria-hidden="true">&raquo;</span>
-              </button>
-            </li>
+                        <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                            <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
+                                Next
+                            </button>
+                        </li>
                     </ul>
                 </div>
 

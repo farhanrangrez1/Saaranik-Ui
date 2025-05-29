@@ -16,16 +16,6 @@ ChartJS.register(ArcElement, Tooltip, Legend);
 function Dashbord() {
   const dispatch = useDispatch()
 
-  // Sample data for the donut chart
-  const projectStatusData = {
-    labels: ['In Progress', 'Completed', 'Pending', 'Delayed'],
-    datasets: [{
-      data: [40, 30, 20, 10],
-      backgroundColor: ['#3B82F6', '#22C55E', '#F59E0B', '#EF4444'],
-      borderWidth: 0,
-    }],
-  };
-
   const chartOptions = {
     cutout: '70%',
     plugins: {
@@ -68,6 +58,7 @@ function Dashbord() {
 const inProgressCount = inProgressJobs.length;
 
 
+
 const Costestimates = (estimates?.costEstimates || []).filter(
   (j) => (j.POStatus || "").toLowerCase().replace(/\s|_/g, "") === "pending"
 );
@@ -80,6 +71,40 @@ const todaysJobs = (job?.jobs || []).filter((j) => {
   return dueDate === today;
 });
 const todaysJobsCount = todaysJobs.length;
+
+
+
+// 
+ // Sample filtered data
+const projects = project?.data || [];
+
+// Count for each status
+const activeProjectsCount = projects.filter(
+  (j) => j.status?.toLowerCase() === "active"
+).length;
+
+const completedProjectsCount = projects.filter(
+  (j) => j.status?.toLowerCase() === "completed"
+).length;
+
+const cancelledProjectsCount = projects.filter(
+  (j) => j.status?.toLowerCase() === "cancelled"
+).length;
+
+// Chart data
+const projectStatusData = {
+  labels: ['Active', 'Completed', 'Pending', 'Cancelled'],
+  datasets: [{
+    data: [
+      activeProjectsCount,
+      completedProjectsCount,
+      inProgressProjectsCount,
+      cancelledProjectsCount
+    ],
+    backgroundColor: ['#3B82F6', '#22C55E', '#F59E0B', '#EF4444'],
+    borderWidth: 0,
+  }],
+};
 
   return (
     <Container fluid className="container p-3">
@@ -205,7 +230,7 @@ const todaysJobsCount = todaysJobs.length;
           <Card className="h-100 shadow-sm">
             <Card.Body>
               <h5 className="card-title mb-4">Project Status Overview</h5>
-              <div style={{ height: '300px' }}>
+              <div style={{ height: '350px' ,marginLeft:"50px"}}>
                 <Doughnut data={projectStatusData} options={chartOptions} />
               </div>
             </Card.Body>

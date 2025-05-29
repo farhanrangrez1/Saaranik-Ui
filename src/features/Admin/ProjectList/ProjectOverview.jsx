@@ -4,10 +4,8 @@ import ProjectJobsTab from './ProjectTabs/ProjectJobsTab';
 import ProjectFinanceTab from './ProjectTabs/ProjectFinanceTab';
 import ProjectDocumentsTab from './ProjectTabs/ProjectDocumentsTab';
 import ProjectTeamTab from './ProjectTabs/ProjectTeamTab';
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { useDispatch ,useSelector} from 'react-redux';
+import { Link, useLocation } from 'react-router-dom';
 import { Button } from 'react-bootstrap';
-
 
 function ProjectOverview() {
   const location = useLocation();
@@ -71,71 +69,76 @@ function ProjectOverview() {
         return <ProjectOverviewTab projectData={projectData} />;
     }
   };
+
   return (
     <div className="container-fluid py-4">
       {/* Project Header */}
-      <div className="d-flex justify-content-between align-items-center mb-4">
+      <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap">
         <div>
           <h4 className="mb-1">{projectData.projectId}-{projectData.title}</h4>
           <div className="text-muted">
-           Client: {projectData.client}
+            Client: {projectData.client}
           </div>
         </div>
-        <div>
-          <Link to={"/admin/projectList"}><button className="btn btn-outline-secondary me-2">← Back to Projects</button></Link>
-           <button className="btn btn-outline-secondary me-2">Import File</button>
-         <Link to={"/admin/UpdateProjectLis"}><button id='All_btn' className="btn btn-dark">Create Project</button></Link>
-        </div>
+        <div className="mt-3 mt-md-0 d-flex flex-wrap gap-2 justify-content-md-end">
+  <Link to="/admin/projectList">
+    <button className="btn btn-outline-secondary">← Back to Projects</button>
+  </Link>
+  <button className="btn btn-outline-secondary">Import File</button>
+  <Link to="/admin/UpdateProjectLis">
+    <button id="All_btn" className="btn btn-dark">Create Project</button>
+  </Link>
+</div>
+
       </div>
 
-      {/* Navigation Tabs */}
-      <ul className="nav nav-tabs mb-4">
-        <li className="nav-item">
-          <button 
-            className={`nav-link ${activeTab === 'overview' ? 'active' : ''}`}
-            onClick={() => setActiveTab('overview')}
-            style={{color:"#0d6efd",borderColor:"#0d6efd"}}
-          >
-            Overview
-          </button>
-        </li>
-        <li className="nav-item">
-          <button 
-            className={`nav-link ${activeTab === 'jobs' ? 'active' : ''}`}
-            onClick={() => setActiveTab('jobs')}
-            style={{color:"#0d6efd",borderColor:"#0d6efd"}}
-          >
-            Jobs
-          </button>
-        </li>
-        <li className="nav-item">
-          <button 
-            className={`nav-link ${activeTab === 'finance' ? 'active' : ''}`}
-            onClick={() => setActiveTab('finance')}
-            style={{color:"#0d6efd",borderColor:"#0d6efd"}}
-          >
-            Finance
-          </button>
-        </li>
-        <li className="nav-item">
-          <button 
-            className={`nav-link ${activeTab === 'documents' ? 'active' : ''}`}
-            onClick={() => setActiveTab('documents')}
-            style={{color:"#0d6efd",borderColor:"#0d6efd"}}
-          >
-            Documents
-          </button>
-        </li>
-        <li className="nav-item">
-          <button 
-            className={`nav-link ${activeTab === 'team' ? 'active' : ''}`}
-            onClick={() => setActiveTab('team')}
-            style={{color:"#0d6efd",borderColor:"#0d6efd"}}
-          >
-            Team
-          </button>
-        </li>
+      {/* Tabs for Desktop */}
+      <ul className="nav nav-tabs mb-4 d-none d-md-flex">
+        {['overview', 'jobs', 'finance', 'documents', 'team'].map((tab) => (
+          <li className="nav-item" key={tab}>
+            <button
+              className={`nav-link ${activeTab === tab ? 'active' : ''}`}
+              onClick={() => setActiveTab(tab)}
+              style={{ color: "#0d6efd", borderColor: "#0d6efd" }}
+            >
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            </button>
+          </li>
+        ))}
       </ul>
+
+      {/* Dropdown for Mobile */}
+    <div className="d-block d-md-none mb-4">
+  <div className="dropdown">
+    <button
+      className="btn btn-outline-primary dropdown-toggle w-100"
+      type="button"
+      id="tabDropdown"
+      data-bs-toggle="dropdown"
+      aria-expanded="false"
+    >
+      {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
+    </button>
+    <ul className="dropdown-menu w-100" aria-labelledby="tabDropdown">
+      <li>
+        <button className="dropdown-item" onClick={() => setActiveTab('overview')}>Overview</button>
+      </li>
+      <li>
+        <button className="dropdown-item" onClick={() => setActiveTab('jobs')}>Jobs</button>
+      </li>
+      <li>
+        <button className="dropdown-item" onClick={() => setActiveTab('finance')}>Finance</button>
+      </li>
+      <li>
+        <button className="dropdown-item" onClick={() => setActiveTab('documents')}>Documents</button>
+      </li>
+      <li>
+        <button className="dropdown-item" onClick={() => setActiveTab('team')}>Team</button>
+      </li>
+    </ul>
+  </div>
+</div>
+
 
       {/* Tab Content */}
       {renderTabContent()}
@@ -144,7 +147,3 @@ function ProjectOverview() {
 }
 
 export default ProjectOverview;
-
-
-
-

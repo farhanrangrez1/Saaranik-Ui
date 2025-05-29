@@ -286,9 +286,9 @@ function NewJobsList() {
     currentPage * itemsPerPage
   );
   return (
-    <div className="container bg-white p-4 mt-4 rounded shadow-sm">
+    <div className="container bg-white p-3 mt-4  rounded shadow-sm">
       {/* Title */}
-      <div className="d-flex justify-content-between align-items-center mb-3">
+      <div className="d-flex justify-content-between align-items-center ">
         <h5 className="fw-bold m-0">Job Assign</h5>
         <div className="d-flex gap-2 ">
           <Button onClick={handleRejectJobs} id="All_btn" className="m-2"
@@ -405,7 +405,7 @@ function NewJobsList() {
                                    <Link>
                                      {String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}</Link>
                                  </td>
-                <td>{job.projectId?.[0]?.projectName || 'N/A'}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{job.projectId?.[0]?.projectName || 'N/A'}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.brandName}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.subBrand}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.flavour}</td>
@@ -443,17 +443,7 @@ function NewJobsList() {
           </tbody>
         </Table>
       </div>
-      {/* Pagination */}
-      {/* <div className="d-flex justify-content-between align-items-center">
-        <div>Showing 1 to 3 of 12 entries</div>
-        <Pagination className="m-0">
-          <Pagination.Prev disabled />
-          <Pagination.Item active>{1}</Pagination.Item>
-          <Pagination.Item>{2}</Pagination.Item>
-          <Pagination.Item>{3}</Pagination.Item>
-          <Pagination.Next />
-        </Pagination>
-      </div> */}
+   
 
       {/* Assign Modal */}
       <Modal show={showAssignModal} onHide={() => setShowAssignModal(false)}>
@@ -529,12 +519,13 @@ function NewJobsList() {
       {!loading && !error && (
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div className="text-muted small">
-            Showing {(currentPage - 1) * itemsPerPage + 1} to {(currentPage - 1) * itemsPerPage + paginatedProjects.length} of {filteredProjects.length} entries
+            Showing {(currentPage - 1) * itemsPerPage + 1} to {(currentPage - 1) * itemsPerPage + paginatedProjects.length} of {filteredProjects.length}
           </div>
           <ul className="pagination pagination-sm mb-0">
             <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
               <button className="page-link" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
-                Previous
+                <span aria-hidden="true">&laquo;</span>
+                
               </button>
             </li>
             {Array.from({ length: totalPages }, (_, i) => (
@@ -546,7 +537,8 @@ function NewJobsList() {
             ))}
             <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
               <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
-                Next
+            
+                    <span aria-hidden="true">&raquo;</span>
               </button>
             </li>
           </ul>

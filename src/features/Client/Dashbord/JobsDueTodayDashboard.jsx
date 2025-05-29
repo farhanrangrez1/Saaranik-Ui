@@ -229,19 +229,13 @@ function JobsDueTodayDashboard() {
       </div>
 
       <div className="d-flex justify-content-between align-items-center mt-3">
-   <div>
-     Showing 1 to {job.jobs?.length || 0} of {job.jobs?.length || 0} jobs
-   </div>
-   <Pagination className="m-0">
-     <Pagination.Prev disabled>
-       <span aria-hidden="true">&laquo;</span>
-     </Pagination.Prev>
-     <Pagination.Item active>{1}</Pagination.Item>
-     <Pagination.Next>
-       <span aria-hidden="true">&raquo;</span>
-     </Pagination.Next>
-   </Pagination>
- </div>
+        <div>Showing {todaysJobs.length} job(s) due today</div>
+        <Pagination className="m-0">
+          <Pagination.Prev disabled />
+          <Pagination.Item active>{1}</Pagination.Item>
+          <Pagination.Next disabled />
+        </Pagination>
+      </div>
 
       <Modal show={showDesignerModal} onHide={() => setShowDesignerModal(false)}>
         <Modal.Header closeButton>

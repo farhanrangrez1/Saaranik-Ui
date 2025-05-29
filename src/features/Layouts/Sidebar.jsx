@@ -1,7 +1,7 @@
 // src/components/Sidebar.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { adminMenuItems, employeeMenuItems } from "../Layouts/menuConfig";
+import { adminMenuItems, employeeMenuItems,clientMenuItems } from "../Layouts/menuConfig";
 import "./Sidebar.css";
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
@@ -13,12 +13,15 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const menuItems =
-    roleData === "admin"
-      ? adminMenuItems
-      : roleData === "employee"
-      ? employeeMenuItems
-      : [];
+ const menuItems =
+  roleData === "admin"
+    ? adminMenuItems
+    : roleData === "employee"
+    ? employeeMenuItems
+    : roleData === "client"
+    ? clientMenuItems
+    : [];
+
 
   useEffect(() => {
     if (!location) return;

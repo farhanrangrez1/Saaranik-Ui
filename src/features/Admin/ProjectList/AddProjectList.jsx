@@ -160,7 +160,6 @@ function AddProjectList() {
                   required
                 >
                   <option value="">Select Client</option>
-                  <option value="662fb9cba77b2e0012345679">Client 1</option>
                   {Clients?.data?.map((client) => (
                     <option key={client._id} value={client._id}>
                       {client.clientName}

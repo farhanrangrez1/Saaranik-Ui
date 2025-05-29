@@ -262,12 +262,12 @@ function JobTracker() {
       {!loading && !error && (
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div className="text-muted small">
-            Showing {(currentPage - 1) * itemsPerPage + 1} to {(currentPage - 1) * itemsPerPage + paginatedProjects.length} of {filteredProjects.length} entries
+            Showing {(currentPage - 1) * itemsPerPage + 1} of {filteredProjects.length}
           </div>
           <ul className="pagination pagination-sm mb-0">
             <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
               <button className="page-link" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
-                Previous
+                <span aria-hidden="true">&laquo;</span>
               </button>
             </li>
             {Array.from({ length: totalPages }, (_, i) => (
@@ -279,7 +279,8 @@ function JobTracker() {
             ))}
             <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
               <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
-                Next
+      
+                    <span aria-hidden="true">&raquo;</span>
               </button>
             </li>
           </ul>

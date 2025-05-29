@@ -32,7 +32,7 @@ function CostEstimates() {
 
   const { project } = useSelector((state) => state.projects);
   const { Clients } = useSelector((state) => state.client);
-  const statuses = ["Pending", "Received", "Cancelled", "Completed","open","invoiced"];
+  const statuses = ["Pending", "Received", "Cancelled", "Completed", "open", "invoiced"];
 
   useEffect(() => {
     dispatch(fetchProject());
@@ -322,7 +322,7 @@ function CostEstimates() {
 
   return (
     <div
-      className="p-4 m-3"
+      className="p-4 m-2"
       style={{ backgroundColor: "white", borderRadius: "10px" }}
     >
       <h2 className="fw-semibold mb-3">Cost Estimates</h2>
@@ -575,7 +575,8 @@ function CostEstimates() {
           <ul className="pagination pagination-sm mb-0">
             <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
               <button className="page-link" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
-                Previous
+                <span aria-hidden="true">&laquo;</span>
+
               </button>
             </li>
             {Array.from({ length: totalPages }, (_, i) => (
@@ -587,7 +588,8 @@ function CostEstimates() {
             ))}
             <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
               <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
-                Next
+
+                <span aria-hidden="true">&raquo;</span>
               </button>
             </li>
           </ul>

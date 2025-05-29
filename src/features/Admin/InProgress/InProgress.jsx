@@ -138,7 +138,7 @@ function InProgress() {
   const params = useParams();
   const id = location.state?.id || params.id;
 
-  const { job, loading, error  } = useSelector((state) => state.jobs);
+  const { job, loading, error } = useSelector((state) => state.jobs);
 
   useEffect(() => {
     dispatch(fetchjobs());
@@ -228,16 +228,16 @@ function InProgress() {
     navigate(`/admin/OvervieJobsTracker`, { state: { job } });
   }
 
-  
-    const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 10;
-  
-const filteredProjects = (job?.jobs || []).filter(j => (j?.Status || "").toLowerCase() === "in_progress");
-    const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
-    const paginatedProjects = filteredProjects.slice(
-      (currentPage - 1) * itemsPerPage,
-      currentPage * itemsPerPage
-    );
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const filteredProjects = (job?.jobs || []).filter(j => (j?.Status || "").toLowerCase() === "in_progress");
+  const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
+  const paginatedProjects = filteredProjects.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   return (
     <div className="container bg-white p-4 mt-4 rounded shadow-sm">
@@ -299,18 +299,18 @@ const filteredProjects = (job?.jobs || []).filter(j => (j?.Status || "").toLower
                     onChange={() => handleCheckboxChange(job._id)}
                   />
                 </td>
-                      <td onClick={() => JobDetails(job)}>
-                                      <Link>
-                                        {String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}</Link>
-                                    </td>
+                <td onClick={() => JobDetails(job)}>
+                  <Link>
+                    {String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}</Link>
+                </td>
 
-                <td>{job.projectId?.[0]?.projectName || 'N/A'}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{job.projectId?.[0]?.projectName || 'N/A'}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.brandName}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.subBrand}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.flavour}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.packType}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.packSize}</td>
-                 <td style={{ whiteSpace: 'nowrap' }}>{job?.packCode}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{job?.packCode}</td>
                 <td>
                   <span className={getPriorityClass(job.priority)}>{job.priority}</span>
                 </td>
@@ -318,7 +318,7 @@ const filteredProjects = (job?.jobs || []).filter(j => (j?.Status || "").toLower
                 <td onClick={() => handleDesignerClick(job)} style={{ cursor: 'pointer', color: 'darkblue' }}>
                   {job.assign}
                 </td>
-              <td style={{ whiteSpace: 'nowrap' }}>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
                 <td>
                   <span className={`badge ${getStatusClass(job.Status)} px-2 py-1`}>
                     {job.Status}
@@ -332,15 +332,8 @@ const filteredProjects = (job?.jobs || []).filter(j => (j?.Status || "").toLower
         </Table>
       </div>
 
-      {/* Pagination */}
-      {/* <div className="d-flex justify-content-between align-items-center mt-3">
-        <div>Showing 1 to {jobs.length} of {jobs.length} in-progress jobs</div>
-        <Pagination className="m-0">
-          <Pagination.Prev disabled />
-          <Pagination.Item active>{1}</Pagination.Item>
-          <Pagination.Next disabled />
-        </Pagination>
-      </div> */}
+
+
 
       {/* Change Designer Modal */}
       <Modal show={showDesignerModal} onHide={() => setShowDesignerModal(false)}>
@@ -360,7 +353,8 @@ const filteredProjects = (job?.jobs || []).filter(j => (j?.Status || "").toLower
         </Modal.Body>
       </Modal>
 
-         {!loading && !error && (
+      {/* Pagination */}
+      {!loading && !error && (
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div className="text-muted small">
             Showing {(currentPage - 1) * itemsPerPage + 1} to {(currentPage - 1) * itemsPerPage + paginatedProjects.length} of {filteredProjects.length} entries
@@ -368,9 +362,10 @@ const filteredProjects = (job?.jobs || []).filter(j => (j?.Status || "").toLower
           <ul className="pagination pagination-sm mb-0">
             <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
               <button className="page-link" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
-                Previous
+                <span aria-hidden="true">&laquo;</span>
               </button>
             </li>
+
             {Array.from({ length: totalPages }, (_, i) => (
               <li key={i + 1} className={`page-item ${currentPage === i + 1 ? 'active' : ''}`}>
                 <button className="page-link" onClick={() => setCurrentPage(i + 1)}>
@@ -379,10 +374,11 @@ const filteredProjects = (job?.jobs || []).filter(j => (j?.Status || "").toLower
               </li>
             ))}
             <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
-                Next
+              <button className="page-link " onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
+                <span aria-hidden="true">&raquo;</span>
               </button>
             </li>
+
           </ul>
         </div>
       )}

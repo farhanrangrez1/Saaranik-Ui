@@ -112,15 +112,40 @@ function ProjectList() {
   );
 
   return (
-    <div className="project-container">
+    <div className="project-container" >
       {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h5 className="m-0 fw-bold">Project List</h5>
       </div>
 
+      {/* Search and Actions */}
+      <div className="mb-4">
+        <div className="row g-2">
+          <div className="col-12 col-md-6">
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Search projects.."
+            />
+          </div>
+          <div className="col-12 col-md-6 d-flex justify-content-md-end gap-2">
+            <Button variant="outline-secondary" size="sm">
+              <FaUpload className="me-1" /> Import
+            </Button>
+            <Link to={"/admin/AddProjectList"}>
+              <Button id="All_btn" variant="dark" size="sm">
+                <FaPlus className="me-1" /> Add project
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+
       {/* Project Status Tabs */}
+      {/* Project Status Tabs - Responsive */}
       <div className="project-tabs mb-4">
-        <ul className="nav nav-tabs">
+        {/* Large screens: show tabs */}
+        <ul className="nav nav-tabs d-none d-md-flex">
           {tabs.map((tab) => (
             <li className="nav-item" key={tab}>
               <button
@@ -133,26 +158,26 @@ function ProjectList() {
             </li>
           ))}
         </ul>
-      </div>
 
-      {/* Search and Actions */}
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div className="search-box">
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Search projects.."
-          />
-        </div>
-        <div className="actions">
-          <Button variant="outline-secondary" size="sm" className="me-2">
-            <FaUpload className="me-1" /> Import
-          </Button>
-          <Link to={"/admin/AddProjectList"}>
-            <Button id="All_btn" variant="dark" size="sm">
-              <FaPlus className="me-1" /> Add project
-            </Button>
-          </Link>
+        {/* Small screens: show dropdown */}
+        <div className="d-flex d-md-none">
+          <Dropdown>
+            <Dropdown.Toggle variant="outline-primary" id="dropdown-tabs" className="w-100">
+              {activeTab}
+            </Dropdown.Toggle>
+
+            <Dropdown.Menu className="w-100">
+              {tabs.map((tab) => (
+                <Dropdown.Item
+                  key={tab}
+                  active={tab === activeTab}
+                  onClick={() => setActiveTab(tab)}
+                >
+                  {tab}
+                </Dropdown.Item>
+              ))}
+            </Dropdown.Menu>
+          </Dropdown>
         </div>
       </div>
 
@@ -271,7 +296,7 @@ function ProjectList() {
           <ul className="pagination pagination-sm mb-0">
             <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
               <button className="page-link" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
-                Previous
+                <span aria-hidden="true">&laquo;</span>
               </button>
             </li>
             {Array.from({ length: totalPages }, (_, i) => (
@@ -283,7 +308,7 @@ function ProjectList() {
             ))}
             <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
               <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
-                Next
+                <span aria-hidden="true">&raquo;</span>
               </button>
             </li>
           </ul>

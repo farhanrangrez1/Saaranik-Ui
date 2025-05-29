@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Form, Table, Badge, InputGroup, Modal } from 'react-bootstrap';
-import { FaSearch, FaFilter, FaSort, FaEdit, FaTrash, FaDownload } from 'react-icons/fa';
-import AddInvoice from './AddInvoice';
+import { Form, Table, Badge, InputGroup, Button } from 'react-bootstrap';
+import { FaSearch, FaSort, FaEdit, FaTrash, FaDownload, FaFilter } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { jsPDF } from "jspdf";
@@ -101,7 +100,6 @@ function Invoicing_Billing() {
     setShowAddInvoice(false);
   };
 
-
   const handleDownloadPDF = () => {
     const doc = new jsPDF();
     doc.text("This is a PDF content example.", 10, 10); // Replace with your actual data
@@ -109,7 +107,7 @@ function Invoicing_Billing() {
   };
 
   const { invocing, loading, error } = useSelector((state) => state.InvoicingBilling);
-  console.log(invocing.InvoicingBilling);
+  console.log(invocing?.InvoicingBilling);
 
   useEffect(() => {
     dispatch(fetchInvoicingBilling());
@@ -118,14 +116,13 @@ function Invoicing_Billing() {
   // PAGINATION SETUP FOR ESTIMATES
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
-  const totalItems = invocing.InvoicingBilling?.length || 0;
+  const totalItems = invocing?.InvoicingBilling?.length || 0;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-  const paginatedEstimates = invocing.InvoicingBilling
+  const paginatedEstimates = invocing?.InvoicingBilling
     ?.slice()
     .reverse()
     .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-
 
   const handleDelete = (_id) => {
     Swal.fire({
@@ -156,28 +153,43 @@ function Invoicing_Billing() {
       state: { invoice }
     });
   }
+
+  // Responsive filter toggle state
+  const [showFilters, setShowFilters] = useState(false);
+
   return (
-    <div className=" p-4 m-3" style={{ backgroundColor: "white", borderRadius: "10px", }}>
-      <div className="d-flex justify-content-between align-items-center mb-4">
+    <div className="p-4 m-3" style={{ backgroundColor: "white", borderRadius: "10px" }}>
+      {/* Header */}
+      <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap">
         <h2>Invoicing & Billing</h2>
-        <Link to={"/admin/AddInvoice"}> <button id="All_btn" className="btn btn-dark">
-          Generate New Invoice
-        </button></Link>
+        {/* Desktop generate button only */}
+        <div className="d-none d-md-block">
+          <Link to={"/admin/AddInvoice"}>
+            <button id="All_btn" className="btn btn-dark">
+              Generate New Invoice
+            </button>
+          </Link>
+        </div>
       </div>
 
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <InputGroup className="w-25">
-          <InputGroup.Text>
-            <FaSearch />
-          </InputGroup.Text>
-          <Form.Control
-            placeholder="Search invoices..."
-            value={searchQuery}
-            onChange={handleSearch}
-          />
-        </InputGroup>
+      {/* Search and Filters */}
+      <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+        {/* Desktop search */}
+        <div className="d-none d-md-block w-25">
+          <InputGroup>
+            <InputGroup.Text>
+              <FaSearch />
+            </InputGroup.Text>
+            <Form.Control
+              placeholder="Search invoices..."
+              value={searchQuery}
+              onChange={handleSearch}
+            />
+          </InputGroup>
+        </div>
 
-        <div className="d-flex gap-2">
+        {/* Desktop Filters */}
+        <div className="d-none d-md-flex gap-2 align-items-center">
           <Form.Select className="w-auto">
             <option>All Clients</option>
           </Form.Select>
@@ -188,12 +200,63 @@ function Invoicing_Billing() {
             <FaSort /> Sort
           </button>
         </div>
+
+        {/* Mobile filter toggle button */}
+        <div className="d-flex d-md-none align-items-center gap-2">
+          <Button
+            variant="outline-secondary"
+            onClick={() => setShowFilters((prev) => !prev)}
+            aria-expanded={showFilters}
+            aria-controls="mobile-filters"
+          >
+            <FaFilter /> Filter
+          </Button>
+        </div>
       </div>
 
+      {/* Mobile filter dropdown panel */}
+      {showFilters && (
+        <div
+          id="mobile-filters"
+          className="d-md-none mb-3 p-3 border rounded"
+          style={{ backgroundColor: '#f8f9fa' }}
+        >
+          {/* Search inside mobile filters */}
+          <InputGroup className="mb-3">
+            <InputGroup.Text>
+              <FaSearch />
+            </InputGroup.Text>
+            <Form.Control
+              placeholder="Search invoices..."
+              value={searchQuery}
+              onChange={handleSearch}
+            />
+          </InputGroup>
+
+          <Form.Select className="mb-2">
+            <option>All Clients</option>
+          </Form.Select>
+          <Form.Select className="mb-2">
+            <option>All Status</option>
+          </Form.Select>
+          <Button className="w-100 mb-3" variant="outline-secondary">
+            <FaSort /> Sort
+          </Button>
+
+          {/* Generate New Invoice inside filter panel on mobile */}
+          <Link to={"/admin/AddInvoice"}>
+            <Button variant="dark" className="w-100">
+              Generate New Invoice
+            </Button>
+          </Link>
+        </div>
+      )}
+
+      {/* Table */}
       <Table hover responsive>
         <thead>
           <tr>
-            <th onClick={() => handleSort('invoiceNumber')} style={{ cursor: 'pointer' }}>Invoice #</th>
+            <th onClick={() => handleSort('invoiceNumber')} style={{ whiteSpace: "nowrap" }}>Invoice #</th>
             <th onClick={() => handleSort('client')} style={{ cursor: 'pointer' }}>Client</th>
             <th onClick={() => handleSort('project')} style={{ cursor: 'pointer' }}>Project</th>
             <th onClick={() => handleSort('amount')} style={{ cursor: 'pointer' }}>Amount</th>
@@ -204,20 +267,20 @@ function Invoicing_Billing() {
         </thead>
         <tbody>
           {paginatedEstimates?.map((invoice, index) => (
-            <tr key={invoice.invoiceNumber}>
-              <td onClick={() => JobDetails(invoice._id)}>
+            <tr key={invoice.invoiceNumber || index}>
+              <td style={{ whiteSpace: "nowrap" }} /* onClick={() => JobDetails(invoice._id)} */>
                 INV-{String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}
               </td>
 
-              <td>{invoice.clients?.[0]?.clientName || "N/A"}</td>
-              <td>{invoice.projectId?.[0]?.projectName || "N/A"}</td>
-              <td>${invoice.lineItems?.[0]?.amount || "N/A"}</td>
+              <td style={{ whiteSpace: "nowrap" }}>{invoice.clients?.[0]?.clientName || "N/A"}</td>
+              <td style={{ whiteSpace: "nowrap" }}>{invoice.projectId?.[0]?.projectName || "N/A"}</td>
+              <td style={{ whiteSpace: "nowrap" }}>${invoice.lineItems?.[0]?.amount || "N/A"}</td>
               <td>
                 <Badge bg={getStatusBadgeVariant(invoice.status)}>
                   {invoice.status}
                 </Badge>
               </td>
-              <td>{new Date(invoice.date).toLocaleDateString("en-GB")}</td>
+              <td>{invoice.date ? new Date(invoice.date).toLocaleDateString("en-GB") : 'N/A'}</td>
               <td>
                 <div className="d-flex gap-2">
                   <button className="btn btn-sm btn-outline-primary" onClick={() => UpdateInvocing(invoice)}>
@@ -234,21 +297,20 @@ function Invoicing_Billing() {
                   </button>
                 </div>
               </td>
-
             </tr>
           ))}
         </tbody>
       </Table>
-      {/* Modal for converting to invoice */}
+
       {!loading && !error && (
-        <div className="d-flex justify-content-between align-items-center mt-3">
-          <div className="text-muted small">
+        <div className="d-flex justify-content-between align-items-center mt-3 flex-wrap">
+          <div className="text-muted small mb-2 mb-md-0">
             Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} entries
           </div>
           <ul className="pagination pagination-sm mb-0">
             <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
               <button className="page-link" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
-                Previous
+                <span aria-hidden="true">&laquo;</span>
               </button>
             </li>
             {Array.from({ length: totalPages }, (_, i) => (
@@ -260,7 +322,7 @@ function Invoicing_Billing() {
             ))}
             <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
               <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
-                Next
+                <span aria-hidden="true">&raquo;</span>
               </button>
             </li>
           </ul>

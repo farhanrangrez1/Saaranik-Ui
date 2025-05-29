@@ -98,22 +98,25 @@ function UserRoles() {
 
   return (
     <div className=" p-4 m-3" style={{ backgroundColor: "white", borderRadius: "10px", }}>
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div className="d-flex gap-2 align-items-center">
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Search users..."
-            value={searchTerm}
-            onChange={handleSearch}
-            style={{ width: '200px' }}
-          />
-          <button className="btn btn-outline-secondary">All Roles</button>
-        </div>
-        <Link to={"/admin/UserRoleModal"}> <button id="All_btn" className="btn btn-dark">
-          + Add User
-        </button></Link>
-      </div>
+  <div className="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+  <div className="d-flex flex-wrap gap-2 align-items-center">
+    <input
+      type="text"
+      className="form-control"
+      placeholder="Search users..."
+      value={searchTerm}
+      onChange={handleSearch}
+      style={{ width: '200px' }}
+    />
+    <button className="btn btn-outline-secondary">All Roles</button>
+  </div>
+  <Link to="/admin/UserRoleModal">
+    <button id="All_btn" className="btn btn-dark">
+      + Add User
+    </button>
+  </Link>
+</div>
+
 
       <div className="card shadow-sm">
         <div className="card-body p-0">
@@ -194,7 +197,10 @@ function UserRoles() {
         <nav>
           <ul className="pagination mb-0">
             <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-              <button className="page-link" onClick={() => handlePageChange(currentPage - 1)}>Previous</button>
+              <button className="page-link" onClick={() => handlePageChange(currentPage - 1)}>
+                <span aria-hidden="true">&laquo;</span>
+                </button>
+                    
             </li>
             {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
               <li key={number} className={`page-item ${currentPage === number ? 'active' : ''}`}>
@@ -202,7 +208,8 @@ function UserRoles() {
               </li>
             ))}
             <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-              <button className="page-link" onClick={() => handlePageChange(currentPage + 1)}>Next</button>
+              <button className="page-link" onClick={() => handlePageChange(currentPage + 1)}>
+                    <span aria-hidden="true">&raquo;</span></button>
             </li>
           </ul>
         </nav>

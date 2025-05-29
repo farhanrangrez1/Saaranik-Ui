@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Form, Table, Badge, InputGroup } from "react-bootstrap";
+import { Form, Table, Badge, InputGroup, Button, Collapse } from "react-bootstrap";
 import { FaSearch, FaFilter, FaSort } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
@@ -11,6 +11,7 @@ function ReciveablePurchase() {
   const [sortDirection, setSortDirection] = useState("asc");
   const [status, setStatus] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [showFilters, setShowFilters] = useState(false);
   const dispatch = useDispatch();
 
   const { purchases, loading, error } = useSelector(
@@ -97,38 +98,35 @@ function ReciveablePurchase() {
     >
       <h2 className="mb-4">Receivable Purchase Orders</h2>
 
+      {/* Responsive Filter Section */}
       <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-        {/* Search Bar */}
-        <InputGroup className="w-50">
-          <InputGroup.Text>
-            <FaSearch />
-          </InputGroup.Text>
-          <Form.Control
-            placeholder="Search POs..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </InputGroup>
+        {/* Filters for md and above */}
+        <div className="d-none d-md-flex align-items-center gap-3 w-100 w-md-auto">
+          <InputGroup className="w-50">
+            <InputGroup.Text>
+              <FaSearch />
+            </InputGroup.Text>
+            <Form.Control
+              placeholder="Search POs..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </InputGroup>
 
-        {/* Status Dropdown */}
-        <Form.Select
-          className="w-auto"
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-        >
-          <option value="">All Status</option>
-          <option value="open">Open</option>
-          <option value="invoiced">Invoiced</option>
-        </Form.Select>
+          <Form.Select
+             style={{width:"110px"}}
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+          >
+            <option value="">All Status</option>
+            <option value="open">Open</option>
+            <option value="invoiced">Invoiced</option>
+          </Form.Select>
 
-        {/* Filter/Sort/Badge */}
-        <div className="d-flex align-items-center gap-2">
-          <button className="btn btn-outline-secondary">
-            <FaFilter /> Filter
-          </button>
-          <button className="btn btn-outline-secondary">
+           <div className="d-flex align-items-center gap-2 flex-wrap">
+          {/* <button className="btn btn-outline-secondary" onClick={() => handleSort(sortField || "poNumber")}>
             <FaSort /> Sort
-          </button>
+          </button> */}
           <span className="ms-3 d-flex align-items-center">
             Pending POs:{" "}
             <Badge bg="warning" className="ms-2">
@@ -136,70 +134,145 @@ function ReciveablePurchase() {
             </Badge>
           </span>
         </div>
+        </div>
+
+        {/* Filter button for small screens */}
+        <Button
+          variant="outline-secondary"
+          className="d-md-none"
+          onClick={() => setShowFilters(!showFilters)}
+          aria-controls="responsive-filters"
+          aria-expanded={showFilters}
+        >
+          <FaFilter /> Filter
+        </Button>
+
+        {/* Filter/Sort/Badge on all screen sizes */}
+      
       </div>
 
-      <Table hover responsive>
-        <thead>
-          <tr>
-            <th onClick={() => handleSort("poNumber")} style={{ whiteSpace: 'nowrap' }}>
-              PO Number
-            </th>
-            <th onClick={() => handleSort("ClientId")} style={{ whiteSpace: 'nowrap' }}>
-              Client
-            </th>
-            <th onClick={() => handleSort("projectId")} style={{ whiteSpace: 'nowrap' }}>
-              Project
-            </th>
-            <th onClick={() => handleSort("EstimateRef")} style={{ whiteSpace: 'nowrap' }}>
-              Estimate Ref
-            </th>
-            <th onClick={() => handleSort("Status")} style={{ cursor: "pointer" }}>
-              Status
-            </th>
-            <th onClick={() => handleSort("ReceivedDate")}style={{ whiteSpace: 'nowrap' }}>
-              Received Date
-            </th>
-            <th onClick={() => handleSort("Amount")} style={{ whiteSpace: 'nowrap' }}>
-              Amount
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {paginatedData.map((po, index) => (
-            <tr key={index}>
-              <td>
-                PO-{String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, "0")}
-              </td>
-              <td style={{ whiteSpace: "nowrap" }}>{po.ClientId?.[0]?.clientName || "—"}</td>
-              <td style={{ whiteSpace: "nowrap" }}>{po.projectId?.[0]?.projectName || "—"}</td>
-              <td style={{ whiteSpace: "nowrap" }}>
-                <Link to="/admin/CostEstimates" style={{ textDecoration: "none" }}>
-                  {po.EstimateRef || "—"}
-                </Link>
-              </td>
-              <td>
-                <Badge bg={getStatusBadgeVariant(po.Status)}>{po.Status}</Badge>
-              </td>
-              <td>{new Date(po.ReceivedDate).toLocaleDateString()}</td>
-              <td>${po.Amount?.toFixed(2)}</td>
+      {/* Collapse filters for small screens */}
+      <Collapse in={showFilters} className="d-md-none mb-3" id="responsive-filters">
+        <div className="bg-light p-3 rounded shadow-sm">
+          <InputGroup className="mb-3">
+            <InputGroup.Text>
+              <FaSearch />
+            </InputGroup.Text>
+            <Form.Control
+              placeholder="Search POs..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </InputGroup>
+
+          <Form.Select
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+          >
+            <option value="">All Status</option>
+            <option value="open">Open</option>
+            <option value="invoiced">Invoiced</option>
+          </Form.Select>
+        </div>
+      </Collapse>
+
+      {/* Table wrapped in a responsive wrapper */}
+      <div style={{ overflowX: "auto" }}>
+        <Table hover responsive>
+          <thead>
+            <tr>
+              <th
+                onClick={() => handleSort("poNumber")}
+                style={{ whiteSpace: "nowrap", cursor: "pointer" }}
+              >
+                PO Number
+              </th>
+              <th
+                onClick={() => handleSort("ClientId")}
+                style={{ whiteSpace: "nowrap", cursor: "pointer" }}
+              >
+                Client
+              </th>
+              <th
+                onClick={() => handleSort("projectId")}
+                style={{ whiteSpace: "nowrap", cursor: "pointer" }}
+              >
+                Project
+              </th>
+              <th
+                onClick={() => handleSort("EstimateRef")}
+                style={{ whiteSpace: "nowrap", cursor: "pointer" }}
+              >
+                Estimate Ref
+              </th>
+              <th
+                onClick={() => handleSort("Status")}
+                style={{ cursor: "pointer" }}
+              >
+                Status
+              </th>
+              <th
+                onClick={() => handleSort("ReceivedDate")}
+                style={{ whiteSpace: "nowrap", cursor: "pointer" }}
+              >
+                Received Date
+              </th>
+              <th
+                onClick={() => handleSort("Amount")}
+                style={{ whiteSpace: "nowrap", cursor: "pointer" }}
+              >
+                Amount
+              </th>
             </tr>
-          ))}
-        </tbody>
-      </Table>
+          </thead>
+          <tbody>
+            {paginatedData.map((po, index) => (
+              <tr key={index}>
+                <td>
+                  PO-
+                  {String((currentPage - 1) * itemsPerPage + index + 1).padStart(
+                    4,
+                    "0"
+                  )}
+                </td>
+                <td style={{ whiteSpace: "nowrap" }}>
+                  {po.ClientId?.[0]?.clientName || "—"}
+                </td>
+                <td style={{ whiteSpace: "nowrap" }}>
+                  {po.projectId?.[0]?.projectName || "—"}
+                </td>
+                <td style={{ whiteSpace: "nowrap" }}>
+                  <Link
+                    to="/admin/CostEstimates"
+                    style={{ textDecoration: "none" }}
+                  >
+                    {po.EstimateRef || "—"}
+                  </Link>
+                </td>
+                <td>
+                  <Badge bg={getStatusBadgeVariant(po.Status)}>{po.Status}</Badge>
+                </td>
+                <td>{new Date(po.ReceivedDate).toLocaleDateString()}</td>
+                <td>${po.Amount?.toFixed(2)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      </div>
 
       {!loading && !error && (
-        <div className="d-flex justify-content-between align-items-center mb-4">
+        <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
           <div className="text-muted small">
             Showing {paginatedData.length} of {filteredOrders.length} entries
           </div>
 
-          <ul className="pagination pagination-sm mb-0">
+          <ul className="pagination pagination-sm mb-0 flex-wrap">
             <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
               <button
                 className="page-link"
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               >
-                Previous
+                <span aria-hidden="true">&laquo;</span>
               </button>
             </li>
             {Array.from({ length: totalPages }, (_, i) => (
@@ -212,14 +285,16 @@ function ReciveablePurchase() {
                 </button>
               </li>
             ))}
-            <li className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
+            <li
+              className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}
+            >
               <button
                 className="page-link"
                 onClick={() =>
                   setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                 }
               >
-                Next
+                <span aria-hidden="true">&raquo;</span>
               </button>
             </li>
           </ul>

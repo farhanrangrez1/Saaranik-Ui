@@ -34,15 +34,16 @@ a:hover {
     display: flex;
     flex: 1;
     overflow: hidden;
+    background-color: #f4f4f4;
   }
   
   .Main-App-Content {
     flex: 1;
-    padding: 10px 10px;
+    padding: 10px 20px;
     overflow-y: auto;
     transition: margin-left 0.3s ease;
     background-color: #f4f4f4;
-    margin-left: 240px;
+    margin-left: 250px;
     transition: margin-left 0.3s ease;
   }
   .Main-App-container.no-sidebar .navbar {
@@ -72,7 +73,7 @@ a:hover {
   @media (max-width: 768px) {
     .Main-App-Content {
       flex: 1;
-      padding: 10px 10px;
+      padding: 0px 0px;
       overflow-y: auto;
       transition: margin-left 0.3s ease;
       background-color: #f4f4f4;

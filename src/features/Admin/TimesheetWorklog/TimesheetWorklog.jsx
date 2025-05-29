@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { FaSearch, FaCalendarAlt, FaPencilAlt, FaTrashAlt } from 'react-icons/fa';
+import React, { useEffect, useState, useRef } from 'react';
+import { FaSearch, FaCalendarAlt, FaPencilAlt, FaTrashAlt, FaFilter, FaTimes } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import './TimesheetWorklog.css';
 import { useDispatch, useSelector } from 'react-redux';
@@ -9,49 +9,52 @@ import Swal from 'sweetalert2';
 function TimesheetWorklog() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProject, setSelectedProject] = useState('All timesheet');
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const timeEntries = [
-    {
-      date: '2024-01-15',
-      jobId: 'JOB-2024-001',
-      taskDescription: 'Package Design - Initial Concepts',
-      hours: 6.5,
-      status: 'Approved'
-    },
-    {
-      date: '2024-01-15',
-      jobId: 'JOB-2024-002',
-      taskDescription: 'Product Catalog - Layout Design',
-      hours: 4,
-      status: 'Pending'
-    },
-    {
-      date: '2024-01-14',
-      jobId: 'JOB-2024-003',
-      taskDescription: 'Brand Guidelines - Logo Variations',
-      hours: 8,
-      status: 'Approved'
-    }
-  ];
 
-  const discrepancies = [
-    {
-      name: 'John Doe',
-      issue: 'Missing time entry on 14/01/2024'
-    },
-    {
-      name: 'Jane Smith',
-      issue: 'Overlapping entries on 15/01/2024'
-    }
-  ];
+  const { timesheetWorklog, loading, error } = useSelector((state) => state.TimesheetWorklogs);
 
-  const summaryData = {
-    hoursThisWeek: 32.5,
-    leaveBalance: '15 days',
-    pendingApproval: '8.5 hrs',
-    overtime: '2.5 hrs'
+  useEffect(() => {
+    dispatch(fetchTimesheetWorklogs());
+  }, [dispatch]);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+  const filteredtimesheet = timesheetWorklog?.TimesheetWorklogs || [];
+  const totalPages = Math.ceil(filteredtimesheet.length / itemsPerPage);
+  const paginatedtimesheet = filteredtimesheet.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handleDelete = (_id) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You want to mark this job as Cancelled?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, mark as Cancelled!",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        dispatch(deleteTimesheetWorklog(_id))
+          .unwrap()
+          .then(() => {
+            Swal.fire("Updated!", "The job has been marked as Cancelled.", "success");
+            dispatch(fetchTimesheetWorklogs());
+          })
+          .catch(() => {
+            Swal.fire("Error!", "Something went wrong while updating.", "error");
+          });
+      }
+    });
+  };
+
+  const handleUpdate = (entry) => {
+    navigate(`/admin/AddTimesheetWorklog`, { state: { entry } });
   };
 
   const formatHours = (hoursDecimal) => {
@@ -68,142 +71,134 @@ function TimesheetWorklog() {
     return `${day}/${month}/${year}`;
   };
 
-  //  const { timesheetWorklog, loading, error } = useSelector((state) => state.TimesheetWorklogs);
-  //  console.log('timesheetWorklog', timesheetWorklog);
+  // Timesheet Discrepancies dummy data (unchanged)
+  const discrepancies = [
+    { name: 'John Doe', issue: 'Missing time entry on 14/01/2024' },
+    { name: 'Jane Smith', issue: 'Overlapping entries on 15/01/2024' }
+  ];
 
-  //   useEffect(() => {
-  //     dispatch(fetchTimesheetWorklogs());
-  //   }, [dispatch]);
-
-  // const itemsPerPage = 10;
-  // const totalPages = Math.ceil((timesheetWorklog?.length || 0) / itemsPerPage);
-  // const paginatedtimesheetWorklog = timesheetWorklog?.slice(
-  //   (currentPage - 1) * itemsPerPage,
-  //   currentPage * itemsPerPage
-  // );
-  // console.log(paginatedtimesheetWorklog);
-
-
-  const { timesheetWorklog, loading, error } = useSelector((state) => state.TimesheetWorklogs);
-  console.log(timesheetWorklog.TimesheetWorklogs);
-
+  // Close filters dropdown if clicked outside (for better UX)
+  const filterRef = useRef(null);
   useEffect(() => {
-    dispatch(fetchTimesheetWorklogs());
-  }, [dispatch]);
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
-  const filteredtimesheet = timesheetWorklog.TimesheetWorklogs || [];
-  const totalPages = Math.ceil(filteredtimesheet.length / itemsPerPage);
-  const paginatedtimesheet = filteredtimesheet.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  const handleDelete = (_id) => {
-    console.log(_id);
-    Swal.fire({
-      title: "Are you sure?",
-      text: "You want to mark this job as Cancelled?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, mark as Cancelled!",
-    }).then((result) => {
-      if (result.isConfirmed) {
-       dispatch(deleteTimesheetWorklog(_id))
-
-          .unwrap()
-          .then(() => {
-            Swal.fire("Updated!", "The job has been marked as Cancelled.", "success");
-            dispatch(fetchTimesheetWorklogs());
-          })
-          .catch(() => {
-            Swal.fire("Error!", "Something went wrong while updating.", "error");
-          });
+    function handleClickOutside(event) {
+      if (filterRef.current && !filterRef.current.contains(event.target)) {
+        setFiltersOpen(false);
       }
-    });
-  };
-  
-
-   const handleUpdate = (entry) => {
-    navigate(`/admin/AddTimesheetWorklog`, { state: { entry } });
-  };
+    }
+    if (filtersOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [filtersOpen]);
 
   return (
-    <div className="p-4 m-3" style={{ backgroundColor: "white", borderRadius: "10px" }}>
-
-      <div className="d-flex justify-content-between align-items-center mb-4">
+    <div className="p-4 m-2" style={{ backgroundColor: "white", borderRadius: "10px" }}>
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-2">
         <h4 className="mb-0">Timesheet & Worklog</h4>
         <Link id="All_btn" to="/admin/AddTimesheetWorklog" className="btn btn-dark">
           + New Time Entry
         </Link>
       </div>
 
-      {/* Summary Cards */}
-      {/* <div className="row g-3 mb-4">
-        <div className="col-sm-6 col-md-3">
-          <div className="card h-100 shadow-sm border-0 summary-card summary-card-primary">
-            <div className="card-body p-4">
-              <div className="small text-primary fw-semibold mb-2">Hours This Week</div>
-              <div className="h3 mb-0 fw-bold text-primary">{summaryData.hoursThisWeek}</div>
+      {/* Responsive Filters */}
+      <div className="mb-4">
+        {/* Large screens: show filters inline */}
+        <div className="d-none d-md-flex row g-3">
+          <div className="col-md-8">
+            <div className="input-group">
+              <span className="input-group-text bg-white border-end-0">
+                <FaSearch className="text-muted" />
+              </span>
+              <input
+                type="text"
+                className="form-control border-start-0"
+                placeholder="Search entries..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
             </div>
           </div>
-        </div>
-        <div className="col-sm-6 col-md-3">
-          <div className="card h-100 shadow-sm border-0 summary-card summary-card-success">
-            <div className="card-body p-4">
-              <div className="small text-success fw-semibold mb-2">Leave Balance</div>
-              <div className="h3 mb-0 fw-bold text-success">{summaryData.leaveBalance}</div>
-            </div>
+          <div className="col-md-4">
+            <select
+              className="form-select"
+              value={selectedProject}
+              onChange={(e) => setSelectedProject(e.target.value)}
+            >
+              <option>All timesheet</option>
+              <option>Project A</option>
+              <option>Project B</option>
+              <option>Project C</option>
+            </select>
           </div>
         </div>
-        <div className="col-sm-6 col-md-3">
-          <div className="card h-100 shadow-sm border-0 summary-card summary-card-warning">
-            <div className="card-body p-4">
-              <div className="small text-warning fw-semibold mb-2">Pending Approval</div>
-              <div className="h3 mb-0 fw-bold text-warning">{summaryData.pendingApproval}</div>
-            </div>
-          </div>
-        </div>
-        <div className="col-sm-6 col-md-3">
-          <div className="card h-100 shadow-sm border-0 summary-card summary-card-info">
-            <div className="card-body p-4">
-              <div className="small text-info fw-semibold mb-2">Overtime</div>
-              <div className="h3 mb-0 fw-bold text-info">{summaryData.overtime}</div>
-            </div>
-          </div>
-        </div>
-      </div> */}
 
-      {/* Filters */}
-      <div className="row g-3 mb-4">
-        <div className="col-md-8">
-          <div className="input-group">
-            <span className="input-group-text bg-white border-end-0">
-              <FaSearch className="text-muted" />
-            </span>
-            <input
-              type="text"
-              className="form-control border-start-0"
-              placeholder="Search entries..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-        </div>
-        <div className="col-md-4">
-          <select
-            className="form-select"
-            value={selectedProject}
-            onChange={(e) => setSelectedProject(e.target.value)}
+        {/* Small screens: show button to toggle filters */}
+        <div className="d-flex d-md-none justify-content-start" ref={filterRef} style={{ position: 'relative' }}>
+          <button
+            className="btn btn-outline-secondary"
+            onClick={() => setFiltersOpen(!filtersOpen)}
+            aria-expanded={filtersOpen}
+            aria-controls="mobileFilters"
           >
-            <option>All timesheet</option>
-            <option>Project A</option>
-            <option>Project B</option>
-            <option>Project C</option>
-          </select>
+            <FaFilter /> Filters
+          </button>
+
+          {filtersOpen && (
+            <div
+              id="mobileFilters"
+              className="card p-3 shadow"
+              style={{
+                position: 'absolute',
+                top: 'calc(100% + 0.5rem)',
+                left: 0,
+                right: 0,
+                zIndex: 1000,
+                backgroundColor: 'white',
+                borderRadius: '0.25rem',
+                boxShadow: '0 0.5rem 1rem rgb(0 0 0 / 0.15)'
+              }}
+            >
+              <div className="mb-3">
+                <label htmlFor="mobileSearch" className="form-label visually-hidden">Search Entries</label>
+                <div className="input-group">
+                  <span className="input-group-text bg-white border-end-0">
+                    <FaSearch className="text-muted" />
+                  </span>
+                  <input
+                    id="mobileSearch"
+                    type="text"
+                    className="form-control border-start-0"
+                    placeholder="Search entries..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div>
+                <label htmlFor="mobileProjectSelect" className="form-label">Select Project</label>
+                <select
+                  id="mobileProjectSelect"
+                  className="form-select"
+                  value={selectedProject}
+                  onChange={(e) => setSelectedProject(e.target.value)}
+                >
+                  <option>All timesheet</option>
+                  <option>Project A</option>
+                  <option>Project B</option>
+                  <option>Project C</option>
+                </select>
+              </div>
+              <div className="mt-3 text-end">
+                <button className="btn btn-secondary btn-sm" onClick={() => setFiltersOpen(false)}>
+                  <FaTimes /> Close
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -221,13 +216,12 @@ function TimesheetWorklog() {
                 <th className="py-3 text-end">Actions</th>
               </tr>
             </thead>
-
             <tbody>
               {paginatedtimesheet?.map((entry, index) => (
                 <tr key={index}>
                   <td className="py-3">{formatDate(entry.date)}</td>
-                  <td onClick={() => JobDetails(entry.jobId[0])}>              
-                     JOB-{String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}
+                  <td style={{ whiteSpace: "nowrap" }}>
+                    JOB-{String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}
                   </td>
                   <td style={{ whiteSpace: 'nowrap' }} className="py-3">{entry.taskDescription}</td>
                   <td style={{ whiteSpace: 'nowrap' }} className="py-3">{formatHours(entry.hours)}</td>
@@ -277,33 +271,6 @@ function TimesheetWorklog() {
       </div>
 
       {/* Pagination */}
-      {/* <div className="d-flex justify-content-between align-items-center mt-4 py-3 border-top">
-        <div className="text-muted">
-          <small>Showing <span className="fw-semibold">1</span> to <span className="fw-semibold">3</span> of <span className="fw-semibold">12</span> entries</small>
-        </div>
-        <nav aria-label="Page navigation">
-          <ul className="pagination pagination-sm mb-0">
-            <li className="page-item disabled">
-              <a className="page-link" href="#" aria-label="Previous">
-                <span aria-hidden="true">&laquo;</span>
-              </a>
-            </li>
-            <li className="page-item active" aria-current="page">
-              <a className="page-link" href="#">1</a>
-            </li>
-            <li className="page-item"><a className="page-link" href="#">2</a></li>
-            <li className="page-item"><a className="page-link" href="#">3</a></li>
-            <li className="page-item">
-              <a className="page-link" href="#" aria-label="Next">
-                <span aria-hidden="true">&raquo;</span>
-              </a>
-            </li>
-          </ul>
-        </nav>
-      </div> */}
-
-
-      {/* Pagination */}
       {!loading && !error && (
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div className="text-muted small">
@@ -312,7 +279,7 @@ function TimesheetWorklog() {
           <ul className="pagination pagination-sm mb-0">
             <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
               <button className="page-link" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
-                Previous
+                <span aria-hidden="true">&laquo;</span>
               </button>
             </li>
             {Array.from({ length: totalPages }, (_, i) => (
@@ -324,7 +291,7 @@ function TimesheetWorklog() {
             ))}
             <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
               <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
-                Next
+                <span aria-hidden="true">&raquo;</span>
               </button>
             </li>
           </ul>

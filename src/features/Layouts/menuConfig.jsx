@@ -1,4 +1,5 @@
 // src/config/menuConfig.js
+
 import {
   FaHome,
   FaFileInvoiceDollar,
@@ -13,12 +14,17 @@ import {
   FaUsersCog,
   FaCog,
   FaTasks,
-  FaClipboardList,  // Replaced FaListCheck here
+  FaClipboardList,
   FaCheckCircle,
   FaHistory,
+  FaUsers,
+  
 } from "react-icons/fa";
+import { FaUsersLine } from "react-icons/fa6";
+import { FaDiagramProject } from "react-icons/fa6";
+import { FaRegBell } from "react-icons/fa";
 
-
+// Admin Menu
 export const adminMenuItems = [
   {
     title: "Dashboard",
@@ -100,7 +106,7 @@ export const adminMenuItems = [
   },
 ];
 
-
+// Employee Menu
 export const employeeMenuItems = [
   {
     title: "Employee Dashboard",
@@ -143,6 +149,40 @@ export const employeeMenuItems = [
     path: "/admin/Notiifcations",
   },
   {
+    title: "Settings",
+    icon: <FaCog className="menu-icon" />,
+    path: "/admin/Settings",
+  },
+];
+
+// Client Menu
+export const clientMenuItems = [
+  {
+    title: "Dashboard",
+    icon: <FaHome className="menu-icon" />,
+    path: "/client/dashboard",
+  },
+  {
+    title: "Select Project",
+    icon: <FaProjectDiagram className="menu-icon" />,
+    path: "/employee/projectList",
+  },
+  {
+    title: "Select Job",
+    icon: <FaUsersLine className="menu-icon" />,
+    path: "/admin/ProjectOverview",
+  },
+  {
+    title: "Notifications",
+    icon: <FaBell className="menu-icon" />,
+    path: "/admin/Notiifcations",
+  },
+  {
+    title: "New Project",
+    icon: <FaProjectDiagram className="menu-icon" />,
+    path: "/employee/projectList",
+  },
+    {
     title: "Settings",
     icon: <FaCog className="menu-icon" />,
     path: "/admin/Settings",

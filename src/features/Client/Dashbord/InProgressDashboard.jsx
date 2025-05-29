@@ -128,7 +128,7 @@ function InProgressDashboard() {
       </div>
 
       {/* Table */}
-      <div className=" rounded-2 overflow-hidden">
+      <div className="border-start border-end rounded-2 overflow-hidden">
         {!loading && !error && filteredProjects?.length > 0 ? (
           <Table responsive className="project-table mb-4">
             <thead className="table-light">
@@ -213,37 +213,16 @@ function InProgressDashboard() {
       </div>
 
       {/* Pagination */}
-            {/* <ul className="pagination pagination-sm mb-0">
-            <li className="page-item disabled">
-              <a className="page-link" href="#" aria-label="Previous">
-                <span aria-hidden="true">&laquo;</span>
-              </a>
-            </li>
-            <li className="page-item active" aria-current="page">
-              <a className="page-link" href="#">1</a>
-            </li>
-           
-            <li className="page-item">
-              <a className="page-link" href="#" aria-label="Next">
-                <span aria-hidden="true">&raquo;</span>
-              </a>
-            </li>
-          </ul> */}
-
-     <div className="d-flex justify-content-between align-items-center mt-3">
-  <div>
-    Showing 1 to {job.jobs?.length || 0} of {job.jobs?.length || 0} jobs
-  </div>
-  <Pagination className="m-0">
-    <Pagination.Prev disabled>
-      <span aria-hidden="true">&laquo;</span>
-    </Pagination.Prev>
-    <Pagination.Item active>{1}</Pagination.Item>
-    <Pagination.Next>
-      <span aria-hidden="true">&raquo;</span>
-    </Pagination.Next>
-  </Pagination>
-</div>
+      <div className="d-flex justify-content-between align-items-center mt-3">
+        <div>
+          Showing 1 to {job.jobs?.length || 0} of {job.jobs?.length || 0} jobs
+        </div>
+        <Pagination className="m-0">
+          <Pagination.Prev disabled />
+          <Pagination.Item active>{1}</Pagination.Item>
+          <Pagination.Next />
+        </Pagination>
+      </div>
 
       {/* Designer Selection Modal */}
       <Modal
