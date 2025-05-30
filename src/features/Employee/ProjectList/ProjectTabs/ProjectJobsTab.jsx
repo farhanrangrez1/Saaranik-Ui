@@ -286,13 +286,11 @@ const handleDelete = (_id) => {
             state={{ id }} // ID pass kar rahe hain yahan
           >
             <button id="All_btn" className="btn btn-primary">
-              <i className="bi bi-plus"></i> Add Job
+              <i className="bi bi-plus"></i> Add Job 
             </button>
           </Link>
         </div>
       </div>
-
-
 
       {/* Loader */}
       {loading && (

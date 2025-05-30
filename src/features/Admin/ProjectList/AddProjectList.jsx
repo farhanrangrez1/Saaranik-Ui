@@ -2,17 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { Form, Button, Container, Row, Col } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { createProject, fetchProjectById, updateProject } from '../../../redux/slices/ProjectsSlice';
+import { createProject, updateProject } from '../../../redux/slices/ProjectsSlice';
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { fetchClient } from '../../../redux/slices/ClientSlice';
+import { fetchProjectById } from '../../../redux/slices/ProjectsSlice'; // Make sure this is correctly imported
 
 function AddProjectList() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { id } = useParams(); // for edit mode
+  const { id: paramId } = useParams(); // from URL
   const location = useLocation();
   const { project } = location.state || {};
+  const id = paramId || project?._id; // ✅ Final ID to use for update
 
   const [formData, setFormData] = useState({
     projectName: '',
@@ -36,16 +38,15 @@ function AddProjectList() {
     totalTime: ''
   });
 
+  // Populate form in edit mode
   useEffect(() => {
     if (project) {
-      // Form pre-filled from location.state
       setFormData({
         ...project,
         projectRequirements: project.projectRequirements?.[0] || {}
       });
-    } else if (id) {
-      // Form pre-filled from API
-      dispatch(fetchProjectById(id)).then((res) => {
+    } else if (paramId) {
+      dispatch(fetchProjectById(paramId)).then((res) => {
         const fetchedProject = res.payload;
         if (fetchedProject) {
           setFormData({
@@ -55,7 +56,7 @@ function AddProjectList() {
         }
       });
     }
-  }, [id, dispatch, project]);
+  }, [paramId, dispatch, project]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -78,21 +79,25 @@ function AddProjectList() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
     const payload = {
       ...formData,
       projectRequirements: [formData.projectRequirements]
     };
+
     if (id) {
-      dispatch(updateProject({ id, data: payload }))
+      // ✅ Update Project
+      dispatch(updateProject({ id, payload }))
         .unwrap()
         .then(() => {
           toast.success("Project updated successfully!");
-          navigate("/admin/plantMachinery");
+          navigate("/admin/projectList");
         })
         .catch(() => {
           toast.error("Failed to update project!");
         });
     } else {
+      // ✅ Create Project
       dispatch(createProject(payload))
         .unwrap()
         .then(() => {
@@ -107,34 +112,18 @@ function AddProjectList() {
 
   const handleCancel = () => {
     navigate("/admin/projectList");
-  }
+  };
 
-
-      //  all client 
-    const { Clients } = useSelector((state) => state.client);
-    console.log(Clients);
-  
+  // Fetch clients
+  const { Clients } = useSelector((state) => state.client);
   useEffect(() => {
-    if (Clients  && project?.data?.length) {
-      const foundProject = project.data.find(p => p._id === Clients );
-      if (foundProject) {
-        setFormData(prev => ({
-          ...prev,
-          projectsId: foundProject._id,
-        }));
-      }
-    }
-  }, [Clients , project]);
-
-    useEffect(() => {
-      dispatch(fetchClient());
-    }, [dispatch]);
-
+    dispatch(fetchClient());
+  }, [dispatch]);
 
   return (
     <Container className="py-4">
       <div className="form-container p-4 rounded shadow-sm" style={{ backgroundColor: "white", margin: "0 auto" }}>
-       <h2 className="mb-4">{id || project?._id ? "Edit Project" : "New Project"}</h2>
+        <h2 className="mb-4">{id ? "Edit Project" : "New Project"}</h2>
 
         <Form onSubmit={handleSubmit}>
           <Row className="mb-3">
@@ -191,7 +180,7 @@ function AddProjectList() {
                 <Form.Control
                   type="date"
                   name="startDate"
-                  value={formData.startDate}
+                  value={formData.startDate?.slice(0, 10)}
                   onChange={handleInputChange}
                   required
                 />
@@ -206,7 +195,7 @@ function AddProjectList() {
                 <Form.Control
                   type="date"
                   name="endDate"
-                  value={formData.endDate}
+                  value={formData.endDate?.slice(0, 10)}
                   onChange={handleInputChange}
                   required
                 />
@@ -250,17 +239,6 @@ function AddProjectList() {
                 </Form.Select>
               </Form.Group>
             </Col>
-            {/* <Col md={6}>
-              <Form.Group>
-                <Form.Label className="text-muted mb-1">Total Time Logged</Form.Label>
-                <Form.Control
-                  type="time"
-                  name="totalTime"
-                  value={formData.totalTime}
-                  onChange={handleInputChange}
-                />
-              </Form.Group>
-            </Col> */}
           </Row>
 
           <Form.Group className="mb-3">
@@ -285,7 +263,6 @@ function AddProjectList() {
                   name={key}
                   checked={formData.projectRequirements[key]}
                   onChange={() => {
-                    // Reset all to false, set only clicked one to true
                     setFormData((prevData) => ({
                       ...prevData,
                       projectRequirements: Object.fromEntries(
@@ -297,7 +274,6 @@ function AddProjectList() {
               ))}
             </div>
           </Form.Group>
-
 
           <Form.Label className="text-muted mb-1">Budget Information</Form.Label>
           <Row className="mb-3">
@@ -330,11 +306,11 @@ function AddProjectList() {
               </Form.Group>
             </Col>
           </Row>
+
           <div className="d-flex justify-content-end gap-2 mt-4">
-            <Button variant="secondary" className="px-4" style={{ minWidth: "120px" }} onClick={handleCancel}>Cancel</Button>
-            <Button variant="dark" type="submit" className="px-4" style={{ minWidth: "120px" }}>
-        
-               {id || project?._id ? "Save" : "Create Project"}
+            <Button variant="secondary" className="px-4" onClick={handleCancel}>Cancel</Button>
+            <Button variant="dark" type="submit" className="px-4">
+              {id ? "Save" : "Create Project"}
             </Button>
           </div>
         </Form>

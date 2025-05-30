@@ -194,7 +194,7 @@ function MyJobs() {
                 <td><Link>{String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}</Link></td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.projectId?.[0]?.projectName || 'N/A'}</td>
                 <td>{job.brandName}</td>
-                <td>{job.subBrand}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{job.subBrand}</td>
                 <td>{job.flavour}</td>
                 <td>{job.packType}</td>
                 <td>{job.packSize}</td>

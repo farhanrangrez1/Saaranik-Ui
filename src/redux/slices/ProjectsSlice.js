@@ -56,16 +56,29 @@ export const fetchProjectById = createAsyncThunk('projects/fetchById', async (id
   });
   
 
-  export const updateProject = createAsyncThunk('projects/updateProject', async ({ id, data }) => {
-    const response = await fetch(`/api/projects/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    if (!response.ok) throw new Error("Failed to update project");
-    return await response.json();
-  });
-  
+export const updateProject = createAsyncThunk(
+  "projects/updateProject",
+  async ({ id, payload }, thunkAPI) => {
+    try {
+      const response = await fetch(`${apiUrl}/projects/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to update project");
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.message);
+    }
+  }
+);
+
 
 const projectsSlice = createSlice({
   name: 'projects',
