@@ -174,12 +174,12 @@ function UserRoles() {
                         >
                           <FaEdit />
                         </button>
-                        <button
+                        {/* <button
                           className="btn btn-sm btn-outline-danger"
                           onClick={() => handleDeleteUser(user._id)}
                         >
                           <FaTrashAlt />
-                        </button>
+                        </button> */}
                       </div>
                     </td>
                   </tr>

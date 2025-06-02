@@ -160,7 +160,7 @@ function AddProjectList() {
           </Row>
 
           <Row className="mb-3">
-            <Col md={6}>
+            {/* <Col md={6}>
               <Form.Group>
                 <Form.Label className="text-muted mb-1">Project Manager</Form.Label>
                 <Form.Select
@@ -173,7 +173,20 @@ function AddProjectList() {
                   <option value="662fb9a2a77b2e0012345678">Manager 1</option>
                 </Form.Select>
               </Form.Group>
+            </Col> */}
+              <Col md={6}>
+              <Form.Group>
+                <Form.Label className="text-muted mb-1">Expected Completion Date</Form.Label>
+                <Form.Control
+                  type="date"
+                  name="endDate"
+                  value={formData.endDate?.slice(0, 10)}
+                  onChange={handleInputChange}
+                  required
+                />
+              </Form.Group>
             </Col>
+
             <Col md={6}>
               <Form.Group>
                 <Form.Label className="text-muted mb-1">Start Date</Form.Label>
@@ -191,18 +204,6 @@ function AddProjectList() {
           <Row className="mb-3">
             <Col md={6}>
               <Form.Group>
-                <Form.Label className="text-muted mb-1">Expected Completion Date</Form.Label>
-                <Form.Control
-                  type="date"
-                  name="endDate"
-                  value={formData.endDate?.slice(0, 10)}
-                  onChange={handleInputChange}
-                  required
-                />
-              </Form.Group>
-            </Col>
-            <Col md={6}>
-              <Form.Group>
                 <Form.Label className="text-muted mb-1">Project Priority</Form.Label>
                 <Form.Select
                   name="projectPriority"
@@ -217,10 +218,8 @@ function AddProjectList() {
                 </Form.Select>
               </Form.Group>
             </Col>
-          </Row>
 
-          <Row className="mb-3">
-            <Col md={6}>
+             <Col md={6}>
               <Form.Group>
                 <Form.Label className="text-muted mb-1">Project Status</Form.Label>
                 <Form.Select

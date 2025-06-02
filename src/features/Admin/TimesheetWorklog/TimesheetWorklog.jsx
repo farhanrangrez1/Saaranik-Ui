@@ -234,9 +234,9 @@ function TimesheetWorklog() {
                     <button className="btn btn-link text-dark p-0 me-3 action-btn" onClick={() => handleUpdate(entry)}>
                       <FaPencilAlt />
                     </button>
-                    <button className="btn btn-link text-danger p-0 action-btn" onClick={() => handleDelete(entry._id)}>
+                    {/* <button className="btn btn-link text-danger p-0 action-btn" onClick={() => handleDelete(entry._id)}>
                       <FaTrashAlt />
-                    </button>
+                    </button> */}
                   </td>
                 </tr>
               ))}

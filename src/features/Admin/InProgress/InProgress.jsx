@@ -1,23 +1,21 @@
-import React, { useEffect, useState } from "react";
-import { Button, Form, Table, ProgressBar, Pagination, Modal } from "react-bootstrap";
+import { useEffect, useState } from "react";
+import { Form, Table, Modal } from "react-bootstrap";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import { FaComments } from "react-icons/fa";
-import { BsPencil } from "react-icons/bs";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchjobs } from "../../../redux/slices/JobsSlice";
-
-import {
-  FaFilePdf,
-  FaUpload,
-  FaLink,
-  FaClock,
-  FaEdit,
-} from "react-icons/fa";
+import { fetchjobs, filterStatus } from "../../../redux/slices/JobsSlice";
 import { Dropdown } from "react-bootstrap";
+
 function InProgress() {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const location = useLocation();
+  const params = useParams();
+  const id = location.state?.id || params.id;
+
   const [showDesignerModal, setShowDesignerModal] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
   const [selectedJobs, setSelectedJobs] = useState({});
+  const [selectedStatus, setSelectedStatus] = useState("In Progress");
 
   const designers = [
     "Sarah Chen",
@@ -27,59 +25,14 @@ function InProgress() {
     "Emma Davis"
   ];
 
-  const jobs = [
-    {
-      id: "00001",
-      project: "PackageRedesign",
-      designer: "SarahChen",
-      timeSpent: "12h 30m",
-      progress: 75,
-      status: "Assigned",
-      brand: "BrandA",
-      subBrand: "SubBrand1",
-      flavour: "Vanilla",
-      packType: "Box",
-      packSize: "500ml",
-      briefLogs: [
-        "Initial sketches done",
-        "Color palette approved"
-      ]
-    },
-    {
-      id: "00002",
-      project: "BrandGuidelines",
-      designer: "MikeJohnson",
-      timeSpent: "8h 45m",
-      progress: 45,
-      status: "In Progress",
-      brand: "BrandB",
-      subBrand: "SubBrand2",
-      flavour: "Strawberry",
-      packType: "Can",
-      packSize: "330ml",
-      briefLogs: [
-        "Logo variations prepared",
-        "Typography system drafted"
-      ]
-    },
-    {
-      id: "00003",
-      project: "MarketingMaterials",
-      designer: "AlexWong",
-      timeSpent: "15h 20m",
-      progress: 90,
-      status: "Review",
-      brand: "BrandC",
-      subBrand: "SubBrand3",
-      flavour: "Lemon",
-      packType: "Bag",
-      packSize: "1L",
-      briefLogs: [
-        "Posters finalized",
-        "Social media banners created"
-      ]
-    }
-  ];
+  const { job, loading, error } = useSelector((state) => state.jobs);
+  console.log("erjhgkjwerfgkelgbwer",job);
+  
+   const [Status, setStatus] = useState("in_progress");
+
+  useEffect(() => {
+    dispatch(filterStatus(Status)); // use variable here
+  }, [dispatch, Status]);
 
   const handleDesignerClick = (job) => {
     setSelectedJob(job);
@@ -100,57 +53,6 @@ function InProgress() {
     }));
   };
 
-  const handleSelectAll = (e) => {
-    const isChecked = e.target.checked;
-    const allJobs = jobs.reduce((acc, job) => {
-      acc[job.id] = isChecked;
-      return acc;
-    }, {});
-    setSelectedJobs(allJobs);
-  };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  // //////////////////
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedProject, setSelectedProject] = useState("All Projects");
-  const [selectedPriority, setSelectedPriority] = useState("All Priorities");
-  const [selectedStatus, setSelectedStatus] = useState("In Progress");
-  const [selectedStage, setSelectedStage] = useState("All Stages");
-  // const [selectedJobs, setSelectedJobs] = useState({});
-
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const location = useLocation();
-  const params = useParams();
-  const id = location.state?.id || params.id;
-
-  const { job, loading, error } = useSelector((state) => state.jobs);
-
-  useEffect(() => {
-    dispatch(fetchjobs());
-  }, [dispatch]);
-
-  // const handleCheckboxChange = (jobId) => {
-  //   setSelectedJobs((prevSelectedJobs) => ({
-  //     ...prevSelectedJobs,
-  //     [jobId]: !prevSelectedJobs[jobId],
-  //   }));
-  // };
-
   const getPriorityClass = (priority) => {
     switch ((priority || "").toLowerCase()) {
       case "high":
@@ -169,56 +71,8 @@ function InProgress() {
       case "in progress":
       case "in_progress":
         return "bg-warning text-dark";
-      case "review":
-        return "bg-info text-dark";
-      case "not started":
-        return "bg-secondary text-white";
-      case "completed":
-        return "bg-success text-white";
-      case "open":
-        return "bg-primary text-white";
-      default:
-        return "bg-light text-dark";
     }
   };
-
-  // ✅ Filter jobs from Redux store
-  const filteredJobs = (job?.jobs || []).filter((j) => {
-    const search = searchQuery.toLowerCase();
-
-    const matchesSearch =
-      j.jobNumber?.toLowerCase().includes(search) ||
-      j.project?.projectName?.toLowerCase().includes(search) ||
-      j.brandName?.toLowerCase().includes(search) ||
-      j.subBrand?.toLowerCase().includes(search) ||
-      j.flavour?.toLowerCase().includes(search) ||
-      j.packType?.toLowerCase().includes(search) ||
-      j.packSize?.toLowerCase().includes(search);
-
-    const matchesProject =
-      selectedProject === "All Projects" ||
-      j.project?.projectName === selectedProject;
-
-    const matchesPriority =
-      selectedPriority === "All Priorities" ||
-      j.priority?.toLowerCase() === selectedPriority.toLowerCase();
-
-    const matchesStatus =
-      selectedStatus === "All Status" ||
-      j.Status?.toLowerCase() === selectedStatus.toLowerCase();
-
-    const matchesStage =
-      selectedStage === "All Stages" ||
-      j.stage?.toLowerCase() === selectedStage.toLowerCase();
-
-    return (
-      matchesSearch &&
-      matchesProject &&
-      matchesPriority &&
-      matchesStatus &&
-      matchesStage
-    );
-  });
 
   const handleUpdate = (job) => {
     navigate(`/admin/AddJobTracker`, { state: { job } });
@@ -229,15 +83,17 @@ function InProgress() {
   }
 
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+const [currentPage, setCurrentPage] = useState(1);
+const itemsPerPage = 10;
 
-  const filteredProjects = (job?.jobs || []).filter(j => (j?.Status || "").toLowerCase() === "in_progress");
-  const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
-  const paginatedProjects = filteredProjects.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+const filteredProjects = job?.jobs || [];
+const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
+
+const paginatedProjects = filteredProjects.slice(
+  (currentPage - 1) * itemsPerPage,
+  currentPage * itemsPerPage
+);
+
 
   return (
     <div className="container bg-white p-4 mt-4 rounded shadow-sm">
@@ -300,10 +156,8 @@ function InProgress() {
                   />
                 </td>
                 <td onClick={() => JobDetails(job)}>
-                  <Link>
-                    {String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}</Link>
+                  <Link style={{ textDecoration: 'none' }}>{job.JobNo}</Link>
                 </td>
-
                 <td style={{ whiteSpace: 'nowrap' }}>{job.projectId?.[0]?.projectName || 'N/A'}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.brandName}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.subBrand}</td>
@@ -331,9 +185,6 @@ function InProgress() {
           </tbody>
         </Table>
       </div>
-
-
-
 
       {/* Change Designer Modal */}
       <Modal show={showDesignerModal} onHide={() => setShowDesignerModal(false)}>
@@ -378,7 +229,6 @@ function InProgress() {
                 <span aria-hidden="true">&raquo;</span>
               </button>
             </li>
-
           </ul>
         </div>
       )}

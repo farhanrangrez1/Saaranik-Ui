@@ -24,6 +24,7 @@ function UserRoleModal() {
   const [formData, setFormData] = useState({
     role: '',
     roleDescription: '',
+    assign:'Not Assign',
     permissions: {
       dashboardAccess: false,
       clientManagement: false,

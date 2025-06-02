@@ -3,8 +3,34 @@ import axiosInstance from '../utils/axiosInstance';
 import { apiUrl } from '../../redux/utils/config';
 
 
+export const Project_job_Id = createAsyncThunk(
+ 'job/Project_job_Id',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get(`${apiUrl}/jobs/${id}`);
+      console.log("respos",response.data);
+      
+      return response.data
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+export const filterStatus = createAsyncThunk(
+  'ProjectJob/fetchjobs',
+  async (Status, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get(`${apiUrl}/jobs/filter/${Status}`);
+      return response.data
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
 export const fetchjobs = createAsyncThunk(
-  'job/fetchjobs',
+  'ProjectJob/fetchjobs',
   async (_, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.get(`${apiUrl}/jobs`);
@@ -14,7 +40,6 @@ export const fetchjobs = createAsyncThunk(
     }
   }
 );
-
 export const createjob = createAsyncThunk(
   'job/createjob',
   async (submissionData, { rejectWithValue }) => {
@@ -91,12 +116,25 @@ const jobsSlice = createSlice({
   name: 'jobs',
   initialState: {
     job: [],
+    ProjectJob: [],
     status: 'idle',
     error: null,
   },
   reducers: {},
   extraReducers: (builder) => {
     builder
+    // Project_job_Id
+      .addCase(Project_job_Id.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(Project_job_Id.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.ProjectJob = action.payload;
+      })
+      .addCase(Project_job_Id.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      })
           // Add
         //   .addCase(createjob.pending, (state) => {
         //     state.loading = true;

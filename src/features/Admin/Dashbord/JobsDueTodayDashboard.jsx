@@ -215,12 +215,12 @@ function JobsDueTodayDashboard() {
                   >
                     <i className="bi bi-pencil"></i> Edit
                   </button>
-                  <button
+                  {/* <button
                     className="btn btn-sm btn-outline-danger"
                     onClick={() => handleDelete(job._id)}
                   >
                     <i className="bi bi-trash"></i> Remove
-                  </button>
+                  </button> */}
                 </td>
               </tr>
             ))}

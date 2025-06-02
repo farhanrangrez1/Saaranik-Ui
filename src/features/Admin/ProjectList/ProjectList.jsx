@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { deleteproject, fetchProject } from '../../../redux/slices/ProjectsSlice';
 import Swal from 'sweetalert2';
 import { fetchClient } from '../../../redux/slices/ClientSlice';
+import { Project_job_Id } from '../../../redux/slices/JobsSlice';
 
 function ProjectList() {
   const [activeTab, setActiveTab] = useState('Active Project');
@@ -74,8 +75,9 @@ function ProjectList() {
   const handleUpdate = (project) => {
     navigate(`/admin/AddProjectList`, { state: { project } });
   };
+
   const CreatJobs = (id) => {
-    navigate('/admin/ProjectOverview', { state: { id, openTab: 'jobs' } });
+    navigate(`/admin/ProjectOverview/${id}`, { state: { id, openTab: 'jobs' } });
   };
 
   const getStatusClass = (status) => {
@@ -242,8 +244,7 @@ function ProjectList() {
                   </Link>
                 </td> */}
                 <td onClick={() => CreatJobs(project.id)}>
-                  <Link>
-                    {String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}</Link>
+                  <Link style={{ textDecoration: 'none' }}>{project.projectNo}</Link>
                 </td>
                 <td style={{ whiteSpace: 'nowrap' }}>{project.projectName}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{project.description}</td>

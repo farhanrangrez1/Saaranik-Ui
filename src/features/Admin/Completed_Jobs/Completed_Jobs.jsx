@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { LuDownload, LuEye, LuRotateCcw } from "react-icons/lu";
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { fetchjobs } from '../../../redux/slices/JobsSlice';
+import { fetchjobs, filterStatus } from '../../../redux/slices/JobsSlice';
 import { Button, Form, Table, ProgressBar, Pagination, Modal, Dropdown, Collapse } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { FaComments, FaDownload, FaEye } from "react-icons/fa";
@@ -18,8 +18,6 @@ function Completed_Jobs() {
   const params = useParams();
   const id = location.state?.id || params.id;
 
-  const { job, loading } = useSelector((state) => state.jobs);
-
   const handleCheckboxChange = (jobId) => {
     setSelectedJobs((prev) => ({
       ...prev,
@@ -27,6 +25,13 @@ function Completed_Jobs() {
     }));
     setError('');
   };
+
+    const { job, loading,  } = useSelector((state) => state.jobs);
+    const [Status, setStatus] = useState("completed");
+
+  useEffect(() => {
+    dispatch(filterStatus(Status));
+  }, [dispatch, Status]);
 
   const isAnySelected = Object.values(selectedJobs).some(Boolean);
 
@@ -37,10 +42,6 @@ function Completed_Jobs() {
       setError("Please select at least one job before proceeding.");
     }
   };
-
-  useEffect(() => {
-    dispatch(fetchjobs());
-  }, [dispatch]);
 
   const getPriorityClass = (priority) => {
     switch ((priority || "").toLowerCase()) {
@@ -65,28 +66,6 @@ function Completed_Jobs() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProject, setSelectedProject] = useState("All Projects");
-  const [selectedPriority, setSelectedPriority] = useState("All Priorities");
-  const [selectedStatus, setSelectedStatus] = useState("completed");
-  const [selectedStage, setSelectedStage] = useState("All Stages");
-
-  const filteredJobs = (job?.jobs || []).filter((j) => {
-    const search = searchQuery.toLowerCase();
-    const matchesSearch =
-      j.jobNumber?.toLowerCase().includes(search) ||
-      j.project?.projectName?.toLowerCase().includes(search) ||
-      j.brandName?.toLowerCase().includes(search) ||
-      j.subBrand?.toLowerCase().includes(search) ||
-      j.flavour?.toLowerCase().includes(search) ||
-      j.packType?.toLowerCase().includes(search) ||
-      j.packSize?.toLowerCase().includes(search);
-
-    const matchesProject = selectedProject === "All Projects" || j.project?.projectName === selectedProject;
-    const matchesPriority = selectedPriority === "All Priorities" || j.priority?.toLowerCase() === selectedPriority.toLowerCase();
-    const matchesStatus = selectedStatus === "All Status" || j.Status?.toLowerCase() === selectedStatus.toLowerCase();
-    const matchesStage = selectedStage === "All Stages" || j.stage?.toLowerCase() === selectedStage.toLowerCase();
-
-    return matchesSearch && matchesProject && matchesPriority && matchesStatus && matchesStage;
-  });
 
   const handleUpdate = (job) => {
     navigate(`/admin/AddJobTracker`, { state: { job } });
@@ -100,12 +79,16 @@ function Completed_Jobs() {
     // Placeholder: Add your logic here
   };
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+const [currentPage, setCurrentPage] = useState(1);
+const itemsPerPage = 10;
 
-  const filteredProjects = (job?.jobs || []).filter(j => (j?.Status || "").toLowerCase() === "completed");
-  const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
-  const paginatedProjects = filteredProjects.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+const filteredProjects = job?.jobs || [];
+const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
+
+const paginatedProjects = filteredProjects.slice(
+  (currentPage - 1) * itemsPerPage,
+  currentPage * itemsPerPage
+);
 
   return (
     <div className="container-fluid mt-4">
@@ -198,7 +181,7 @@ function Completed_Jobs() {
                     />
                   </td>
                   <td onClick={() => JobDetails(job)}>
-                    <Link>{String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}</Link>
+                    <Link style={{ textDecoration: 'none' }}>{job.JobNo}</Link>
                   </td>
                   <td style={{ whiteSpace: "nowrap" }}>{job.projectId?.[0]?.projectName || 'N/A'}</td>
                   <td>{job.brandName}</td>

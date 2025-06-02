@@ -286,9 +286,9 @@ function Invoicing_Billing() {
                   <button className="btn btn-sm btn-outline-primary" onClick={() => UpdateInvocing(invoice)}>
                     <FaEdit />
                   </button>
-                  <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(invoice._id)}>
+                  {/* <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(invoice._id)}>
                     <FaTrash />
-                  </button>
+                  </button> */}
                   <button
                     className="btn btn-sm btn-outline-secondary"
                     onClick={handleDownloadPDF}

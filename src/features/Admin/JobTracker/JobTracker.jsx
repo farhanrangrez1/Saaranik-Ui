@@ -214,11 +214,14 @@ function JobTracker() {
                     onChange={() => handleCheckboxChange(job._id)}
                   />
                 </td>
-                  <td onClick={() => JobDetails(job)}>
+                  {/* <td onClick={() => JobDetails(job)}>
                                   <Link>
                                     {String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}</Link>
-                                </td>
+                                </td> */}
 
+      <td onClick={() => JobDetails(job)}>
+                      <Link style={{ textDecoration: 'none' }}>{job.JobNo}</Link>
+                    </td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.projectId?.[0]?.projectName || 'N/A'}</td>
 
                 <td>{job.brandName}</td>

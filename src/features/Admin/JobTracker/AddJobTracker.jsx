@@ -7,18 +7,18 @@ import Barcode from 'react-barcode';
 import Select from 'react-select';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProject } from '../../../redux/slices/ProjectsSlice';
-import { createjob, updatejob } from '../../../redux/slices/JobsSlice';
+import { createjob, Project_job_Id, updatejob } from '../../../redux/slices/JobsSlice';
 
 function AddJobTracker() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   // Project name sho
-const { id: paramId } = useParams();
-const location = useLocation();
-const { job } = location.state || {};
-const projectId = location.state?.id;
+  const { id: paramId } = useParams();
+  const location = useLocation();
+  const { job } = location.state || {};
+  const projectId = location.state?.id;
 
-const id = paramId || job?._id;
+  const id = paramId || job?._id;
 
 
 
@@ -46,7 +46,7 @@ const id = paramId || job?._id;
     subBrand: '',
     flavour: '',
     packType: '',
-    packCode:'',
+    packCode: '',
     packSize: '',
     priority: '',
     Status: '',
@@ -108,36 +108,38 @@ const id = paramId || job?._id;
 
 
   const handleSubmit = (e) => {
-  e.preventDefault();
-  const payload = {
-    ...formData,
-    projectsId: [formData.projectsId],
-  };
+    e.preventDefault();
+    const payload = {
+      ...formData,
+      projectsId: [formData.projectsId],
+    };
 
-  if (id) {
-    dispatch(updatejob({ id, data: payload }))
-      .unwrap()
-      .then(() => {
-        toast.success("Job updated successfully!");
-        navigate('/admin/ProjectOverview', { state: { openTab: 'jobs' } });
-        dispatch(fetchProject());
-      })
-      .catch(() => {
-        toast.error("Failed to update job!");
-      });
-  } else {
-    dispatch(createjob(payload))
-      .unwrap()
-      .then(() => {
-        toast.success("Job created successfully!");
-        navigate('/admin/ProjectOverview', { state: { openTab: 'jobs' } });
-        dispatch(fetchProject());
-      })
-      .catch(() => {
-        toast.error("Failed to create job!");
-      });
-  }
-};
+    if (job) {
+      dispatch(updatejob({ id: job._id, data: payload }))
+        .unwrap()
+        .then(() => {
+          toast.success("Job updated successfully!");
+          const selectedProjectId = formData.projectsId;
+          navigate(`/admin/ProjectOverview/${selectedProjectId}`, { state: { openTab: 'jobs' } });
+          dispatch(Project_job_Id(selectedProjectId));
+        })
+        .catch(() => {
+          toast.error("Failed to update job!");
+        });
+    } else {
+      dispatch(createjob(payload))
+        .unwrap()
+        .then(() => {
+          toast.success("Job created successfully!");
+          const selectedProjectId = formData.projectsId;
+          navigate(`/admin/ProjectOverview/${selectedProjectId}`, { state: { openTab: 'jobs' } });
+          dispatch(Project_job_Id(selectedProjectId));
+        })
+        .catch(() => {
+          toast.error("Failed to create job!");
+        });
+    }
+  };
 
 
   const handleCancel = () => {
@@ -163,7 +165,7 @@ const id = paramId || job?._id;
       <div className="container mt-5">
         <div className="card shadow-sm">
           <div className="card-body">
-            <h2 className="mb-4">{id || job?._id ? "Edit Jobs" : "Add Jobs"}</h2>
+            <h2 className="mb-4">{job?._id ? "Edit Jobs" : "Add Jobs"}</h2>
 
             <form className="row g-3" onSubmit={handleSubmit}>
               {/* Project Name */}

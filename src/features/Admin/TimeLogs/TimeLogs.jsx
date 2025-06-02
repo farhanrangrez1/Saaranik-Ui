@@ -315,12 +315,12 @@ function TimeLogs() {
                         >
                           <FaPencilAlt />
                         </button>
-                        <button
+                        {/* <button
                           className="btn btn-link text-danger p-0"
                           onClick={() => handleDelete(log._id)}
                         >
                           <FaTrashAlt />
-                        </button>
+                        </button> */}
                       </td>
                     </tr>
                   );

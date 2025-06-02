@@ -93,10 +93,10 @@ function Admin() {
             <Route path="/projectList" element={<ProjectList />} />
             <Route path="/AddProjectList" element={<AddProjectList />} />
             <Route path="/OvervieJobsProject" element={<OvervieJobsProject />} />
-            <Route path="/ProjectOverview" element={<ProjectOverview />} />
+           <Route path="/ProjectOverview/:id" element={<ProjectOverview />} />
             <Route path="/UpdateProjectLis" element={<UpdateProjectLis />} />
             <Route path="/jobTracker" element={<JobTracker />} />
-            <Route path="/AddJobTracker" element={<AddJobTracker />} />
+            <Route path="/AddJobTracker/:id" element={<AddJobTracker />} />
             <Route path="/OvervieJobsTracker" element={<OvervieJobsTracker />} />
             <Route path="/updateJobTracker" element={<UpdateJobTracker />} />
             <Route path="/AddJobAssignment" element={<AddJobAssignment />} />

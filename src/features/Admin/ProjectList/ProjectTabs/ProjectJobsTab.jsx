@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Modal, Form, Button } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
-import { deletejob, fetchjobs, updatejob, UpdateJobAssign } from '../../../../redux/slices/JobsSlice';
+import { deletejob, fetchjobs, Project_job_Id, updatejob, UpdateJobAssign } from '../../../../redux/slices/JobsSlice';
 import Swal from 'sweetalert2';
+import { fetchusers } from '../../../../redux/slices/userSlice';
 
 function ProjectJobsTab() {
   const location = useLocation();
@@ -11,7 +12,7 @@ function ProjectJobsTab() {
   const id = location.state?.id || params.id;
   console.log("hello me project id", id);
 
-
+  const dispatch = useDispatch()
 
   const [selectedProduction, setSelectedProduction] = useState('');
   const [selectedAdditional, setSelectedAdditional] = useState('');
@@ -66,38 +67,51 @@ function ProjectJobsTab() {
     },
   ];
 
+
+  const [selectedEmployee, setSelectedEmployee] = useState("");
+  const { userAll } = useSelector((state) => state.user);
+  console.log("data user", userAll?.data?.users);
+
+  useEffect(() => {
+    dispatch(fetchusers());
+  }, [dispatch]);
+  const [currentAssignment, setCurrentAssignment] = useState(1);
+  const itemsAssignment = 10;
+
+  const filteredAssignment = (userAll?.data?.users || []).filter(
+    (j) =>
+      ((j?.assign || "").toString().toLowerCase() ===
+        selectedDesigner.toLowerCase()) &&
+      selectedDesigner !== ""
+  );
+
+  const paginatedAssignment = filteredAssignment.slice(
+    (currentAssignment - 1) * itemsAssignment,
+    currentAssignment * itemsAssignment
+  );
+
+  const handleSubmitAssignment = (data) => {
+    console.log(data);
+    console.log({
+      selectedDesigner,
+      selectedEmployee,
+      assignmentDescription,
+    });
+    setShowAssignModal(false);
+  };
+
+
+
+  const employees = [
+    { _id: "123", name: "John Doe" },
+    { _id: "456", name: "Jane Smith" },
+  ];
+
   const handleCheckboxChange = (jobId) => {
     setSelectedJobs((prev) => ({
       ...prev,
       [jobId]: !prev[jobId],
     }));
-  };
-
-  const handleSubmitAssignment = () => {
-    const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
-
-    if (selectedJobIds.length === 0) {
-      setErrorMessage("Please select at least 1 job to assign.");
-      setTimeout(() => setErrorMessage(""), 3000);
-      return;
-    }
-
-    if (!selectedDesigner) {
-      setErrorMessage("Please select a designer.");
-      setTimeout(() => setErrorMessage(""), 3000);
-      return;
-    }
-
-    // ✅ Now send data to handleJobAssign
-    handleJobAssign(selectedJobIds, selectedDesigner);
-
-    // Reset state and close modal
-    setShowAssignModal(false);
-    setSelectedProduction('');
-    setSelectedAdditional('');
-    setSelectedJob(null);
-    setSelectedDesigner('');
-    setAssignmentDescription('');
   };
 
   const handleCSVImport = (event) => {
@@ -121,7 +135,6 @@ function ProjectJobsTab() {
   };
   // ////////////////////////////////////////
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   // const location = useLocation();
   // const params = useParams();
   // const id = location.state?.id || params.id;
@@ -134,40 +147,45 @@ function ProjectJobsTab() {
   const { job, loading, error } = useSelector((state) => state.jobs);
   console.log(job.jobs, "all jobs");
 
+  const { ProjectJob } = useSelector((state) => state.jobs);
+  console.log(ProjectJob, "all jobs");
+
   useEffect(() => {
-    dispatch(fetchjobs());
-  }, [dispatch]);
+    dispatch(Project_job_Id(id));
+  }, [dispatch, id]);
 
 
-const handleDelete = (_id) => {
-  console.log(_id);
-  Swal.fire({
-    title: "Are you sure?",
-    text: "You want to mark this job as Cancelled?",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#3085d6",
-    cancelButtonColor: "#d33",
-    confirmButtonText: "Yes, mark as Cancelled!",
-  }).then((result) => {
-    if (result.isConfirmed) {
-      // dispatch(deletejob({ id: _id, data: { status: "Cancelled" } }))
-      dispatch(updatejob({ id: _id, data: { Status: "Cancelled" } }))
-        .unwrap()
-        .then(() => {
-          Swal.fire("Updated!", "The job has been marked as Cancelled.", "success");
-          dispatch(fetchjobs());
-        })
-        .catch(() => {
-          Swal.fire("Error!", "Something went wrong while updating.", "error");
-        });
-    }
-  });
-};
+  const handleDelete = (_id) => {
+    console.log(_id);
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You want to mark this job as Cancelled?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, mark as Cancelled!",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // dispatch(deletejob({ id: _id, data: { status: "Cancelled" } }))
+        console.log(id);
 
+        dispatch(updatejob({ id: _id, data: { Status: "Cancelled" } }))
+          .unwrap()
+          .then(() => {
+            Swal.fire("Updated!", "The job has been marked as Cancelled.", "success");
+            dispatch(Project_job_Id(id));
+          })
+          .catch(() => {
+            Swal.fire("Error!", "Something went wrong while updating.", "error");
+          });
+      }
+    });
+  };
 
   const handleUpdate = (job) => {
-    navigate(`/admin/AddJobTracker`, { state: { job } });
+    console.log(job, "dcvhrvrejhcvwerjhcvhgv")
+    navigate(`/admin/AddJobTracker/${job._id}`, { state: { job } });
   };
 
   const JobDetails = (job) => {
@@ -205,7 +223,7 @@ const handleDelete = (_id) => {
     dispatch(UpdateJobAssign(payload))
       .then(() => {
         // Swal.fire("Success!", "Jobs assigned successfully", "success");
-        dispatch(fetchjobs());
+        // dispatch(fetchjobs());
       })
       .catch(() => {
         Swal.fire("Error!", "Something went wrong", "error");
@@ -232,11 +250,10 @@ const handleDelete = (_id) => {
   };
 
 
-
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const filteredProjects = job?.jobs || [];
+  const filteredProjects = ProjectJob?.jobs || [];
   const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
 
   const paginatedProjects = filteredProjects.slice(
@@ -244,12 +261,15 @@ const handleDelete = (_id) => {
     currentPage * itemsPerPage
   );
 
+  const AddJob = () => {
+    navigate(`/admin/AddJobTracker/${id}`, { state: { id } });
+  };
+
   return (
     <div className="card">
       <div className="card-header d-flex align-content-center justify-content-between mt-3">
         <h5 className="card-title mb-0">Jobs List</h5>
         <div className="text-end">
-          {/* ✅ Assign Button always enabled, shows error if none selected */}
           <Button
             id="All_btn"
             className="m-2"
@@ -281,35 +301,24 @@ const handleDelete = (_id) => {
             />
           </label>
 
-          <Link
-            to="/admin/AddJobTracker"
-            state={{ id }} // ID pass kar rahe hain yahan
-          >
-            <button id="All_btn" className="btn btn-primary">
-              <i className="bi bi-plus"></i> Add Job
-            </button>
-          </Link>
+
+          <button onClick={() => AddJob()} id="All_btn" className="btn btn-primary">
+            <i className="bi bi-plus"></i> Add Job
+          </button>
+
         </div>
       </div>
 
 
 
-      {/* Loader */}
       {loading && (
         <div className="text-center my-5">
           <Spinner animation="border" variant="primary" />
           <div className="mt-2">Loading projects...</div>
         </div>
       )}
-
-      {/* Error */}
-      {error && (
-        <div className="text-danger text-center my-5">
-          Failed to load projects. Please try again later.
-        </div>
-      )}
       <div className="card-body">
-        {/* ✅ Error message block */}
+
         {errorMessage && (
           <div className="alert alert-danger py-2" role="alert">
             {errorMessage}
@@ -317,106 +326,106 @@ const handleDelete = (_id) => {
         )}
 
         <div className="table-responsive">
-          <table className="table table-hover">
-            <thead>
-              <tr>
-                <th>
-                  <input
-                    type="checkbox"
-                    onChange={(e) => {
-                      const checked = e.target.checked;
-                      const newSelectedJobs = {};
-                      job?.jobs?.forEach((job) => {
-                        newSelectedJobs[job._id] = checked;
-                      });
-                      setSelectedJobs(newSelectedJobs);
-                    }}
-                    checked={
-                      job?.jobs?.length > 0 &&
-                      job?.jobs?.every((j) => selectedJobs[j._id])
-                    }
-                  />
-                </th>
-                <th>JobsNo</th>
-                <th style={{ whiteSpace: 'nowrap' }}>Project Name</th>
-                <th>Brand</th>
-                <th>SubBrand</th>
-                <th>Flavour</th>
-                <th>PackType</th>
-                <th>PackSize</th>
-                <th>PackCode</th>
-                <th>Priority</th>
-                <th style={{ whiteSpace: 'nowrap' }}>Due Date</th>
-                <th>Assing</th>
-                <th>TotalTime</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginatedProjects?.map((job, index) => (
-                <tr key={job._id}>
-                  <td>
+          {paginatedProjects.length === 0 ? (
+            <div className="text-danger text-center my-5">
+              No jobs found.
+            </div>
+          ) : (
+            <table className="table table-hover">
+              <thead>
+                <tr>
+                  <th>
                     <input
                       type="checkbox"
-                      checked={selectedJobs[job._id] || false}
-                      onChange={() => handleCheckboxChange(job._id)}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        const newSelectedJobs = {};
+                        job?.jobs?.forEach((job) => {
+                          newSelectedJobs[job._id] = checked;
+                        });
+                        setSelectedJobs(newSelectedJobs);
+                      }}
+                      checked={
+                        job?.jobs?.length > 0 &&
+                        job?.jobs?.every((j) => selectedJobs[j._id])
+                      }
                     />
-                  </td>
-                  {/* <td>
-                    <Link>
-                      {String(index + 1).padStart(4, '0')}
-                    </Link>
-                  </td> */}
-                  <td onClick={() => JobDetails(job)}>
-                    <Link>
-                      {String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}</Link>
-                  </td>
-                  <td style={{ whiteSpace: 'nowrap' }}>{job.projectId?.[0]?.projectName || 'N/A'}</td>
-                  <td style={{ whiteSpace: 'nowrap' }}>{job.brandName}</td>
-                  <td style={{ whiteSpace: 'nowrap' }}>{job.subBrand}</td>
-                  <td style={{ whiteSpace: 'nowrap' }}>{job.flavour}</td>
-                  <td style={{ whiteSpace: 'nowrap' }}>{job.packType}</td>
-                  <td style={{ whiteSpace: 'nowrap' }}>{job.packSize}</td>
-                  <td style={{ whiteSpace: 'nowrap' }}>{job?.packCode}</td>
-                  <td>
-                    <span className={getPriorityClass(job.priority)}>
-                      {job.priority}
-                    </span>
-                  </td>
-                  <td>{new Date(job?.createdAt).toLocaleDateString('en-GB').replace(/\/20/, '/')}</td>
-                  <td style={{ whiteSpace: 'nowrap' }}>{job.assign}</td>
-                  <td>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
-                  {/* <th>
+                  </th>
+                  <th>JobsNo</th>
+                  <th style={{ whiteSpace: 'nowrap' }}>Project Name</th>
+                  <th>Brand</th>
+                  <th>SubBrand</th>
+                  <th>Flavour</th>
+                  <th>PackType</th>
+                  <th>PackSize</th>
+                  <th>PackCode</th>
+                  <th>Priority</th>
+                  <th style={{ whiteSpace: 'nowrap' }}>Due Date</th>
+                  <th>Assing</th>
+                  <th>TotalTime</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedProjects?.map((job, index) => (
+                  <tr key={job._id}>
+                    <td>
+                      <input
+                        type="checkbox"
+                        checked={selectedJobs[job._id] || false}
+                        onChange={() => handleCheckboxChange(job._id)}
+                      />
+                    </td>
+                    <td onClick={() => JobDetails(job)}>
+                      <Link style={{ textDecoration: 'none' }}>{job.JobNo}</Link>
+                    </td>
+                    <td style={{ whiteSpace: 'nowrap' }}>{job.projectId?.[0]?.projectName || 'N/A'}</td>
+                    <td style={{ whiteSpace: 'nowrap' }}>{job.brandName}</td>
+                    <td style={{ whiteSpace: 'nowrap' }}>{job.subBrand}</td>
+                    <td style={{ whiteSpace: 'nowrap' }}>{job.flavour}</td>
+                    <td style={{ whiteSpace: 'nowrap' }}>{job.packType}</td>
+                    <td style={{ whiteSpace: 'nowrap' }}>{job.packSize}</td>
+                    <td style={{ whiteSpace: 'nowrap' }}>{job?.packCode}</td>
+                    <td>
+                      <span className={getPriorityClass(job.priority)}>
+                        {job.priority}
+                      </span>
+                    </td>
+                    <td>{new Date(job?.createdAt).toLocaleDateString('en-GB').replace(/\/20/, '/')}</td>
+                    <td style={{ whiteSpace: 'nowrap' }}>{job.assign}</td>
+                    <td>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
+                    {/* <th>
                                         <Button id='All_btn' variant="success" style={{ width: "130px" }} size="sm" >
                                           {job.Status || "Active"}
                                         </Button></th> */}
-                  <td>
-                    <span
-                      className={`badge ${getStatusClass(job.Status)} px-2 py-1`}
-                    >
-                      {job.Status}
-                    </span>
-                  </td>
-                  <td className="d-flex">
-                    <button className="btn btn-sm btn-outline-primary me-1" onClick={() => JobDetails(job)}>
-                      <i className="bi bi-eye"></i> View
-                    </button>
-                    <button className="btn btn-sm btn-outline-primary me-1" onClick={() => handleUpdate(job)}>
-                      <i className="bi bi-pencil"></i> Edit
-                    </button>
-                    <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(job._id)}>
-                      <i className="bi bi-trash"></i> Remove
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    <td>
+                      <span
+                        className={`badge ${getStatusClass(job.Status)} px-2 py-1`}
+                      >
+                        {job.Status}
+                      </span>
+                    </td>
+                    <td className="d-flex">
+                      <button className="btn btn-sm btn-outline-primary me-1" onClick={() => JobDetails(job)}>
+                        <i className="bi bi-eye"></i> View
+                      </button>
+                      <button className="btn btn-sm btn-outline-primary me-1" onClick={() => handleUpdate(job)}>
+                        <i className="bi bi-pencil"></i> Edit
+                      </button>
+                      <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(job._id)}>
+                        <i className="bi bi-trash"></i> Cancelled
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
 
-      {/* ✅ Job Assignment Modal */}
+
       <Modal show={showAssignModal} onHide={() => setShowAssignModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Assign Job</Modal.Title>
@@ -427,11 +436,32 @@ const handleDelete = (_id) => {
               <Form.Label>Select Designer</Form.Label>
               <Form.Select
                 value={selectedDesigner}
-                onChange={(e) => setSelectedDesigner(e.target.value)}
+                onChange={(e) => {
+                  setSelectedDesigner(e.target.value);
+                  setSelectedEmployee("");
+                }}
               >
                 <option value="">-- Select --</option>
                 <option value="Production">Production</option>
                 <option value="Designer">Designer</option>
+              </Form.Select>
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Select Employee</Form.Label>
+              <Form.Select
+                value={selectedEmployee}
+                onChange={(e) => setSelectedEmployee(e.target.value)}
+                disabled={!selectedDesigner}
+              >
+                <option value="">-- Select Employee --</option>
+                {paginatedAssignment.map((emp) => (
+                  <option key={emp._id} value={emp._id}>
+                    {emp.firstName || 'Unnamed Employee'}_
+                    {emp.lastName || 'Unnamed Employee'}
+                  </option>
+
+                ))}
               </Form.Select>
             </Form.Group>
 
@@ -457,7 +487,6 @@ const handleDelete = (_id) => {
         </Modal.Footer>
       </Modal>
 
-
       {!loading && !error && (
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div className="text-muted small">
@@ -466,21 +495,21 @@ const handleDelete = (_id) => {
           <ul className="pagination pagination-sm mb-0">
             <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
               <button className="page-link" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
-              <span aria-hidden="true">&laquo;</span>
-                
+                <span aria-hidden="true">&laquo;</span>
+
               </button>
             </li>
             {Array.from({ length: totalPages }, (_, i) => (
               <li key={i + 1} className={`page-item ${currentPage === i + 1 ? 'active' : ''}`}>
-                <button className="page-link" onClick={() => setCurrentPage(i + 1)}>
+                <button type="button" className="page-link" onClick={() => setCurrentPage(i + 1)}>
                   {i + 1}
                 </button>
               </li>
             ))}
             <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
               <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
-               
-                    <span aria-hidden="true">&raquo;</span>
+
+                <span aria-hidden="true">&raquo;</span>
               </button>
             </li>
           </ul>
