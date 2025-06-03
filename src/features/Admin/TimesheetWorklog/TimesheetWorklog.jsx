@@ -97,12 +97,12 @@ function TimesheetWorklog() {
 
   return (
     <div className="p-4 m-2" style={{ backgroundColor: "white", borderRadius: "10px" }}>
-      <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-2">
+      {/* <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-2">
         <h4 className="mb-0">Timesheet & Worklog</h4>
         <Link id="All_btn" to="/admin/AddTimesheetWorklog" className="btn btn-dark">
           + New Time Entry
         </Link>
-      </div>
+      </div> */}
 
       {/* Responsive Filters */}
       <div className="mb-4">

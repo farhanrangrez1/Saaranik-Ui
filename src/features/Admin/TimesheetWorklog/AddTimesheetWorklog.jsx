@@ -6,6 +6,7 @@ import { fetchjobs } from '../../../redux/slices/JobsSlice';
 import { createTimesheetWorklog, updateTimesheetWorklog } from '../../../redux/slices/TimesheetWorklogSlice'; // Make sure this exists
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { fetchusers } from '../../../redux/slices/userSlice';
 
 function AddTimesheetWorklog() {
   const dispatch = useDispatch();
@@ -13,52 +14,55 @@ function AddTimesheetWorklog() {
   const { id } = useParams();
   const location = useLocation();
   const { entry } = location.state || {};
-const _id = entry?._id;
+  const _id = entry?._id;
 
   const { project } = useSelector(state => state.projects);
   const { job } = useSelector(state => state.jobs);
+  const { userAll, loading, error } = useSelector((state) => state.user);
 
-console.log(" Data:", entry);
+
+  console.log(" Data:", entry);
 
   const [formData, setFormData] = useState({
-    date: '',
     projectId: '',
     jobId: '',
+    employeeId: '',
+    date: '',
     status: '',
     startTime: '',
     endTime: '',
-    hours: '',
     taskDescription: '',
     tags: '',
     projectName: '',
     jobName: ''
   });
 
-useEffect(() => {
-  if (entry) {
-    const parsedDate = entry.date
-      ? new Date(entry.date).toISOString().split('T')[0]
-      : '';
+  useEffect(() => {
+    if (entry) {
+      const parsedDate = entry.date
+        ? new Date(entry.date).toISOString().split('T')[0]
+        : '';
 
-    setFormData({
-      date: parsedDate,
-      projectId: Array.isArray(entry.projectId) ? entry.projectId[0]._id : '',
-      jobId: Array.isArray(entry.jobId) ? entry.jobId[0]._id : '',
-      status: entry.status || '',
-      startTime: entry.startTime || '',
-      endTime: entry.endTime || '',
-      hours: entry.hours || '',
-      taskDescription: entry.taskDescription || '',
-      tags: entry.tags || '',
-      projectName: Array.isArray(entry.projectId) ? entry.projectId[0].projectName : '',
-      jobName: Array.isArray(entry.jobId) ? entry.jobId[0].jobName || '' : ''
-    });
-  }
-}, [entry]);
+      setFormData({
+        date: parsedDate,
+        projectId: Array.isArray(entry.projectId) ? entry.projectId[0]._id : '',
+        jobId: Array.isArray(entry.jobId) ? entry.jobId[0]._id : '',
+        employeeId: Array.isArray(entry.employeeId) ? entry.employeeId[0]._id : '',
+        status: entry.status || '',
+        startTime: entry.startTime || '',
+        endTime: entry.endTime || '',
+        taskDescription: entry.taskDescription || '',
+        tags: entry.tags || '',
+        projectName: Array.isArray(entry.projectId) ? entry.projectId[0].projectName : '',
+        jobName: Array.isArray(entry.jobId) ? entry.jobId[0].jobName || '' : ''
+      });
+    }
+  }, [entry]);
 
   useEffect(() => {
     dispatch(fetchProject());
     dispatch(fetchjobs());
+    dispatch(fetchusers());
   }, [dispatch]);
 
   useEffect(() => {
@@ -91,51 +95,63 @@ useEffect(() => {
     }));
   };
 
- const handleSubmit = (e) => {
-  e.preventDefault();
+  const convertTo12HourFormat = (time24) => {
+    const [hourStr, minuteStr] = time24.split(':');
+    let hour = parseInt(hourStr, 10);
+    const minute = minuteStr;
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    hour = hour % 12 || 12;
+    return `${hour.toString().padStart(2, '0')}:${minute} ${ampm}`;
+  };
+  const handleSubmit = (e) => {
+    e.preventDefault();
 
-  const payload = {
-    projectId: [formData.projectId],
-    jobId: [formData.jobId],
-    date: formData.date,
-    startTime: formData.startTime,
-    endTime: formData.endTime,
-    hoursWorked: formData.hours,
-    hours: formData.hours,
-    taskDescription: formData.taskDescription,
-    status: formData.status,
-    tags: formData.tags,
-    projectName: formData.projectName,
-    jobName: formData.jobName
+    const payload = {
+      projectId: [formData.projectId],
+      jobId: [formData.jobId],
+      employeeId: [formData.employeeId],
+      date: formData.date,
+      startTime: convertTo12HourFormat(formData.startTime),
+      endTime: convertTo12HourFormat(formData.endTime),
+      taskDescription: formData.taskDescription,
+      status: formData.status,
+      tags: formData.tags,
+      projectName: formData.projectName,
+      jobName: formData.jobName
+    };
+
+    const successNavigate = () => navigate("/admin/TimesheetWorklog");
+
+    if (_id) {
+      dispatch(updateTimesheetWorklog({ _id, data: payload }))
+        .unwrap()
+        .then((res) => {
+          toast.success(res?.message || "Timesheet updated successfully!");
+          successNavigate();
+        })
+        .catch((err) => {
+          toast.error(err?.message || "Failed to update timesheet!");
+          console.error("Update error:", err);
+        });
+    } else {
+      dispatch(createTimesheetWorklog(payload))
+        .unwrap()
+        .then((res) => {
+          toast.success(res?.message || "Timesheet created successfully!");
+          successNavigate();
+        })
+        .catch((err) => {
+          toast.error(err?.message || "Error creating timesheet!");
+          console.error("Create error:", err);
+        });
+    }
   };
 
-  if (_id) {
-    dispatch(updateTimesheetWorklog({ _id, data: payload }))
-      .unwrap()
-      .then(() => {
-        toast.success("Timesheet updated successfully!");
-        navigate("/admin/TimesheetWorklog");
-      })
-      .catch((err) => {
-        console.error("Update error:", err); 
-        toast.error("Failed to update timesheet!");
-      });
-  } else {
-    dispatch(createTimesheetWorklog(payload))
-      .unwrap()
-      .then(() => {
-        toast.success("Timesheet created successfully!");
-        navigate("/admin/TimesheetWorklog");
-      })
-      .catch(() => {
-        toast.error("Error creating timesheet");
-      });
-  }
-};
 
 
   const reversedProjectList = project?.data?.slice().reverse() || [];
   const reversedJobList = job?.jobs?.slice().reverse() || [];
+const reversedEmployeeList = (userAll?.data?.users || []).filter(user => user.role === "employee").reverse();
 
   return (
     <div className="container py-4">
@@ -198,18 +214,42 @@ useEffect(() => {
                       ))}
                     </select>
                   </div>
+<div className="col-md-6">
+  <label className="form-label">Employee</label>
+  <select
+    className="form-select"
+    name="employeeId"
+    value={formData.employeeId}
+    onChange={(e) => {
+      const selectedId = e.target.value;
 
-                  <div className="col-md-6">
-                    <label className="form-label">Date</label>
-                    <input
-                      type="date"
-                      className="form-control"
-                      name="date"
-                      value={formData.date}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
+      const selectedEmployee = reversedEmployeeList.find(
+        (emp) => String(emp._id) === String(selectedId) // type-safe compare
+      );
+
+      console.log("Selected ID:", selectedId);
+      console.log("Selected Employee:", selectedEmployee);
+
+      setFormData((prev) => ({
+        ...prev,
+        employeeId: selectedId,
+        // Optional: Add employeeName if needed
+        // employeeName: selectedEmployee?.name || ""
+      }));
+    }}
+    required
+  >
+    <option value="">Select an employee</option>
+
+    {Array.isArray(reversedEmployeeList) && reversedEmployeeList.map((emp) => (
+      <option key={emp._id} value={emp._id}>
+        {emp.name || emp.fullName || "Unnamed"} {/* Safe fallback */}
+      </option>
+    ))}
+  </select>
+</div>
+
+
 
                   <div className="col-md-6">
                     <label className="form-label">Status</label>
@@ -252,21 +292,19 @@ useEffect(() => {
                     />
                   </div>
 
+
                   <div className="col-md-6">
-                    <label className="form-label">Hours</label>
+                    <label className="form-label">Date</label>
                     <input
-                      type="number"
-                      step="0.1"
+                      type="date"
                       className="form-control"
-                      name="hours"
-                      value={formData.hours}
+                      name="date"
+                      value={formData.date}
                       onChange={handleInputChange}
-                      placeholder="e.g. 3.5"
-                      readOnly
                       required
                     />
                   </div>
-
+                  
                   <div className="col-12">
                     <label className="form-label">Task Description</label>
                     <textarea

@@ -137,7 +137,6 @@ function TimeLogs() {
     const minute = parseInt(minuteStr || '0', 10);
     return hour + minute / 60;
   }
-
   return (
     <div className="container py-4">
       <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap">
@@ -170,11 +169,16 @@ function TimeLogs() {
               <FaPlus /> ExtraTime
             </Button>
           </Link>
-          <Link to={"/admin/AddTimelog"} className="text-decoration-none">
+            <Link to={"/admin/AddTimesheetWorklog"} className="text-decoration-none">
             <button id='All_btn' className="btn btn-dark d-flex align-items-center gap-2">
               <FaPlus /> Add Time Log
             </button>
           </Link>
+          {/* <Link to={"/admin/AddTimelog"} className="text-decoration-none">
+            <button id='All_btn' className="btn btn-dark d-flex align-items-center gap-2">
+              <FaPlus /> Add Time Log
+            </button>
+          </Link> */}
            <Button
             className="d-md-none d-flex align-items-center gap-2 mb-2"
             size="sm"
@@ -325,7 +329,6 @@ function TimeLogs() {
                     </tr>
                   );
                 })}
-
               </tbody>
             </table>
           </div>
