@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { deletejob, fetchjobs, Project_job_Id, updatejob, UpdateJobAssign } from '../../../../redux/slices/JobsSlice';
 import Swal from 'sweetalert2';
 import { fetchusers } from '../../../../redux/slices/userSlice';
+import { createAssigns } from '../../../../redux/slices/AssignSlice';
 
 function ProjectJobsTab() {
   const location = useLocation();
@@ -13,7 +14,7 @@ function ProjectJobsTab() {
   console.log("hello me project id", id);
 
   const dispatch = useDispatch()
-
+  const navigate = useNavigate()
   const [selectedProduction, setSelectedProduction] = useState('');
   const [selectedAdditional, setSelectedAdditional] = useState('');
   const [selectedJob, setSelectedJob] = useState(null);
@@ -67,7 +68,6 @@ function ProjectJobsTab() {
     },
   ];
 
-
   const [selectedEmployee, setSelectedEmployee] = useState("");
   const { userAll } = useSelector((state) => state.user);
   console.log("data user", userAll?.data?.users);
@@ -90,17 +90,48 @@ function ProjectJobsTab() {
     currentAssignment * itemsAssignment
   );
 
-  const handleSubmitAssignment = (data) => {
-    console.log(data);
-    console.log({
-      selectedDesigner,
-      selectedEmployee,
-      assignmentDescription,
-    });
+  const handleSubmitAssignment = () => {
+    const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
+    const payload = {
+      employeeId: [selectedEmployee],
+      jobId: selectedJobIds,
+      selectDesigner: selectedDesigner,
+      description: assignmentDescription,
+    };
+
+    console.log("Assignment Payload:", payload);
+
+    if (id) {
+      dispatch(createAssigns(payload))
+        .unwrap()
+        .then(() => {
+          toast.success("Project updated successfully!");
+          navigate("/admin/projectList");
+        })
+        .catch(() => {
+          toast.error("Failed to update project!");
+        });
+    }
     setShowAssignModal(false);
+    navigate("/admin/MyJobs")
+    setSelectedJobs(false)
   };
 
-
+  const handleJobAssign = (selectedIds, assignTo) => {
+    const payload = {
+      id: selectedIds,
+      assign: assignTo,
+    };
+    console.log("Assignment Payload:", payload);
+    dispatch(UpdateJobAssign(payload))
+      .then(() => {
+        // Swal.fire("Success!", "Jobs assigned successfully", "success");
+        // dispatch(fetchjobs());
+      })
+      .catch(() => {
+        Swal.fire("Error!", "Something went wrong", "error");
+      });
+  };
 
   const employees = [
     { _id: "123", name: "John Doe" },
@@ -134,16 +165,13 @@ function ProjectJobsTab() {
     }
   };
   // ////////////////////////////////////////
-  const navigate = useNavigate();
   // const location = useLocation();
   // const params = useParams();
   // const id = location.state?.id || params.id;
   useEffect(() => {
     console.log("Project ID:", id);
-  }, [id]);
-
-
-  // ///
+  }, [id]); 
+  
   const { job, loading, error } = useSelector((state) => state.jobs);
   console.log(job.jobs, "all jobs");
 
@@ -153,7 +181,6 @@ function ProjectJobsTab() {
   useEffect(() => {
     dispatch(Project_job_Id(id));
   }, [dispatch, id]);
-
 
   const handleDelete = (_id) => {
     console.log(_id);
@@ -211,23 +238,6 @@ function ProjectJobsTab() {
       default:
         return "bg-light text-dark";
     }
-  };
-
-  const handleJobAssign = (selectedIds, assignTo) => {
-
-    const payload = {
-      id: selectedIds,
-      assign: assignTo,
-    };
-    console.log("Assignment Payload:", payload);
-    dispatch(UpdateJobAssign(payload))
-      .then(() => {
-        // Swal.fire("Success!", "Jobs assigned successfully", "success");
-        // dispatch(fetchjobs());
-      })
-      .catch(() => {
-        Swal.fire("Error!", "Something went wrong", "error");
-      });
   };
 
 

@@ -15,6 +15,8 @@ import {
 } from "react-icons/fa";
 import { Dropdown } from "react-bootstrap";
 import Swal from 'sweetalert2';
+import { fetchusers } from "../../../redux/slices/userSlice";
+import { createAssigns } from "../../../redux/slices/AssignSlice";
 
 function NewJobsList() {
   const [showRejectModal, setShowRejectModal] = useState(false);
@@ -225,8 +227,6 @@ function NewJobsList() {
     navigate(`/admin/OvervieJobsTracker`, { state: { job } });
   }
 
-
-
   const handleCheckboxChange = (jobId) => {
     setSelectedJobs((prev) => ({
       ...prev,
@@ -234,31 +234,54 @@ function NewJobsList() {
     }));
   };
 
+    const [selectedEmployee, setSelectedEmployee] = useState("");
+    const { userAll } = useSelector((state) => state.user);
+    console.log("data user", userAll?.data?.users);
+  
+    useEffect(() => {
+      dispatch(fetchusers());
+    }, [dispatch]);
+
+      const [currentAssignment, setCurrentAssignment] = useState(1);
+      const itemsAssignment = 10;
+    
+      const filteredAssignment = (userAll?.data?.users || []).filter(
+        (j) =>
+          ((j?.assign || "").toString().toLowerCase() ===
+            selectedDesigner.toLowerCase()) &&
+          selectedDesigner !== ""
+      );
+    
+      const paginatedAssignment = filteredAssignment.slice(
+        (currentAssignment - 1) * itemsAssignment,
+        currentAssignment * itemsAssignment
+      );
+    
   const handleSubmitAssignment = () => {
     const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
+    const payload = {
+      employeeId: [selectedEmployee],
+      jobId: selectedJobIds,
+      selectDesigner: selectedDesigner,
+      description: assignmentDescription,
+    };
 
-    if (selectedJobIds.length === 0) {
-      setErrorMessage("Please select at least 1 job to assign.");
-      setTimeout(() => setErrorMessage(""), 3000);
-      return;
-    }
-
-    if (!selectedDesigner) {
-      setErrorMessage("Please select a designer.");
-      setTimeout(() => setErrorMessage(""), 3000);
-      return;
-    }
-    handleJobAssign(selectedJobIds, selectedDesigner);
+    console.log("Assignment Payload:", payload);
+      dispatch(createAssigns(payload))
+        .unwrap()
+        .then(() => {
+          toast.success("Project updated successfully!");
+          navigate("/admin/projectList");
+        })
+        .catch(() => {
+          toast.error("Failed to update project!");
+        });
     setShowAssignModal(false);
-    setSelectedProduction('');
-    setSelectedAdditional('');
-    setSelectedJob(null);
-    setSelectedDesigner('');
-    setAssignmentDescription('');
+    navigate("/admin/MyJobs")
+    setSelectedJobs(false)
   };
 
   const handleJobAssign = (selectedIds, assignTo) => {
-
     const payload = {
       id: selectedIds,
       assign: assignTo,
@@ -267,13 +290,12 @@ function NewJobsList() {
     dispatch(UpdateJobAssign(payload))
       .then(() => {
         // Swal.fire("Success!", "Jobs assigned successfully", "success");
-        dispatch(fetchjobs());
+        // dispatch(fetchjobs());
       })
       .catch(() => {
         Swal.fire("Error!", "Something went wrong", "error");
       });
   };
-
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -401,16 +423,16 @@ function NewJobsList() {
                     onChange={() => handleCheckboxChange(job._id)}
                   />
                 </td>
-                      <td onClick={() => JobDetails(job)}>
-                                      <Link style={{ textDecoration: 'none' }}>{job.JobNo}</Link>
-                                    </td>
+                <td onClick={() => JobDetails(job)}>
+                  <Link style={{ textDecoration: 'none' }}>{job.JobNo}</Link>
+                </td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.projectId?.[0]?.projectName || 'N/A'}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.brandName}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.subBrand}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.flavour}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.packType}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.packSize}</td>
-                 <td style={{ whiteSpace: 'nowrap' }}>{job?.packCode}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{job?.packCode}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
                 {/* <td style={{ whiteSpace: 'nowrap' }}>{job.assign}</td> */}
@@ -442,7 +464,7 @@ function NewJobsList() {
           </tbody>
         </Table>
       </div>
-   
+
 
       {/* Assign Modal */}
       <Modal show={showAssignModal} onHide={() => setShowAssignModal(false)}>
@@ -455,11 +477,32 @@ function NewJobsList() {
               <Form.Label>Select Designer</Form.Label>
               <Form.Select
                 value={selectedDesigner}
-                onChange={(e) => setSelectedDesigner(e.target.value)}
+                onChange={(e) => {
+                  setSelectedDesigner(e.target.value);
+                  setSelectedEmployee("");
+                }}
               >
                 <option value="">-- Select --</option>
                 <option value="Production">Production</option>
                 <option value="Designer">Designer</option>
+              </Form.Select>
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Select Employee</Form.Label>
+              <Form.Select
+                value={selectedEmployee}
+                onChange={(e) => setSelectedEmployee(e.target.value)}
+                disabled={!selectedDesigner}
+              >
+                <option value="">-- Select Employee --</option>
+                {paginatedAssignment.map((emp) => (
+                  <option key={emp._id} value={emp._id}>
+                    {emp.firstName || 'Unnamed Employee'}_
+                    {emp.lastName || 'Unnamed Employee'}
+                  </option>
+
+                ))}
               </Form.Select>
             </Form.Group>
 
@@ -484,6 +527,7 @@ function NewJobsList() {
           </Button>
         </Modal.Footer>
       </Modal>
+
 
       {/* Reject Modal */}
       <Modal show={showRejectModal} onHide={() => setShowRejectModal(false)}>
@@ -524,7 +568,7 @@ function NewJobsList() {
             <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
               <button className="page-link" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
                 <span aria-hidden="true">&laquo;</span>
-                
+
               </button>
             </li>
             {Array.from({ length: totalPages }, (_, i) => (
@@ -536,8 +580,8 @@ function NewJobsList() {
             ))}
             <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
               <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
-            
-                    <span aria-hidden="true">&raquo;</span>
+
+                <span aria-hidden="true">&raquo;</span>
               </button>
             </li>
           </ul>

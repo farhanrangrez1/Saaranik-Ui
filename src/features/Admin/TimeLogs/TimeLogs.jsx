@@ -5,6 +5,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { deleteTimeLogs, fetchTimeLogss, updateExtraHours } from '../../../redux/slices/TimeLogsSlice';
 import { Button, Form, Modal } from "react-bootstrap";
 import Swal from 'sweetalert2';
+import TimesheetWorklog from '../TimesheetWorklog/TimesheetWorklog';
+import { fetchTimesheetWorklogs } from '../../../redux/slices/TimesheetWorklogSlice';
 
 function TimeLogs() {
   const [showAddModal, setShowAddModal] = useState(false);
@@ -75,16 +77,23 @@ function TimeLogs() {
   };
 
   //  all client
-  const { timelogs, error, loading } = useSelector((state) => state.TimeLogss);
-  console.log(timelogs.TimeLogss);
+  // const { timelogs, error, loading } = useSelector((state) => state.TimeLogss);
+  // console.log(timelogs.TimeLogss);
+
+  // useEffect(() => {
+  //   dispatch(fetchTimeLogss());
+  // }, [dispatch]);
+
+  const { timesheetWorklog, error, loading } = useSelector((state) => state.TimesheetWorklogs);
+  console.log(timesheetWorklog.TimesheetWorklogss);
 
   useEffect(() => {
-    dispatch(fetchTimeLogss());
+    dispatch(fetchTimesheetWorklogs());
   }, [dispatch]);
 
   const itemsPerPage = 7;
-  const totalPages = Math.ceil((timelogs.TimeLogss?.length || 0) / itemsPerPage);
-  const paginatedTimeLogss = timelogs.TimeLogss?.slice(
+  const totalPages = Math.ceil((timesheetWorklog.TimesheetWorklogss?.length || 0) / itemsPerPage);
+  const paginatedTimeLogss = timesheetWorklog.TimesheetWorklogss?.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -143,7 +152,7 @@ function TimeLogs() {
         <h3 className="mb-0">Time Logs</h3>
         <div className="d-flex gap-3 mt-4 flex-wrap align-items-center">
           <Link className="text-decoration-none">
-            <Button
+            {/* <Button
               className="btn d-flex align-items-center gap-2"
               size="sm"
               id='All_btn'
@@ -167,9 +176,9 @@ function TimeLogs() {
               }}
             >
               <FaPlus /> ExtraTime
-            </Button>
+            </Button> */}
           </Link>
-            <Link to={"/admin/AddTimesheetWorklog"} className="text-decoration-none">
+          <Link to={"/admin/AddTimesheetWorklog"} className="text-decoration-none">
             <button id='All_btn' className="btn btn-dark d-flex align-items-center gap-2">
               <FaPlus /> Add Time Log
             </button>
@@ -179,7 +188,7 @@ function TimeLogs() {
               <FaPlus /> Add Time Log
             </button>
           </Link> */}
-           <Button
+          <Button
             className="d-md-none d-flex align-items-center gap-2 mb-2"
             size="sm"
             variant="secondary"
@@ -262,12 +271,15 @@ function TimeLogs() {
                       }
                     />
                   </th>
-                  <th>Date</th>
                   <th>JobID</th>
-                  <th>Project</th>
-                  <th style={{ whiteSpace: 'nowrap' }}>Extra Hours</th>
+                  <th style={{ whiteSpace: 'nowrap' }}>Project Name</th>
+                  <th style={{ whiteSpace: 'nowrap' }}>Employee Name</th>
+                  <th>Date</th>
+                  <th style={{ whiteSpace: 'nowrap' }}>Start Time</th>
+                  <th style={{ whiteSpace: 'nowrap' }}>End Time</th>
                   <th>Hours</th>
-                  <th>Task Notes</th>
+                  <th style={{ whiteSpace: 'nowrap' }}>Task Description</th>
+                  <th>Status</th>
                   <th className="text-end">Actions</th>
                 </tr>
               </thead>
@@ -287,20 +299,31 @@ function TimeLogs() {
                           onChange={() => handleCheckboxChange(log._id)}
                         />
                       </td>
-
-                      <td>{new Date(log.date).toLocaleDateString('en-GB').replace(/\/20/, '/')}</td>
-
                       <td className="no-border-bottom">
-                        #JOB{String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}
+                        #JOB{log.jobId?.[0]?.JobNo || '----'}
                       </td>
                       <td style={{ whiteSpace: 'nowrap' }} key={index}>
                         {log.projectId?.[0]?.projectName || 'No Project Name'}
                       </td>
-                      <td>
-                        {(!log.extraHours || log.extraHours === '0' || log.extraHours === '0:00') ? '-' : formatTimeTo12Hour(log.extraHours)}
+                      <td style={{ whiteSpace: 'nowrap' }} key={index}>
+                        {log.employeeId?.[0]
+                          ? `${log.employeeId[0].firstName} ${log.employeeId[0].lastName}`
+                          : 'No Employee'}
                       </td>
-
-                      <td
+                      <td>{new Date(log.date).toLocaleDateString('en-GB').replace(/\/20/, '/')}</td>
+                      <td>
+                        {log.startTime}
+                      </td>
+                      <td>
+                        {log.endTime}
+                      </td>
+                      {/* <td>
+                        {(!log.extraHours || log.extraHours === '0' || log.extraHours === '0:00') ? '-' : formatTimeTo12Hour(log.extraHours)}
+                      </td> */}
+                      <td>
+                        {log.hours}
+                      </td>
+                      {/* <td
                         style={{
                           color: isHoursDiscrepant ? 'red' : 'inherit',
                           fontWeight: isHoursDiscrepant ? 'bold' : 'normal',
@@ -308,10 +331,13 @@ function TimeLogs() {
                         }}
                       >
                         {formatTimeTo12Hour(log.hours)}
+                      </td> */}
+                      <td style={{ whiteSpace: 'nowrap' }}>{log.taskDescription}</td>
+                      <td className="py-3">
+                        <span className={`badge rounded-pill ${log.status === 'Approved' ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning'} px-3 py-2`}>
+                          {log.status}
+                        </span>
                       </td>
-
-                      <td style={{ whiteSpace: 'nowrap' }}>{log.taskNotes}</td>
-
                       <td className="text-end" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <button
                           className="btn btn-link text-dark p-0 me-3"
@@ -338,9 +364,8 @@ function TimeLogs() {
       {!loading && !error && (
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div className="text-muted small">
-            Showing 1 to {paginatedTimeLogss?.length || 0} of {timelogs.TimeLogss?.length || 0} entries
+            Showing 1 to {paginatedTimeLogss?.length || 0} of {timesheetWorklog.TimesheetWorklogss?.length || 0} entries
           </div>
-
           <ul className="pagination pagination-sm mb-0">
             <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
               <button className="page-link" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
@@ -382,7 +407,6 @@ function TimeLogs() {
                 step="60" // step in seconds — 60 = 1 min steps
               />
             </Form.Group>
-
           </Form>
         </Modal.Body>
         <Modal.Footer>

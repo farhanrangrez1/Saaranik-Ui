@@ -12,15 +12,14 @@ import {
   FaEdit,
   FaFilter,
 } from "react-icons/fa";
-import { fetchAssign } from "../../../redux/slices/AssignSlice";
+import { fetchMyJobs } from "../../../redux/slices/Employee/MyJobsSlice";
+
 
 function MyJobs() {
   const [showTimesheetModal, setShowTimesheetModal] = useState(false);
-  const [selectedJobId, setSelectedJobId] = useState(null);
-  const [showBriefModal, setShowBriefModal] = useState(false);
-  const [selectedBrief, setSelectedBrief] = useState("");
-  const [showFilters, setShowFilters] = useState(false); // 👈 For responsive toggle
-  const [expandedJob, setExpandedJob] = useState(null); // Tracking the expanded job
+  const [selectedJobId, setSelectedJobId] = useState(null)
+  const [showFilters, setShowFilters] = useState(false); 
+  const [expandedJob, setExpandedJob] = useState(null); 
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -33,17 +32,13 @@ function MyJobs() {
     }
   };
 
-  const handleUpload = (jobId) => {
-    console.log('Upload for job:', jobId);
-  };
-
   const handleLogTime = (jobId) => {
     setSelectedJobId(jobId);
     setShowTimesheetModal(true);
   };
 
-  const fileInputRef = useRef(null);
 
+  const fileInputRef = useRef(null);
   const handleUploadClick = () => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
@@ -56,6 +51,7 @@ function MyJobs() {
       console.log("Selected file:", file);
     }
   };
+
 
   const handleSelectAll = (e) => {
     const isChecked = e.target.checked;
@@ -99,23 +95,23 @@ function MyJobs() {
     }
   };
 
-  const { job, loading, error } = useSelector((state) => state.jobs);
+
+
+  const { myjobs,loading, error } = useSelector((state) => state.MyJobs);
+  // console.log("uhdfehfbeubfebefjb", myjobs && myjobs.assignments && myjobs.assignments.length > 0 ? myjobs.assignments[0] && myjobs.assignments[0].jobId : "ji");
+
+const MynewJobsdata = myjobs && myjobs.assignments && myjobs.assignments.length > 0? myjobs.assignments[0].jobId: []; 
+  console.log("ferf",myjobs.assignments);
 
   useEffect(() => {
-    dispatch(fetchjobs());
+    dispatch(fetchMyJobs());
   }, [dispatch]);
 
-  const { assigns } = useSelector((state) => state.Assign);
-  console.log("fvrfjk", assigns.assignments);
-
-  useEffect(() => {
-    dispatch(fetchAssign());
-  }, [dispatch]);
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const filteredProjects = assigns?.assignments || [];
+  const filteredProjects = MynewJobsdata || [];
   const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
 
   const paginatedProjects = filteredProjects.slice(
@@ -133,7 +129,7 @@ function MyJobs() {
   };
 
   const handleRowClick = (jobId) => {
-    if (expandedJob === jobId) {
+    if (expandedJob === jobId){
       setExpandedJob(null);
     } else {
       setExpandedJob(jobId);
@@ -187,11 +183,9 @@ function MyJobs() {
           <thead className="bg-light">
             <tr>
               <th><input type="checkbox" onChange={handleSelectAll} /></th>
-              {/* <th>JobNo</th>
-              <th>ProjectName</th> */}
-              <th>EmployeeName</th>
-              <th>Assign</th>
-              <th>Description</th>
+              <th>JobNo</th>
+              <th>ProjectName</th>
+              <th>Assign</th> 
               <th>Brand</th>
               <th>SubBrand</th>
               <th>Flavour</th>
@@ -200,7 +194,6 @@ function MyJobs() {
               <th>PackCode</th>
               <th>Priority</th>
               <th>Due Date</th>
-              <th>Assign</th>
               <th>TimeLogged</th>
               <th>Status</th>
               <th>Actions</th>
@@ -208,31 +201,29 @@ function MyJobs() {
           </thead>
           <tbody>
             {paginatedProjects.slice().reverse().map((job, index) => (
-              <React.Fragment key={job._id}>
                 <tr onClick={() => handleRowClick(job._id)} style={{ cursor: "pointer" }}>
                   <td><input type="checkbox" onChange={handleSelectAll} /></td>
-                  {/* <td> {job.jobId?.[0]?.JobNo || 'N/A'}</td> */}
-                  {/* <td style={{ whiteSpace: 'nowrap' }}>{job.projectId?.[0]?.projectName || 'N/A'}</td> */}
+              
                   <td style={{ whiteSpace: 'nowrap' }} key={index}>
                     {job.employeeId
                       ? `${job.employeeId.firstName} ${job.employeeId.lastName}`
                       : 'No Employee'}
                   </td>
-                   <td>{job.selectDesigner}</td>
-                   <td>{job.description}</td>
-                  <td>{job.jobId?.[0]?.brandName || 'N/A'}</td>
-                  <td style={{ whiteSpace: 'nowrap' }}>{job.jobId?.[0]?.subBrand || 'N/A'}</td>
-                  <td>{job.jobId?.[0]?.flavour || 'N/A'}</td>
-                  <td>{job.jobId?.[0]?.packType || 'N/A'}</td>
-                  <td>{job.jobId?.[0]?.packSize || 'N/A'}</td>
-                  <td>{job.jobId?.[0]?.packCode || 'N/A'}</td>
-                  <td><span className={getPriorityClass(job.jobId?.[0]?.priority)}>{job.jobId?.[0]?.priority || 'N/A'}</span></td>
+                  <td>{job.selectDesigner}</td>
+                  <td>{job.description}</td>
+                  <td>{job.brandName || 'N/A'}</td>
+                  <td style={{ whiteSpace: 'nowrap' }}>{job.subBrand || 'N/A'}</td>
+                  <td>{job.flavour || 'N/A'}</td>
+                  <td>{job.packType || 'N/A'}</td>
+                  <td>{job.packSize || 'N/A'}</td>
+                  <td>{job.packCode || 'N/A'}</td>
+                  <td><span className={getPriorityClass(job?.priority)}>{job?.priority || 'N/A'}</span></td>
                   <td>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
-                  <td>{job.jobId?.[0]?.assign || 'N/A'}</td>
+                  <td>{job.assign || 'N/A'}</td>
                   <td>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
                   <td>
-                    <span className={`badge ${getStatusClass(job.jobId?.[0]?.Status) || ''} px-2 py-1`}>
-                      {job.jobId?.[0]?.Status || 'N/A'}
+                    <span className={`badge ${getStatusClass(job.Status) || ''} px-2 py-1`}>
+                      {job.Status || 'N/A'}
                     </span>
                   </td>
                   <td className="d-flex gap-2">
@@ -242,69 +233,13 @@ function MyJobs() {
                       style={{ display: 'none' }}
                       onChange={handleFileChange}
                     />
-                    <Button
-                      size="sm"
-                      variant="dark"
-                      className="me-2 d-flex"
-                      onClick={handleUploadClick}
-                      id="All_btn"
-                    >
-                      <FaUpload className="me-1" />
-                      Upload
-                    </Button>
-                    <Link to={"/admin/MyJobsHolidayPackageDesign"}>
+                    <Link to={""}>
                       <Button id="All_btn" size="sm" variant="dark" onClick={() => handleLogTime(job.id)}>
                         LogTime
                       </Button>
                     </Link>
-                    <Button
-                      id="All_btn"
-                      size="sm"
-                      variant="dark"
-                      onClick={() => handleCopyFileName(job, index, currentPage, itemsPerPage)}
-                    >
-                      CopyFN
-                    </Button>
                   </td>
                 </tr>
-
-                {expandedJob === job._id && (
-                  <tr>
-                    <td colSpan="19">
-                      <div className="">
-                        <table className="">
-                          <thead>
-                            <tr style={{display:"flex",alignItems:"center",justifyContent:"space-between",width:"900px",backgroundColor:"none"}}>
-                              <th>JobNo</th>
-                              <th>Brand</th>
-                              <th>Sub Brand</th>
-                              <th>Flavour</th>
-                              <th>PackType</th>
-                              <th>PackSize</th>
-                              <th>PackCode</th>
-                              <th>Status</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {job.jobId?.map((j, idx) => (
-                              <tr className="highlighted-row" key={j._id || idx} style={{display:"flex",alignItems:"center",justifyContent:"space-between",width:"940px",backgroundColor:"none"}}>
-                                <td>{j.JobNo}</td>
-                                <td>{j.brandName}</td>
-                                <td>{j.subBrand}</td>
-                                <td>{j.flavour}</td>
-                                <td>{j.packType}</td>
-                                <td>{j.packSize}</td>
-                                <td>{j.packCode}</td>
-                                <td>{j.Status}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </React.Fragment>
             ))}
           </tbody>
 

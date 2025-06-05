@@ -6,6 +6,7 @@ import Dashbord from '../features/Employee/Dashbord/Dashbord';
 import Job_History from '../features/Employee/Job_History/Job_History.jsx';
 import ProjectList from '../features/Employee/ProjectList/ProjectList.jsx';
 import PickTask from '../features/Employee/PickTask/PickTask.jsx';
+import MyJobs from '../features/Employee/MyJobs/MyJobs.jsx';
 
 function Employee() {
       const [isSidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 768);
@@ -30,6 +31,7 @@ function Employee() {
                 <Route path="/jobhistory" element={<Job_History />}/>
                 <Route path="/projectList" element={<ProjectList/>}/>
                 <Route path="/picktask" element={<PickTask/>}/>
+                 <Route path="/myJobs" element={<MyJobs/>}/>
            </Routes>
           </div>
       </div>

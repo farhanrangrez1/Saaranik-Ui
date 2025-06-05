@@ -57,3 +57,20 @@ h6.text-uppercase {
 .gap-3 {
   gap: 1rem;
 }
+
+
+
+
+
+
+
+.highlighted-row {
+  font-size: 15px;
+  padding: 8px 16px;
+  height: 40px;
+  border-radius: 8px;
+  background-color: #b5bdba;
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 10px;
+}

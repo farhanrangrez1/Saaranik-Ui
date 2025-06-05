@@ -114,7 +114,7 @@ function ReciveablePurchase() {
           </InputGroup>
 
           <Form.Select
-             style={{width:"110px"}}
+            style={{ width: "110px" }}
             value={status}
             onChange={(e) => setStatus(e.target.value)}
           >
@@ -123,17 +123,17 @@ function ReciveablePurchase() {
             <option value="invoiced">Invoiced</option>
           </Form.Select>
 
-           <div className="d-flex align-items-center gap-2 flex-wrap">
-          {/* <button className="btn btn-outline-secondary" onClick={() => handleSort(sortField || "poNumber")}>
+          <div className="d-flex align-items-center gap-2 flex-wrap">
+            {/* <button className="btn btn-outline-secondary" onClick={() => handleSort(sortField || "poNumber")}>
             <FaSort /> Sort
           </button> */}
-          <span className="ms-3 d-flex align-items-center">
-            Pending POs:{" "}
-            <Badge bg="warning" className="ms-2">
-              {pendingPOs}
-            </Badge>
-          </span>
-        </div>
+            <span className="ms-3 d-flex align-items-center">
+              Pending POs:{" "}
+              <Badge bg="warning" className="ms-2">
+                {pendingPOs}
+              </Badge>
+            </span>
+          </div>
         </div>
 
         {/* Filter button for small screens */}
@@ -148,7 +148,7 @@ function ReciveablePurchase() {
         </Button>
 
         {/* Filter/Sort/Badge on all screen sizes */}
-      
+
       </div>
 
       {/* Collapse filters for small screens */}
@@ -229,11 +229,7 @@ function ReciveablePurchase() {
             {paginatedData.map((po, index) => (
               <tr key={index}>
                 <td>
-                  PO-
-                  {String((currentPage - 1) * itemsPerPage + index + 1).padStart(
-                    4,
-                    "0"
-                  )}
+                  {po.PONumber}
                 </td>
                 <td style={{ whiteSpace: "nowrap" }}>
                   {po.ClientId?.[0]?.clientName || "—"}
@@ -246,9 +242,10 @@ function ReciveablePurchase() {
                     to="/admin/CostEstimates"
                     style={{ textDecoration: "none" }}
                   >
-                    {po.EstimateRef || "—"}
+                    {po.costEstimates?.[0]?.estimateRef || "—"}
                   </Link>
                 </td>
+
                 <td>
                   <Badge bg={getStatusBadgeVariant(po.Status)}>{po.Status}</Badge>
                 </td>

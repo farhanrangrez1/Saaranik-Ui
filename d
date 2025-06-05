@@ -16818,3 +16818,1118 @@ function TimeLogs() {
 }
 
 export default TimeLogs;
+
+
+
+
+
+
+
+
+
+import React, { useState, useEffect } from 'react';
+import { FaSearch, FaCalendarAlt, FaPencilAlt, FaTrashAlt, FaPlus, FaFilter } from 'react-icons/fa';
+import { Link, useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { deleteTimeLogs, fetchTimeLogss, updateExtraHours } from '../../../redux/slices/TimeLogsSlice';
+import { Button, Form, Modal } from "react-bootstrap";
+import Swal from 'sweetalert2';
+import { fetchTimesheetWorklogs } from '../../../redux/slices/TimesheetWorklogSlice';
+
+function TimeLogs() {
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editingLog, setEditingLog] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedProject, setSelectedProject] = useState('All Projects');
+  const [selectedLogId, setSelectedLogId] = useState(null);
+
+  const dispatch = useDispatch();
+  const navigate = useNavigate()
+
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [selectedDesigner, setSelectedDesigner] = useState('');
+  const [assignmentDescription, setAssignmentDescription] = useState('');
+  const [selectedJobs, setSelectedJobs] = useState({});
+  const [errorMessage, setErrorMessage] = useState('');
+  const [extraHours, setExtraHours] = useState('');
+
+  // New state for toggling filters on small screens
+  const [showFilters, setShowFilters] = useState(false);
+
+  useEffect(() => {
+    dispatch(fetchTimeLogss());
+  }, [dispatch]);
+
+  const handleCheckboxChange = (jobId) => {
+    setSelectedJobs((prev) => ({
+      ...prev,
+      [jobId]: !prev[jobId],
+    }));
+  };
+  const handleSubmitAssignment = () => {
+    const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
+
+    if (selectedJobIds.length === 0) {
+      setErrorMessage("Please select at least 1 job to assign.");
+      setTimeout(() => setErrorMessage(""), 3000);
+      return;
+    }
+
+    if (!extraHours) {
+      setErrorMessage("Please enter extra hours.");
+      setTimeout(() => setErrorMessage(""), 3000);
+      return;
+    }
+
+    const payload = {
+      id: selectedJobIds,
+      extraHours: extraHours,
+    };
+
+    console.log("Dispatching payload:", payload);
+
+    dispatch(updateExtraHours(payload))
+      .unwrap()
+      .then(() => {
+        setSelectedJobs({});
+        dispatch(fetchTimeLogss());
+        setShowAssignModal(false);
+        setExtraHours('');
+      })
+      .catch((error) => {
+        setErrorMessage(`Failed to update: ${error}`);
+        setTimeout(() => setErrorMessage(""), 3000);
+      });
+  };
+
+  //  all client
+  // const { timelogs, error, loading } = useSelector((state) => state.TimeLogss);
+  // console.log(timelogs.TimeLogss);
+
+  // useEffect(() => {
+  //   dispatch(fetchTimeLogss());
+  // }, [dispatch]);
+
+   const { timesheetWorklog, loading, error } = useSelector((state) => state.TimesheetWorklogs);
+   console.log(timesheetWorklog);
+  
+    useEffect(() => {
+      dispatch(fetchTimesheetWorklogs());
+    }, [dispatch]);
+
+    
+
+  const itemsPerPage = 7;
+  const totalPages = Math.ceil((timesheetWorklog.TimeLogss?.length || 0) / itemsPerPage);
+  const paginatedTimeLogss = timelogs.TimeLogss?.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handleEdit = (log) => {
+    navigate(`/admin/AddTimelog`, { state: { log } });
+  };
+
+  const handleDelete = (_id) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        dispatch(deleteTimeLogs(_id))
+          .then(() => {
+            Swal.fire("Deleted!", "The document has been deleted.", "success");
+            dispatch(fetchTimeLogss());
+          })
+          .catch(() => {
+            Swal.fire("Error!", "Something went wrong.", "error");
+          });
+      }
+    });
+  }
+
+  function formatTimeTo12Hour(time24) {
+    if (!time24) return '';
+
+    const [hourStr, minuteStr] = time24.split(':');
+    let hour = parseInt(hourStr, 10);
+    const minute = minuteStr ? minuteStr.padStart(2, '0') : '00';
+
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    hour = hour % 12;
+    if (hour === 0) hour = 12;
+
+    return `${hour}:${minute} ${ampm}`;
+  }
+
+  function timeStringToDecimalHours(time24) {
+    if (!time24) return 0;
+    const [hourStr, minuteStr] = time24.split(':');
+    const hour = parseInt(hourStr, 10);
+    const minute = parseInt(minuteStr || '0', 10);
+    return hour + minute / 60;
+  }
+  return (
+    <div className="container py-4">
+      <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+        <h3 className="mb-0">Time Logs</h3>
+        <div className="d-flex gap-3 mt-4 flex-wrap align-items-center">
+          <Link className="text-decoration-none">
+            {/* <Button
+              className="btn d-flex align-items-center gap-2"
+              size="sm"
+              id='All_btn'
+              variant="dark"
+              onClick={() => {
+                const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
+
+                if (selectedJobIds.length === 0) {
+                  setErrorMessage("Please select at least 1 List to assign.");
+                  setTimeout(() => setErrorMessage(""), 3000);
+                } else {
+                  const dataToSend = {
+                    id: selectedJobIds,
+                    extraHours: extraHours || "0:00",
+                  };
+
+                  console.log("Payload to send:", dataToSend);
+
+                  setShowAssignModal(true);
+                }
+              }}
+            >
+              <FaPlus /> ExtraTime
+            </Button> */}
+          </Link>
+            <Link to={"/admin/AddTimesheetWorklog"} className="text-decoration-none">
+            <button id='All_btn' className="btn btn-dark d-flex align-items-center gap-2">
+              <FaPlus /> Add Time Log
+            </button>
+          </Link>
+          {/* <Link to={"/admin/AddTimelog"} className="text-decoration-none">
+            <button id='All_btn' className="btn btn-dark d-flex align-items-center gap-2">
+              <FaPlus /> Add Time Log
+            </button>
+          </Link> */}
+           <Button
+            className="d-md-none d-flex align-items-center gap-2 mb-2"
+            size="sm"
+            variant="secondary"
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            <FaFilter /> Filters
+          </Button>
+        </div>
+      </div>
+
+      {errorMessage && <div className="alert alert-danger">{errorMessage}</div>}
+
+      {/* Filters Section */}
+      <div
+        className={`row g-3 mb-4 
+          ${showFilters ? 'd-block' : 'd-none d-md-flex'}
+        `}
+      >
+        <div className="col-md-4">
+          <div className="input-group">
+            <span className="input-group-text bg-white border-end-0">
+              <FaSearch className="text-muted" />
+            </span>
+            <input
+              type="text"
+              className="form-control border-start-0"
+              placeholder="Search time logs..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
+        <div className="col-md-4">
+          <div className="input-group">
+            <span className="input-group-text bg-white border-end-0">
+              <FaCalendarAlt className="text-muted" />
+            </span>
+            <input
+              type="date"
+              className="form-control border-start-0"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+            />
+          </div>
+        </div>
+        <div className="col-md-4">
+          <select
+            className="form-select"
+            value={selectedProject}
+            onChange={(e) => setSelectedProject(e.target.value)}
+          >
+            <option>All Projects</option>
+            <option>Holiday Package Design</option>
+            <option>Product Catalog</option>
+            <option>Brand Guidelines</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="card shadow-sm">
+        <div className="card-body p-0">
+          <div className="table-responsive">
+            <table className="table table-hover mb-0">
+              <thead className="bg-light">
+                <tr>
+                  <th>
+                    {/* <input
+                      type="checkbox"
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        const newSelected = {};
+                        paginatedTimeLogss?.forEach((log) => {
+                          if (log._id) newSelected[log._id] = checked;
+                        });
+                        setSelectedJobs(newSelected);
+                      }}
+                      checked={
+                        paginatedTimeLogss?.length > 0 &&
+                        paginatedTimeLogss?.every((log) => selectedJobs[log._id])
+                      }
+                    /> */}
+                  </th>    
+                  <th>JobID</th>
+                  <th>Project Name</th>
+                  <th>Employee Name</th>
+                  <th>Date</th>
+                  <th>Hours</th>
+                  <th>Task Notes</th>
+                  <th className="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedTimeLogss?.map((log, index) => {
+                  const extraHoursDecimal = timeStringToDecimalHours(log.extraHours);
+                  const hoursDecimal = timeStringToDecimalHours(log.hours);
+
+                  const isHoursDiscrepant = hoursDecimal > 8;
+                  const isExtraHoursDiscrepant = extraHoursDecimal < 8;
+                  return (
+                    <tr key={index}>
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={selectedJobs[log._id] || false}
+                          onChange={() => handleCheckboxChange(log._id)}
+                        />
+                      </td>
+
+                      <td>{new Date(log.date).toLocaleDateString('en-GB').replace(/\/20/, '/')}</td>
+
+                      <td className="no-border-bottom">
+                        #JOB{String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}
+                      </td>
+                      <td style={{ whiteSpace: 'nowrap' }} key={index}>
+                        {log.projectId?.[0]?.projectName || 'No Project Name'}
+                      </td>
+                      <td>
+                        {(!log.extraHours || log.extraHours === '0' || log.extraHours === '0:00') ? '-' : formatTimeTo12Hour(log.extraHours)}
+                      </td>
+
+                      <td
+                        style={{
+                          color: isHoursDiscrepant ? 'red' : 'inherit',
+                          fontWeight: isHoursDiscrepant ? 'bold' : 'normal',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {formatTimeTo12Hour(log.hours)}
+                      </td>
+
+                      <td style={{ whiteSpace: 'nowrap' }}>{log.taskNotes}</td>
+
+                      <td className="text-end" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <button
+                          className="btn btn-link text-dark p-0 me-3"
+                          onClick={() => handleEdit(log)}
+                        >
+                          <FaPencilAlt />
+                        </button>
+                        {/* <button
+                          className="btn btn-link text-danger p-0"
+                          onClick={() => handleDelete(log._id)}
+                        >
+                          <FaTrashAlt />
+                        </button> */}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      {!loading && !error && (
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <div className="text-muted small">
+            {/* Showing 1 to {paginatedTimeLogss?.length || 0} of {timelogs.TimeLogss?.length || 0} entries */}
+          </div>
+
+          <ul className="pagination pagination-sm mb-0">
+            <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
+                <span aria-hidden="true">&laquo;</span>
+
+              </button>
+            </li>
+            {Array.from({ length: totalPages }, (_, i) => (
+              <li key={i + 1} className={`page-item ${currentPage === i + 1 ? 'active' : ''}`}>
+                <button className="page-link" onClick={() => setCurrentPage(i + 1)}>
+                  {i + 1}
+                </button>
+              </li>
+            ))}
+            <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
+
+                <span aria-hidden="true">&raquo;</span>
+              </button>
+            </li>
+          </ul>
+        </div>
+      )}
+
+      {/* Assign Modal */}
+      <Modal show={showAssignModal} onHide={() => setShowAssignModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Extra Hours</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>Extra Hours</Form.Label>
+              <Form.Control
+                type="time"
+                value={extraHours}
+                onChange={(e) => setExtraHours(e.target.value)}
+                placeholder="Enter extra hours"
+                step="60" // step in seconds — 60 = 1 min steps
+              />
+            </Form.Group>
+
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowAssignModal(false)}>
+            Cancel
+          </Button>
+          <Button id='All_btn' onClick={handleSubmitAssignment}>
+            Save Time Log
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+    </div>
+  );
+}
+
+export default TimeLogs;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import React, { useState, useEffect } from "react";
+import { Container, Row, Col, Button, Form, Table, Pagination, Badge, Modal, Dropdown } from "react-bootstrap";
+import { Link, useNavigate } from "react-router-dom";
+import { FaFilePdf, FaUpload, FaLink, FaClock, FaEdit, FaFilter } from "react-icons/fa";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchjobs } from "../../../redux/slices/JobsSlice";
+
+function MyJobs() {
+  const [expandedJob, setExpandedJob] = useState(null);
+  const [showTimesheetModal, setShowTimesheetModal] = useState(false);
+  const [selectedJobId, setSelectedJobId] = useState(null);
+  const [showBriefModal, setShowBriefModal] = useState(false);
+  const [selectedBrief, setSelectedBrief] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
+
+  // Local data for testing
+  const localData = [
+    {
+      _id: "1",
+      jobId: { JobNo: "101" },
+      projectId: [{ projectName: "Project A" }],
+      employeeId: { firstName: "John", lastName: "Doe" },
+      brandName: "Brand X",
+      subBrand: "Sub X",
+      flavour: "Vanilla",
+      packType: "Box",
+      packSize: "500g",
+      priority: "High",
+      Status: "Pending",
+    },
+    {
+      _id: "2",
+      jobId: { JobNo: "102" },
+      projectId: [{ projectName: "Project B" }],
+      employeeId: { firstName: "Jane", lastName: "Smith" },
+      brandName: "Brand Y",
+      subBrand: "Sub Y",
+      flavour: "Chocolate",
+      packType: "Bag",
+      packSize: "1kg",
+      priority: "Medium",
+      Status: "Completed",
+    },
+    {
+      _id: "3",
+      jobId: { JobNo: "103" },
+      projectId: [{ projectName: "Project C" }],
+      employeeId: { firstName: "Alex", lastName: "Johnson" },
+      brandName: "Brand Z",
+      subBrand: "Sub Z",
+      flavour: "Strawberry",
+      packType: "Can",
+      packSize: "250g",
+      priority: "Low",
+      Status: "In Progress",
+      // Adding Additional Data for Job 103
+      additionalDetails: "Additional details for Job 103: This is an ongoing project, currently in progress. Alex Johnson is the employee responsible for this task.",
+    },
+  ];
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  // Pagination logic
+  const totalPages = Math.ceil(localData.length / itemsPerPage);
+  const paginatedProjects = localData.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // Handle row click to expand/collapse details
+  const handleRowClick = (jobId) => {
+    if (expandedJob === jobId) {
+      setExpandedJob(null); // Collapse if the same job is clicked again
+    } else {
+      setExpandedJob(jobId); // Expand the clicked job
+    }
+  };
+
+  return (
+    <div className="p-4 m-2" style={{ backgroundColor: "white", borderRadius: "10px" }}>
+      <h5 className="fw-bold mb-3 text-start">My Jobs</h5>
+
+      {/* Filters and Actions */}
+      <Row className={`mb-3 align-items-center ${showFilters ? "" : "d-none d-lg-flex"}`}>
+        <Col xs={12} lg={9} className="d-flex flex-wrap gap-2 mb-2 mb-lg-0">
+          <Form.Control type="text" placeholder="Search jobs..." className="flex-grow-1" />
+          <Form.Select className="flex-shrink-0">
+            <option>All Status</option>
+          </Form.Select>
+          <Form.Select className="flex-shrink-0">
+            <option>All Deadlines</option>
+          </Form.Select>
+        </Col>
+
+        <Col xs={12} lg={3} className="text-lg-end d-flex flex-wrap justify-content-lg-end gap-2">
+          <Button variant="dark" onClick={() => alert('Return Job')}>Return Job</Button>
+        </Col>
+      </Row>
+
+      {/* Table */}
+      <div className="table-responsive">
+        <Table hover className="align-middle sticky-header">
+          <thead className="bg-light">
+            <tr>
+              <th>JobNo</th>
+              <th>ProjectName</th>
+              <th>EmployeeName</th>
+              <th>Brand</th>
+              <th>SubBrand</th>
+              <th>Flavour</th>
+              <th>PackType</th>
+              <th>PackSize</th>
+              <th>Priority</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody style={{zIndex:"auto"}}>
+            {paginatedProjects.map((job) => (
+              <React.Fragment key={job._id}>
+                <tr onClick={() => handleRowClick(job._id)} style={{ cursor: "pointer" }}>
+                  <td>{job.jobId?.JobNo}</td>
+                  <td>{job.projectId?.[0]?.projectName}</td>
+                  <td>{`${job.employeeId.firstName} ${job.employeeId.lastName}`}</td>
+                  <td>{job.brandName}</td>
+                  <td>{job.subBrand}</td>
+                  <td>{job.flavour}</td>
+                  <td>{job.packType}</td>
+                  <td>{job.packSize}</td>
+                  <td>{job.priority}</td>
+                  <td>{job.Status}</td>
+                  <td>
+                    <Dropdown align="end">
+                      <Dropdown.Toggle variant="dark" size="sm" id="dropdown-custom-components">
+                        Actions
+                      </Dropdown.Toggle>
+                      <Dropdown.Menu>
+                        <Dropdown.Item eventKey="1">Edit</Dropdown.Item>
+                        <Dropdown.Item eventKey="2">Delete</Dropdown.Item>
+                        <Dropdown.Item eventKey="3">View Details</Dropdown.Item>
+                      </Dropdown.Menu>
+                    </Dropdown>
+                  </td>
+                </tr>
+
+                {/* Additional Details (Collapsible) */}
+                {expandedJob === job._id && (
+                  <tr >
+                    <td className="highlighted-row" colSpan="11">
+                      <div>Additional Details for {job.jobId?.JobNo}: {job.additionalDetails}</div>
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
+            ))}
+          </tbody>
+        </Table>
+      </div>
+
+      {/* Pagination */}
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <div className="text-muted small">
+          Showing {((currentPage - 1) * itemsPerPage) + 1} of {localData.length}
+        </div>
+        <ul className="pagination pagination-sm mb-0">
+          <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+            <button className="page-link" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
+              &laquo;
+            </button>
+          </li>
+          {Array.from({ length: totalPages }, (_, i) => (
+            <li key={i + 1} className={`page-item ${currentPage === i + 1 ? 'active' : ''}`}>
+              <button className="page-link" onClick={() => setCurrentPage(i + 1)}>{i + 1}</button>
+            </li>
+          ))}
+          <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+            <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
+              &raquo;
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+export default MyJobs;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import React, { useEffect, useState, useRef } from "react";
+import { Container, Row, Col, Button, Form, Table, Pagination, Badge, Modal } from "react-bootstrap";
+import { Link, useNavigate } from "react-router-dom";
+import * as XLSX from 'xlsx';
+import { useDispatch, useSelector } from "react-redux";
+import { fetchjobs } from "../../../redux/slices/JobsSlice";
+import {
+  FaFilePdf,
+  FaUpload,
+  FaLink,
+  FaClock,
+  FaEdit,
+  FaFilter,
+} from "react-icons/fa";
+import { fetchAssign } from "../../../redux/slices/AssignSlice";
+
+function MyJobs() {
+  const [showTimesheetModal, setShowTimesheetModal] = useState(false);
+  const [selectedJobId, setSelectedJobId] = useState(null);
+  const [showBriefModal, setShowBriefModal] = useState(false);
+  const [selectedBrief, setSelectedBrief] = useState("");
+  const [showFilters, setShowFilters] = useState(false); // 👈 For responsive toggle
+  const [expandedJob, setExpandedJob] = useState(null); // Tracking the expanded job
+
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const handleReturnJob = () => {
+    const hasTimesheet = false;
+    if (!hasTimesheet) {
+      alert('This jobs is send to the production');
+      return;
+    }
+  };
+
+  const handleUpload = (jobId) => {
+    console.log('Upload for job:', jobId);
+  };
+
+  const handleLogTime = (jobId) => {
+    setSelectedJobId(jobId);
+    setShowTimesheetModal(true);
+  };
+
+  const fileInputRef = useRef(null);
+
+  const handleUploadClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      console.log("Selected file:", file);
+    }
+  };
+
+  const handleSelectAll = (e) => {
+    const isChecked = e.target.checked;
+    const allJobs = jobs.reduce((acc, job) => {
+      acc[job.id] = isChecked;
+      return acc;
+    }, {});
+    setSelectedJobs(allJobs);
+  };
+
+  const getPriorityClass = (priority) => {
+    switch ((priority || "").toLowerCase()) {
+      case "high":
+        return "text-danger";
+      case "medium":
+        return "text-warning";
+      case "low":
+        return "text-success";
+      default:
+        return "";
+    }
+  };
+
+  const getStatusClass = (status) => {
+    switch ((status || "").toLowerCase().trim()) {
+      case "in progress":
+      case "in_progress":
+        return "bg-warning text-dark";
+      case "review":
+        return "bg-info text-dark";
+      case "not started":
+        return "bg-secondary text-white";
+      case "completed":
+        return "bg-success text-white";
+      case "open":
+        return "bg-primary text-white";
+      default:
+        return "bg-light text-dark";
+      case "cancelled":
+        return "bg-dark text-white";
+    }
+  };
+
+  const { job, loading, error } = useSelector((state) => state.jobs);
+
+  useEffect(() => {
+    dispatch(fetchjobs());
+  }, [dispatch]);
+
+  const { assigns } = useSelector((state) => state.Assign);
+  console.log("fvrfjk", assigns.assignments);
+
+  useEffect(() => {
+    dispatch(fetchAssign());
+  }, [dispatch]);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const filteredProjects = assigns?.assignments || [];
+  const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
+
+  const paginatedProjects = filteredProjects.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handleCopyFileName = (job, index, currentPage, itemsPerPage) => {
+    const displayId = String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0');
+    const fileName = `${displayId}_${job.projectName || ''}__${job.brandName || ''}_${job.subBrand || ''}_${job.flavour || ''}_${job.packType || ''}_${job.packSize || ''}_${job.packCode || ''}_${job.priority || ''}_${job.dueDate || ''}_${job.assign || ''}_${job.timeLogged || ''}_${job.status || ''}`;
+
+    navigator.clipboard.writeText(fileName)
+      .then(() => alert("Copied to clipboard: " + fileName))
+      .catch((err) => console.error("Failed to copy!", err));
+  };
+
+  const handleRowClick = (jobId) => {
+    if (expandedJob === jobId) {
+      setExpandedJob(null);
+    } else {
+      setExpandedJob(jobId);
+    }
+  };
+
+  return (
+    <div className="p-4 m-2" style={{ backgroundColor: "white", borderRadius: "10px" }}>
+      <h5 className="fw-bold mb-3 text-start">My Jobs</h5>
+
+      {/* Toggle Filter Button for Mobile */}
+      <div className="d-lg-none mb-2 text-end">
+        <Button
+          variant="primary"
+          size="sm"
+          className="fw-bold shadow-sm"
+          onClick={() => setShowFilters(!showFilters)}
+        >
+          <FaFilter className="me-1" />
+          Filter
+        </Button>
+      </div>
+
+      {/* Filters and Actions */}
+      <Row className={`mb-3 align-items-center ${showFilters ? "" : "d-none d-lg-flex"}`}>
+        <Col xs={12} lg={9} className="d-flex flex-wrap gap-2 mb-2 mb-lg-0">
+          <Form.Control
+            type="text"
+            placeholder="Search jobs..."
+            className="flex-grow-1"
+            style={{ minWidth: "150px", maxWidth: "200px" }}
+          />
+          <Form.Select className="flex-shrink-0" style={{ minWidth: "140px", maxWidth: "160px" }}>
+            <option>All Status</option>
+          </Form.Select>
+          <Form.Select className="flex-shrink-0" style={{ minWidth: "140px", maxWidth: "160px" }}>
+            <option>All Deadlines</option>
+          </Form.Select>
+        </Col>
+
+        <Col xs={12} lg={3} className="text-lg-end d-flex flex-wrap justify-content-lg-end gap-2">
+          <Button id="All_btn" variant="dark" className="w-lg-auto" onClick={handleReturnJob}>
+            Return Job
+          </Button>
+        </Col>
+      </Row>
+
+      {/* Table */}
+      <div className="table-responsive">
+        <Table hover className="align-middle sticky-header">
+          <thead className="bg-light">
+            <tr>
+              <th><input type="checkbox" onChange={handleSelectAll} /></th>
+              <th>JobNo</th>
+              <th>ProjectName</th>
+              <th>EmployeeName</th>
+              <th>Brand</th>
+              <th>SubBrand</th>
+              <th>Flavour</th>
+              <th>PackType</th>
+              <th>PackSize</th>
+              <th>PackCode</th>
+              <th>Priority</th>
+              <th>Due Date</th>
+              <th>Assign</th>
+              <th>TimeLogged</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {paginatedProjects.slice().reverse().map((job, index) => (
+              <React.Fragment key={job._id}>
+                <tr onClick={() => handleRowClick(job._id)} style={{ cursor: "pointer" }}>
+                  <td><input type="checkbox" onChange={handleSelectAll} /></td>
+                  <td> {job.jobId.JobNo}</td>
+                  <td style={{ whiteSpace: 'nowrap' }}>{job.projectId?.[0]?.projectName || 'N/A'}</td>
+                  <td style={{ whiteSpace: 'nowrap' }} key={index}>
+                    {job.employeeId
+                      ? `${job.employeeId.firstName} ${job.employeeId.lastName}`
+                      : 'No Employee'}
+                  </td>
+                  <td>{job.brandName}</td>
+                  <td style={{ whiteSpace: 'nowrap' }}>{job.subBrand}</td>
+                  <td>{job.flavour}</td>
+                  <td>{job.packType}</td>
+                  <td>{job.packSize}</td>
+                  <td>{job.packCode}</td>
+                  <td><span className={getPriorityClass(job.priority)}>{job.priority}</span></td>
+                  <td>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
+                  <td>{job.assign}</td>
+                  <td>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
+                  <td>
+                    <span className={`badge ${getStatusClass(job.Status)} px-2 py-1`}>
+                      {job.Status}
+                    </span>
+                  </td>
+                  <td className="d-flex gap-2">
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      style={{ display: 'none' }}
+                      onChange={handleFileChange}
+                    />
+                    <Button
+                      size="sm"
+                      variant="dark"
+                      className="me-2 d-flex"
+                      onClick={handleUploadClick}
+                      id="All_btn"
+                    >
+                      <FaUpload className="me-1" />
+                      Upload
+                    </Button>
+                    <Link to={"/admin/MyJobsHolidayPackageDesign"}>
+                      <Button id="All_btn" size="sm" variant="dark" onClick={() => handleLogTime(job.id)}>
+                        LogTime
+                      </Button>
+                    </Link>
+                    <Button
+                      id="All_btn"
+                      size="sm"
+                      variant="dark"
+                      onClick={() => handleCopyFileName(job, index, currentPage, itemsPerPage)}
+                    >
+                      CopyFN
+                    </Button>
+                  </td>
+                </tr>
+                {expandedJob === job._id && (
+                  <td>
+                      <td>Additional Details for {job.jobId?.JobNo}: {job.additionalDetails}</td>
+                  </td>
+                )}
+              </React.Fragment>
+            ))}
+          </tbody>
+        </Table>
+      </div>
+
+      {/* Pagination */}
+      {!loading && !error && (
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <div className="text-muted small">
+            Showing{(currentPage - 1) * itemsPerPage + 1} of {filteredProjects.length}
+          </div>
+          <ul className="pagination pagination-sm mb-0">
+            <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
+                <span aria-hidden="true">&laquo;</span>
+              </button>
+            </li>
+            {Array.from({ length: totalPages }, (_, i) => (
+              <li key={i + 1} className={`page-item ${currentPage === i + 1 ? 'active' : ''}`}>
+                <button className="page-link" onClick={() => setCurrentPage(i + 1)}>
+                  {i + 1}
+                </button>
+              </li>
+            ))}
+            <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
+                <span aria-hidden="true">&raquo;</span>
+              </button>
+            </li>
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default MyJobs;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import axios from "axios";
+import { apiUrl } from "../../utils/config";
+
+export const  loginUser = createAsyncThunk(
+    'auth/login',
+    async (credentials, { rejectWithValue }) => {
+        try {
+            const response = await axios.post(${apiUrl}/login, credentials, {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            });
+            if (response.status !== 200) {
+            return rejectWithValue(response.data.message || 'Login failed');
+            }
+            console.log("login response ", response)
+
+            localStorage.setItem('token', response.data.token);
+            localStorage.setItem('user', JSON.stringify(response.data.data.user));
+            // localStorage.setItem('user', JSON.stringify(response.data.data.user?.id));
+            localStorage.setItem('role', JSON.stringify(response.data.data.user?.role));
+            localStorage.setItem('permissions', JSON.stringify(response.data.data.user?.permissions));
+            
+           
+           
+            return response.data;  
+        } catch (err) {
+            return rejectWithValue(err.response?.data?.message || 'Login failed');
+        }
+    })
+
+
+
+    const initialState= {
+        user: JSON.parse(localStorage.getItem('user')) || null,
+        token: localStorage.getItem('token') || null,
+        role: localStorage.getItem('role') || null,
+        permissions: JSON.parse(localStorage.getItem('permissions')) || null,
+        loading: false,
+        error: null,
+    }
+
+
+    const authSlice = createSlice({
+        name: 'auth',
+        initialState,
+        reducers: {
+            logout: (state) => {
+                localStorage.removeItem('user');
+                localStorage.removeItem('token');
+                localStorage.removeItem('role');
+                localStorage.removeItem('permissions');
+                state.user = null;
+                state.token = null;
+                state.role = null;
+                state.permissions = null;
+            },
+            clearMessages: (state) => {
+                state.error = null;
+            },
+        },
+        extraReducers: (builder) => {
+            builder
+                .addCase(loginUser.pending, (state) => {
+                    state.loading = true;
+                })
+                .addCase(loginUser.fulfilled, (state, action) => {
+                    state.loading = false;
+                    state.user = action.payload.user;
+                    state.token = action.payload.token;
+                    state.role = action.payload.role; 
+                    state.permissions = action.payload.permissions; response
+                    state.error = null;
+                })
+                .addCase(loginUser.rejected, (state, action) => {
+                    state.loading = false;
+                    state.error = action.payload;
+                });
+        },
+
+
+
+    })
+
+
+    export const { logout, clearMessages } = authSlice.actions;
+    export default authSlice.reducer;

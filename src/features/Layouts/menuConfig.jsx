@@ -116,13 +116,13 @@ export const employeeMenuItems = [
   {
     title: "My Tasks",
     icon: <FaTasks className="menu-icon" />,
-    path: "/admin/MyJobs",
+    path: "/employee/myJobs",
   },
-  {
-    title: "Pick Task",
-    icon: <FaClipboardList className="menu-icon" />,
-    path: "/employee/picktask",
-  },
+  // {
+  //   title: "Pick Task",
+  //   icon: <FaClipboardList className="menu-icon" />,
+  //   path: "/employee/picktask",
+  // },
   // {
   //   title: "Submit Task",
   //   icon: <FaCheckCircle className="menu-icon" />,

@@ -80,10 +80,15 @@ function AddCostEstimates() {
       }
 
       let clientId = "";
-      if (po.clientId && typeof po.clientId === "object") {
-        clientId = po.clientId._id;
+      let clientName = "";
+      if (po.clientId && Array.isArray(po.clientId) && po.clientId.length > 0) {
+        clientId = po.clientId[0]._id || "";
+        clientName = po.clientId[0].clientName || "";
       } else if (Array.isArray(po.clients) && po.clients.length > 0) {
         clientId = po.clients[0]?.clientId || "";
+        // Try to get client name from Clients data if available
+        const clientObj = Clients?.data?.find(c => c._id === clientId);
+        clientName = clientObj ? clientObj.clientName : "";
       }
 
       setFormData((prev) => ({
@@ -91,6 +96,7 @@ function AddCostEstimates() {
         ...po,
         projectsId: projectId ? [projectId] : [""],
         clientId: clientId ? [clientId] : [""],
+        clientName: clientName,
         Notes: po.Notes || "",
         currency: po.currency || "USD",
         estimateDate: po.estimateDate ? po.estimateDate.substring(0, 10) : "",
@@ -101,7 +107,8 @@ function AddCostEstimates() {
         setItems(po.lineItems);
       }
     }
-  }, [po, project?.data]);
+  }, [po, project?.data, Clients]);
+
 
   const [taxRate, setTaxRate] = useState(0.05);
 
@@ -182,12 +189,16 @@ function AddCostEstimates() {
                 className="form-select"
                 name="clientId"
                 value={formData.clientId[0] || ""}
-                onChange={(e) =>
+                onChange={(e) => {
+                  const selectedClientId = e.target.value;
+                  const selectedClient = Clients?.data?.find(c => c._id === selectedClientId);
+
                   setFormData({
                     ...formData,
-                    clientId: [e.target.value],
-                  })
-                }
+                    clientId: [selectedClientId],
+                    clientName: selectedClient ? selectedClient.clientName : "",
+                  });
+                }}
               >
                 <option value="">Select Client</option>
                 {Clients?.data?.map((client) => (
@@ -196,6 +207,7 @@ function AddCostEstimates() {
                   </option>
                 ))}
               </select>
+
             </div>
 
 

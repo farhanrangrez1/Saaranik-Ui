@@ -94,6 +94,7 @@ function CostEstimates() {
     setAmount("");
     setPODocument(null);
     setShowAddPOModal(false);
+    navigate("/admin/receivable")
   };
 
 
@@ -412,7 +413,7 @@ function CostEstimates() {
               <th>CENo</th>
               <th>Date</th>
               <th>Client</th>
-              <th>ProjectNo</th>
+              {/* <th>ProjectNo</th> */}
               <th>ProjectName</th>
               <th>Amount</th>
               <th>POStatus</th>
@@ -426,23 +427,15 @@ function CostEstimates() {
               <tr style={{ whiteSpace: "nowrap" }} key={po.poNumber}>
                 <td><input type="checkbox" /></td>
                 <td onClick={() => CreatJobs(po.projectId)}>
-                  <Link style={{ textDecoration: 'none', border: 'none', color: 'inherit' }}>
-                    CE-{String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}
+                  <Link style={{ textDecoration: 'none', border: 'none' }}>
+                    {po.estimateRef}
                   </Link>
                 </td>
                 <td>{new Date(po.estimateDate).toLocaleDateString("en-GB").slice(0, 8)}</td>
-                <td>
-                  {
-                    Array.isArray(po.clientId)
-                      ? po.clientId.map((client, i) => `${String(i + 1).padStart(4, '0')} (${client._id})`).join(", ")
-                      : po.clientId
-                        ? `${String(1).padStart(4, '0')} `
-                        : "N/A"
-                  }
-                </td>
-                <td>
+                <td>{po.clientId[0]?.clientName || 'N/A'}</td>
+                {/* <td>
                   {po.projectId?.map((project, i) => `${String(i + 1).padStart(4, '0')}`).join(", ")}
-                </td>
+                </td> */}
                 <td>
                   {po.projectId?.map((project) => project.projectName || project.name).join(", ")}
                 </td>

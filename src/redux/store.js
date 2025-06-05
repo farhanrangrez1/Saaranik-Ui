@@ -9,6 +9,10 @@ import receivablePurchaseReducer from "../redux/slices/receivablePurchaseSlice"
 import TimeLogsReducer from "../redux/slices/TimeLogsSlice"
 import TimesheetWorklogReducer from "../redux/slices/TimesheetWorklogSlice"
 import InvoicingBillingReducer from "../redux/slices/InvoicingBillingSlice"
+import AssignReducer from "../redux/slices/AssignSlice"
+
+// Employee
+import MyJobsReducer from "../redux/slices/Employee/MyJobsSlice"
 
 export const store = configureStore({
   reducer: {
@@ -20,7 +24,9 @@ export const store = configureStore({
     receivablePurchases: receivablePurchaseReducer,
     TimeLogss: TimeLogsReducer,
     TimesheetWorklogs:TimesheetWorklogReducer,
-    InvoicingBilling:InvoicingBillingReducer
-
+    InvoicingBilling:InvoicingBillingReducer,
+    Assign:AssignReducer,
+    // 
+    MyJobs:MyJobsReducer
 }
 });
