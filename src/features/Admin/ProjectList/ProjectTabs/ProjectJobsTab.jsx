@@ -6,6 +6,8 @@ import { deletejob, fetchjobs, Project_job_Id, updatejob, UpdateJobAssign } from
 import Swal from 'sweetalert2';
 import { fetchusers } from '../../../../redux/slices/userSlice';
 import { createAssigns } from '../../../../redux/slices/AssignSlice';
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function ProjectJobsTab() {
   const location = useLocation();
@@ -90,32 +92,39 @@ function ProjectJobsTab() {
     currentAssignment * itemsAssignment
   );
 
-  const handleSubmitAssignment = () => {
-    const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
-    const payload = {
-      employeeId: [selectedEmployee],
-      jobId: selectedJobIds,
-      selectDesigner: selectedDesigner,
-      description: assignmentDescription,
-    };
-
-    console.log("Assignment Payload:", payload);
-
-    if (id) {
-      dispatch(createAssigns(payload))
-        .unwrap()
-        .then(() => {
-          toast.success("Project updated successfully!");
-          navigate("/admin/projectList");
-        })
-        .catch(() => {
-          toast.error("Failed to update project!");
-        });
-    }
-    setShowAssignModal(false);
-    navigate("/admin/MyJobs")
-    setSelectedJobs(false)
+const handleSubmitAssignment = () => {
+  const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
+  const payload = {
+    employeeId: [selectedEmployee],
+    jobId: selectedJobIds,
+    selectDesigner: selectedDesigner,
+    description: assignmentDescription,
   };
+
+  console.log("Assignment Payload:", payload);
+
+  if (id) {
+    dispatch(createAssigns(payload))
+      .unwrap()
+      .then((response) => {
+        console.log("API Response:", response);
+        // ✅ Agar API success ho to navigate kare
+        if (response.success) {
+          toast.success(response.message || "Project Assigned Successfully!");
+          setShowAssignModal(false);
+          setSelectedJobs(false);
+          navigate("/admin/MyJobs");
+        }else{
+          setShowAssignModal(false);
+          toast.error(response.message || "Assignment failed!");
+        }
+      })
+      .catch((error) => {
+        console.error("API Error:", error);
+        toast.error(error.message || "Failed to update project!");
+      });
+  }
+};
 
   const handleJobAssign = (selectedIds, assignTo) => {
     const payload = {

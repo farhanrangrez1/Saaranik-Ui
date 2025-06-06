@@ -239,8 +239,8 @@ const Login = () => {
   const dispatch = useDispatch();
 
   const [formData, setFormData] = useState({
-    email: "",
-    password: "",
+    email: "admin@gmail.com",
+    password: "123",
   });
 
   const [loading, setLoading] = useState(false);
@@ -298,10 +298,11 @@ const Login = () => {
     const res = await axios.post("https://xt2cpwt7-8000.inc1.devtunnels.ms/api/user/login", { email, password });
     console.log("API Response:", res.data);
 
-    localStorage.setItem("authResponse", JSON.stringify(res.data));
+    // localStorage.setItem("authResponse", JSON.stringify(res.data));
 
     const { role, token } = res.data.user;
-    localStorage.setItem("authToken", token);
+    localStorage.setItem("encode", res.data.token.token);
+    localStorage.setItem("iv", res.data.token.iv);
     localStorage.setItem("userRole", role);
 
     toast.success("Logged in successfully!");

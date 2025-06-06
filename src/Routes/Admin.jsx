@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import {BrowserRouter as Router,Routes,Route,useLocation} from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import "../App.css";
 import Navbar from "../features/Layouts/Navbar.jsx";
 import Sidebar from "../features/Layouts/Sidebar.jsx";
@@ -53,7 +53,7 @@ import JobsDueTodayDashboard from "../features/Admin/Dashbord/JobsDueTodayDashbo
 import InProgressDashboardProject from "../features/Admin/Dashbord/InProgressDashboardProject.jsx";
 import CostEstimatesDashbord from "../features/Admin/Dashbord/CostEstimatesDashbord.jsx";
 import Reports from "../features/Reports/Reports.jsx";
-
+import ProtectedRoute from "../Protecuted/Protecuted.jsx";
 import 'react-toastify/dist/ReactToastify.css';
 
 function Admin() {
@@ -68,7 +68,7 @@ function Admin() {
 
   return (
     <div className="Main-App">
-      
+
       {!hideLayout && <Navbar toggleSidebar={toggleSidebar} />}
       <div className={`Main-App-container ${hideLayout ? "no-sidebar" : ""}`}>
         {!hideLayout && (
@@ -76,8 +76,14 @@ function Admin() {
         )}
         <div className="Main-App-Content">
           <Routes>
-            <Route path="dashboard" element={<Dashbord />} />
-            <Route path="/InProgressDashboard" element={<InProgressDashboard />} />
+            <Route
+              path="dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashbord />
+                </ProtectedRoute>
+              }
+            />            <Route path="/InProgressDashboard" element={<InProgressDashboard />} />
             <Route path="/InProgressDashboardProject" element={<InProgressDashboardProject />} />
             <Route path="/JobsDueTodayDashboard" element={<JobsDueTodayDashboard />} />
             <Route path="/CostEstimatesDashbord" element={<CostEstimatesDashbord />} />
@@ -93,7 +99,7 @@ function Admin() {
             <Route path="/projectList" element={<ProjectList />} />
             <Route path="/AddProjectList" element={<AddProjectList />} />
             <Route path="/OvervieJobsProject" element={<OvervieJobsProject />} />
-           <Route path="/ProjectOverview/:id" element={<ProjectOverview />} />
+            <Route path="/ProjectOverview/:id" element={<ProjectOverview />} />
             <Route path="/UpdateProjectLis" element={<UpdateProjectLis />} />
             <Route path="/jobTracker" element={<JobTracker />} />
             <Route path="/AddJobTracker/:id" element={<AddJobTracker />} />

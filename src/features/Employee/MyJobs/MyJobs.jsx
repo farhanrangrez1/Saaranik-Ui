@@ -18,8 +18,8 @@ import { fetchMyJobs } from "../../../redux/slices/Employee/MyJobsSlice";
 function MyJobs() {
   const [showTimesheetModal, setShowTimesheetModal] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState(null)
-  const [showFilters, setShowFilters] = useState(false); 
-  const [expandedJob, setExpandedJob] = useState(null); 
+  const [showFilters, setShowFilters] = useState(false);
+  const [expandedJob, setExpandedJob] = useState(null);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -97,11 +97,11 @@ function MyJobs() {
 
 
 
-  const { myjobs,loading, error } = useSelector((state) => state.MyJobs);
+  const { myjobs, loading, error } = useSelector((state) => state.MyJobs);
   // console.log("uhdfehfbeubfebefjb", myjobs && myjobs.assignments && myjobs.assignments.length > 0 ? myjobs.assignments[0] && myjobs.assignments[0].jobId : "ji");
 
-const MynewJobsdata = myjobs && myjobs.assignments && myjobs.assignments.length > 0? myjobs.assignments[0].jobId: []; 
-  console.log("ferf",myjobs.assignments);
+  const MynewJobsdata = myjobs && myjobs.assignments && myjobs.assignments.length > 0 ? myjobs.assignments[0].jobId : [];
+  console.log("ferf", myjobs.assignments);
 
   useEffect(() => {
     dispatch(fetchMyJobs());
@@ -129,7 +129,7 @@ const MynewJobsdata = myjobs && myjobs.assignments && myjobs.assignments.length 
   };
 
   const handleRowClick = (jobId) => {
-    if (expandedJob === jobId){
+    if (expandedJob === jobId) {
       setExpandedJob(null);
     } else {
       setExpandedJob(jobId);
@@ -185,7 +185,8 @@ const MynewJobsdata = myjobs && myjobs.assignments && myjobs.assignments.length 
               <th><input type="checkbox" onChange={handleSelectAll} /></th>
               <th>JobNo</th>
               <th>ProjectName</th>
-              <th>Assign</th> 
+              <th>Assign</th>
+              <th>description</th>
               <th>Brand</th>
               <th>SubBrand</th>
               <th>Flavour</th>
@@ -201,45 +202,55 @@ const MynewJobsdata = myjobs && myjobs.assignments && myjobs.assignments.length 
           </thead>
           <tbody>
             {paginatedProjects.slice().reverse().map((job, index) => (
-                <tr onClick={() => handleRowClick(job._id)} style={{ cursor: "pointer" }}>
-                  <td><input type="checkbox" onChange={handleSelectAll} /></td>
-              
-                  <td style={{ whiteSpace: 'nowrap' }} key={index}>
-                    {job.employeeId
-                      ? `${job.employeeId.firstName} ${job.employeeId.lastName}`
-                      : 'No Employee'}
+              <tr onClick={() => handleRowClick(job._id)} style={{ cursor: "pointer" }}>
+                <td><input type="checkbox" onChange={handleSelectAll} /></td>
+                <td style={{ whiteSpace: 'nowrap' }} key={index}>
+                  <Link style={{ textDecoration: 'none' }}>{job.JobNo}</Link>
+                </td>
+                <td>
+                  {job.projectId?.[0]?.projectName || "—"}
+                </td>
+                {myjobs.assignments.map((item, idx) => (
+                  <td key={idx} style={{ whiteSpace: 'nowrap' }}>
+                    {item?.selectDesigner || "—"}
                   </td>
-                  <td>{job.selectDesigner}</td>
-                  <td>{job.description}</td>
-                  <td>{job.brandName || 'N/A'}</td>
-                  <td style={{ whiteSpace: 'nowrap' }}>{job.subBrand || 'N/A'}</td>
-                  <td>{job.flavour || 'N/A'}</td>
-                  <td>{job.packType || 'N/A'}</td>
-                  <td>{job.packSize || 'N/A'}</td>
-                  <td>{job.packCode || 'N/A'}</td>
-                  <td><span className={getPriorityClass(job?.priority)}>{job?.priority || 'N/A'}</span></td>
-                  <td>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
-                  <td>{job.assign || 'N/A'}</td>
-                  <td>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
-                  <td>
-                    <span className={`badge ${getStatusClass(job.Status) || ''} px-2 py-1`}>
-                      {job.Status || 'N/A'}
-                    </span>
+                ))}
+                {myjobs.assignments.map((item, idx) => (
+                  <td key={idx} style={{ whiteSpace: 'nowrap' }}>
+                    {item?.description || "—"}
                   </td>
-                  <td className="d-flex gap-2">
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      style={{ display: 'none' }}
-                      onChange={handleFileChange}
-                    />
-                    <Link to={""}>
-                      <Button id="All_btn" size="sm" variant="dark" onClick={() => handleLogTime(job.id)}>
-                        LogTime
-                      </Button>
-                    </Link>
-                  </td>
-                </tr>
+                ))}
+
+                <td>{job.brandName}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{job.subBrand}</td>
+                <td>{job.packType || 'N/A'}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{job.packSize || 'N/A'}</td>
+                <td>{job.priority || 'N/A'}</td>
+                <td>{job.packCode || 'N/A'}</td>
+
+
+                <td><span className={getPriorityClass(job?.priority)}>{job?.priority || 'N/A'}</span></td>
+                <td>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
+                <td>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
+                <td>
+                  <span className={`badge ${getStatusClass(job.Status) || ''} px-2 py-1`}>
+                    {job.Status || 'N/A'}
+                  </span>
+                </td>
+                <td className="d-flex gap-2">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    style={{ display: 'none' }}
+                    onChange={handleFileChange}
+                  />
+                  <Link to={""}>
+                    <Button id="All_btn" size="sm" variant="dark" onClick={() => handleLogTime(job.id)}>
+                      LogTime
+                    </Button>
+                  </Link>
+                </td>
+              </tr>
             ))}
           </tbody>
 

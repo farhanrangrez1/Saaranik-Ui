@@ -6,25 +6,26 @@ import Login from "./features/Auth/Login";
 import Register from "./features/Auth/Register";
 import Employee from './Routes/Employee';
 import Client from './Routes/Client';
-
+import ProtectedRoute from './Protecuted/Protecuted';
 function App() {
   return (
     <>
-      <ToastContainer position="top-right" autoClose={3000}/>
-      <Router> 
+      <ToastContainer position="top-right" autoClose={3000} />
+      <Router>
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/Signup" element={<Register />} />
           {/* Admin Routes */}
-          <Route path='/admin/*' element={<Admin />} />
-           <Route path='/employee/*' element={<Employee/>}/>
-           <Route path='/client/*' element={<Client/>}/>
+          <Route path='/admin/*' element={<ProtectedRoute>
+            <Admin />
+          </ProtectedRoute>} />
+          <Route path='/employee/*' element={<Employee />} />
+          <Route path='/client/*' element={<Client />} />
         </Routes>
       </Router>
       <ToastContainer position="top-right" autoClose={3000} />
     </>
   );
 }
-
 
 export default App;
