@@ -2,18 +2,14 @@ import CryptoJS from 'crypto-js';
 
 const secretKey = "jhgbdvdbdjvbdjb^%%jhgdvgdjvhdjvhdhdnvfv65g74rf87r4b"; // must match backend
 
-export const decryptToken = (token, iv) => {
+export const decryptToken = (token) => {
     try {
         // Generate the key from the secret key, same as backend
         const key = CryptoJS.SHA256(secretKey);
         
-        // Parse the IV from Base64
-        const ivWordArray = CryptoJS.enc.Base64.parse(iv);
-
-        // Decrypt the token
+        // Decrypt the token using AES-ECB (No IV required)
         const decrypted = CryptoJS.AES.decrypt(token, key, {
-            iv: ivWordArray,
-            mode: CryptoJS.mode.CBC,
+            mode: CryptoJS.mode.ECB, // Using ECB mode
             padding: CryptoJS.pad.Pkcs7,
         });
 
