@@ -326,6 +326,7 @@ const Login = () => {
   }
 };
 
+
   return (
     <div className="auth-container d-flex justify-content-center align-items-center min-vh-100 bg-light">
       <main className="w-100" style={{ maxWidth: "550px" }}>

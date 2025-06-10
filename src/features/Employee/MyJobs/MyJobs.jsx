@@ -53,14 +53,14 @@ function MyJobs() {
   };
 
 
-  // const handleSelectAll = (e) => {
-  //   const isChecked = e.target.checked;
-  //   const allJobs = jobs.reduce((acc, job) => {
-  //     acc[job.id] = isChecked;
-  //     return acc;
-  //   }, {});
-  //   setSelectedJobs(allJobs);
-  // };
+  const handleSelectAll = (e) => {
+    const isChecked = e.target.checked;
+    const allJobs = jobs.reduce((acc, job) => {
+      acc[job.id] = isChecked;
+      return acc;
+    }, {});
+    setSelectedJobs(allJobs);
+  };
 
   const getPriorityClass = (priority) => {
     switch ((priority || "").toLowerCase()) {
@@ -101,7 +101,7 @@ function MyJobs() {
   // console.log("uhdfehfbeubfebefjb", myjobs && myjobs.assignments && myjobs.assignments.length > 0 ? myjobs.assignments[0] && myjobs.assignments[0].jobId : "ji");
 
   const MynewJobsdata = myjobs && myjobs.assignments && myjobs.assignments.length > 0 ? myjobs.assignments[0].jobId : [];
-  console.log("ferf", myjobs.assignments);
+  // console.log("ferf", myjobs.assignments);
 
   useEffect(() => {
     dispatch(fetchMyJobs());
@@ -182,7 +182,7 @@ function MyJobs() {
         <Table hover className="align-middle sticky-header">
           <thead className="bg-light">
             <tr>
-              {/* <th><input type="checkbox" onChange={handleSelectAll} /></th> */}
+              <th><input type="checkbox" onChange={handleSelectAll} /></th>
               <th>JobNo</th>
               <th>ProjectName</th>
               <th>Assign</th>

@@ -15,7 +15,7 @@ export const decryptToken = (token) => {
 
         // Convert decrypted data to UTF-8 string
         const decryptedString = decrypted.toString(CryptoJS.enc.Utf8);
-        console.log("decryptedString", decryptedString);
+        // console.log("decryptedString", decryptedString);
         return decryptedString;
     } catch (error) {
         console.error("Failed to decrypt token:", error);

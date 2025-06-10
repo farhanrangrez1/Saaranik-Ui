@@ -11,11 +11,11 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
-    console.log("Sending Request with Token:", token);
+    // console.log("Sending Request with Token:", token);
     const userData = JSON.parse(localStorage.getItem('user'));
-    console.log("Sending Request with userData:", userData);
+    // console.log("Sending Request with userData:", userData);
     const userRole = userData?.role;
-    console.log("Sending Request with userRole:", userRole);
+    // console.log("Sending Request with userRole:", userRole);
 
     // Check if route requires authentication
     const isAuthRoute = config.url.includes('/') || config.url.includes('/register');

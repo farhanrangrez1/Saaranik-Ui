@@ -4,7 +4,6 @@ import "./Navbar.css";
 
 const Navbar = ({ toggleSidebar }) => {
   const [roledata, setRoleData]= useState("")
-    console.log(roledata)
   useEffect(()=>{
     const Role= localStorage.getItem("userRole")
      if(Role){
