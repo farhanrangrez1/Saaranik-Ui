@@ -83,55 +83,56 @@ function Admin() {
                   <Dashbord />
                 </ProtectedRoute>
               }
-            />            <Route path="/InProgressDashboard" element={<InProgressDashboard />} />
-            <Route path="/InProgressDashboardProject" element={<InProgressDashboardProject />} />
-            <Route path="/JobsDueTodayDashboard" element={<JobsDueTodayDashboard />} />
-            <Route path="/CostEstimatesDashbord" element={<CostEstimatesDashbord />} />
-            <Route path="/clientManagement" element={<ClientManagement />} />
-            <Route path="/AddClientManagement" element={<AddClientManagement />} />
-            <Route path="/ViewdetailsClientManagement" element={<ViewdetailsClientManagement />} />
-            <Route path="/CostEstimates" element={<CostEstimates />} />
-            <Route path="/AddCostEstimates" element={<AddCostEstimates />} />
-            <Route path="/duplicate/AddCostEstimates/:id" element={<AddCostEstimates />} />
-            <Route path="/receivable" element={<ReciveablePurchase />} />
-            <Route path="/IssuablePurchase" element={<IssuablePurchase />} />
-            <Route path="/AddIssuablePurchase" element={<AddIssuablePurchase />} />
-            <Route path="/projectList" element={<ProjectList />} />
-            <Route path="/AddProjectList" element={<AddProjectList />} />
-            <Route path="/OvervieJobsProject" element={<OvervieJobsProject />} />
-            <Route path="/ProjectOverview/:id" element={<ProjectOverview />} />
-            <Route path="/UpdateProjectLis" element={<UpdateProjectLis />} />
-            <Route path="/jobTracker" element={<JobTracker />} />
-            <Route path="/AddJobTracker/:id" element={<AddJobTracker />} />
-            <Route path="/OvervieJobsTracker" element={<OvervieJobsTracker />} />
-            <Route path="/updateJobTracker" element={<UpdateJobTracker />} />
-            <Route path="/AddJobAssignment" element={<AddJobAssignment />} />
-            <Route path="/newJobsList" element={<NewJobsList />} />
-            <Route path="/inProgress" element={<InProgress />} />
-            <Route path="/AddInProgress" element={<AddInProgress />} />
-            <Route path="/completedJobs" element={<Completed_Jobs />} />
-            <Route path="/jobsView" element={<Completed_jobsView_job_details />} />
-            <Route path="/MyJobs" element={<MyJobs />} />
-            <Route path="/OvervieMyJobs" element={<OvervieMyJobs />} />
-            <Route path="/MyJobsHolidayPackageDesign" element={<MyJobsHolidayPackageDesign />} />
-            <Route path="/MyJobs_Upload_Artwork" element={<MyJobs_Upload_Artwork />} />
-            <Route path="/TimeLogs" element={<TimeLogs />} />
-            <Route path="/AddTimeLog" element={<AddTimeLog />} />
-            <Route path="/Invoicing_Billing" element={<Invoicing_Billing />} />
-            <Route path="/AddInvoice" element={<AddInvoice />} />
-            <Route path="/TimesheetWorklog" element={<TimesheetWorklog />} />
-            <Route path="/AddTimesheetWorklog" element={<AddTimesheetWorklog />} />
-            <Route path="/Notiifcations" element={<Notiifcations />} />
-            <Route path="/Reports" element={<Reports />} />
-            <Route path="/UserRoles" element={<UserRoles />} />
-            <Route path="/UserRoleModal" element={<UserRoleModal />} />
-            <Route path="/ProductionManager" element={<ProductionManager />} />
-            <Route path="/AddProductionManager" element={<AddProductionManager />} />
-            <Route path="/DesignerPanel" element={<DesignerPanel />} />
-            <Route path="/AddDesignerPanel" element={<AddDesignerPanel />} />
-            <Route path="/Settings" element={<Settings />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/Extrahr" element={<Extrahr />} />
+            />
+            <Route path="/InProgressDashboard" element={<ProtectedRoute><InProgressDashboard /></ProtectedRoute>} />
+            <Route path="/InProgressDashboardProject" element={<ProtectedRoute><InProgressDashboardProject /></ProtectedRoute>} />
+            <Route path="/JobsDueTodayDashboard" element={<ProtectedRoute><JobsDueTodayDashboard /></ProtectedRoute>} />
+            <Route path="/CostEstimatesDashbord" element={<ProtectedRoute><CostEstimatesDashbord /></ProtectedRoute>} />
+            <Route path="/clientManagement" element={<ProtectedRoute><ClientManagement /></ProtectedRoute>} />
+            <Route path="/AddClientManagement" element={<ProtectedRoute><AddClientManagement /></ProtectedRoute>} />
+            <Route path="/ViewdetailsClientManagement" element={<ProtectedRoute><ViewdetailsClientManagement /></ProtectedRoute>} />
+            <Route path="/CostEstimates" element={<ProtectedRoute><CostEstimates /></ProtectedRoute>} />
+            <Route path="/AddCostEstimates" element={<ProtectedRoute><AddCostEstimates /></ProtectedRoute>} />
+            <Route path="/duplicate/AddCostEstimates/:id" element={<ProtectedRoute><AddCostEstimates /></ProtectedRoute>} />
+            <Route path="/receivable" element={<ProtectedRoute><ReciveablePurchase /></ProtectedRoute>} />
+            <Route path="/IssuablePurchase" element={<ProtectedRoute><IssuablePurchase /></ProtectedRoute>} />
+            <Route path="/AddIssuablePurchase" element={<ProtectedRoute><AddIssuablePurchase /></ProtectedRoute>} />
+            <Route path="/projectList" element={<ProtectedRoute><ProjectList /></ProtectedRoute>} />
+            <Route path="/AddProjectList" element={<ProtectedRoute><AddProjectList /></ProtectedRoute>} />
+            <Route path="/OvervieJobsProject" element={<ProtectedRoute><OvervieJobsProject /></ProtectedRoute>} />
+            <Route path="/ProjectOverview/:id" element={<ProtectedRoute><ProjectOverview /></ProtectedRoute>} />
+            <Route path="/UpdateProjectLis" element={<ProtectedRoute><UpdateProjectLis /></ProtectedRoute>} />
+            <Route path="/jobTracker" element={<ProtectedRoute><JobTracker /></ProtectedRoute>} />
+            <Route path="/AddJobTracker/:id" element={<ProtectedRoute><AddJobTracker /></ProtectedRoute>} />
+            <Route path="/OvervieJobsTracker" element={<ProtectedRoute><OvervieJobsTracker /></ProtectedRoute>} />
+            <Route path="/updateJobTracker" element={<ProtectedRoute><UpdateJobTracker /></ProtectedRoute>} />
+            <Route path="/AddJobAssignment" element={<ProtectedRoute><AddJobAssignment /></ProtectedRoute>} />
+            <Route path="/newJobsList" element={<ProtectedRoute><NewJobsList /></ProtectedRoute>} />
+            <Route path="/inProgress" element={<ProtectedRoute><InProgress /></ProtectedRoute>} />
+            <Route path="/AddInProgress" element={<ProtectedRoute><AddInProgress /></ProtectedRoute>} />
+            <Route path="/completedJobs" element={<ProtectedRoute><Completed_Jobs /></ProtectedRoute>} />
+            <Route path="/jobsView" element={<ProtectedRoute><Completed_jobsView_job_details /></ProtectedRoute>} />
+            <Route path="/MyJobs" element={<ProtectedRoute><MyJobs /></ProtectedRoute>} />
+            <Route path="/OvervieMyJobs" element={<ProtectedRoute><OvervieMyJobs /></ProtectedRoute>} />
+            <Route path="/MyJobsHolidayPackageDesign" element={<ProtectedRoute><MyJobsHolidayPackageDesign /></ProtectedRoute>} />
+            <Route path="/MyJobs_Upload_Artwork" element={<ProtectedRoute><MyJobs_Upload_Artwork /></ProtectedRoute>} />
+            <Route path="/TimeLogs" element={<ProtectedRoute><TimeLogs /></ProtectedRoute>} />
+            <Route path="/AddTimeLog" element={<ProtectedRoute><AddTimeLog /></ProtectedRoute>} />
+            <Route path="/Invoicing_Billing" element={<ProtectedRoute><Invoicing_Billing /></ProtectedRoute>} />
+            <Route path="/AddInvoice" element={<ProtectedRoute><AddInvoice /></ProtectedRoute>} />
+            <Route path="/TimesheetWorklog" element={<ProtectedRoute><TimesheetWorklog /></ProtectedRoute>} />
+            <Route path="/AddTimesheetWorklog" element={<ProtectedRoute><AddTimesheetWorklog /></ProtectedRoute>} />
+            <Route path="/Notiifcations" element={<ProtectedRoute><Notiifcations /></ProtectedRoute>} />
+            <Route path="/Reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+            <Route path="/UserRoles" element={<ProtectedRoute><UserRoles /></ProtectedRoute>} />
+            <Route path="/UserRoleModal" element={<ProtectedRoute><UserRoleModal /></ProtectedRoute>} />
+            <Route path="/ProductionManager" element={<ProtectedRoute><ProductionManager /></ProtectedRoute>} />
+            <Route path="/AddProductionManager" element={<ProtectedRoute><AddProductionManager /></ProtectedRoute>} />
+            <Route path="/DesignerPanel" element={<ProtectedRoute><DesignerPanel /></ProtectedRoute>} />
+            <Route path="/AddDesignerPanel" element={<ProtectedRoute><AddDesignerPanel /></ProtectedRoute>} />
+            <Route path="/Settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="/Extrahr" element={<ProtectedRoute><Extrahr /></ProtectedRoute>} />
           </Routes>
         </div>
       </div>
@@ -139,4 +140,4 @@ function Admin() {
   );
 }
 
-export default Admin
+export default Admin;

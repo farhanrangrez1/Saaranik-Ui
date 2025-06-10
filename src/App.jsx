@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import Admin from './Routes/Admin';
@@ -7,6 +6,7 @@ import Register from "./features/Auth/Register";
 import Employee from './Routes/Employee';
 import Client from './Routes/Client';
 import ProtectedRoute from './Protecuted/Protecuted';
+
 function App() {
   return (
     <>
@@ -19,8 +19,12 @@ function App() {
           <Route path='/admin/*' element={<ProtectedRoute>
             <Admin />
           </ProtectedRoute>} />
-          <Route path='/employee/*' element={<Employee />} />
-          <Route path='/client/*' element={<Client />} />
+          <Route path='/employee/*' element={<ProtectedRoute>
+            <Employee />
+          </ProtectedRoute>} />
+          <Route path='/client/*' element={<ProtectedRoute>
+            <Client />
+          </ProtectedRoute>} />
         </Routes>
       </Router>
       <ToastContainer position="top-right" autoClose={3000} />

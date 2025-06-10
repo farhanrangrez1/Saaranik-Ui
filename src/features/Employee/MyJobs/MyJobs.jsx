@@ -53,14 +53,14 @@ function MyJobs() {
   };
 
 
-  const handleSelectAll = (e) => {
-    const isChecked = e.target.checked;
-    const allJobs = jobs.reduce((acc, job) => {
-      acc[job.id] = isChecked;
-      return acc;
-    }, {});
-    setSelectedJobs(allJobs);
-  };
+  // const handleSelectAll = (e) => {
+  //   const isChecked = e.target.checked;
+  //   const allJobs = jobs.reduce((acc, job) => {
+  //     acc[job.id] = isChecked;
+  //     return acc;
+  //   }, {});
+  //   setSelectedJobs(allJobs);
+  // };
 
   const getPriorityClass = (priority) => {
     switch ((priority || "").toLowerCase()) {
@@ -182,7 +182,7 @@ function MyJobs() {
         <Table hover className="align-middle sticky-header">
           <thead className="bg-light">
             <tr>
-              <th><input type="checkbox" onChange={handleSelectAll} /></th>
+              {/* <th><input type="checkbox" onChange={handleSelectAll} /></th> */}
               <th>JobNo</th>
               <th>ProjectName</th>
               <th>Assign</th>

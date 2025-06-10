@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "./Navbar.css";
+
 const Navbar = ({ toggleSidebar }) => {
   const [roledata, setRoleData]= useState("")
     console.log(roledata)
@@ -12,6 +13,14 @@ const Navbar = ({ toggleSidebar }) => {
       setRoleData()
      }
   },[])
+
+const handleLogout = () => {
+  // Clear entire localStorage
+  localStorage.clear();
+
+  // Optionally redirect to login page
+  window.location.href = "/"; // ya "/login"
+};
 
   return (
     <>
@@ -55,7 +64,7 @@ const Navbar = ({ toggleSidebar }) => {
                 </Link>
               </li>
               <li><hr className="dropdown-divider"/></li>
-              <li>
+              <li onClick={handleLogout}>
                 <Link to="/" className="dropdown-item text-danger">
                   <i className="fas fa-sign-out-alt"></i>
                   <span>Logout</span>

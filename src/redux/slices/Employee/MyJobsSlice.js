@@ -21,9 +21,10 @@ export const fetchMyJobs = createAsyncThunk(
   'ProjectJob/fetchMyJobs',
   async (Status, { rejectWithValue }) => {
     try {
-      const authResponse = JSON.parse(localStorage.getItem('authResponse'));
-
+      const authResponse = JSON.parse(localStorage.getItem('encode'));
+console.log("ggggggg",authResponse);
       const userId = authResponse?.user?._id;
+console.log("hhhhhh",userId);
 
       if (!userId) {
         return rejectWithValue("User ID is missing in authResponse");
