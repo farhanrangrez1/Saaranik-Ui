@@ -6,6 +6,7 @@ import Register from "./features/Auth/Register";
 import Employee from './Routes/Employee';
 import Client from './Routes/Client';
 import ProtectedRoute from './Protecuted/Protecuted';
+import PageNotfound from './Routes/PageNotfound';
 
 function App() {
   return (
@@ -25,6 +26,9 @@ function App() {
           <Route path='/client/*' element={<ProtectedRoute>
             <Client />
           </ProtectedRoute>} />
+          <Route path='/*' element={
+            <PageNotfound/>
+          } />
         </Routes>
       </Router>
       <ToastContainer position="top-right" autoClose={3000} />

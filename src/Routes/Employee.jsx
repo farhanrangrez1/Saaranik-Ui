@@ -8,6 +8,8 @@ import ProjectList from '../features/Employee/ProjectList/ProjectList.jsx';
 import PickTask from '../features/Employee/PickTask/PickTask.jsx';
 import MyJobs from '../features/Employee/MyJobs/MyJobs.jsx';
 import ProtectedRoute from "../Protecuted/Protecuted.jsx";
+import TimeLogs from '../features/Employee/TimeLogs/TimeLogs.jsx';
+import AddTimeLog from '../features/Employee/TimeLogs/AddTimeLog.jsx';
 
 function Employee() {
   const [isSidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 768);
@@ -33,6 +35,8 @@ function Employee() {
             <Route path="/projectList" element={<ProtectedRoute><ProjectList /></ProtectedRoute>} />
             <Route path="/picktask" element={<ProtectedRoute><PickTask /></ProtectedRoute>} />
             <Route path="/myJobs" element={<ProtectedRoute><MyJobs /></ProtectedRoute>} />
+            <Route path="/TimeTracking" element={<ProtectedRoute><TimeLogs/></ProtectedRoute>} />
+            <Route path="/AddTimeLog" element={<ProtectedRoute><AddTimeLog/></ProtectedRoute>} />
           </Routes>
         </div>
       </div>

@@ -141,7 +141,7 @@ export const employeeMenuItems = [
   {
     title: "Time Tracking",
     icon: <FaClock className="menu-icon" />,
-    path: "/admin/TimesheetWorklog",
+    path: "/employee/TimeTracking",
   },
   {
     title: "Notifications",
