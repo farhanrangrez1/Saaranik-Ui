@@ -315,7 +315,7 @@ const Login = () => {
     } else if (role === "employee") {
       navigate("/employee/dashboard");
     } else if (role === "client") {
-      navigate("/client/overview");
+      navigate("/client/dashboard");
     } else {
       navigate("/dashboard");
     }
@@ -325,7 +325,6 @@ const Login = () => {
     setLoading(false);
   }
 };
-
 
   return (
     <div className="auth-container d-flex justify-content-center align-items-center min-vh-100 bg-light">

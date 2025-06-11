@@ -18,7 +18,7 @@ import {
   FaCheckCircle,
   FaHistory,
   FaUsers,
-  
+
 } from "react-icons/fa";
 import { FaUsersLine } from "react-icons/fa6";
 import { FaDiagramProject } from "react-icons/fa6";
@@ -118,6 +118,11 @@ export const employeeMenuItems = [
     icon: <FaTasks className="menu-icon" />,
     path: "/employee/myJobs",
   },
+  {
+    title: "Time Tracking",
+    icon: <FaClock className="menu-icon" />,
+    path: "/employee/TimeTracking",
+  },
   // {
   //   title: "Pick Task",
   //   icon: <FaClipboardList className="menu-icon" />,
@@ -138,11 +143,7 @@ export const employeeMenuItems = [
     icon: <FaHistory className="menu-icon" />,
     path: "/employee/jobhistory",
   },
-  {
-    title: "Time Tracking",
-    icon: <FaClock className="menu-icon" />,
-    path: "/employee/TimeTracking",
-  },
+
   {
     title: "Notifications",
     icon: <FaBell className="menu-icon" />,
@@ -182,7 +183,7 @@ export const clientMenuItems = [
     icon: <FaProjectDiagram className="menu-icon" />,
     path: "/employee/projectList",
   },
-    {
+  {
     title: "Settings",
     icon: <FaCog className="menu-icon" />,
     path: "/admin/Settings",

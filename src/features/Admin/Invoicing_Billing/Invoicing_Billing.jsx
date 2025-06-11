@@ -81,25 +81,25 @@ function Invoicing_Billing() {
     setInvoices(sorted);
   };
 
-  const [showAddInvoice, setShowAddInvoice] = useState(false);
+  // const [showAddInvoice, setShowAddInvoice] = useState(false);
 
-  const handleGenerateInvoice = () => {
-    setShowAddInvoice(true);
-  };
+  // const handleGenerateInvoice = () => {
+  //   setShowAddInvoice(true);
+  // };
 
-  const handleCloseAddInvoice = () => {
-    setShowAddInvoice(false);
-  };
+  // const handleCloseAddInvoice = () => {
+  //   setShowAddInvoice(false);
+  // };
 
-  const handleAddInvoice = (newInvoice) => {
-    const invoiceNumber = `INV-2024-${String(invoices.length + 1).padStart(3, '0')}`;
-    const invoice = {
-      ...newInvoice,
-      invoiceNumber,
-    };
-    setInvoices([invoice, ...invoices]);
-    setShowAddInvoice(false);
-  };
+  // const handleAddInvoice = (newInvoice) => {
+  //   const invoiceNumber = `INV-2024-${String(invoices.length + 1).padStart(3, '0')}`;
+  //   const invoice = {
+  //     ...newInvoice,
+  //     invoiceNumber,
+  //   };
+  //   setInvoices([invoice, ...invoices]);
+  //   setShowAddInvoice(false);
+  // };
 
   const handleDownloadPDF = () => {
     const doc = new jsPDF('p', 'pt', 'a4');
@@ -473,7 +473,7 @@ function Invoicing_Billing() {
                     <FaTrash />
                   </button> */}
                   <button
-                    className="btn btn-sm btn-outline-secondary"
+                    className="btn btn-sm btn-outline-primary"
                     onClick={handleDownloadPDF}
                   >
                     <FaDownload />

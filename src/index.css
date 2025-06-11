@@ -24,9 +24,9 @@ body {
   padding: 0.5em 0.75em;
 }
 
-.badge.bg-primary {
+/* .badge.bg-primary {
   background-color: #1890ff !important;
-}
+} */
 
 .badge.bg-success {
   background-color: #52c41a !important;
@@ -57,8 +57,6 @@ h6.text-uppercase {
 .gap-3 {
   gap: 1rem;
 }
-
-
 
 
 

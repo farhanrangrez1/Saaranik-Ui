@@ -17986,3 +17986,952 @@ const ProtectedRoute = ({ children }) => {
 };
 
 export default ProtectedRoute;
+
+
+
+
+
+
+
+
+// ///////////////////////////Doenlod PDF code 
+
+
+  // PDF Downlod CostEstimates
+// ... existing code ...
+// const handleDownloadPDF = (po) => {
+//   if (!po) {
+//     console.error("No data provided to handleDownloadPDF");
+//     Swal.fire("Error", "No data available to generate PDF.", "error");
+//     return;
+//   }
+
+//   const doc = new jsPDF('p', 'pt', 'a4');
+//   const pageWidth = doc.internal.pageSize.width;
+//   const pageHeight = doc.internal.pageSize.height;
+//   const margin = 40;
+//   let finalY = margin;
+
+//   // --- START: Data from 'po' object (adjust as per your actual data structure) ---
+//   const companyDetails = {
+//     logoText: 'COMPANY LOGO',
+//     addressDetails: 'COMPANY ADDRESS DETAILS',
+//     name: 'Company name', // Right side header
+//     trn: po.companyTRN || '100000000000002', // Company's TRN from image
+//   };
+
+//   const invoiceMeta = {
+//     date: po.date || '22.03.2025', // From image
+//     invoiceNo: po.invoiceNo || '5822', // From image
+//   };
+
+//   const clientDetails = {
+//     name: po.clientName || 'Client Company Name',
+//     address1: po.clientAddress1 || 'Client Address Line 1',
+//     address2: po.clientAddress2 || 'Client Address Line 2, Country',
+//     tel: po.clientTel || '00000000000',
+//     contactPerson: po.clientContactPerson || 'Client Contact Person',
+//     email: po.clientEmail || 'client.email@example.com',
+//     trn: po.clientTRN || "Client's TRN No.", // From image
+//   };
+
+//   const projectInfo = {
+//     costEstNo: po.costEstNo || 'CE No.', // From image
+//     poNo: po.purchaseOrderNo || 'PO Number', // From image
+//     projectNo: po.projectNo || 'Project No.', // From image
+//   };
+
+//   const bankDetails = {
+//     accountName: po.bankAccountName || 'Company Name',
+//     bankName: po.bankName || "Company's Bank Name",
+//     iban: po.iban || 'XX000000000000000000001',
+//     swiftCode: po.swiftCode || 'XXXAAACC',
+//     terms: po.paymentTerms || 'Net 30',
+//   };
+
+//   const items = po.items && po.items.length > 0 ? po.items.map((item, index) => [(index + 1).toString() + '.', item.description, item.qty, item.rate, item.amount.toFixed(2)]) : [
+//     ['1.', 'Print Samples', 6, 2, '12.00'], // Default item from image
+//     // Add more default items if needed or ensure po.items is populated
+//   ];
+
+//   const subTotal = items.reduce((sum, item) => sum + parseFloat(item[4]), 0);
+//   // Assuming VAT is 0 for now as per the image, or calculate if needed
+//   const vatRate = 0; // Example: 0.05 for 5% VAT. The image shows no VAT explicitly in totals section.
+//   const vatAmount = subTotal * vatRate;
+//   const grandTotal = subTotal + vatAmount;
+//   // --- END: Data from 'po' object ---
+
+//   // 1. Company Logo Block (Top Left)
+//   doc.setFillColor(192, 0, 0); // Red color from image (approx.)
+//   doc.rect(margin, finalY, 220, 60, 'F'); // x, y, width, height
+//   doc.setTextColor(255, 255, 255);
+//   doc.setFontSize(14);
+//   doc.setFont('helvetica', 'bold');
+//   doc.text(companyDetails.logoText, margin + 10, finalY + 25);
+//   doc.setFontSize(8);
+//   doc.setFont('helvetica', 'normal');
+//   doc.text(companyDetails.addressDetails, margin + 10, finalY + 45);
+
+//   // 2. Company Name (Top Right, below logo vertically)
+//   const companyNameBlockY = finalY; // Align with top of logo block
+//   doc.setFillColor(192, 0, 0); // Red color
+//   doc.rect(pageWidth - margin - 150, companyNameBlockY, 150, 30, 'F'); // x, y, width, height
+//   doc.setTextColor(255, 255, 255);
+//   doc.setFontSize(12);
+//   doc.setFont('helvetica', 'bold');
+//   doc.text(companyDetails.name, pageWidth - margin - 140, companyNameBlockY + 20, { align: 'left' });
+
+//   // 3. Tax Invoice Title (Right Aligned, below Company Name block)
+//   finalY = companyNameBlockY + 30 + 20; // Space below company name block
+//   doc.setTextColor(0, 0, 0);
+//   doc.setFontSize(18);
+//   doc.setFont('helvetica', 'bold');
+//   doc.text('Tax Invoice', pageWidth - margin, finalY, { align: 'right' });
+
+//   // 4. TRN, Date, Invoice No. Table (Below Tax Invoice Title)
+//   finalY += 10; // Space below title
+//   autoTable(doc, {
+//     startY: finalY,
+//     head: [['TRN:', 'Date', 'Invoice No.']],
+//     body: [[companyDetails.trn, invoiceMeta.date, invoiceMeta.invoiceNo]],
+//     theme: 'grid',
+//     styles: {
+//       fontSize: 9,
+//       cellPadding: 5,
+//       lineWidth: 0.5,
+//       lineColor: [0, 0, 0]
+//     },
+//     headStyles: {
+//       fillColor: [255, 255, 255], // White background for head
+//       textColor: [0, 0, 0],
+//       fontStyle: 'bold',
+//     },
+//     columnStyles: {
+//       0: { cellWidth: 150, halign: 'left' }, // TRN
+//       1: { cellWidth: 80, halign: 'left' },  // Date
+//       2: { cellWidth: 80, halign: 'left' },  // Invoice No.
+//     },
+//     margin: { right: margin, left: pageWidth - margin - (150 + 80 + 80) -10 }, // Align to right
+//     tableWidth: 'wrap',
+//   });
+//   finalY = doc.lastAutoTable.finalY + 20;
+
+//   // 5. Invoice To Section (Left Aligned)
+//   const invoiceToBoxWidth = 250;
+//   doc.setDrawColor(0,0,0);
+//   doc.rect(margin, finalY, invoiceToBoxWidth, 100, 'S'); // Border for the box
+  
+//   doc.setFontSize(10);
+//   doc.setFont('helvetica', 'bold');
+//   doc.text('Invoice To', margin + 5, finalY + 15);
+//   doc.setFontSize(9);
+//   doc.setFont('helvetica', 'normal');
+//   let textY = finalY + 30;
+//   doc.text(clientDetails.name, margin + 5, textY);
+//   textY += 12;
+//   doc.text(clientDetails.address1, margin + 5, textY);
+//   textY += 12;
+//   doc.text(clientDetails.address2, margin + 5, textY);
+//   textY += 12;
+//   doc.text(`Tel: ${clientDetails.tel}`, margin + 5, textY);
+//   textY += 12;
+//   doc.text(`Contact: ${clientDetails.contactPerson}`, margin + 5, textY);
+//   textY += 12;
+//   doc.text(`Email: ${clientDetails.email}`, margin + 5, textY);
+  
+//   finalY += 100 + 10; // Height of the box + padding
+
+//   // 6. TRN, Cost Est. No., P.O. No., Project Table (Full Width)
+//   autoTable(doc, {
+//     startY: finalY,
+//     head: [['TRN', 'Cost Est. No.', 'P.O. No.', 'Project']],
+//     body: [
+//       [clientDetails.trn, projectInfo.costEstNo, projectInfo.poNo, projectInfo.projectNo]
+//     ],
+//     theme: 'grid',
+//     styles: {
+//       fontSize: 9,
+//       cellPadding: 5,
+//       lineWidth: 0.5,
+//       lineColor: [0, 0, 0]
+//     },
+//     headStyles: {
+//       fillColor: [220, 220, 220], // Light grey for head
+//       textColor: [0, 0, 0],
+//       fontStyle: 'bold',
+//     },
+//     // Adjust columnStyles for better fit if needed
+//     margin: { left: margin, right: margin },
+//   });
+//   finalY = doc.lastAutoTable.finalY + 10;
+
+//   // 7. Bank Details Table (Full Width)
+//   autoTable(doc, {
+//     startY: finalY,
+//     head: [['Bank Account Name', 'Bank Name', 'IBAN', 'Swift Code', 'Terms']],
+//     body: [[bankDetails.accountName, bankDetails.bankName, bankDetails.iban, bankDetails.swiftCode, bankDetails.terms]],
+//     theme: 'grid',
+//     styles: {
+//       fontSize: 9,
+//       cellPadding: 5,
+//       lineWidth: 0.5,
+//       lineColor: [0, 0, 0]
+//     },
+//     headStyles: {
+//       fillColor: [200, 200, 200], // Slightly darker grey for head
+//       textColor: [0, 0, 0],
+//       fontStyle: 'bold',
+//     },
+//     margin: { left: margin, right: margin },
+//   });
+//   finalY = doc.lastAutoTable.finalY + 10;
+
+//   // 8. Items Table (Full Width)
+//   autoTable(doc, {
+//     startY: finalY,
+//     head: [['Sr. #', 'Description', 'Qty', 'Rate', 'Amount (USD)']],
+//     body: items,
+//     theme: 'grid',
+//     styles: {
+//       fontSize: 9,
+//       cellPadding: 5,
+//       lineWidth: 0.5,
+//       lineColor: [0, 0, 0]
+//     },
+//     headStyles: {
+//       fillColor: [220, 220, 220], // Light grey for head
+//       textColor: [0, 0, 0],
+//       fontStyle: 'bold',
+//     },
+//     columnStyles: {
+//       0: { cellWidth: 40, halign: 'center' },
+//       1: { cellWidth: 'auto' }, // Description takes remaining space
+//       2: { cellWidth: 40, halign: 'right' },
+//       3: { cellWidth: 50, halign: 'right' },
+//       4: { cellWidth: 70, halign: 'right' },
+//     },
+//     margin: { left: margin, right: margin },
+//   });
+//   finalY = doc.lastAutoTable.finalY;
+
+//   // 9. Totals Section (Right Aligned, below items table)
+//   // This part needs careful positioning if not using autoTable
+//   // For simplicity, let's use autoTable with no headers and specific styling
+//   const totalsData = [
+//     // The image does not show Subtotal, VAT, etc. explicitly in this format.
+//     // It only shows one line item in the example.
+//     // If you need Subtotal, VAT, Grand Total, add them here.
+//     // Example for just the total from the image's single line item:
+//     // ['Total Amount (USD)', grandTotal.toFixed(2)] 
+//   ];
+
+//   // If you have multiple items and need to show Subtotal, VAT, Grand Total:
+//   // totalsData.push(['Subtotal', subTotal.toFixed(2)]);
+//   // if (vatAmount > 0) {
+//   //   totalsData.push([`VAT (${(vatRate * 100).toFixed(0)}%)`, vatAmount.toFixed(2)]);
+//   // }
+//   // totalsData.push(['GRAND TOTAL (USD)', grandTotal.toFixed(2)]);
+  
+//   // Since the image only has one item and one 'Amount (USD)' column, 
+//   // we might not need a separate totals box if the items table itself sums up.
+//   // However, if you want a separate box like typical invoices:
+//   if (items.length > 1 || vatAmount > 0) { // Show totals box if more than one item or VAT exists
+//     finalY += 10; // Space before totals
+//     autoTable(doc, {
+//         startY: finalY,
+//         body: totalsData,
+//         theme: 'plain', // No lines
+//         styles: {
+//             fontSize: 9,
+//             halign: 'right',
+//         },
+//         columnStyles: {
+//             0: { halign: 'right', fontStyle: 'bold' },
+//             1: { halign: 'right', fontStyle: 'bold' }
+//         },
+//         margin: { left: pageWidth - margin - 200 }, // Position to the right
+//         tableWidth: 200, // Fixed width for the totals box
+//     });
+//     finalY = doc.lastAutoTable.finalY;
+//   }
+
+//   // Placeholder for 'Amount in Words' and 'Footer Signature'
+//   // These would typically be at the bottom of the page.
+//   // You might need to check if finalY + space_needed > pageHeight and add new page if so.
+
+//   // Example: Amount in Words (if needed)
+//   // finalY += 20;
+//   // doc.setFontSize(9);
+//   // doc.text(`Amount in Words: ${numberToWords(grandTotal)} USD Only.`, margin, finalY);
+
+//   // Example: Footer Signature (if needed)
+//   // finalY = pageHeight - margin - 50; // Position from bottom
+//   // doc.text('For COMPANY NAME', margin, finalY);
+//   // doc.text('Authorized Signature', margin, finalY + 30);
+
+//   doc.save(`Tax_Invoice_${invoiceMeta.invoiceNo}.pdf`);
+// };
+
+
+// ... existing code ...
+// const handleDownloadPDF = (invoiceDataFromState) => {
+//   if (!invoiceDataFromState) {
+//     console.error("No data provided to handleDownloadPDF");
+//     Swal.fire("Error", "No data available to generate PDF.", "error");
+//     return;
+//   }
+
+//   const doc = new jsPDF('p', 'pt', 'a4');
+//   const pageWidth = doc.internal.pageSize.width;
+//   const pageHeight = doc.internal.pageSize.height;
+//   const margin = 40;
+//   let finalY = margin;
+
+//   // --- START: Data from 'invoiceDataFromState' object ---
+//   const companyDetails = {
+//     logoText: invoiceDataFromState.companyLogoText || 'COMPANY LOGO',
+//     addressDetails: invoiceDataFromState.companyAddressDetails || 'COMPANY ADDRESS DETAILS',
+//     name: invoiceDataFromState.companyNameHeader || 'Company name',
+//     trn: invoiceDataFromState.companyTRN || '100000000000002',
+//   };
+
+//   const invoiceMeta = {
+//     date: invoiceDataFromState.date || '22.03.2025',
+//     invoiceNo: invoiceDataFromState.invoiceNo || '5822',
+//   };
+
+//   const clientDetails = {
+//     name: invoiceDataFromState.clientName || 'Client Company Name',
+//     address1: invoiceDataFromState.clientAddress1 || 'Client Address Line 1',
+//     address2: invoiceDataFromState.clientAddress2 || 'Client Address Line 2, Country',
+//     tel: invoiceDataFromState.clientTel || '00000000000',
+//     contactPerson: invoiceDataFromState.clientContactPerson || 'Client Contact Person',
+//     email: invoiceDataFromState.clientEmail || 'client.email@example.com',
+//     trn: invoiceDataFromState.clientTRN || "Client's TRN No.",
+//   };
+
+//   const projectInfo = {
+//     costEstNo: invoiceDataFromState.costEstNo || 'CE No.',
+//     poNo: invoiceDataFromState.purchaseOrderNo || 'PO Number',
+//     projectNo: invoiceDataFromState.projectNo || 'Project No.',
+//   };
+
+//   const bankDetails = {
+//     accountName: invoiceDataFromState.bankAccountName || 'Company Name',
+//     bankName: invoiceDataFromState.bankName || "Company's Bank Name",
+//     iban: invoiceDataFromState.iban || 'XX000000000000000000001',
+//     swiftCode: invoiceDataFromState.swiftCode || 'XXXAAACC',
+//     terms: invoiceDataFromState.paymentTerms || 'Net 30',
+//   };
+
+//   const items = invoiceDataFromState.items && invoiceDataFromState.items.length > 0 
+//     ? invoiceDataFromState.items.map((item, index) => [
+//         (index + 1).toString() + '.', 
+//         item.description, 
+//         item.qty, 
+//         item.rate, 
+//         parseFloat(item.amount).toFixed(2)
+//       ]) 
+//     : [
+//         ['1.', 'Print Samples', 6, 2, '12.00'], // Default item
+//       ];
+
+//   const subTotal = items.reduce((sum, item) => sum + parseFloat(item[4]), 0);
+//   const vatRate = invoiceDataFromState.vatRate !== undefined ? invoiceDataFromState.vatRate : 0.10; // 10% VAT from image, or from state
+//   const vatAmount = subTotal * vatRate;
+//   const grandTotal = subTotal + vatAmount;
+//   const amountInWords = invoiceDataFromState.amountInWords || `US Dollars ${numberToWords(grandTotal)} Only`;
+//   // --- END: Data from 'invoiceDataFromState' object ---
+
+//   // 1. Company Logo Block (Top Left) - Assuming this part is okay from previous version
+//   doc.setFillColor(192, 0, 0); 
+//   doc.rect(margin, finalY, 220, 60, 'F'); 
+//   doc.setTextColor(255, 255, 255);
+//   doc.setFontSize(14);
+//   doc.setFont('helvetica', 'bold');
+//   doc.text(companyDetails.logoText, margin + 10, finalY + 25);
+//   doc.setFontSize(8);
+//   doc.setFont('helvetica', 'normal');
+//   doc.text(companyDetails.addressDetails, margin + 10, finalY + 45);
+
+//   // 2. Company Name (Top Right) - Assuming this part is okay
+//   const companyNameBlockY = finalY; 
+//   doc.setFillColor(192, 0, 0); 
+//   doc.rect(pageWidth - margin - 150, companyNameBlockY, 150, 30, 'F'); 
+//   doc.setTextColor(255, 255, 255);
+//   doc.setFontSize(12);
+//   doc.setFont('helvetica', 'bold');
+//   doc.text(companyDetails.name, pageWidth - margin - 140, companyNameBlockY + 20, { align: 'left' });
+
+//   // 3. Tax Invoice Title - Assuming this part is okay
+//   let titleY = companyNameBlockY + 30 + 20; 
+//   doc.setTextColor(0, 0, 0);
+//   doc.setFontSize(18);
+//   doc.setFont('helvetica', 'bold');
+//   doc.text('Tax Invoice', pageWidth - margin, titleY, { align: 'right' });
+
+//   // 4. TRN, Date, Invoice No. Table - Assuming this part is okay
+//   let tableDetailsY = titleY + 10; 
+//   autoTable(doc, {
+//     startY: tableDetailsY,
+//     head: [['TRN:', 'Date', 'Invoice No.']],
+//     body: [[companyDetails.trn, invoiceMeta.date, invoiceMeta.invoiceNo]],
+//     theme: 'grid',
+//     styles: { fontSize: 9, cellPadding: 5, lineWidth: 0.5, lineColor: [0,0,0] },
+//     headStyles: { fillColor: [255,255,255], textColor: [0,0,0], fontStyle: 'bold' },
+//     columnStyles: {
+//       0: { cellWidth: 150, halign: 'left' },
+//       1: { cellWidth: 80, halign: 'left' },
+//       2: { cellWidth: 80, halign: 'left' },
+//     },
+//     margin: { right: margin, left: pageWidth - margin - (150 + 80 + 80) -10 },
+//     tableWidth: 'wrap',
+//   });
+//   finalY = doc.lastAutoTable.finalY + 20;
+
+//   // 5. Invoice To Section - Assuming this part is okay
+//   const invoiceToBoxWidth = 250;
+//   doc.setDrawColor(0,0,0);
+//   doc.rect(margin, finalY, invoiceToBoxWidth, 100, 'S'); 
+//   doc.setFontSize(10);
+//   doc.setFont('helvetica', 'bold');
+//   doc.text('Invoice To', margin + 5, finalY + 15);
+//   doc.setFontSize(9);
+//   doc.setFont('helvetica', 'normal');
+//   let textYInvoiceTo = finalY + 30;
+//   [clientDetails.name, clientDetails.address1, clientDetails.address2, `Tel: ${clientDetails.tel}`, `Contact: ${clientDetails.contactPerson}`, `Email: ${clientDetails.email}`].forEach(line => {
+//     doc.text(line, margin + 5, textYInvoiceTo);
+//     textYInvoiceTo += 12;
+//   });
+//   finalY += 100 + 10; 
+
+//   // 6. TRN, Cost Est. No., P.O. No., Project Table - Assuming this part is okay
+//   autoTable(doc, {
+//     startY: finalY,
+//     head: [['TRN', 'Cost Est. No.', 'P.O. No.', 'Project']],
+//     body: [[clientDetails.trn, projectInfo.costEstNo, projectInfo.poNo, projectInfo.projectNo]],
+//     theme: 'grid',
+//     styles: { fontSize: 9, cellPadding: 5, lineWidth: 0.5, lineColor: [0,0,0] },
+//     headStyles: { fillColor: [220,220,220], textColor: [0,0,0], fontStyle: 'bold' },
+//     margin: { left: margin, right: margin },
+//   });
+//   finalY = doc.lastAutoTable.finalY + 10;
+
+//   // 7. Bank Details Table - Assuming this part is okay
+//   autoTable(doc, {
+//     startY: finalY,
+//     head: [['Bank Account Name', 'Bank Name', 'IBAN', 'Swift Code', 'Terms']],
+//     body: [[bankDetails.accountName, bankDetails.bankName, bankDetails.iban, bankDetails.swiftCode, bankDetails.terms]],
+//     theme: 'grid',
+//     styles: { fontSize: 9, cellPadding: 5, lineWidth: 0.5, lineColor: [0,0,0] },
+//     headStyles: { fillColor: [200,200,200], textColor: [0,0,0], fontStyle: 'bold' },
+//     margin: { left: margin, right: margin },
+//   });
+//   finalY = doc.lastAutoTable.finalY + 10;
+
+//   // 8. Items Table - Assuming this part is okay
+//   autoTable(doc, {
+//     startY: finalY,
+//     head: [['Sr. #', 'Description', 'Qty', 'Rate', 'Amount (USD)']],
+//     body: items,
+//     theme: 'grid',
+//     styles: { fontSize: 9, cellPadding: 5, lineWidth: 0.5, lineColor: [0,0,0] },
+//     headStyles: { fillColor: [220,220,220], textColor: [0,0,0], fontStyle: 'bold' },
+//     columnStyles: {
+//       0: { cellWidth: 40, halign: 'center' },
+//       1: { cellWidth: 'auto' },
+//       2: { cellWidth: 40, halign: 'right' },
+//       3: { cellWidth: 50, halign: 'right' },
+//       4: { cellWidth: 70, halign: 'right' },
+//     },
+//     margin: { left: margin, right: margin },
+//     didDrawPage: function (data) {
+//         // Ensure finalY is updated correctly if table spans multiple pages
+//         finalY = data.cursor.y;
+//     }
+//   });
+//   // finalY is now at the bottom of the items table.
+
+//   // 9. Amount in Words (NEW - based on the second image)
+//   // This should be after items table and before the totals box that is on the right.
+//   // Check if there's enough space, otherwise add new page (simplified here)
+//   const amountInWordsY = finalY + 20; 
+//   doc.setFontSize(9);
+//   doc.setFont('helvetica', 'normal');
+//   doc.text(amountInWords, margin, amountInWordsY, {maxWidth: pageWidth - margin - 220}); // Ensure it doesn't overlap with totals
+
+//   // 10. Totals Section (NEW - Subtotal, VAT, Total - Right Aligned)
+//   const totalsTableWidth = 200;
+//   const totalsTableX = pageWidth - margin - totalsTableWidth;
+//   // The totals box should start slightly below or aligned with "Amount in words" or after items table.
+//   // Let's position it relative to the bottom of the items table.
+//   let totalsTableY = finalY + 10; // Start Y for totals table, can be adjusted
+
+//   autoTable(doc, {
+//     startY: totalsTableY,
+//     body: [
+//       ['Subtotal', `USD ${subTotal.toFixed(2)}`],
+//       [`VAT (${(vatRate * 100).toFixed(0)}%)`, `USD ${vatAmount.toFixed(2)}`],
+//       ['Total', `USD ${grandTotal.toFixed(2)}`]
+//     ],
+//     theme: 'grid', // Grid as per new image
+//     styles: {
+//         fontSize: 9,
+//         cellPadding: 5,
+//         lineWidth: 0.5,
+//         lineColor: [0,0,0]
+//     },
+//     headStyles: { // No head, but can define for consistency if needed
+//         fillColor: [255,255,255],
+//         textColor: [0,0,0],
+//     },
+//     columnStyles: {
+//         0: { halign: 'left', fontStyle: 'bold', cellWidth: totalsTableWidth * 0.6 },
+//         1: { halign: 'right', cellWidth: totalsTableWidth * 0.4 }
+//     },
+//     margin: { left: totalsTableX }, // Position to the right
+//     tableWidth: totalsTableWidth, // Fixed width for the totals box
+//     didDrawPage: function (data) {
+//         totalsTableY = data.cursor.y; // Update Y for next element if it spans pages
+//     }
+//   });
+  
+//   // Update finalY to be the bottom of either amountInWords or totalsTable, whichever is lower
+//   finalY = Math.max(amountInWordsY + 10, totalsTableY + 10); 
+
+//   // 11. Footer: For Company Name, Stamp, Accounts Department (NEW)
+//   const footerStartY = finalY + 30; // Space before footer elements
+//   const stampWidth = 100;
+//   const stampHeight = 70;
+//   const stampX = margin + 150; // Position stamp to the right of "For Company Name"
+
+//   doc.setFontSize(9);
+//   doc.setFont('helvetica', 'normal');
+//   doc.text('For Company Name', margin, footerStartY);
+//   doc.text('Accounts Department', margin, footerStartY + stampHeight - 10); // Align with bottom of stamp area
+
+//   // Placeholder for Stamp Image
+//   doc.setFillColor(200, 200, 200); // Light grey for placeholder
+//   doc.rect(stampX, footerStartY - 15, stampWidth, stampHeight, 'F');
+//   doc.setTextColor(0,0,0);
+//   doc.setFontSize(8);
+//   doc.text('Insert Stamp Image', stampX + stampWidth/2, footerStartY - 15 + stampHeight/2, { align: 'center' });
+
+//   // Ensure all content fits, add new page if necessary (simplified)
+//   // if (footerStartY + stampHeight > pageHeight - margin) { doc.addPage(); ... }
+
+//   doc.save(`Tax_Invoice_${invoiceMeta.invoiceNo}.pdf`);
+// };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ////////////////////////////////add time log employee
+import React, { useEffect, useState } from 'react'; import { useDispatch, useSelector } from 'react-redux';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { fetchProject } from '../../../redux/slices/ProjectsSlice';
+import { fetchjobs } from '../../../redux/slices/JobsSlice';
+import { createTimesheetWorklog, updateTimesheetWorklog } from '../../../redux/slices/TimesheetWorklogSlice'; // Make sure this exists
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { fetchusers } from '../../../redux/slices/userSlice';
+import { fetchMyJobs } from '../../../redux/slices/Employee/MyJobsSlice';
+
+function AddTimeLog() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const location = useLocation();
+  const { entry } = location.state || {};
+  const _id = entry?._id;
+
+  // Delete code hai ye abhi is m,e function lity lagi hai is liye ye abhi rahja ne diya hai api chal rahi hai 
+  const { project } = useSelector(state => state.projects);
+  const { job } = useSelector(state => state.jobs);
+  const { userAll, loading, error } = useSelector((state) => state.user);
+
+const getTodayDate = () => {
+  const today = new Date();
+  return today.toISOString().split("T")[0]; // 'YYYY-MM-DD'
+};
+
+  const [formData, setFormData] = useState({
+    projectId: '',
+    jobId: '',
+    employeeId: '',
+    date: getTodayDate(),
+    status: '',
+    startTime: '',
+    endTime: '',
+    taskDescription: '',
+    tags: '',
+    projectName: '',
+    jobName: ''
+  });
+
+  useEffect(() => {
+    if (entry) {
+   const parsedDate = entry.date
+      ? new Date(entry.date).toISOString().split('T')[0]
+      : getTodayDate();
+      setFormData({
+        date: parsedDate,
+        projectId: Array.isArray(entry.projectId) ? entry.projectId[0]._id : '',
+        jobId: Array.isArray(entry.jobId) ? entry.jobId[0]._id : '',
+        employeeId: Array.isArray(entry.employeeId) ? entry.employeeId[0]._id : '',
+        status: entry.status || '',
+        startTime: entry.startTime || '',
+        endTime: entry.endTime || '',
+        taskDescription: entry.taskDescription || '',
+        tags: entry.tags || '',
+        projectName: Array.isArray(entry.projectId) ? entry.projectId[0].projectName : '',
+        jobName: Array.isArray(entry.jobId) ? entry.jobId[0].jobName || '' : ''
+      });
+    }
+  }, [entry]);
+
+  useEffect(() => {
+    dispatch(fetchProject());
+    dispatch(fetchjobs());
+    dispatch(fetchusers());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (formData.startTime && formData.endTime) {
+      const [startHour, startMinute] = formData.startTime.split(':').map(Number);
+      const [endHour, endMinute] = formData.endTime.split(':').map(Number);
+
+      const start = new Date();
+      start.setHours(startHour, startMinute, 0);
+
+      const end = new Date();
+      end.setHours(endHour, endMinute, 0);
+
+      let diff = (end - start) / 1000 / 60 / 60; // hours
+
+      if (diff < 0) diff = 0;
+
+      setFormData(prev => ({
+        ...prev,
+        hours: diff.toFixed(2)
+      }));
+    }
+  }, [formData.startTime, formData.endTime]);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const convertTo12HourFormat = (time24) => {
+    const [hourStr, minuteStr] = time24.split(':');
+    let hour = parseInt(hourStr, 10);
+    const minute = minuteStr;
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    hour = hour % 12 || 12;
+    return `${hour.toString().padStart(2, '0')}:${minute} ${ampm}`;
+  };
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    const payload = {
+      projectId: [formData.projectId],
+      jobId: [formData.jobId],
+      employeeId: [formData.employeeId],
+      date: formData.date,
+      startTime: convertTo12HourFormat(formData.startTime),
+      endTime: convertTo12HourFormat(formData.endTime),
+      taskDescription: formData.taskDescription,
+      status: formData.status,
+      tags: formData.tags,
+      projectName: formData.projectName,
+      jobName: formData.jobName
+    };
+
+    const successNavigate = () => navigate("/employee/TimeTracking");
+
+    if (_id) {
+      dispatch(updateTimesheetWorklog({ _id, data: payload }))
+        .unwrap()
+        .then((res) => {
+          toast.success(res?.message || "Timesheet updated successfully!");
+          successNavigate();
+        })
+        .catch((err) => {
+          toast.error(err?.message || "Failed to update timesheet!");
+          console.error("Update error:", err);
+        });
+    } else {
+      dispatch(createTimesheetWorklog(payload))
+        .unwrap()
+        .then((res) => {
+          toast.success(res?.message || "Timesheet created successfully!");
+          successNavigate();
+        })
+        .catch((err) => {
+          toast.error(err?.message || "Error creating timesheet!");
+          console.error("Create error:", err);
+        });
+    }
+  };
+
+
+// Project Jobs Employee ye pora data araha hai 
+  const { myjobs } = useSelector((state) => state.MyJobs);
+  const MynewJobsdata = myjobs && myjobs.assignments && myjobs.assignments.length > 0 ? myjobs.assignments[0].jobId : [];
+
+  useEffect(() => {
+    dispatch(fetchMyJobs());
+  }, [dispatch]);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  const filteredProjects = MynewJobsdata || [];
+  const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
+
+  const paginatedProjects = filteredProjects.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const reversedProjectList = project?.data?.slice().reverse() || [];
+  const reversedJobList = job?.jobs?.slice().reverse() || [];
+  const reversedEmployeeList = (userAll?.data?.users || []).filter(user => user.role === "employee").reverse();
+
+
+  
+  return (
+    <div className="container py-4">
+      <div className="row justify-content-center">
+        <div className="col-12">
+          <div className="card shadow-sm border-0">
+            <div className="card-body p-4">
+              <h5 className="card-title mb-4">Timesheet & Worklog</h5>
+              <form onSubmit={handleSubmit}>
+                <div className="row g-3">
+
+                  {/* Project Dropdown */}
+                  <div className="col-md-6">
+                    <label className="form-label">Project</label>
+                    <select
+                      className="form-select"
+                      name="projectId"
+                      value={formData.projectId}
+                      onChange={(e) => {
+                        const selectedId = e.target.value;
+                        const selectedProject = project?.data?.find(p => p._id === selectedId);
+                        setFormData(prev => ({
+                          ...prev,
+                          projectId: selectedId,
+                          projectName: selectedProject?.projectName || ""
+                        }));
+                      }}
+                      required
+                    >
+                      <option value="">Select a project</option>
+                      {reversedProjectList.map((proj) => (
+                        <option key={proj._id} value={proj._id}>
+                          {proj.projectName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {/* Jobs Dropdown */}
+                  <div className="col-md-6">
+                    <label className="form-label">Jobs</label>
+                    <select
+                      className="form-select"
+                      name="jobId"
+                      value={formData.jobId}
+                      onChange={(e) => {
+                        const selectedId = e.target.value;
+                        const selectedJob = reversedJobList.find(j => j._id === selectedId);
+                        setFormData({
+                          ...formData,
+                          jobId: selectedId,
+                          jobName: selectedJob?.jobName || "",
+                        });
+                      }}
+                      required
+                    >
+                      <option value="">Select a job</option>
+                      {filteredProjects.map((j) => (
+                        <option key={j._id} value={j._id}>
+                          {j.JobNo || (j.brandName + " " + j.subBrand)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="col-md-6">
+                    <label className="form-label">Employee</label>
+                    <select
+                      className="form-select"
+                      name="employeeId"
+                      value={formData.employeeId}
+                      onChange={(e) => {
+                        const selectedId = e.target.value;
+
+                        const selectedEmployee = reversedEmployeeList.find(
+                          (emp) => String(emp._id) === String(selectedId) // type-safe compare
+                        );
+
+                        console.log("Selected ID:", selectedId);
+                        console.log("Selected Employee:", selectedEmployee);
+
+                        setFormData((prev) => ({
+                          ...prev,
+                          employeeId: selectedId,
+                          // Optional: Add employeeName if needed
+                          // employeeName: selectedEmployee?.name || ""
+                        }));
+                      }}
+                      required
+                    >
+                      <option value="">Select an employee</option>
+
+
+                      {myjobs.assignments.map((assignment) => (
+                        <option key={assignment.employeeId?._id} value={assignment.employeeId?._id}>
+                          {assignment.employeeId?.firstName} {assignment.employeeId?.lastName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+
+
+                  <div className="col-md-6">
+                    <label className="form-label">Status</label>
+                    <select
+                      className="form-select"
+                      name="status"
+                      value={formData.status}
+                      onChange={handleInputChange}
+                      required
+                    >
+                      <option value="">Select Status</option>
+                      <option value="Approved">Approved</option>
+                      <option value="Pending">Pending</option>
+                      <option value="In Progress">In Progress</option>
+                      <option value="Completed">Completed</option>
+                    </select>
+                  </div>
+
+                  <div className="col-md-6">
+                    <label className="form-label">Start Time</label>
+                    <input
+                      type="time"
+                      className="form-control"
+                      name="startTime"
+                      value={formData.startTime}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="col-md-6">
+                    <label className="form-label">End Time</label>
+                    <input
+                      type="time"
+                      className="form-control"
+                      name="endTime"
+                      value={formData.endTime}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+
+
+                  <div className="col-md-6">
+                    <label className="form-label">Date</label>
+                    <input
+                      type="date"
+                      className="form-control"
+                      name="date"
+                      value={formData.date}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="col-12">
+                    <label className="form-label">Task Description</label>
+                    <textarea
+                      className="form-control"
+                      rows="4"
+                      name="taskDescription"
+                      value={formData.taskDescription}
+                      onChange={handleInputChange}
+                      required
+                    ></textarea>
+                  </div>
+
+                  <div className="col-12">
+                    <label className="form-label">Tags</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="tags"
+                      value={formData.tags}
+                      onChange={handleInputChange}
+                      placeholder="Add tags separated by commas"
+                    />
+                  </div>
+                </div>
+
+                <div className="d-flex justify-content-end gap-2 mt-4">
+                  <Link to="/admin/TimesheetWorklog" className="btn btn-light">Cancel</Link>
+                  <button type="submit" className="btn btn-dark">
+                    {id ? "Update Time Entry" : "Submit Time Entry"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default AddTimeLog;

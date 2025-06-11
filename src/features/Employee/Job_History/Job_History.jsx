@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
-import { Form, InputGroup, Table, Badge, Dropdown, Pagination, Container, Row, Col,Button,   } from 'react-bootstrap';
-import { FiSearch, FiFilter, FiMoreVertical ,  } from 'react-icons/fi';
+import { Form, InputGroup, Table, Badge, Dropdown, Pagination, Container, Row, Col, Button, } from 'react-bootstrap';
+import { FiSearch, FiFilter, FiMoreVertical, } from 'react-icons/fi';
 import {
-    BsEye,
-    BsPencil,
-    BsArrowClockwise,
-    BsArchive,
-    BsDownload,
-    BsTrash,
-     
-  } from "react-icons/bs";
-  
+  BsEye,
+  BsPencil,
+  BsArrowClockwise,
+  BsArchive,
+  BsDownload,
+  BsTrash,
+
+} from "react-icons/bs";
+
 // import DatePicker from 'react-datepicker';
 // import 'react-datepicker/dist/react-datepicker.css';
 // import 'bootstrap/dist/css/bootstrap.min.css';
@@ -118,7 +118,7 @@ function Job_History() {
     };
     const style = statusStyles[status] || { bg: 'secondary-subtle', text: 'secondary' };
     return (
-      <Badge 
+      <Badge
         className={`bg-${style.bg} text-${style.text} fw-medium px-2 py-1`}
         style={{ fontSize: '0.75rem' }}
       >
@@ -135,7 +135,7 @@ function Job_History() {
     };
     const style = typeStyles[type] || { bg: 'secondary-subtle', text: 'secondary' };
     return (
-      <Badge 
+      <Badge
         className={`bg-${style.bg} text-${style.text} fw-medium px-2 py-1`}
         style={{ fontSize: '0.75rem' }}
       >
@@ -156,7 +156,7 @@ function Job_History() {
     const matchesSearch = job.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       job.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
       job.id.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     const matchesStatus = selectedStatus === 'All' || job.status === selectedStatus;
     const matchesType = selectedType === 'All' || job.type === selectedType;
 
@@ -188,13 +188,14 @@ function Job_History() {
         pages.push('...');
       }
     }
-    return pages.filter((page, index, array) => 
+    return pages.filter((page, index, array) =>
       array.indexOf(page) === index
     );
   };
   return (
-    <Container fluid className="py-4">
-      <div className="d-flex justify-content-between align-items-center mb-4">
+    <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+      <Container fluid className="container py-3">
+        <div className="d-flex justify-content-between align-items-center mb-4">
           <div className="d-flex gap-3 align-items-center">
             <InputGroup style={{ width: '320px' }}>
               <InputGroup.Text className="bg-light border-end-0">
@@ -210,9 +211,6 @@ function Job_History() {
 
             <div className="d-flex gap-2">
               <Dropdown>
-                <Dropdown.Toggle variant="light" className="d-flex align-items-center gap-2">
-                  {/* <FiCalendar className="text-muted" /> Last {dateRange} days */}
-                </Dropdown.Toggle>
                 <Dropdown.Menu>
                   <Dropdown.Item onClick={() => setDateRange(7)}>Last 7 days</Dropdown.Item>
                   <Dropdown.Item onClick={() => setDateRange(14)}>Last 14 days</Dropdown.Item>
@@ -248,165 +246,163 @@ function Job_History() {
             </div>
           </div>
 
-          <Button variant="light" className="d-flex align-items-center gap-2">
-            {/* <BsDownload className="text-muted" /> Export */}
-          </Button>
-        
-        <div className="d-flex gap-3">
-          <Dropdown> 
-            <Dropdown.Toggle variant="light" className="d-flex align-items-center gap-2">
-              {/* <FiCalendar /> Last {dateRange} days */}
-            </Dropdown.Toggle>  
-            <Dropdown.Menu>
-              <Dropdown.Item onClick={() => setDateRange(7)}>Last 7 days</Dropdown.Item>
-              <Dropdown.Item onClick={() => setDateRange(14)}>Last 14 days</Dropdown.Item>
-              <Dropdown.Item onClick={() => setDateRange(30)}>Last 30 days</Dropdown.Item>
-            </Dropdown.Menu>
-          </Dropdown>
 
-          <Dropdown>
-             <Dropdown.Toggle variant="light" className="d-flex align-items-center gap-2">
-               <FiFilter /> {selectedStatus}
-             </Dropdown.Toggle>
-             <Dropdown.Menu>
-               <Dropdown.Item onClick={() => setSelectedStatus('All')}>All</Dropdown.Item>
-               <Dropdown.Item onClick={() => setSelectedStatus('Completed')}>Completed</Dropdown.Item>
-               <Dropdown.Item onClick={() => setSelectedStatus('Pending')}>Pending</Dropdown.Item>
-               <Dropdown.Item onClick={() => setSelectedStatus('Failed')}>Failed</Dropdown.Item>
-             </Dropdown.Menu>
-           </Dropdown>
+          <div className="d-flex gap-3">
+            <Dropdown>
+              <Dropdown.Menu>
+                <Dropdown.Item onClick={() => setDateRange(7)}>Last 7 days</Dropdown.Item>
+                <Dropdown.Item onClick={() => setDateRange(14)}>Last 14 days</Dropdown.Item>
+                <Dropdown.Item onClick={() => setDateRange(30)}>Last 30 days</Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
 
-           <Dropdown>
-             <Dropdown.Toggle variant="light" className="d-flex align-items-center gap-2">
-               {selectedType}
-             </Dropdown.Toggle>
-             <Dropdown.Menu>
-               <Dropdown.Item onClick={() => setSelectedType('All')}>All</Dropdown.Item>
-               <Dropdown.Item onClick={() => setSelectedType('Scheduled')}>Scheduled</Dropdown.Item>
-               <Dropdown.Item onClick={() => setSelectedType('Automated')}>Automated</Dropdown.Item>
-               <Dropdown.Item onClick={() => setSelectedType('Manual')}>Manual</Dropdown.Item>
-             </Dropdown.Menu>
-           </Dropdown>
+            <Dropdown>
+              <Dropdown.Toggle variant="light" className="d-flex align-items-center gap-2">
+                <FiFilter /> {selectedStatus}
+              </Dropdown.Toggle>
+              <Dropdown.Menu>
+                <Dropdown.Item onClick={() => setSelectedStatus('All')}>All</Dropdown.Item>
+                <Dropdown.Item onClick={() => setSelectedStatus('Completed')}>Completed</Dropdown.Item>
+                <Dropdown.Item onClick={() => setSelectedStatus('Pending')}>Pending</Dropdown.Item>
+                <Dropdown.Item onClick={() => setSelectedStatus('Failed')}>Failed</Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
+
+            <Dropdown>
+              <Dropdown.Toggle variant="light" className="d-flex align-items-center gap-2">
+                {selectedType}
+              </Dropdown.Toggle>
+              <Dropdown.Menu>
+                <Dropdown.Item onClick={() => setSelectedType('All')}>All</Dropdown.Item>
+                <Dropdown.Item onClick={() => setSelectedType('Scheduled')}>Scheduled</Dropdown.Item>
+                <Dropdown.Item onClick={() => setSelectedType('Automated')}>Automated</Dropdown.Item>
+                <Dropdown.Item onClick={() => setSelectedType('Manual')}>Manual</Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
+          </div>
         </div>
-      </div>
 
-      <Table hover className="align-middle shadow-sm bg-white rounded job-table">
-        <thead className="bg-light border-bottom">
-          <tr>
-            <th className="ps-4 py-3" style={{ width: '40px' }}>
-              <Form.Check type="checkbox" />
-            </th>
-            <th style={{ width: '120px' }}>Job ID</th>
-            <th>Job Name</th>
-            <th  style={{ whiteSpace: 'nowrap' }}>Start Time</th>
-            <th style={{ width: '120px' }}>Duration</th>
-            <th style={{ width: '120px' }}>Status</th>
-            <th style={{ width: '120px' }}>Type</th>
-            <th className="text-end pe-4" style={{ width: '80px' }}>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {currentItems.map((job) => (
-            <tr key={job.id}>
-              <td className="ps-4">
-                <Form.Check type="checkbox" />
-              </td>
-              <td>
-                <span 
-                
-                  className="text-primary" 
-                  style={{ whiteSpace: 'nowrap' }}
-                  onClick={() => handleJobClick(job)}
-                >
-                  {job.id}
-                </span>
-              </td>
-              <td>
-                <div  style={{ whiteSpace: 'nowrap' }} className="fw-medium">{job.name}</div>
-                <div  style={{ whiteSpace: 'nowrap' }} className="text-muted small">{job.description}</div>
-              </td>
-              <td  style={{ whiteSpace: 'nowrap' }} className="text-muted">{job.startTime}</td>
-              <td  style={{ whiteSpace: 'nowrap' }} className="text-muted">{job.duration}</td>
-              <td>{getStatusBadge(job.status)}</td>
-              <td>{getTypeBadge(job.type)}</td>
-              <td className="text-end pe-4">
-                <Dropdown align="end">
-                  <Dropdown.Toggle variant="light" size="sm" className="btn-icon">
-                    <FiMoreVertical className="text-muted" />
-                  </Dropdown.Toggle>
-                  <Dropdown.Menu className="shadow-sm border-0">
-                    <Dropdown.Item>
-                      <BsEye className="me-2" /> View details
-                    </Dropdown.Item>
-                    <Dropdown.Item>
-                      <BsPencil className="me-2" /> Edit
-                    </Dropdown.Item>
-                    <Dropdown.Item>
-                      <BsArrowClockwise className="me-2" /> Rerun
-                    </Dropdown.Item>
-                    <Dropdown.Item>
-                      <BsArchive className="me-2" /> Archive
-                    </Dropdown.Item>
-                    <Dropdown.Item>
-                      <BsDownload className="me-2" /> Export logs
-                    </Dropdown.Item>
-                    <Dropdown.Item className="text-danger">
-                      <BsTrash className="me-2" /> Delete
-                    </Dropdown.Item>
-                  </Dropdown.Menu>
-                </Dropdown>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
-
-         <Row className="mt-4 align-items-center">
-            <Col>
-              <div className="text-muted small">
-                Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredJobs.length)} of {filteredJobs.length} results
-              </div>
-            </Col>
-            <Col className="d-flex justify-content-end">
-              <Pagination className="mb-0 gap-1">
-                <Pagination.First
-                  onClick={() => handlePageChange(1)}
-                  disabled={currentPage === 1}
-                  className="rounded"
-                />
-                <Pagination.Prev
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="rounded"
-                />
-                {getPageNumbers().map((page, index) => (
-                  page === '...' ? (
-                    <Pagination.Ellipsis key={`ellipsis-${index}`} className="rounded" />
-                  ) : (
-                    <Pagination.Item
-                      key={page}
-                      active={page === currentPage}
-                      onClick={() => handlePageChange(page)}
-                      className={`rounded ${page === currentPage ? 'bg-primary' : ''}`}
-                    >
-                      {page}
-                    </Pagination.Item>
-                  )
-                ))}
-                <Pagination.Next
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="rounded"
-                />
-                <Pagination.Last
-                  onClick={() => handlePageChange(totalPages)}
-                  disabled={currentPage === totalPages}
-                  className="rounded"
-                />
-              </Pagination>
-            </Col>
-          </Row>
-       </Container>
+        <div className="card shadow-sm">
+          <div className="card-body p-0" >
+            <div className="table-responsive" style={{borderRadius:"10px"}}>
+              <table className="table table-hover mb-0">
+                <Table hover className="align-middle shadow-sm bg-white rounded job-table">
+                  <thead className="bg-light border-bottom">
+                    <tr>
+                      <th className="ps-4 py-3" style={{ width: '40px' }}>
+                        <Form.Check type="checkbox" />
+                      </th>
+                      <th style={{ width: '120px' }}>Job ID</th>
+                      <th>Job Name</th>
+                      <th style={{ whiteSpace: 'nowrap' }}>Start Time</th>
+                      <th style={{ width: '120px' }}>Duration</th>
+                      <th style={{ width: '120px' }}>Status</th>
+                      <th style={{ width: '120px' }}>Type</th>
+                      <th className="text-end pe-4" style={{ width: '80px' }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentItems.map((job) => (
+                      <tr key={job.id}>
+                        <td className="ps-4">
+                          <Form.Check type="checkbox" />
+                        </td>
+                        <td>
+                          <span
+                            className="text-primary"
+                            style={{ whiteSpace: 'nowrap' }}
+                            onClick={() => handleJobClick(job)}
+                          >
+                            {job.id}
+                          </span>
+                        </td>
+                        <td>
+                          <div style={{ whiteSpace: 'nowrap' }} className="fw-medium">{job.name}</div>
+                          <div style={{ whiteSpace: 'nowrap' }} className="text-muted small">{job.description}</div>
+                        </td>
+                        <td style={{ whiteSpace: 'nowrap' }} className="text-muted">{job.startTime}</td>
+                        <td style={{ whiteSpace: 'nowrap' }} className="text-muted">{job.duration}</td>
+                        <td>{getStatusBadge(job.status)}</td>
+                        <td>{getTypeBadge(job.type)}</td>
+                        <td className="text-end pe-4">
+                          <Dropdown align="end">
+                            <Dropdown.Toggle variant="light" size="sm" className="btn-icon">
+                              <FiMoreVertical className="text-muted" />
+                            </Dropdown.Toggle>
+                            <Dropdown.Menu className="shadow-sm border-0">
+                              <Dropdown.Item>
+                                <BsEye className="me-2" /> View details
+                              </Dropdown.Item>
+                              <Dropdown.Item>
+                                <BsPencil className="me-2" /> Edit
+                              </Dropdown.Item>
+                              <Dropdown.Item>
+                                <BsArrowClockwise className="me-2" /> Rerun
+                              </Dropdown.Item>
+                              <Dropdown.Item>
+                                <BsArchive className="me-2" /> Archive
+                              </Dropdown.Item>
+                              <Dropdown.Item>
+                                <BsDownload className="me-2" /> Export logs
+                              </Dropdown.Item>
+                              <Dropdown.Item className="text-danger">
+                                <BsTrash className="me-2" /> Delete
+                              </Dropdown.Item>
+                            </Dropdown.Menu>
+                          </Dropdown>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table></table>
+            </div></div></div>
+        <Row className="mt-4 align-items-center">
+          <Col>
+            <div className="text-muted small">
+              Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredJobs.length)} of {filteredJobs.length} results
+            </div>
+          </Col>
+          <Col className="d-flex justify-content-end">
+            <Pagination className="mb-0 gap-1">
+              <Pagination.First
+                onClick={() => handlePageChange(1)}
+                disabled={currentPage === 1}
+                className="rounded"
+              />
+              <Pagination.Prev
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="rounded"
+              />
+              {getPageNumbers().map((page, index) => (
+                page === '...' ? (
+                  <Pagination.Ellipsis key={`ellipsis-${index}`} className="rounded" />
+                ) : (
+                  <Pagination.Item
+                    key={page}
+                    active={page === currentPage}
+                    onClick={() => handlePageChange(page)}
+                    className={`rounded ${page === currentPage ? 'bg-primary' : ''}`}
+                  >
+                    {page}
+                  </Pagination.Item>
+                )
+              ))}
+              <Pagination.Next
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="rounded"
+              />
+              <Pagination.Last
+                onClick={() => handlePageChange(totalPages)}
+                disabled={currentPage === totalPages}
+                className="rounded"
+              />
+            </Pagination>
+          </Col>
+        </Row>
+      </Container>
+    </div>
   );
 }
 

@@ -151,7 +151,7 @@ function AddTimesheetWorklog() {
 
   const reversedProjectList = project?.data?.slice().reverse() || [];
   const reversedJobList = job?.jobs?.slice().reverse() || [];
-const reversedEmployeeList = (userAll?.data?.users || []).filter(user => user.role === "employee").reverse();
+  const reversedEmployeeList = (userAll?.data?.users || []).filter(user => user.role === "employee").reverse();
 
   return (
     <div className="container py-4">
@@ -214,40 +214,40 @@ const reversedEmployeeList = (userAll?.data?.users || []).filter(user => user.ro
                       ))}
                     </select>
                   </div>
-<div className="col-md-6">
-  <label className="form-label">Employee</label>
-  <select
-    className="form-select"
-    name="employeeId"
-    value={formData.employeeId}
-    onChange={(e) => {
-      const selectedId = e.target.value;
+                  <div className="col-md-6">
+                    <label className="form-label">Employee</label>
+                    <select
+                      className="form-select"
+                      name="employeeId"
+                      value={formData.employeeId}
+                      onChange={(e) => {
+                        const selectedId = e.target.value;
 
-      const selectedEmployee = reversedEmployeeList.find(
-        (emp) => String(emp._id) === String(selectedId) // type-safe compare
-      );
+                        const selectedEmployee = reversedEmployeeList.find(
+                          (emp) => String(emp._id) === String(selectedId) // type-safe compare
+                        );
 
-      console.log("Selected ID:", selectedId);
-      console.log("Selected Employee:", selectedEmployee);
+                        console.log("Selected ID:", selectedId);
+                        console.log("Selected Employee:", selectedEmployee);
 
-      setFormData((prev) => ({
-        ...prev,
-        employeeId: selectedId,
-        // Optional: Add employeeName if needed
-        // employeeName: selectedEmployee?.name || ""
-      }));
-    }}
-    required
-  >
-    <option value="">Select an employee</option>
+                        setFormData((prev) => ({
+                          ...prev,
+                          employeeId: selectedId,
+                          // Optional: Add employeeName if needed
+                          // employeeName: selectedEmployee?.name || ""
+                        }));
+                      }}
+                      required
+                    >
+                      <option value="">Select an employee</option>
 
-    {Array.isArray(reversedEmployeeList) && reversedEmployeeList.map((emp) => (
-      <option key={emp._id} value={emp._id}>
-        {emp.name || emp.fullName || "Unnamed"} {/* Safe fallback */}
-      </option>
-    ))}
-  </select>
-</div>
+                      {Array.isArray(reversedEmployeeList) && reversedEmployeeList.map((emp) => (
+                        <option key={emp._id} value={emp._id}>
+                          {emp.name || emp.fullName || "Unnamed"} {/* Safe fallback */}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
 
 
@@ -304,7 +304,7 @@ const reversedEmployeeList = (userAll?.data?.users || []).filter(user => user.ro
                       required
                     />
                   </div>
-                  
+
                   <div className="col-12">
                     <label className="form-label">Task Description</label>
                     <textarea

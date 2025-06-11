@@ -80,7 +80,8 @@ const ProtectedRoute = ({ children }) => {
           // Role-based route check
           if (
             (userRole === "admin" && pathname.startsWith("/admin")) ||
-            (userRole === "employee" && pathname.startsWith("/employee"))
+            (userRole === "employee" && pathname.startsWith("/employee"))||
+            (userRole === "client" && pathname.startsWith("/client"))
           ) {
             setIsAuthorized(true);
           } else {

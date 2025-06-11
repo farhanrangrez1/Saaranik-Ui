@@ -4,11 +4,13 @@ import { BsPlusLg, BsPencil, BsTrash, BsUpload } from "react-icons/bs";
 import { Link, useNavigate } from "react-router-dom";
 import { deleteCostEstimate, fetchCostEstimates } from "../../../redux/slices/costEstimatesSlice";
 import { useDispatch, useSelector } from "react-redux";
-import { FaTrash } from "react-icons/fa";
+import { FaDownload, FaTrash } from "react-icons/fa";
 import Swal from 'sweetalert2';
 import { fetchProject } from "../../../redux/slices/ProjectsSlice";
 import { fetchClient } from "../../../redux/slices/ClientSlice";
 import { createReceivablePurchase } from "../../../redux/slices/receivablePurchaseSlice";
+import { jsPDF } from "jspdf";
+import autoTable from 'jspdf-autotable'; 
 
 function CostEstimates() {
   const dispatch = useDispatch()
@@ -321,6 +323,279 @@ function CostEstimates() {
     .reverse()
     .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
+
+// ... handleDownloadPDF ...
+const handleDownloadPDF = (invoiceDataFromState) => {
+  if (!invoiceDataFromState) {
+    console.error("No data provided to handleDownloadPDF");
+    Swal.fire("Error", "No data available to generate PDF.", "error");
+    return;
+  }
+
+  const doc = new jsPDF('p', 'pt', 'a4');
+  const pageWidth = doc.internal.pageSize.width;
+  const pageHeight = doc.internal.pageSize.height;
+  const margin = 40;
+  let finalY = margin;
+
+  // --- START: Data from 'invoiceDataFromState' object ---
+  const companyDetails = {
+    logoText: invoiceDataFromState.companyLogoText || 'COMPANY LOGO',
+    addressDetails: invoiceDataFromState.companyAddressDetails || 'COMPANY ADDRESS DETAILS',
+    name: invoiceDataFromState.companyNameHeader || 'Company name',
+    trn: invoiceDataFromState.companyTRN || '100000000000002',
+  };
+
+  const invoiceMeta = {
+    date: invoiceDataFromState.date || '22.03.2025',
+    invoiceNo: invoiceDataFromState.invoiceNo || '5822',
+  };
+
+  const clientDetails = {
+    name: invoiceDataFromState.clientName || 'Client Company Name',
+    address1: invoiceDataFromState.clientAddress1 || 'Client Address Line 1',
+    address2: invoiceDataFromState.clientAddress2 || 'Client Address Line 2, Country',
+    tel: invoiceDataFromState.clientTel || '00000000000',
+    contactPerson: invoiceDataFromState.clientContactPerson || 'Client Contact Person',
+    email: invoiceDataFromState.clientEmail || 'client.email@example.com',
+    trn: invoiceDataFromState.clientTRN || "Client's TRN No.",
+  };
+
+  const projectInfo = {
+    costEstNo: invoiceDataFromState.costEstNo || 'CE No.',
+    poNo: invoiceDataFromState.purchaseOrderNo || 'PO Number',
+    projectNo: invoiceDataFromState.projectNo || 'Project No.',
+  };
+
+  const bankDetails = {
+    accountName: invoiceDataFromState.bankAccountName || 'Company Name',
+    bankName: invoiceDataFromState.bankName || "Company's Bank Name",
+    iban: invoiceDataFromState.iban || 'XX000000000000000000001',
+    swiftCode: invoiceDataFromState.swiftCode || 'XXXAAACC',
+    terms: invoiceDataFromState.paymentTerms || 'Net 30',
+  };
+
+  const items = invoiceDataFromState.items && invoiceDataFromState.items.length > 0 
+    ? invoiceDataFromState.items.map((item, index) => [
+        (index + 1).toString() + '.', 
+        item.description, 
+        item.qty, 
+        item.rate, 
+        parseFloat(item.amount).toFixed(2)
+      ]) 
+    : [
+        ['1.', 'Print Samples', 6, 2, '12.00'], // Default item
+      ];
+
+  const subTotal = items.reduce((sum, item) => sum + parseFloat(item[4]), 0);
+  const vatRate = invoiceDataFromState.vatRate !== undefined ? invoiceDataFromState.vatRate : 0.10; // 10% VAT from image, or from state
+  const vatAmount = subTotal * vatRate;
+  const grandTotal = subTotal + vatAmount;
+  const amountInWords = invoiceDataFromState.amountInWords || `US Dollars ${numberToWords(grandTotal)} Only`;
+  // --- END: Data from 'invoiceDataFromState' object ---
+
+  // 1. Company Logo Block (Top Left) - Assuming this part is okay from previous version
+  doc.setFillColor(192, 0, 0); 
+  doc.rect(margin, finalY, 220, 60, 'F'); 
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text(companyDetails.logoText, margin + 10, finalY + 25);
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.text(companyDetails.addressDetails, margin + 10, finalY + 45);
+
+  // 2. Company Name (Top Right) - Assuming this part is okay
+  const companyNameBlockY = finalY; 
+  doc.setFillColor(192, 0, 0); 
+  doc.rect(pageWidth - margin - 150, companyNameBlockY, 150, 30, 'F'); 
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.text(companyDetails.name, pageWidth - margin - 140, companyNameBlockY + 20, { align: 'left' });
+
+  // 3. Tax Invoice Title - Assuming this part is okay
+  let titleY = companyNameBlockY + 30 + 20; 
+  doc.setTextColor(0, 0, 0);
+  doc.setFontSize(18);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Tax Invoice', pageWidth - margin, titleY, { align: 'right' });
+
+  // 4. TRN, Date, Invoice No. Table - Assuming this part is okay
+  let tableDetailsY = titleY + 10; 
+  autoTable(doc, {
+    startY: tableDetailsY,
+    head: [['TRN:', 'Date', 'Invoice No.']],
+    body: [[companyDetails.trn, invoiceMeta.date, invoiceMeta.invoiceNo]],
+    theme: 'grid',
+    styles: { fontSize: 9, cellPadding: 5, lineWidth: 0.5, lineColor: [0,0,0] },
+    headStyles: { fillColor: [255,255,255], textColor: [0,0,0], fontStyle: 'bold' },
+    columnStyles: {
+      0: { cellWidth: 150, halign: 'left' },
+      1: { cellWidth: 80, halign: 'left' },
+      2: { cellWidth: 80, halign: 'left' },
+    },
+    margin: { right: margin, left: pageWidth - margin - (150 + 80 + 80) -10 },
+    tableWidth: 'wrap',
+  });
+  finalY = doc.lastAutoTable.finalY + 20;
+
+  // 5. Invoice To Section - Assuming this part is okay
+  const invoiceToBoxWidth = 250;
+  doc.setDrawColor(0,0,0);
+  doc.rect(margin, finalY, invoiceToBoxWidth, 100, 'S'); 
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Invoice To', margin + 5, finalY + 15);
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  let textYInvoiceTo = finalY + 30;
+  [clientDetails.name, clientDetails.address1, clientDetails.address2, `Tel: ${clientDetails.tel}`, `Contact: ${clientDetails.contactPerson}`, `Email: ${clientDetails.email}`].forEach(line => {
+    doc.text(line, margin + 5, textYInvoiceTo);
+    textYInvoiceTo += 12;
+  });
+  finalY += 100 + 10; 
+  // 6. TRN, Cost Est. No., P.O. No., Project Table - Assuming this part is okay
+  autoTable(doc, {
+    startY: finalY,
+    head: [['TRN', 'Cost Est. No.', 'P.O. No.', 'Project']],
+    body: [[clientDetails.trn, projectInfo.costEstNo, projectInfo.poNo, projectInfo.projectNo]],
+    theme: 'grid',
+    styles: { fontSize: 9, cellPadding: 5, lineWidth: 0.5, lineColor: [0,0,0] },
+    headStyles: { fillColor: [220,220,220], textColor: [0,0,0], fontStyle: 'bold' },
+    margin: { left: margin, right: margin },
+  });
+  finalY = doc.lastAutoTable.finalY + 10;
+
+  // 7. Bank Details Table - Assuming this part is okay
+  autoTable(doc, {
+    startY: finalY,
+    head: [['Bank Account Name', 'Bank Name', 'IBAN', 'Swift Code', 'Terms']],
+    body: [[bankDetails.accountName, bankDetails.bankName, bankDetails.iban, bankDetails.swiftCode, bankDetails.terms]],
+    theme: 'grid',
+    styles: { fontSize: 9, cellPadding: 5, lineWidth: 0.5, lineColor: [0,0,0] },
+    headStyles: { fillColor: [200,200,200], textColor: [0,0,0], fontStyle: 'bold' },
+    margin: { left: margin, right: margin },
+  });
+  finalY = doc.lastAutoTable.finalY + 10;
+
+  // 8. Items Table - Assuming this part is okay
+  autoTable(doc, {
+    startY: finalY,
+    head: [['Sr. #', 'Description', 'Qty', 'Rate', 'Amount (USD)']],
+    body: items,
+    theme: 'grid',
+    styles: { fontSize: 9, cellPadding: 5, lineWidth: 0.5, lineColor: [0,0,0] },
+    headStyles: { fillColor: [220,220,220], textColor: [0,0,0], fontStyle: 'bold' },
+    columnStyles: {
+      0: { cellWidth: 40, halign: 'center' },
+      1: { cellWidth: 'auto' },
+      2: { cellWidth: 40, halign: 'right' },
+      3: { cellWidth: 50, halign: 'right' },
+      4: { cellWidth: 70, halign: 'right' },
+    },
+    margin: { left: margin, right: margin },
+    didDrawPage: function (data) {
+        // Ensure finalY is updated correctly if table spans multiple pages
+        finalY = data.cursor.y;
+    }
+  });
+  const amountInWordsY = finalY + 20; 
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.text(amountInWords, margin, amountInWordsY, {maxWidth: pageWidth - margin - 220}); // Ensure it doesn't overlap with totals
+
+  // 10. Totals Section (NEW - Subtotal, VAT, Total - Right Aligned)
+  const totalsTableWidth = 200;
+  const totalsTableX = pageWidth - margin - totalsTableWidth;
+  let totalsTableY = finalY + 10;
+
+  autoTable(doc, {
+    startY: totalsTableY,
+    body: [
+      ['Subtotal', `USD ${subTotal.toFixed(2)}`],
+      [`VAT (${(vatRate * 100).toFixed(0)}%)`, `USD ${vatAmount.toFixed(2)}`],
+      ['Total', `USD ${grandTotal.toFixed(2)}`]
+    ],
+    theme: 'grid', 
+    styles: {
+        fontSize: 9,
+        cellPadding: 5,
+        lineWidth: 0.5,
+        lineColor: [0,0,0]
+    },
+    headStyles: { 
+        fillColor: [255,255,255],
+        textColor: [0,0,0],
+    },
+    columnStyles: {
+        0: { halign: 'left', fontStyle: 'bold', cellWidth: totalsTableWidth * 0.6 },
+        1: { halign: 'right', cellWidth: totalsTableWidth * 0.4 }
+    },
+    margin: { left: totalsTableX }, 
+    tableWidth: totalsTableWidth, 
+    didDrawPage: function (data) {
+        totalsTableY = data.cursor.y; 
+    }
+  });
+  
+  finalY = Math.max(amountInWordsY + 10, totalsTableY + 10); 
+
+  const footerStartY = finalY + 30;
+  const stampWidth = 100;
+  const stampHeight = 70;
+  const stampX = margin + 150; 
+
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.text('For Company Name', margin, footerStartY);
+  doc.text('Accounts Department', margin, footerStartY + stampHeight - 10); 
+
+  // Placeholder for Stamp Image
+  doc.setFillColor(200, 200, 200);
+  doc.rect(stampX, footerStartY - 15, stampWidth, stampHeight, 'F');
+  doc.setTextColor(0,0,0);
+  doc.setFontSize(8);
+  doc.text('Insert Stamp Image', stampX + stampWidth/2, footerStartY - 15 + stampHeight/2, { align: 'center' });
+
+  doc.save(`Tax_Invoice_${invoiceMeta.invoiceNo}.pdf`);
+};
+const numberToWords = (num) => {
+  const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+  const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+  if (num === 0) return 'Zero';
+  let words = '';
+  if (num >= 1000000000) { words += numberToWords(Math.floor(num / 1000000000)) + ' Billion '; num %= 1000000000; }
+  if (num >= 1000000) { words += numberToWords(Math.floor(num / 1000000)) + ' Million '; num %= 1000000; }
+  if (num >= 1000) { words += numberToWords(Math.floor(num / 1000)) + ' Thousand '; num %= 1000; }
+  if (num >= 100) { words += ones[Math.floor(num / 100)] + ' Hundred '; num %= 100; }
+  if (num >= 20) { words += tens[Math.floor(num / 10)] + ' '; num %= 10; }
+  if (num > 0) { words += ones[num] + ' '; }
+  // Handle cents if your number includes them, e.g., by splitting num.toFixed(2)
+  const numStr = parseFloat(num).toFixed(2);
+  const parts = numStr.split('.');
+  let dollars = parseInt(parts[0]);
+  let cents = parseInt(parts[1]);
+
+  words = ''; // Reset words for dollar part only
+  if (dollars === 0) words = 'Zero';
+  else {
+      if (dollars >= 1000000000) { words += numberToWords(Math.floor(dollars / 1000000000)) + ' Billion '; dollars %= 1000000000; }
+      if (dollars >= 1000000) { words += numberToWords(Math.floor(dollars / 1000000)) + ' Million '; dollars %= 1000000; }
+      if (dollars >= 1000) { words += numberToWords(Math.floor(dollars / 1000)) + ' Thousand '; dollars %= 1000; }
+      if (dollars >= 100) { words += ones[Math.floor(dollars / 100)] + ' Hundred '; dollars %= 100; }
+      if (dollars >= 20) { words += tens[Math.floor(dollars / 10)] + (dollars % 10 !== 0 ? ' ' : ''); dollars %= 10; }
+      if (dollars > 0) { words += ones[dollars] + ' '; }
+  }
+  words = words.trim();
+
+  if (cents > 0) {
+      words += ` and ${cents.toString()}/100`;
+  }
+  return words.trim(); 
+};
+// ... existing code ...
+
   return (
     <div
       className="p-4 m-2"
@@ -458,10 +733,17 @@ function CostEstimates() {
                     <button className="btn btn-sm btn-primary" onClick={() => handleConvertToInvoice(po)}>ConvertInvoice</button>
                     <button className="btn btn-sm btn-success" onClick={() => setShowAddPOModal(true)}>
                       AddPO
-                    </button>                    <button className="btn btn-sm btn-outline-primary" onClick={() => UpdateEstimate(po)}><BsPencil /></button>
+                    </button>
+                    <button className="btn btn-sm btn-outline-primary" onClick={() => UpdateEstimate(po)}><BsPencil /></button>
                     {/* <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(po._id)}>
                           <FaTrash />
                         </button> */}
+                    <button
+                      className="btn btn-sm btn-outline-primary"
+                      onClick={handleDownloadPDF}
+                    >
+                      <FaDownload />
+                    </button>
                   </div>
                 </td>
               </tr>
