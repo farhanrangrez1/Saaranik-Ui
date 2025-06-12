@@ -120,7 +120,7 @@ function JobTracker() {
     currentPage * itemsPerPage
   );
 
-    const JobDetails = (job) => {
+  const JobDetails = (job) => {
     navigate(`/admin/OvervieJobsTracker`, { state: { job } });
   }
 
@@ -214,14 +214,14 @@ function JobTracker() {
                     onChange={() => handleCheckboxChange(job._id)}
                   />
                 </td>
-                  {/* <td onClick={() => JobDetails(job)}>
+                {/* <td onClick={() => JobDetails(job)}>
                                   <Link>
                                     {String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}</Link>
                                 </td> */}
 
-      <td onClick={() => JobDetails(job)}>
-                      <Link style={{ textDecoration: 'none' }}>{job.JobNo}</Link>
-                    </td>
+                <td onClick={() => JobDetails(job)}>
+                  <Link style={{ textDecoration: 'none' }}>{job.JobNo}</Link>
+                </td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.projectId?.[0]?.projectName || 'N/A'}</td>
 
                 <td>{job.brandName}</td>
@@ -234,7 +234,7 @@ function JobTracker() {
                   <span className={getPriorityClass(job.priority)}>{job.priority}</span>
                 </td>
                 <td>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
-                <td>{job.assign}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{job.assign}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
                 <td>
                   <span className={`badge ${getStatusClass(job.Status)} px-2 py-1`}>
@@ -282,8 +282,8 @@ function JobTracker() {
             ))}
             <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
               <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
-      
-                    <span aria-hidden="true">&raquo;</span>
+
+                <span aria-hidden="true">&raquo;</span>
               </button>
             </li>
           </ul>

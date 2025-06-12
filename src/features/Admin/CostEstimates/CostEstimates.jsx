@@ -8,7 +8,7 @@ import { FaDownload, FaTrash } from "react-icons/fa";
 import Swal from 'sweetalert2';
 import { fetchProject } from "../../../redux/slices/ProjectsSlice";
 import { fetchClient } from "../../../redux/slices/ClientSlice";
-import { createReceivablePurchase } from "../../../redux/slices/receivablePurchaseSlice";
+import { createReceivablePurchase, fetchReceivablePurchases } from "../../../redux/slices/receivablePurchaseSlice";
 import { jsPDF } from "jspdf";
 import autoTable from 'jspdf-autotable'; 
 
@@ -20,13 +20,15 @@ function CostEstimates() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState(null);
   const [sortDirection, setSortDirection] = useState("asc");
-  const [showAddPOModal, setShowAddPOModal] = useState(false);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [selectedPO, setSelectedPO] = useState(null);
-
+  const [showAddPOModal, setShowAddPOModal] = useState(false);
+  
   // PO Form states
   const [selectedProjectId, setSelectedProjectId] = useState("");
   const [selectedClientId, setSelectedClientId] = useState("");
+  const [costEstimatesId, setCostEstimatesId] = useState("");
+  
   const [poDate, setPODate] = useState("");
   const [status, setStatus] = useState("");
   const [amount, setAmount] = useState("");
@@ -66,38 +68,69 @@ function CostEstimates() {
     }
   };
 
-  const handleSavePO = () => {
-    if (!selectedProjectId || !selectedClientId || !poDate || !status || !amount) {
+
+const handleSavePO = async () => {
+  if (!selectedProjectId || !selectedClientId || !poDate || !status || !amount) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Required Fields Missing',
+      text: 'Please fill all required fields'
+    });
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('projectsId', JSON.stringify([selectedProjectId]));
+  formData.append('ClientId', selectedClientId);
+  formData.append('ReceivedDate', poDate);
+  formData.append('Status', status);
+  formData.append('Amount', amount);
+  formData.append('CostEstimatesId', JSON.stringify([costEstimatesId]));
+
+  if (poDocument) {
+    formData.append('image', poDocument);
+  }
+
+  try {
+    const result = await dispatch(createReceivablePurchase(formData));
+
+    // Agar API success ho jaye tab fetch karo
+    if (createReceivablePurchase.fulfilled.match(result)) {
+      Swal.fire({
+        icon: 'success',
+        title: 'PO Created',
+        text: 'Purchase order created successfully'
+      });
+
+      // Reset fields
+      setSelectedProjectId("");
+      setSelectedClientId("");
+      setCostEstimatesId("");
+      setPODate("");
+      setStatus("");
+      setAmount("");
+      setPODocument(null);
+      setShowAddPOModal(false);
+
+      // ✅ Now fetch updated list
+      dispatch(fetchReceivablePurchases());
+      navigate("/admin/receivable");
+    } else {
       Swal.fire({
         icon: 'error',
-        title: 'Required Fields Missing',
-        text: 'Please fill all required fields'
+        title: 'Creation Failed',
+        text: 'Failed to create purchase order.'
       });
-      return;
     }
-
-    const formData = new FormData();
-    formData.append('projectsId', JSON.stringify([selectedProjectId]));
-    formData.append('ClientId', selectedClientId);
-    formData.append('ReceivedDate', poDate);
-    formData.append('Status', status);
-    formData.append('Amount', amount);
-
-    if (poDocument) {
-      formData.append('image', poDocument);
-    }
-
-    dispatch(createReceivablePurchase(formData));
-
-    setSelectedProjectId("");
-    setSelectedClientId("");
-    setPODate("");
-    setStatus("");
-    setAmount("");
-    setPODocument(null);
-    setShowAddPOModal(false);
-    navigate("/admin/receivable")
-  };
+  } catch (err) {
+    console.error("Error creating PO:", err);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Something went wrong while creating purchase order.'
+    });
+  }
+};
 
 
   // Convert to Invoice handler
@@ -105,7 +138,6 @@ function CostEstimates() {
     setSelectedPO(po);
     setShowInvoiceModal(true);
   };
-
 
 
   // Add PO Modal
@@ -731,9 +763,16 @@ const numberToWords = (num) => {
                   <div className="d-flex gap-2">
                     <button className="btn btn-sm btn-primary" onClick={() => Duplicate(po)}>Duplicate</button>
                     <button className="btn btn-sm btn-primary" onClick={() => handleConvertToInvoice(po)}>ConvertInvoice</button>
-                    <button className="btn btn-sm btn-success" onClick={() => setShowAddPOModal(true)}>
-                      AddPO
-                    </button>
+                  <button
+  className="btn btn-sm btn-success"
+  onClick={() => {
+    setCostEstimatesId(po._id); // Store the ID
+    setShowAddPOModal(true);   // Open Modal
+  }}
+>
+  Add PO
+</button>
+
                     <button className="btn btn-sm btn-outline-primary" onClick={() => UpdateEstimate(po)}><BsPencil /></button>
                     {/* <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(po._id)}>
                           <FaTrash />

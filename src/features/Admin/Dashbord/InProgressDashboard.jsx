@@ -191,14 +191,14 @@ function InProgressDashboard() {
                   </td>
                   <td>
                     <div className="action-buttons d-flex">
-                      <Button
+                      {/* <Button
                         style={{ color: "#0d6efd" }}
                         variant="link"
                         className="p-0 me-2"
                         onClick={() => handleUpdate(project)}
                       >
                         <FaEdit />
-                      </Button>
+                      </Button> */}
                     </div>
                   </td>
                 </tr>

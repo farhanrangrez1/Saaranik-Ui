@@ -12,8 +12,8 @@ import "react-toastify/dist/ReactToastify.css";
 function ProjectJobsTab() {
   const location = useLocation();
   const params = useParams();
+  console.log("hello me project id", params);
   const id = location.state?.id || params.id;
-  console.log("hello me project id", id);
 
   const dispatch = useDispatch()
   const navigate = useNavigate()

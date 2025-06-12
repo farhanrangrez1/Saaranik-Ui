@@ -178,7 +178,7 @@ function CostEstimatesDashbord() {
             case "in progress":
             case "pending":
                 return "bg-warning text-dark";
-      
+
         }
     };
 
@@ -207,24 +207,24 @@ function CostEstimatesDashbord() {
     }
 
     // PAGINATION SETUP FOR ESTIMATES
- const [currentPage, setCurrentPage] = useState(1);
-const itemsPerPage = 7;
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 7;
 
-// Filter only pending estimates
-const filteredEstimates = estimates?.costEstimates?.filter(
-  (proj) =>
-    (proj.POStatus || "").toLowerCase().replace(/\s|_/g, "") === "pending"
-) || [];
+    // Filter only pending estimates
+    const filteredEstimates = estimates?.costEstimates?.filter(
+        (proj) =>
+            (proj.POStatus || "").toLowerCase().replace(/\s|_/g, "") === "pending"
+    ) || [];
 
-// Calculate pagination based on filtered data
-const totalItems = filteredEstimates.length;
-const totalPages = Math.ceil(totalItems / itemsPerPage);
+    // Calculate pagination based on filtered data
+    const totalItems = filteredEstimates.length;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-// Apply pagination to filtered data
-const paginatedEstimates = filteredEstimates
-  .slice()
-  .reverse()
-  .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    // Apply pagination to filtered data
+    const paginatedEstimates = filteredEstimates
+        .slice()
+        .reverse()
+        .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
 
     return (
@@ -333,19 +333,11 @@ const paginatedEstimates = filteredEstimates
                                 <td><input type="checkbox" /></td>
                                 <td onClick={() => CreatJobs(po.projectId)}>
                                     <Link style={{ textDecoration: 'none', border: 'none', color: 'inherit' }}>
-                                        CE-{String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}
+                                        {po.estimateRef}
                                     </Link>
                                 </td>
                                 <td>{new Date(po.estimateDate).toLocaleDateString("en-GB").slice(0, 8)}</td>
-                                <td>
-                                    {
-                                        Array.isArray(po.clientId)
-                                            ? po.clientId.map((client, i) => `${String(i + 1).padStart(4, '0')} (${client._id})`).join(", ")
-                                            : po.clientId
-                                                ? `${String(1).padStart(4, '0')} `
-                                                : "N/A"
-                                    }
-                                </td>
+                                <td>{po.clientId[0]?.clientName || 'N/A'}</td>
                                 <td>
                                     {po.projectId?.map((project, i) => `${String(i + 1).padStart(4, '0')}`).join(", ")}
                                 </td>
@@ -356,12 +348,12 @@ const paginatedEstimates = filteredEstimates
                                     {po.lineItems?.reduce((total, item) => total + (item.amount || 0), 0).toFixed(2)}
                                 </td>
                                 <td>
-                                    <span className={`badge ${getStatusClass(po.Status)} px-2 py-1`}>
+                                    <span style={{color:"black"}} className={`badge ${getStatusClass(po.Status)} px-2 py-1`}>
                                         {po.POStatus}
                                     </span>
                                 </td>
                                 <td>
-                                    <span className={` badge ${getStatusClass(po.Status)} px-2 py-1`}>
+                                    <span style={{color:"black"}} className={`badge ${getStatusClass(po.Status)} px-2 py-1`}>
                                         {po.Status}
                                     </span>
                                 </td>
@@ -543,11 +535,11 @@ const paginatedEstimates = filteredEstimates
                         Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems}
                     </div>
                     <ul className="pagination pagination-sm mb-0">
-                 <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
-                 <span aria-hidden="true">&laquo;</span>
-              </button>
-            </li>
+                        <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                            <button className="page-link" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
+                                <span aria-hidden="true">&laquo;</span>
+                            </button>
+                        </li>
                         {Array.from({ length: totalPages }, (_, i) => (
                             <li key={i + 1} className={`page-item ${currentPage === i + 1 ? 'active' : ''}`}>
                                 <button className="page-link" onClick={() => setCurrentPage(i + 1)}>
@@ -555,11 +547,11 @@ const paginatedEstimates = filteredEstimates
                                 </button>
                             </li>
                         ))}
-               <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
-                 <span aria-hidden="true">&raquo;</span>
-              </button>
-            </li>
+                        <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                            <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
+                                <span aria-hidden="true">&raquo;</span>
+                            </button>
+                        </li>
                     </ul>
                 </div>
 

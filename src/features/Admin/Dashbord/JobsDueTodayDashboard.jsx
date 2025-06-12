@@ -160,7 +160,7 @@ function JobsDueTodayDashboard() {
               <th>Assign</th>
               <th>TotalTime</th>
               <th>Status</th>
-              <th>Actions</th>
+              {/* <th>Actions</th> */}
             </tr>
           </thead>
           <tbody>
@@ -203,7 +203,7 @@ function JobsDueTodayDashboard() {
                   </span>
                 </td>
                 <td className="d-flex">
-                  <button
+                  {/* <button
                     className="btn btn-sm btn-outline-primary me-1"
                     onClick={() => JobDetails(job)}
                   >
@@ -214,7 +214,7 @@ function JobsDueTodayDashboard() {
                     onClick={() => handleUpdate(job)}
                   >
                     <i className="bi bi-pencil"></i> Edit
-                  </button>
+                  </button> */}
                   {/* <button
                     className="btn btn-sm btn-outline-danger"
                     onClick={() => handleDelete(job._id)}

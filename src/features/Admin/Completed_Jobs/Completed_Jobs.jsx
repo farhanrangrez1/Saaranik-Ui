@@ -54,8 +54,6 @@ function Completed_Jobs() {
 
   const getStatusClass = (status) => {
     switch ((status || "").toLowerCase().trim()) {
-      case "in progress":
-      case "in_progress": return "bg-warning text-dark";
       case "review": return "bg-info text-dark";
       case "not started": return "bg-secondary text-white";
       case "completed": return "bg-success text-white";
@@ -192,7 +190,7 @@ const paginatedProjects = filteredProjects.slice(
                   <td>{job.packCode}</td>
                   <td><span className={getPriorityClass(job.priority)}>{job.priority}</span></td>
                   <td>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
-                  <td onClick={() => handleDesignerClick(job)} style={{ cursor: 'pointer', color: 'darkblue' }}>
+                  <td onClick={() => handleDesignerClick(job)} style={{ whiteSpace: 'nowrap',cursor: 'pointer', color: 'darkblue' }}>
                     {job.assign}
                   </td>
                   <td>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>

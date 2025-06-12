@@ -18,9 +18,9 @@ function ProjectOverview() {
   }, [location.state]);
 
   const projectData = {
-    title: 'Website Redesign Project',
-    projectId: 'P00001',
-    client: 'Acme Corporation',
+    title: 'Saaranik',
+    projectId: '0001',
+    client: 'Tesco PLC',
     progress: 60,
     daysRemaining: 45,
     dueDate: 'Jan 30, 2025',
