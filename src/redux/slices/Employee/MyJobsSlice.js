@@ -51,6 +51,39 @@ export const fetchMyJobs = createAsyncThunk(
 );
 
 
+
+export const EmployeeDashboardData = createAsyncThunk(
+  'ProjectJob/fetchMyJobs',
+  async (Status, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem('encode');
+
+      if (!token) {
+        return rejectWithValue("Token or IV is missing in localStorage");
+      }
+      const decryptedToken = decryptToken(token);  
+      //  console.log("Decrypted Token:", decryptedToken);
+
+      const tokenParts = decryptedToken.split('.');
+      if (tokenParts.length !== 3) {
+        return rejectWithValue("Invalid token format");
+      }
+      const decodedPayload = JSON.parse(atob(tokenParts[1]));
+       const userId = decodedPayload.id;
+      // console.log("Decoded Payload:", decodedPayload);
+    
+      // Construct the URL with the user ID and Status
+      const response = await axiosInstance.get(
+        `${apiUrl}/employee/dashboard/${userId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error occurred while fetching jobs:", error);
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
 export const createjob = createAsyncThunk(
   'job/createjob',
   async (submissionData, { rejectWithValue }) => {
@@ -116,9 +149,7 @@ export const UpdateJobAssign = createAsyncThunk('MyJobs/updatejob', async ({ id,
     },
     body: JSON.stringify({ id, assign }),
   });
-
   if (!response.ok) throw new Error("Failed to update MyJobs");
-
   return await response.json();
 });
 

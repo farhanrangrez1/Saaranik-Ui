@@ -93,7 +93,7 @@ const cancelledProjectsCount = projects.filter(
 
 // Chart data
 const projectStatusData = {
-  labels: ['Active', 'Completed', 'Pending', 'Cancelled'],
+  labels: ['Active Project', 'Completed', 'Pending', 'Cancelled'],
   datasets: [{
     data: [
       activeProjectsCount,
@@ -105,6 +105,7 @@ const projectStatusData = {
     borderWidth: 0,
   }],
 };
+
 
   return (
     <Container fluid className="container p-3">

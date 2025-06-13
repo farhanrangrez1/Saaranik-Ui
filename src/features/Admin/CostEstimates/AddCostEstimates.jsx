@@ -18,8 +18,8 @@ const currencies = [
   { label: "SAR - Saudi Riyal", value: "SAR" },
 ];
 
-const poStatuses = ["Pending", "Approved", "Rejected"];
-const statuses = ["Active", "Inactive", "Completed"];
+const poStatuses = ["Approved","pending",  "Rejected"];
+const statuses = [ "Active", "Inactive", "Completed"];
 
 function AddCostEstimates() {
   const location = useLocation();
@@ -64,8 +64,8 @@ function AddCostEstimates() {
     validUntil: "",
     Notes: "",
     currency: "USD",
-    POStatus: "Pending",
-    Status: "Active",
+    POStatus: "",
+    Status: "",
   });
 
   useEffect(() => {

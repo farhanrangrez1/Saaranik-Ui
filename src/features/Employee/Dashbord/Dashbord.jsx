@@ -1,7 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, Row, Col, Badge, ProgressBar, Dropdown } from 'react-bootstrap';
-import { BsCalendar, BsClock, BsCheckCircle, BsThreeDotsVertical, BsChevronDown,BsFilter  } from 'react-icons/bs';
+import { BsCalendar, BsClock, BsCheckCircle, BsThreeDotsVertical, BsChevronDown, BsFilter } from 'react-icons/bs';
 import { FaTrophy, FaRegCalendarAlt, FaTasks } from 'react-icons/fa';
 
 // Import Inter font
@@ -12,9 +12,26 @@ import '@fontsource/inter/700.css';
 
 // Import custom styles
 import './Dashbord.css';
+import { useDispatch, useSelector } from 'react-redux';
+import { EmployeeDashboardData } from '../../../redux/slices/Employee/MyJobsSlice';
+
 
 const EmployeeDashboard = () => {
   const [selectedTimeframe, setSelectedTimeframe] = useState('This Week');
+  const dispatch =useDispatch()
+
+
+  const { myjobs, loading, error } = useSelector((state) => state.MyJobs);
+
+  useEffect(() => {
+    dispatch(EmployeeDashboardData());
+  }, [dispatch]);
+
+  const summary = myjobs?.data?.summary || {};
+  const todaysPerformance = myjobs?.data?.todaysPerformance || {};
+  const weeklyPerformance = myjobs?.data?.weeklyPerformance || {};
+
+
 
   // Mock data for productivity leaderboard
   const leaderboardData = [
@@ -56,7 +73,7 @@ const EmployeeDashboard = () => {
     },
     {
       title: 'Q2 Sales Report',
-      priority: 'Medium', 
+      priority: 'Medium',
       dueDate: 'Friday',
       assignedTo: 'James Wilson',
       time: '3:00 PM'
@@ -79,17 +96,17 @@ const EmployeeDashboard = () => {
   };
 
   // Mock data for today's performance
-  const todaysPerformance = {
-    timeLogged: '4h 30m',
-    weeklyHours: {
-      completed: 22,
-      total: 40,
-      percentage: 55
-    }
-  };
+  // const todaysPerformance = {
+  //   timeLogged: '4h 30m',
+  //   weeklyHours: {
+  //     completed: 22,
+  //     total: 40,
+  //     percentage: 55
+  //   }
+  // };
 
   const getPriorityClass = (priority) => {
-    switch(priority.toLowerCase()) {
+    switch (priority.toLowerCase()) {
       case 'high': return 'danger';
       case 'medium': return 'warning';
       case 'normal': return 'success';
@@ -98,7 +115,7 @@ const EmployeeDashboard = () => {
   };
 
   const getPriorityBgClass = (priority) => {
-    switch(priority.toLowerCase()) {
+    switch (priority.toLowerCase()) {
       case 'high': return 'bg-danger-subtle text-danger';
       case 'medium': return 'bg-warning-subtle text-warning';
       case 'normal': return 'bg-success-subtle text-success';
@@ -107,18 +124,20 @@ const EmployeeDashboard = () => {
   };
 
   const getDueDateClass = (dueDate) => {
-    switch(dueDate.toLowerCase()) {
+    switch (dueDate.toLowerCase()) {
       case 'tomorrow': return 'bg-danger-subtle text-danger';
       case 'friday': return 'bg-warning-subtle text-warning';
       default: return 'bg-warning-subtle text-warning';
     }
   };
 
+  
+
   return (
     <div className="p-4" >
 
       {/* Metrics Cards */}
-      <Row className="g-4 mb-4">
+     <Row className="g-4 mb-4">
         <Col xs={6} md={3}>
           <Card style={{ borderRadius: '16px', boxShadow: '0 2px 4px rgba(145, 158, 171, 0.16)', border: 'none' }}>
             <Card.Body className="d-flex align-items-center">
@@ -126,12 +145,13 @@ const EmployeeDashboard = () => {
                 <FaTasks style={{ color: '#2065D1' }} size={24} />
               </div>
               <div>
-                <div style={{ fontSize: '32px', fontWeight: '700', color: '#212B36', lineHeight: '1.2' }}>12</div>
+                <div style={{ fontSize: '32px', fontWeight: '700', color: '#212B36', lineHeight: '1.2' }}>{summary.activeTasks || 0}</div>
                 <div style={{ color: '#637381', fontSize: '14px' }}>Active Tasks</div>
               </div>
             </Card.Body>
           </Card>
         </Col>
+
         <Col xs={6} md={3}>
           <Card style={{ borderRadius: '16px', boxShadow: '0 2px 4px rgba(145, 158, 171, 0.16)', border: 'none' }}>
             <Card.Body className="d-flex align-items-center">
@@ -139,12 +159,13 @@ const EmployeeDashboard = () => {
                 <BsClock style={{ color: '#FFB020' }} size={24} />
               </div>
               <div>
-                <div style={{ fontSize: '32px', fontWeight: '700', color: '#212B36', lineHeight: '1.2' }}>32.5h</div>
+                <div style={{ fontSize: '32px', fontWeight: '700', color: '#212B36', lineHeight: '1.2' }}>{summary.hoursLogged || "0h"}</div>
                 <div style={{ color: '#637381', fontSize: '14px' }}>Hours Logged</div>
               </div>
             </Card.Body>
           </Card>
         </Col>
+
         <Col xs={6} md={3}>
           <Card style={{ borderRadius: '16px', boxShadow: '0 2px 4px rgba(145, 158, 171, 0.16)', border: 'none' }}>
             <Card.Body className="d-flex align-items-center">
@@ -152,12 +173,13 @@ const EmployeeDashboard = () => {
                 <BsCheckCircle style={{ color: '#36B37E' }} size={24} />
               </div>
               <div>
-                <div style={{ fontSize: '32px', fontWeight: '700', color: '#212B36', lineHeight: '1.2' }}>8</div>
+                <div style={{ fontSize: '32px', fontWeight: '700', color: '#212B36', lineHeight: '1.2' }}>{summary.completedTasks || 0}</div>
                 <div style={{ color: '#637381', fontSize: '14px' }}>Completed Tasks</div>
               </div>
             </Card.Body>
           </Card>
         </Col>
+
         <Col xs={6} md={3}>
           <Card style={{ borderRadius: '16px', boxShadow: '0 2px 4px rgba(145, 158, 171, 0.16)', border: 'none' }}>
             <Card.Body className="d-flex align-items-center">
@@ -165,16 +187,145 @@ const EmployeeDashboard = () => {
                 <FaTrophy style={{ color: '#FF4842' }} size={24} />
               </div>
               <div>
-                <div style={{ fontSize: '32px', fontWeight: '700', color: '#212B36', lineHeight: '1.2' }}>95%</div>
+                <div style={{ fontSize: '32px', fontWeight: '700', color: '#212B36', lineHeight: '1.2' }}>{summary.performance || 0}%</div>
                 <div style={{ color: '#637381', fontSize: '14px' }}>Performance</div>
               </div>
             </Card.Body>
           </Card>
         </Col>
       </Row>
-      
+
       <Row className="g-4">
-        {/* Productivity Leaderboard */}
+        <Col md={6}>
+          <div className="weekly-summary-container">
+            <div className="weekly-summary-header">
+              <h5 className="weekly-summary-title">
+                <FaTrophy className="me-2" />
+                Weekly Performance
+              </h5>
+              <div className="week-selector">
+                <span>This Week</span>
+                <BsChevronDown size={12} />
+              </div>
+            </div>
+
+            <div className="achievement-grid">
+              <div className="achievement-card">
+                <div className="achievement-icon achievement-icon-primary">
+                  <FaTasks size={20} />
+                </div>
+                <div className="achievement-content">
+                  <div className="achievement-value">{weeklyPerformance.tasksCompleted || 0}</div>
+                  <div className="achievement-label">Tasks Completed</div>
+                  <div className="achievement-trend positive">
+                    {weeklyPerformance.compare?.tasksCompleted}
+                  </div>
+                </div>
+              </div>
+
+              <div className="achievement-card">
+                <div className="achievement-icon achievement-icon-success">
+                  <BsClock size={20} />
+                </div>
+                <div className="achievement-content">
+                  <div className="achievement-value">{weeklyPerformance.hoursLogged || "0h"}</div>
+                  <div className="achievement-label">Hours Logged</div>
+                  <div className="achievement-trend positive">
+                    {weeklyPerformance.compare?.hoursLogged}
+                  </div>
+                </div>
+              </div>
+
+              <div className="achievement-card">
+                <div className="achievement-icon achievement-icon-info">
+                  <FaTrophy size={20} />
+                </div>
+                <div className="achievement-content">
+                  <div className="achievement-value">{weeklyPerformance.goalProgress || 0}%</div>
+                  <div className="achievement-label">Goal Progress</div>
+                  <div className="achievement-trend neutral">
+                    {/* You can map status here */}
+                  </div>
+                </div>
+              </div>
+
+              <div className="achievement-card">
+                <div className="achievement-icon achievement-icon-warning">
+                  <FaRegCalendarAlt size={20} />
+                </div>
+                <div className="achievement-content">
+                  <div className="achievement-value">{weeklyPerformance.dueThisWeek || 0}</div>
+                  <div className="achievement-label">Due This Week</div>
+                  <div className="achievement-trend negative">
+                    {weeklyPerformance.compare?.dueTasks}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Col>
+
+        <Col md={6}>
+          <div className="daily-performance-container">
+            <div className="daily-performance-header">
+              <h5 className="daily-performance-title">
+                <BsClock className="me-2" />
+                Today's Performance
+              </h5>
+              <div className="performance-date">
+                <FaRegCalendarAlt size={14} className="me-2" />
+                {todaysPerformance.date}
+              </div>
+            </div>
+
+            <div className="time-stats-container">
+              <div className="time-stat-card">
+                <div className="time-stat-icon">
+                  <BsClock size={20} />
+                </div>
+                <div className="time-stat-content">
+                  <div className="time-stat-value">{todaysPerformance.hoursToday || "0h"}</div>
+                  <div className="time-stat-label">Hours Today</div>
+                </div>
+                <div className="time-stat-trend positive">
+                  {todaysPerformance.compare?.hoursToday}
+                </div>
+              </div>
+
+              <div className="time-stat-card">
+                <div className="time-stat-icon time-stat-icon-purple">
+                  <BsCalendar size={20} />
+                </div>
+                <div className="time-stat-content">
+                  <div className="time-stat-value">
+                    {todaysPerformance.weeklyHours?.logged || "0h"}/{todaysPerformance.weeklyHours?.target || "0h"}
+                  </div>
+                  <div className="time-stat-label">Weekly Hours</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="goal-progress-container">
+              <div className="goal-progress-header">
+                <div className="goal-label">Weekly Goal Progress</div>
+                <div className="goal-percentage">{todaysPerformance.goalProgress?.percent || 0}%</div>
+              </div>
+              <div className="goal-progress-bar">
+                <div className="goal-progress-value" style={{ width: `${todaysPerformance.goalProgress?.percent || 0}%` }} />
+              </div>
+              <div className="goal-progress-footer">
+                <div className="goal-status">
+                  <span className="status-dot status-dot-success"></span>
+                  {todaysPerformance.goalProgress?.status}
+                </div>
+                <div className="goal-remaining">{todaysPerformance.goalProgress?.remainingHours} remaining</div>
+              </div>
+            </div>
+          </div>
+        </Col>
+      </Row>
+
+      {/* <Row className="g-4">
         <Col md={6}>
           <Card style={{ borderRadius: '16px', boxShadow: '0 2px 4px rgba(145, 158, 171, 0.16)', border: 'none' }}>
             <Card.Header className="bg-white border-0 d-flex justify-content-between align-items-center py-3">
@@ -201,14 +352,14 @@ const EmployeeDashboard = () => {
                 }}>
                   <div className="d-flex align-items-center">
                     <div className="me-3" style={{ fontWeight: '700', color: '#212B36', fontSize: '16px' }}>{index + 1}</div>
-                    <div className="rounded-circle me-3 d-flex align-items-center justify-content-center" 
-                         style={{
-                           width: '40px',
-                           height: '40px',
-                           backgroundColor: index === 0 ? '#FFB020' : '#F4F6F8',
-                           color: index === 0 ? 'white' : '#637381',
-                           fontWeight: '600'
-                         }}>
+                    <div className="rounded-circle me-3 d-flex align-items-center justify-content-center"
+                      style={{
+                        width: '40px',
+                        height: '40px',
+                        backgroundColor: index === 0 ? '#FFB020' : '#F4F6F8',
+                        color: index === 0 ? 'white' : '#637381',
+                        fontWeight: '600'
+                      }}>
                       {user.avatar}
                     </div>
                     <div className="flex-grow-1">
@@ -216,8 +367,8 @@ const EmployeeDashboard = () => {
                         <div className="d-flex align-items-center">
                           <h6 className="mb-0" style={{ color: '#212B36', fontWeight: '600' }}>{user.name}</h6>
                           {user.isTopPerformer && (
-                            <span className="ms-2 px-2 py-1" style={{ 
-                              color: '#FFB020', 
+                            <span className="ms-2 px-2 py-1" style={{
+                              color: '#FFB020',
                               fontSize: '12px',
                               backgroundColor: '#FFF7CD',
                               borderRadius: '6px',
@@ -225,8 +376,8 @@ const EmployeeDashboard = () => {
                             }}>Top Performer</span>
                           )}
                           {user.positionChange && (
-                            <span className="ms-2 px-2 py-1" style={{ 
-                              color: '#36B37E', 
+                            <span className="ms-2 px-2 py-1" style={{
+                              color: '#36B37E',
                               fontSize: '12px',
                               backgroundColor: '#E8FFF3',
                               borderRadius: '6px',
@@ -236,8 +387,8 @@ const EmployeeDashboard = () => {
                         </div>
                         <span style={{ fontWeight: '700', color: index === 0 ? '#FFB020' : '#2065D1', fontSize: '16px' }}>{user.efficiency}%</span>
                       </div>
-                      <ProgressBar 
-                        now={user.efficiency} 
+                      <ProgressBar
+                        now={user.efficiency}
                         style={{
                           height: '8px',
                           backgroundColor: '#F4F6F8',
@@ -262,7 +413,6 @@ const EmployeeDashboard = () => {
           </Card>
         </Col>
 
-        {/* Upcoming Deadlines */}
         <Col md={6}>
           <Card className="h-100" style={{ borderRadius: '16px', boxShadow: '0 2px 4px rgba(145, 158, 171, 0.16)', border: 'none' }}>
             <Card.Header className="bg-white border-0 d-flex justify-content-between align-items-center py-3">
@@ -342,143 +492,10 @@ const EmployeeDashboard = () => {
             </Card.Body>
           </Card>
         </Col>
-
-        {/* Weekly Performance Summary */}
-        <Col md={6}>
-          <div className="weekly-summary-container">
-            <div className="weekly-summary-header">
-              <h5 className="weekly-summary-title">
-                <FaTrophy className="me-2" />
-                Weekly Performance
-              </h5>
-              <div className="week-selector">
-                <span>This Week</span>
-                <BsChevronDown size={12} />
-              </div>
-            </div>
-
-            <div className="achievement-grid">
-              <div className="achievement-card">
-                <div className="achievement-icon achievement-icon-primary">
-                  <FaTasks size={20} />
-                </div>
-                <div className="achievement-content">
-                  <div className="achievement-value">{taskOverview.completed}</div>
-                  <div className="achievement-label">Tasks Completed</div>
-                  <div className="achievement-trend positive">
-                    <span>↑ 12%</span> vs last week
-                  </div>
-                </div>
-              </div>
-
-              <div className="achievement-card">
-                <div className="achievement-icon achievement-icon-success">
-                  <BsClock size={20} />
-                </div>
-                <div className="achievement-content">
-                  <div className="achievement-value">{todaysPerformance.weeklyHours.completed}h</div>
-                  <div className="achievement-label">Hours Logged</div>
-                  <div className="achievement-trend positive">
-                    <span>↑ 8%</span> vs target
-                  </div>
-                </div>
-              </div>
-
-              <div className="achievement-card">
-                <div className="achievement-icon achievement-icon-info">
-                  <FaTrophy size={20} />
-                </div>
-                <div className="achievement-content">
-                  <div className="achievement-value">92%</div>
-                  <div className="achievement-label">Goal Progress</div>
-                  <div className="achievement-trend neutral">
-                    On track
-                  </div>
-                </div>
-              </div>
-
-              <div className="achievement-card">
-                <div className="achievement-icon achievement-icon-warning">
-                  <FaRegCalendarAlt size={20} />
-                </div>
-                <div className="achievement-content">
-                  <div className="achievement-value">{taskOverview.pending}</div>
-                  <div className="achievement-label">Due This Week</div>
-                  <div className="achievement-trend negative">
-                    <span>↑ 3</span> from yesterday
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </Col>
-
-        {/* Today's Performance */}
-        <Col md={6}>
-          <div className="daily-performance-container">
-            <div className="daily-performance-header">
-              <h5 className="daily-performance-title">
-                <BsClock className="me-2" />
-                Today's Performance
-              </h5>
-              <div className="performance-date">
-                <FaRegCalendarAlt size={14} className="me-2" />
-                {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
-              </div>
-            </div>
-
-            <div className="time-stats-container">
-              <div className="time-stat-card">
-                <div className="time-stat-icon">
-                  <BsClock size={20} />
-                </div>
-                <div className="time-stat-content">
-                  <div className="time-stat-value">{todaysPerformance.timeLogged}</div>
-                  <div className="time-stat-label">Hours Today</div>
-                </div>
-                <div className="time-stat-trend positive">
-                  <span>↑ 2h</span> vs. yesterday
-                </div>
-              </div>
-
-              <div className="time-stat-card">
-                <div className="time-stat-icon time-stat-icon-purple">
-                  <BsCalendar size={20} />
-                </div>
-                <div className="time-stat-content">
-                  <div className="time-stat-value">
-                    {todaysPerformance.weeklyHours.completed}h
-                    <span className="time-stat-total">/{todaysPerformance.weeklyHours.total}h</span>
-                  </div>
-                  <div className="time-stat-label">Weekly Hours</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="goal-progress-container">
-              <div className="goal-progress-header">
-                <div className="goal-label">Weekly Goal Progress</div>
-                <div className="goal-percentage">{todaysPerformance.weeklyHours.percentage}%</div>
-              </div>
-              <div className="goal-progress-bar">
-                <div 
-                  className="goal-progress-value" 
-                  style={{ width: `${todaysPerformance.weeklyHours.percentage}%` }}
-                />
-              </div>
-              <div className="goal-progress-footer">
-                <div className="goal-status">
-                  <span className="status-dot status-dot-success"></span>
-                  On Track
-                </div>
-                <div className="goal-remaining">{40 - todaysPerformance.weeklyHours.completed}h remaining</div>
-              </div>
-            </div>
-          </div>
-        </Col>
-      </Row>
+      </Row> */}
     </div>
   );
 };
 
 export default EmployeeDashboard;
+
