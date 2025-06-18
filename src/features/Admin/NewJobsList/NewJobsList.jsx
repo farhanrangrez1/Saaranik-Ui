@@ -14,35 +14,37 @@ import {
   FaEdit,
 } from "react-icons/fa";
 import { Dropdown } from "react-bootstrap";
-import Swal from 'sweetalert2';
+import Swal from "sweetalert2";
 import { fetchusers } from "../../../redux/slices/userSlice";
 import { createAssigns } from "../../../redux/slices/AssignSlice";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-function NewJobsList() {
+function NewJobsList(){
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-  const [selectedProduction, setSelectedProduction] = useState('');
-  const [selectedAdditional, setSelectedAdditional] = useState('');
+  const [selectedProduction, setSelectedProduction] = useState("");
+  const [selectedAdditional, setSelectedAdditional] = useState("");
   const [selectedJob, setSelectedJob] = useState(null);
   const [attachedFile, setAttachedFile] = useState(null);
   const [selectedJobs, setSelectedJobs] = useState({});
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
   const [showAssignModal, setShowAssignModal] = useState(false);
-  const [selectedDesigner, setSelectedDesigner] = useState('');
-  const [assignmentDescription, setAssignmentDescription] = useState('');
+  const [selectedDesigner, setSelectedDesigner] = useState("");
+  const [assignmentDescription, setAssignmentDescription] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProject, setSelectedProject] = useState("All Projects");
   const [selectedPriority, setSelectedPriority] = useState("All Priorities");
   const [selectedStatus, setSelectedStatus] = useState("All Status");
   const [selectedStage, setSelectedStage] = useState("All Stages");
+  const [showModal, setShowModal] = useState(false);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
   const params = useParams();
   const id = location.state?.id || params.id;
-
 
   const jobs = [
     {
@@ -68,7 +70,6 @@ function NewJobsList() {
     },
   ];
 
-
   const handleShowDescription = (job) => {
     setSelectedJob(job);
     setShowModal(true);
@@ -92,19 +93,6 @@ function NewJobsList() {
     setShowAssignModal(true);
   };
 
-  // const handleRejectJobs = () => {
-  //   const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
-  //   if (selectedJobIds.length === 0) {
-  //     setErrorMessage("Please select at least 1 job to reject.");
-  //     setTimeout(() => setErrorMessage(""), 3000);
-  //     return;
-  //   }
-  //   // Success message
-  //   setSuccessMessage("Jobs rejected successfully.");
-  //   setTimeout(() => setSuccessMessage(""), 3000);
-  //   setSelectedJobs({});
-  // };
-
   const handleRejectJobs = () => {
     const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
     if (selectedJobIds.length === 0) {
@@ -112,7 +100,6 @@ function NewJobsList() {
       setTimeout(() => setErrorMessage(""), 3000);
       return;
     }
-    // Show rejection modal instead of success message
     setShowRejectModal(true);
   };
 
@@ -127,8 +114,6 @@ function NewJobsList() {
 
     console.log("Rejected job(s):", selectedJobIds, "Reason:", rejectionReason);
 
-    // Here, call your API if needed to mark jobs as rejected
-
     setSuccessMessage("Jobs rejected successfully.");
     setTimeout(() => setSuccessMessage(""), 3000);
 
@@ -137,20 +122,11 @@ function NewJobsList() {
     setShowRejectModal(false);
   };
 
-  // const handleSubmitRejection = () => {
-  //   console.log("Rejected job(s):", selectedJobs, "Reason:", rejectionReason);
-  //   setShowRejectModal(false);
-  //   setRejectionReason("");
-  // };
-
-
-  // ///
   const { job, loading, error } = useSelector((state) => state.jobs);
 
   useEffect(() => {
     dispatch(fetchjobs());
   }, [dispatch]);
-
 
   const getPriorityClass = (priority) => {
     switch ((priority || "").toLowerCase()) {
@@ -182,33 +158,35 @@ function NewJobsList() {
         return "bg-light text-dark";
     }
   };
+
   const filteredJobs = (job?.jobs || []).filter((j) => {
-    const search = searchQuery.toLowerCase();
+    const search = searchQuery.toLowerCase().trim();
 
     const matchesSearch =
-      j.jobNumber?.toLowerCase().includes(search) ||
-      j.project?.projectName?.toLowerCase().includes(search) ||
-      j.brandName?.toLowerCase().includes(search) ||
-      j.subBrand?.toLowerCase().includes(search) ||
-      j.flavour?.toLowerCase().includes(search) ||
-      j.packType?.toLowerCase().includes(search) ||
-      j.packSize?.toLowerCase().includes(search);
+      (j.JobNo?.toString().toLowerCase().includes(search) || false) ||
+      (j.projectId?.[0]?.projectName?.toLowerCase().includes(search) || false) ||
+      (j.brandName?.toLowerCase().includes(search) || false) ||
+      (j.subBrand?.toLowerCase().includes(search) || false) ||
+      (j.flavour?.toLowerCase().includes(search) || false) ||
+      (j.packType?.toLowerCase().includes(search) || false) ||
+      (j.packSize?.toLowerCase().includes(search) || false) ||
+      (j.packCode?.toLowerCase().includes(search) || false);
 
     const matchesProject =
       selectedProject === "All Projects" ||
-      j.project?.projectName === selectedProject;
+      (j.projectId?.[0]?.projectName?.toLowerCase() === selectedProject.toLowerCase());
 
     const matchesPriority =
       selectedPriority === "All Priorities" ||
-      j.priority?.toLowerCase() === selectedPriority.toLowerCase();
+      (j.priority?.toLowerCase() === selectedPriority.toLowerCase());
 
     const matchesStatus =
       selectedStatus === "All Status" ||
-      j.Status?.toLowerCase() === selectedStatus.toLowerCase();
+      (j.Status?.toLowerCase() === selectedStatus.toLowerCase());
 
     const matchesStage =
       selectedStage === "All Stages" ||
-      j.stage?.toLowerCase() === selectedStage.toLowerCase();
+      (j.stage?.toLowerCase() === selectedStage.toLowerCase());
 
     return (
       matchesSearch &&
@@ -225,7 +203,7 @@ function NewJobsList() {
 
   const JobDetails = (job) => {
     navigate(`/admin/OvervieJobsTracker`, { state: { job } });
-  }
+  };
 
   const handleCheckboxChange = (jobId) => {
     setSelectedJobs((prev) => ({
@@ -234,29 +212,28 @@ function NewJobsList() {
     }));
   };
 
-    const [selectedEmployee, setSelectedEmployee] = useState("");
-    const { userAll } = useSelector((state) => state.user);
-    console.log("data user", userAll?.data?.users);
-  
-    useEffect(() => {
-      dispatch(fetchusers());
-    }, [dispatch]);
+  const [selectedEmployee, setSelectedEmployee] = useState("");
+  const { userAll } = useSelector((state) => state.user);
 
-      const [currentAssignment, setCurrentAssignment] = useState(1);
-      const itemsAssignment = 10;
-    
-      const filteredAssignment = (userAll?.data?.users || []).filter(
-        (j) =>
-          ((j?.assign || "").toString().toLowerCase() ===
-            selectedDesigner.toLowerCase()) &&
-          selectedDesigner !== ""
-      );
-    
-      const paginatedAssignment = filteredAssignment.slice(
-        (currentAssignment - 1) * itemsAssignment,
-        currentAssignment * itemsAssignment
-      );
-    
+  useEffect(() => {
+    dispatch(fetchusers());
+  }, [dispatch]);
+
+  const [currentAssignment, setCurrentAssignment] = useState(1);
+  const itemsAssignment = 10;
+
+  const filteredAssignment = (userAll?.data?.users || []).filter(
+    (j) =>
+      ((j?.assign || "").toString().toLowerCase() ===
+        selectedDesigner.toLowerCase()) &&
+      selectedDesigner !== ""
+  );
+
+  const paginatedAssignment = filteredAssignment.slice(
+    (currentAssignment - 1) * itemsAssignment,
+    currentAssignment * itemsAssignment
+  );
+
   const handleSubmitAssignment = () => {
     const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
     const payload = {
@@ -265,20 +242,26 @@ function NewJobsList() {
       selectDesigner: selectedDesigner,
       description: assignmentDescription,
     };
-
     console.log("Assignment Payload:", payload);
-      dispatch(createAssigns(payload))
-        .unwrap()
-        .then(() => {
-          toast.success("Project updated successfully!");
-          navigate("/admin/projectList");
-        })
-        .catch(() => {
-          toast.error("Failed to update project!");
-        });
-    setShowAssignModal(false);
-    navigate("/admin/MyJobs")
-    setSelectedJobs(false)
+
+    dispatch(createAssigns(payload))
+      .unwrap()
+      .then((response) => {
+        console.log("API Response:", response);
+        if (response.success) {
+          toast.success(response.message || "Project Assigned Successfully!");
+          setShowAssignModal(false);
+          setSelectedJobs(false);
+          navigate("/admin/MyJobs");
+        } else {
+          setShowAssignModal(false);
+          toast.error(response.message || "Assignment failed!");
+        }
+      })
+      .catch((error) => {
+        console.error("API Error:", error);
+        toast.error(error.message || "Failed to update project!");
+      });
   };
 
   const handleJobAssign = (selectedIds, assignTo) => {
@@ -290,7 +273,6 @@ function NewJobsList() {
     dispatch(UpdateJobAssign(payload))
       .then(() => {
         // Swal.fire("Success!", "Jobs assigned successfully", "success");
-        // dispatch(fetchjobs());
       })
       .catch(() => {
         Swal.fire("Error!", "Something went wrong", "error");
@@ -300,21 +282,20 @@ function NewJobsList() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const filteredProjects = job?.jobs || [];
-  const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredJobs.length / itemsPerPage);
 
-  const paginatedProjects = filteredProjects.slice(
+  const paginatedProjects = filteredJobs.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+
   return (
-    <div className="container bg-white p-3 mt-4  rounded shadow-sm">
+    <div className="container bg-white p-3 mt-4 rounded shadow-sm">
       {/* Title */}
-      <div className="d-flex justify-content-between align-items-center ">
+      <div className="d-flex justify-content-between align-items-center">
         <h5 className="fw-bold m-0">Job Assign</h5>
         <div className="d-flex gap-2 ">
-          <Button onClick={handleRejectJobs} id="All_btn" className="m-2"
-            variant="primary">
+          <Button onClick={handleRejectJobs} id="All_btn" className="m-2" variant="primary">
             Reject
           </Button>
           <Button
@@ -352,31 +333,33 @@ function NewJobsList() {
       {/* Filters */}
       <div className="d-flex flex-wrap gap-2 mb-3 align-items-center">
         <Form.Control
-          type="text"
+          type="search"
           placeholder="Search jobs..."
-          className="w-auto"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          style={{ width: "250px" }}
         />
-        <Form.Select className="" style={{ width: "120px" }}>
-          <option>All Clients</option>
-        </Form.Select>
-
         <Dropdown>
           <Dropdown.Toggle variant="light" id="project-dropdown">
             {selectedProject}
           </Dropdown.Toggle>
           <Dropdown.Menu>
-            <Dropdown.Item onClick={() => setSelectedProject("All Projects")}>All Projects</Dropdown.Item>
-            {job?.jobs?.map((j, i) => (
-              <Dropdown.Item key={i} onClick={() => setSelectedProject(j.project?.projectName || "N/A")}>
-                {j.project?.projectName || "N/A"}
-              </Dropdown.Item>
-            ))}
+            <Dropdown.Item onClick={() => setSelectedProject("All Projects")}>
+              All Projects
+            </Dropdown.Item>
+            {[...new Set((job?.jobs || []).map((j) => j.projectId?.[0]?.projectName || "N/A"))].map(
+              (projectName, index) => (
+                <Dropdown.Item key={index} onClick={() => setSelectedProject(projectName)}>
+                  {projectName}
+                </Dropdown.Item>
+              )
+            )}
           </Dropdown.Menu>
         </Dropdown>
       </div>
 
       {/* Table */}
-      <div className="table-responsive" >
+      <div className="table-responsive">
         <Table hover className="align-middle sticky-header">
           <thead className="bg-light">
             <tr>
@@ -391,23 +374,19 @@ function NewJobsList() {
                     });
                     setSelectedJobs(newSelectedJobs);
                   }}
-                  checked={
-                    job?.jobs?.length > 0 &&
-                    job?.jobs?.every((j) => selectedJobs[j._id])
-                  }
+                  checked={job?.jobs?.length > 0 && job?.jobs?.every((j) => selectedJobs[j._id])}
                 />
               </th>
               <th>JobNo</th>
-              <th style={{ whiteSpace: 'nowrap' }}>Project Name</th>
+              <th style={{ whiteSpace: "nowrap" }}>Project Name</th>
               <th>Brand</th>
-              <th style={{ whiteSpace: 'nowrap' }}>Sub Brand</th>
+              <th style={{ whiteSpace: "nowrap" }}>Sub Brand</th>
               <th>Flavour</th>
               <th>PackType</th>
               <th>PackSize</th>
               <th>PackCode</th>
               <th>TimeLogged</th>
               <th>Due Date</th>
-              {/* <th>Assign</th> */}
               <th>Priority</th>
               <th>Status</th>
               <th>Actions</th>
@@ -424,18 +403,26 @@ function NewJobsList() {
                   />
                 </td>
                 <td onClick={() => JobDetails(job)}>
-                  <Link style={{ textDecoration: 'none' }}>{job.JobNo}</Link>
+                  <Link style={{ textDecoration: "none" }}>{job.JobNo}</Link>
                 </td>
-                <td style={{ whiteSpace: 'nowrap' }}>{job.projectId?.[0]?.projectName || 'N/A'}</td>
-                <td style={{ whiteSpace: 'nowrap' }}>{job.brandName}</td>
-                <td style={{ whiteSpace: 'nowrap' }}>{job.subBrand}</td>
-                <td style={{ whiteSpace: 'nowrap' }}>{job.flavour}</td>
-                <td style={{ whiteSpace: 'nowrap' }}>{job.packType}</td>
-                <td style={{ whiteSpace: 'nowrap' }}>{job.packSize}</td>
-                <td style={{ whiteSpace: 'nowrap' }}>{job?.packCode}</td>
-                <td style={{ whiteSpace: 'nowrap' }}>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
-                <td style={{ whiteSpace: 'nowrap' }}>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
-                {/* <td style={{ whiteSpace: 'nowrap' }}>{job.assign}</td> */}
+                <td style={{ whiteSpace: "nowrap" }}>
+                  {job.projectId?.[0]?.projectName || "N/A"}
+                </td>
+                <td style={{ whiteSpace: "nowrap" }}>{job.brandName}</td>
+                <td style={{ whiteSpace: "nowrap" }}>{job.subBrand}</td>
+                <td style={{ whiteSpace: "nowrap" }}>{job.flavour}</td>
+                <td style={{ whiteSpace: "nowrap" }}>{job.packType}</td>
+                <td style={{ whiteSpace: "nowrap" }}>{job.packSize}</td>
+                <td style={{ whiteSpace: "nowrap" }}>{job?.packCode}</td>
+                <td style={{ whiteSpace: "nowrap" }}>
+                  {new Date(job.updatedAt).toLocaleTimeString("en-US", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </td>
+                <td style={{ whiteSpace: "nowrap" }}>
+                  {new Date(job.createdAt).toLocaleDateString("en-GB")}
+                </td>
                 <td>
                   <span className={getPriorityClass(job.priority)}>{job.priority}</span>
                 </td>
@@ -446,15 +433,19 @@ function NewJobsList() {
                 </td>
                 <td>
                   <div className="d-flex gap-2">
-                    <Button id="icone_btn" size="sm"><FaFilePdf /></Button>
-                    <Button id="icone_btn" size="sm"><FaUpload /></Button>
-                    <Button id="icone_btn" size="sm"><FaLink /></Button>
-                    <Button id="icone_btn" size="sm"><FaClock /></Button>
-                    <Button
-                      id="icone_btn"
-                      size="sm"
-                      onClick={() => handleUpdate(job)}
-                    >
+                    <Button id="icone_btn" size="sm">
+                      <FaFilePdf />
+                    </Button>
+                    <Button id="icone_btn" size="sm">
+                      <FaUpload />
+                    </Button>
+                    <Button id="icone_btn" size="sm">
+                      <FaLink />
+                    </Button>
+                    <Button id="icone_btn" size="sm">
+                      <FaClock />
+                    </Button>
+                    <Button id="icone_btn" size="sm" onClick={() => handleUpdate(job)}>
                       <FaEdit />
                     </Button>
                   </div>
@@ -464,7 +455,6 @@ function NewJobsList() {
           </tbody>
         </Table>
       </div>
-
 
       {/* Assign Modal */}
       <Modal show={showAssignModal} onHide={() => setShowAssignModal(false)}>
@@ -498,10 +488,8 @@ function NewJobsList() {
                 <option value="">-- Select Employee --</option>
                 {paginatedAssignment.map((emp) => (
                   <option key={emp._id} value={emp._id}>
-                    {emp.firstName || 'Unnamed Employee'}_
-                    {emp.lastName || 'Unnamed Employee'}
+                    {emp.firstName || "Unnamed Employee"} {emp.lastName || "Unnamed Employee"}
                   </option>
-
                 ))}
               </Form.Select>
             </Form.Group>
@@ -527,7 +515,6 @@ function NewJobsList() {
           </Button>
         </Modal.Footer>
       </Modal>
-
 
       {/* Reject Modal */}
       <Modal show={showRejectModal} onHide={() => setShowRejectModal(false)}>
@@ -559,16 +546,16 @@ function NewJobsList() {
         </Modal.Footer>
       </Modal>
 
+      {/* Pagination */}
       {!loading && !error && (
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div className="text-muted small">
-            Showing {(currentPage - 1) * itemsPerPage + 1} to {(currentPage - 1) * itemsPerPage + paginatedProjects.length} of {filteredProjects.length}
+            Showing {(currentPage - 1) * itemsPerPage + 1} to {(currentPage - 1) * itemsPerPage + paginatedProjects.length} of {filteredJobs.length}
           </div>
           <ul className="pagination pagination-sm mb-0">
             <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
               <button className="page-link" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
                 <span aria-hidden="true">&laquo;</span>
-
               </button>
             </li>
             {Array.from({ length: totalPages }, (_, i) => (
@@ -580,7 +567,6 @@ function NewJobsList() {
             ))}
             <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
               <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
-
                 <span aria-hidden="true">&raquo;</span>
               </button>
             </li>

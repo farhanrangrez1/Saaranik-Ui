@@ -5,10 +5,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { deleteusers, fetchusers } from '../../../redux/slices/userSlice';
 import Swal from 'sweetalert2';
+import { Modal, Form, Table, Badge, Dropdown, Button } from "react-bootstrap";
 
 function UserRoles() {
   const dispatch = useDispatch()
   const navigate =useNavigate()
+  const [selectedPOStatus, setSelectedPOStatus] = useState("All Roles");
   const [users, setUsers] = useState([
     {
       id: 1,
@@ -40,11 +42,27 @@ function UserRoles() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 
-  // Filter users based on search term
-  const filteredUsers = users.filter(user =>
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const { userAll, loading, error } = useSelector((state) => state.user);
+
+  useEffect(() => {
+    dispatch(fetchusers());
+  }, [dispatch]);
+
+  // Enhanced filtering logic
+  const filteredUsers = (userAll?.data?.users || []).filter(user => {
+    const searchLower = searchTerm.toLowerCase().trim();
+    const matchesSearch = !searchTerm || 
+      (user.firstName || '').toLowerCase().includes(searchLower) ||
+      (user.lastName || '').toLowerCase().includes(searchLower) ||
+      (user.email || '').toLowerCase().includes(searchLower) ||
+      (user.role || '').toLowerCase().includes(searchLower) ||
+      (user.state || '').toLowerCase().includes(searchLower);
+
+    const matchesRole = selectedPOStatus === "All Roles" || 
+      (user.role || '').toLowerCase() === selectedPOStatus.toLowerCase();
+
+    return matchesSearch && matchesRole;
+  });
 
   // Calculate pagination
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -57,17 +75,10 @@ function UserRoles() {
     setCurrentPage(1);
   };
 
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
+  const handleRoleChange = (role) => {
+    setSelectedPOStatus(role);
+    setCurrentPage(1);
   };
-
-// ///////
-  const { userAll, loading, error } = useSelector((state) => state.user);
-  console.log("data user", userAll?.data?.users);
-
-  useEffect(() => {
-    dispatch(fetchusers());
-  }, [dispatch]);
 
   const handleDeleteUser = (_id) => {
     console.log(_id);
@@ -108,8 +119,23 @@ function UserRoles() {
       onChange={handleSearch}
       style={{ width: '200px' }}
     />
-    <button className="btn btn-outline-secondary">All Roles</button>
+     <Dropdown className="filter-dropdown">
+            <Dropdown.Toggle
+              variant="light"
+              id="viewall-dropdown"
+              className="custom-dropdown"
+            >
+              {selectedPOStatus}
+            </Dropdown.Toggle>
+            <Dropdown.Menu>
+              <Dropdown.Item onClick={() => handleRoleChange("All Roles")}>All Roles</Dropdown.Item>
+              <Dropdown.Item onClick={() => handleRoleChange("Admin")}>Admin</Dropdown.Item>
+              <Dropdown.Item onClick={() => handleRoleChange("Employee")}>Employee</Dropdown.Item>
+              <Dropdown.Item onClick={() => handleRoleChange("Client")}>Client</Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown>
   </div>
+
   <Link to="/admin/UserRoleModal">
     <button id="All_btn" className="btn btn-dark">
       + Add User
@@ -132,7 +158,7 @@ function UserRoles() {
                 </tr>
               </thead>
               <tbody>
-                {userAll?.data?.users?.slice().reverse().map(user => (
+                {currentUsers.map(user => (
                   <tr key={user._id}>
                     <td>
                       <div className="d-flex align-items-center">

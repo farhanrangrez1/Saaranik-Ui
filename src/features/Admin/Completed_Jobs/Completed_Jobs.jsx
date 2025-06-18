@@ -80,7 +80,26 @@ function Completed_Jobs() {
 const [currentPage, setCurrentPage] = useState(1);
 const itemsPerPage = 10;
 
-const filteredProjects = job?.jobs || [];
+const filteredProjects = (job?.jobs || []).filter((j) => {
+  const search = searchQuery.toLowerCase().trim();
+
+  const matchesSearch =
+    (j.JobNo?.toString().toLowerCase().includes(search) || false) ||
+    (j.projectId?.[0]?.projectName?.toLowerCase().includes(search) || false) ||
+    (j.brandName?.toLowerCase().includes(search) || false) ||
+    (j.subBrand?.toLowerCase().includes(search) || false) ||
+    (j.flavour?.toLowerCase().includes(search) || false) ||
+    (j.packType?.toLowerCase().includes(search) || false) ||
+    (j.packSize?.toLowerCase().includes(search) || false) ||
+    (j.packCode?.toLowerCase().includes(search) || false);
+
+  const matchesProject =
+    selectedProject === "All Projects" ||
+    (j.projectId?.[0]?.projectName?.toLowerCase() === selectedProject.toLowerCase());
+
+  return matchesSearch && matchesProject;
+});
+
 const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
 
 const paginatedProjects = filteredProjects.slice(
@@ -110,39 +129,34 @@ const paginatedProjects = filteredProjects.slice(
           </button>
         </div>
 
-        {/* Filters Section (Collapsible on small screens) */}
-        <Collapse in={showFilters || window.innerWidth >= 768}>
-          <div>
-            <div className="row mb-3 align-items-center">
-              <div className="col-12 d-flex flex-wrap gap-2">
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Search jobs..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  style={{ maxWidth: "200px" }}
-                />
-                <select className="form-select" style={{ maxWidth: "160px" }}>
-                  <option>All Time Periods</option>
-                </select>
-                <Dropdown>
-                  <Dropdown.Toggle variant="light" id="project-dropdown">
-                    {selectedProject}
-                  </Dropdown.Toggle>
-                  <Dropdown.Menu>
-                    <Dropdown.Item onClick={() => setSelectedProject("All Projects")}>All Projects</Dropdown.Item>
-                    {job?.jobs?.map((j, i) => (
-                      <Dropdown.Item key={i} onClick={() => setSelectedProject(j.project?.projectName || "N/A")}>
-                        {j.project?.projectName || "N/A"}
-                      </Dropdown.Item>
-                    ))}
-                  </Dropdown.Menu>
-                </Dropdown>
-              </div>
-            </div>
-          </div>
-        </Collapse>
+   
+         {/* Filters */}
+         <div className="d-flex flex-wrap gap-2 mb-3 align-items-center">
+        <Form.Control
+          type="search"
+          placeholder="Search jobs..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          style={{ width: "250px" }}
+        />
+        <Dropdown>
+          <Dropdown.Toggle variant="light" id="project-dropdown">
+            {selectedProject}
+          </Dropdown.Toggle>
+          <Dropdown.Menu>
+            <Dropdown.Item onClick={() => setSelectedProject("All Projects")}>
+              All Projects
+            </Dropdown.Item>
+            {[...new Set((job?.jobs || []).map((j) => j.projectId?.[0]?.projectName || "N/A"))].map(
+              (projectName, index) => (
+                <Dropdown.Item key={index} onClick={() => setSelectedProject(projectName)}>
+                  {projectName}
+                </Dropdown.Item>
+              )
+            )}
+          </Dropdown.Menu>
+        </Dropdown>
+      </div>
 
         {/* Table Section */}
         <div className="table-responsive">

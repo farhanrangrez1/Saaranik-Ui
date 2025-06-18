@@ -10,7 +10,6 @@ import {
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchjobs } from "../../../redux/slices/JobsSlice";
-import Swal from "sweetalert2";
 
 function JobTracker() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -23,7 +22,6 @@ function JobTracker() {
   const dispatch = useDispatch();
   const location = useLocation();
   const params = useParams();
-  const id = location.state?.id || params.id;
 
   const { job, loading, error } = useSelector((state) => state.jobs);
 
@@ -69,32 +67,29 @@ function JobTracker() {
     }
   };
 
-  // ✅ Filter jobs from Redux store
   const filteredJobs = (job?.jobs || []).filter((j) => {
-    const search = searchQuery.toLowerCase();
+    const search = searchQuery.toLowerCase().trim();
 
     const matchesSearch =
-      j.jobNumber?.toLowerCase().includes(search) ||
-      j.project?.projectName?.toLowerCase().includes(search) ||
-      j.brandName?.toLowerCase().includes(search) ||
-      j.subBrand?.toLowerCase().includes(search) ||
-      j.flavour?.toLowerCase().includes(search) ||
-      j.packType?.toLowerCase().includes(search) ||
-      j.packSize?.toLowerCase().includes(search);
+      (j.JobNo || "").toLowerCase().includes(search) ||
+      (j.projectId?.[0]?.projectName || "").toLowerCase().includes(search) ||
+      (j.brandName || "").toLowerCase().includes(search) ||
+      (j.subBrand || "").toLowerCase().includes(search) ||
+      (j.flavour || "").toLowerCase().includes(search) ||
+      (j.packType || "").toLowerCase().includes(search) ||
+      (j.packSize || "").toLowerCase().includes(search);
 
     const matchesProject =
       selectedProject === "All Projects" ||
-      j.project?.projectName === selectedProject;
+      (j.projectId?.[0]?.projectName || "").toLowerCase() === selectedProject.toLowerCase();
 
     const matchesPriority =
       selectedPriority === "All Priorities" ||
-      j.priority?.toLowerCase() === selectedPriority.toLowerCase();
+      (j.priority || "").toLowerCase() === selectedPriority.toLowerCase();
 
     const matchesStatus =
       selectedStatus === "All Status" ||
-      j.Status?.toLowerCase() === selectedStatus.toLowerCase();
-
-
+      (j.Status || "").toLowerCase().trim() === selectedStatus.toLowerCase().trim();
 
     return (
       matchesSearch &&
@@ -108,21 +103,19 @@ function JobTracker() {
     navigate(`/admin/AddJobTracker`, { state: { job } });
   };
 
-
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const filteredProjects = job?.jobs || [];
-  const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredJobs.length / itemsPerPage);
 
-  const paginatedProjects = filteredProjects.slice(
+  const paginatedProjects = filteredJobs.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
   const JobDetails = (job) => {
     navigate(`/admin/OvervieJobsTracker`, { state: { job } });
-  }
+  };
 
   return (
     <div className="p-4 m-3" style={{ backgroundColor: "white", borderRadius: "10px" }}>
@@ -130,7 +123,6 @@ function JobTracker() {
         <h2 className="job-title mb-0">Job Tracker</h2>
       </div>
 
-      {/* Filters */}
       <div className="filters d-flex flex-wrap gap-2 mb-4">
         <Form.Control
           type="search"
@@ -145,10 +137,15 @@ function JobTracker() {
             {selectedProject}
           </Dropdown.Toggle>
           <Dropdown.Menu>
-            <Dropdown.Item onClick={() => setSelectedProject("All Projects")}>All Projects</Dropdown.Item>
-            {job?.jobs?.map((j, i) => (
-              <Dropdown.Item key={i} onClick={() => setSelectedProject(j.project?.projectName || "N/A")}>
-                {j.project?.projectName || "N/A"}
+            <Dropdown.Item onClick={() => setSelectedProject("All Projects")}>
+              All Projects
+            </Dropdown.Item>
+            {[...new Set((job?.jobs || []).map(j => j.projectId?.[0]?.projectName || "N/A"))].map((projectName, index) => (
+              <Dropdown.Item
+                key={index}
+                onClick={() => setSelectedProject(projectName)}
+              >
+                {projectName}
               </Dropdown.Item>
             ))}
           </Dropdown.Menu>
@@ -179,11 +176,9 @@ function JobTracker() {
             ))}
           </Dropdown.Menu>
         </Dropdown>
-
       </div>
 
-      {/* Table */}
-      <div className="table-responsive" >
+      <div className="table-responsive">
         <Table hover className="align-middle sticky-header">
           <thead className="bg-light">
             <tr>
@@ -214,20 +209,14 @@ function JobTracker() {
                     onChange={() => handleCheckboxChange(job._id)}
                   />
                 </td>
-                {/* <td onClick={() => JobDetails(job)}>
-                                  <Link>
-                                    {String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}</Link>
-                                </td> */}
-
                 <td onClick={() => JobDetails(job)}>
                   <Link style={{ textDecoration: 'none' }}>{job.JobNo}</Link>
                 </td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.projectId?.[0]?.projectName || 'N/A'}</td>
-
                 <td>{job.brandName}</td>
-                <td style={{ whiteSpace: "nowrap" }}>{job.subBrand}</td>
-                <td>{job.flavour}</td>
-                <td>{job.packType}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{job.subBrand}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{job.flavour}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{job.packType}</td>
                 <td>{job.packSize}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job?.packCode}</td>
                 <td>
@@ -235,7 +224,7 @@ function JobTracker() {
                 </td>
                 <td>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.assign}</td>
-                <td style={{ whiteSpace: 'nowrap' }}>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
+                <td>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
                 <td>
                   <span className={`badge ${getStatusClass(job.Status)} px-2 py-1`}>
                     {job.Status}
@@ -247,11 +236,7 @@ function JobTracker() {
                     <Button id="icone_btn" size="sm"><FaUpload /></Button>
                     <Button id="icone_btn" size="sm"><FaLink /></Button>
                     <Button id="icone_btn" size="sm"><FaClock /></Button>
-                    <Button
-                      id="icone_btn"
-                      size="sm"
-                      onClick={() => handleUpdate(job)}
-                    >
+                    <Button id="icone_btn" size="sm" onClick={() => handleUpdate(job)}>
                       <FaEdit />
                     </Button>
                   </div>
@@ -265,12 +250,12 @@ function JobTracker() {
       {!loading && !error && (
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div className="text-muted small">
-            Showing {(currentPage - 1) * itemsPerPage + 1} of {filteredProjects.length}
+            Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredJobs.length)} of {filteredJobs.length}
           </div>
           <ul className="pagination pagination-sm mb-0">
             <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
               <button className="page-link" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
-                <span aria-hidden="true">&laquo;</span>
+                &laquo;
               </button>
             </li>
             {Array.from({ length: totalPages }, (_, i) => (
@@ -282,8 +267,7 @@ function JobTracker() {
             ))}
             <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
               <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
-
-                <span aria-hidden="true">&raquo;</span>
+                &raquo;
               </button>
             </li>
           </ul>

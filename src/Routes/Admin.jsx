@@ -48,13 +48,14 @@ import OvervieMyJobs from "../features/Admin/MyJobs/OvervieMyJobs.jsx";
 import OvervieJobsProject from "../features/Admin/ProjectList/ProjectTabs/OvervieJobsProject.jsx";
 import Profile from "../features/Admin/Profile/Profile.jsx";
 import Extrahr from "../features/Admin/TimeLogs/Extrahr.jsx";
-import InProgressDashboard from "../features/Admin/Dashbord/InProgressDashboard.jsx";
-import JobsDueTodayDashboard from "../features/Admin/Dashbord/JobsDueTodayDashboard.jsx";
-import InProgressDashboardProject from "../features/Admin/Dashbord/InProgressDashboardProject.jsx";
-import CostEstimatesDashbord from "../features/Admin/Dashbord/CostEstimatesDashbord.jsx";
-import Reports from "../features/Reports/Reports.jsx";
+import  DProjectInProgress from "../features/Admin/Dashbord/DProjectInProgress.jsx";
+import DTodayJobsDue from "../features/Admin/Dashbord/DTodayJobsDue.jsx";
+import DCostEstimates from "../features/Admin/Dashbord/DCostEstimates.jsx";
+import Reports from "../features/Admin/Reports/Reports.jsx";
 import ProtectedRoute from "../Protecuted/Protecuted.jsx";
 import 'react-toastify/dist/ReactToastify.css';
+import DCompletedProject from "../features/Admin/Dashbord/DCompletedProject.jsx";
+import DJobsInProgress from "../features/Admin/Dashbord/DJobsInProgress.jsx";
 
 function Admin() {
   const [isSidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 768);
@@ -84,10 +85,12 @@ function Admin() {
                 </ProtectedRoute>
               }
             />
-            <Route path="/InProgressDashboard" element={<ProtectedRoute><InProgressDashboard /></ProtectedRoute>} />
-            <Route path="/InProgressDashboardProject" element={<ProtectedRoute><InProgressDashboardProject /></ProtectedRoute>} />
-            <Route path="/JobsDueTodayDashboard" element={<ProtectedRoute><JobsDueTodayDashboard /></ProtectedRoute>} />
-            <Route path="/CostEstimatesDashbord" element={<ProtectedRoute><CostEstimatesDashbord /></ProtectedRoute>} />
+            <Route path="/DJobsInProgress" element={<ProtectedRoute><DJobsInProgress/></ProtectedRoute>} />
+            <Route path="/DProjectInProgress" element={<ProtectedRoute>< DProjectInProgress /></ProtectedRoute>} />
+             <Route path="/DCompletedProject" element={<ProtectedRoute><DCompletedProject/></ProtectedRoute>} />
+            <Route path="/DTodayJobsDue" element={<ProtectedRoute><DTodayJobsDue /></ProtectedRoute>} />
+            <Route path="/DCostEstimates" element={<ProtectedRoute><DCostEstimates /></ProtectedRoute>} />
+
             <Route path="/clientManagement" element={<ProtectedRoute><ClientManagement /></ProtectedRoute>} />
             <Route path="/AddClientManagement" element={<ProtectedRoute><AddClientManagement /></ProtectedRoute>} />
             <Route path="/ViewdetailsClientManagement" element={<ProtectedRoute><ViewdetailsClientManagement /></ProtectedRoute>} />

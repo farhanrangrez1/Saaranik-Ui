@@ -18935,3 +18935,961 @@ const getTodayDate = () => {
 }
 
 export default AddTimeLog;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import React, { useEffect, useState } from "react";
+// import { MdEditSquare } from "react-icons/md";
+// import { FaRegTrashCan } from "react-icons/fa6";
+// import { Button, Form, Table, Pagination, Modal } from "react-bootstrap";
+// import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+// import { FaEye } from "react-icons/fa";
+// import { useDispatch, useSelector } from "react-redux";
+// import { fetchjobs, UpdateJobAssign } from "../../../redux/slices/JobsSlice";
+import {
+  FaFilePdf,
+  FaUpload,
+  FaLink,
+  FaClock,
+  FaEdit,
+} from "react-icons/fa";
+import { Dropdown,Table } from "react-bootstrap";
+// import Swal from 'sweetalert2';
+// import { fetchusers } from "../../../redux/slices/userSlice";
+// import { createAssigns } from "../../../redux/slices/AssignSlice";
+// import { toast } from "react-toastify";
+// import "react-toastify/dist/ReactToastify.css";
+
+
+
+
+// ////////
+import React, { useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Modal, Form, Button } from 'react-bootstrap';
+import { useDispatch, useSelector } from 'react-redux';
+// import {  updatejob, UpdateJobAssign,fetchusers } from '../../../../redux/slices/JobsSlice';
+import Swal from 'sweetalert2';
+// import { fetchusers } from '../../../../redux/slices/userSlice';
+// import { createAssigns } from '../../../../redux/slices/AssignSlice';
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { Project_job_Id } from "../../../redux/slices/JobsSlice";
+import { fetchusers } from "../../../redux/slices/userSlice";
+
+function NewJobsList() {  
+// /////////////////////////////////
+    const location = useLocation();
+    const params = useParams();
+    console.log("hello me project id", params);
+    const id = location.state?.id || params.id;
+  
+    const dispatch = useDispatch()
+    const navigate = useNavigate()
+    const [selectedProduction, setSelectedProduction] = useState('');
+    const [selectedAdditional, setSelectedAdditional] = useState('');
+    const [selectedJob, setSelectedJob] = useState(null);
+    const [attachedFile, setAttachedFile] = useState(null);
+    const [selectedJobs, setSelectedJobs] = useState({});
+    const [errorMessage, setErrorMessage] = useState('');
+  
+    const [showAssignModal, setShowAssignModal] = useState(false);
+    const [selectedDesigner, setSelectedDesigner] = useState('');
+    const [assignmentDescription, setAssignmentDescription] = useState('');
+  
+    const jobs = [
+      {
+        id: "00001",
+        brandName: "Brand1",
+        subBrand: "SubBrand1",
+        flavour: "Flavour1",
+        packType: "Type1",
+        packSize: "Size 1ml",
+        packCode: "Code1",
+        deadline: "2024/01/20",
+        brief: "ViewBrief",
+        status: "Pending Upload",
+        statusVariant: "warning",
+      },
+      {
+        id: "00002",
+        brandName: "Brand2",
+        subBrand: "SubBrand2",
+        flavour: "Flavour2",
+        packType: "Type2",
+        packSize: "Size 2ml",
+        packCode: "Code2",
+        deadline: "2024/01/25",
+        brief: "ViewBrief",
+        status: "In Progress",
+        statusVariant: "info",
+      },
+      {
+        id: "00003",
+        brandName: "Brand3",
+        subBrand: "SubBrand3",
+        flavour: "Flavour3",
+        packType: "Type3",
+        packSize: "Size 3ml",
+        packCode: "Code3",
+        deadline: "2024/02/01",
+        brief: "ViewBrief",
+        status: "DraftSaved",
+        statusVariant: "secondary",
+      },
+    ];
+  
+    const [selectedEmployee, setSelectedEmployee] = useState("");
+    const { userAll } = useSelector((state) => state.user);
+    console.log("data user", userAll?.data?.users);
+  
+    useEffect(() => {
+      dispatch(fetchusers());
+    }, [dispatch]);
+
+      const { job, loading, error } = useSelector((state) => state.jobs);
+    console.log("gggggg",job);
+    
+      useEffect(() => {
+        dispatch(fetchjobs());
+      }, [dispatch]);
+    
+      
+    const [currentAssignment, setCurrentAssignment] = useState(1);
+    const itemsAssignment = 10;
+  
+    const filteredAssignment = (userAll?.data?.users || []).filter(
+      (j) =>
+        ((j?.assign || "").toString().toLowerCase() ===
+          selectedDesigner.toLowerCase()) &&
+        selectedDesigner !== ""
+    );
+  
+    const paginatedAssignment = filteredAssignment.slice(
+      (currentAssignment - 1) * itemsAssignment,
+      currentAssignment * itemsAssignment
+    );
+  
+    const handleSubmitAssignment = () => {
+      const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
+      const payload = {
+        employeeId: [selectedEmployee],
+        jobId: selectedJobIds,
+        selectDesigner: selectedDesigner,
+        description: assignmentDescription,
+      };
+  
+      console.log("Assignment Payload:", payload);
+  
+      if (id) {
+        dispatch(createAssigns(payload))
+          .unwrap()
+          .then((response) => {
+            console.log("API Response:", response);
+            // ✅ Agar API success ho to navigate kare
+            if (response.success) {
+              toast.success(response.message || "Project Assigned Successfully!");
+              setShowAssignModal(false);
+              setSelectedJobs(false);
+              navigate("/admin/MyJobs");
+            } else {
+              setShowAssignModal(false);
+              toast.error(response.message || "Assignment failed!");
+            }
+          })
+          .catch((error) => {
+            console.error("API Error:", error);
+            toast.error(error.message || "Failed to update project!");
+          });
+      }
+    };
+  
+    const handleJobAssign = (selectedIds, assignTo) => {
+      const payload = {
+        id: selectedIds,
+        assign: assignTo,
+      };
+      console.log("Assignment Payload:", payload);
+      dispatch(UpdateJobAssign(payload))
+        .then(() => {
+          // Swal.fire("Success!", "Jobs assigned successfully", "success");
+          // dispatch(fetchjobs());
+        })
+        .catch(() => {
+          Swal.fire("Error!", "Something went wrong", "error");
+        });
+    };
+  
+    const employees = [
+      { _id: "123", name: "John Doe" },
+      { _id: "456", name: "Jane Smith" },
+    ];
+  
+    const handleCheckboxChange = (jobId) => {
+      setSelectedJobs((prev) => ({
+        ...prev,
+        [jobId]: !prev[jobId],
+      }));
+    };
+  
+    const handleCSVImport = (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        console.log("CSV file selected:", file.name);
+      }
+    };
+  
+    const getPriorityClass = (priority) => {
+      switch (priority.toLowerCase()) {
+        case "high":
+          return "text-danger";
+        case "medium":
+          return "text-warning";
+        case "low":
+          return "text-success";
+        default:
+          return "";
+      }
+    };
+    // ////////////////////////////////////////
+    // const location = useLocation();
+    // const params = useParams();
+    // const id = location.state?.id || params.id;
+    useEffect(() => {
+      console.log("Project ID:", id);
+    }, [id]);
+  
+    const { job, loading, error } = useSelector((state) => state.jobs);
+    console.log(job.jobs, "all jobs");
+  
+    const { ProjectJob } = useSelector((state) => state.jobs);
+    console.log(ProjectJob, "all jobs");
+  
+    useEffect(() => {
+      dispatch(Project_job_Id(id));
+    }, [dispatch, id]);
+  
+    const handleDelete = (_id) => {
+      console.log(_id);
+      Swal.fire({
+        title: "Are you sure?",
+        text: "You want to mark this job as Cancelled?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, mark as Cancelled!",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // dispatch(deletejob({ id: _id, data: { status: "Cancelled" } }))
+          console.log(id);
+
+          dispatch(updatejob({ id: _id, data: { Status: "Cancelled" } }))
+            .unwrap()
+            .then(() => {
+              Swal.fire("Updated!", "The job has been marked as Cancelled.", "success");
+              // dispatch(Project_job_Id(id));
+            })
+            .catch(() => {
+              Swal.fire("Error!", "Something went wrong while updating.", "error");
+            });
+        }
+      });
+    };
+  
+    const handleUpdate = (job) => {
+      console.log(job, "dcvhrvrejhcvwerjhcvhgv")
+      navigate(`/admin/AddJobTracker/${job._id}`, { state: { job } });
+    };
+  
+    const JobDetails = (job) => {
+      navigate(`/admin/OvervieJobsTracker`, { state: { job } });
+    }
+    const getStatusClass = (status) => {
+      switch (status.toLowerCase().trim()) {
+        case "in progress":
+        case "in_progress":
+          return "bg-warning text-dark";
+        case "review":
+          return "bg-info text-dark";
+        case "not started":
+          return "bg-secondary text-white";
+        case "completed":
+          return "bg-success text-white";
+        case "open":
+          return "bg-primary text-white";
+        case "cancelled":
+          return "bg-dark text-white";
+        default:
+          return "bg-light text-dark";
+      }
+    };
+  
+   // ✅ Copy File Name & Download CSV
+    const handleDownloadFileNamesCSV = () => {
+      const rows = [["JobFileName"]];
+      job?.jobs?.forEach((j, index) => {
+        const jobNo = String(index + 1).padStart(5, '0');
+        const fileName = `${jobNo}_${j.brandName}_${j.subBrand}_${j.flavour}_${j.packType}_${j.packSize}_${j.packCode}`;
+        rows.push([fileName]);
+      });
+      const csvContent = rows.map((r) => r.join(",")).join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "JobFileNames.csv";
+      link.click();
+      URL.revokeObjectURL(url);
+    };
+  
+  
+ 
+   const [currentPage, setCurrentPage] = useState(1);
+   const itemsPerPage = 10;
+ 
+   const filteredProjects = job?.jobs || [];
+   const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
+ 
+   const paginatedProjects = filteredProjects.slice(
+     (currentPage - 1) * itemsPerPage,
+     currentPage * itemsPerPage
+   );
+  
+    const AddJob = () => {
+      navigate(`/admin/AddJobTracker/${id}`, { state: { id } });
+    };
+  
+  return (
+    <div className="container bg-white p-3 mt-4  rounded shadow-sm">
+      {/* Title */}
+      <div className="d-flex justify-content-between align-items-center ">
+        <h5 className="fw-bold m-0">Job Assign</h5>
+        <div className="d-flex gap-2 ">
+          {/* <Button onClick={handleRejectJobs} id="All_btn" className="m-2"
+            variant="primary">
+            Reject
+          </Button> */}
+          <Button
+            id="All_btn"
+            className="m-2"
+            variant="primary"
+            onClick={() => {
+              const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
+              if (selectedJobIds.length === 0) {
+                setErrorMessage("Please select at least 1 job to assign.");
+                setTimeout(() => setErrorMessage(""), 3000);
+              } else {
+                handleJobAssign(selectedJobIds); // ✅ Call with selected IDs
+                setShowAssignModal(true);
+              }
+            }}
+          >
+            Assign
+          </Button>
+        </div>
+      </div>
+
+      {/* Show Messages */}
+      {/* {errorMessage && (
+        <div className="alert alert-danger py-2" role="alert">
+          {errorMessage}
+        </div>
+      )}
+      {successMessage && (
+        <div className="alert alert-success py-2" role="alert">
+          {successMessage}
+        </div>
+      )} */}
+
+      {/* Filters */}
+      <div className="d-flex flex-wrap gap-2 mb-3 align-items-center">
+        <Form.Control
+          type="text"
+          placeholder="Search jobs..."
+          className="w-auto"
+        />
+        <Form.Select className="" style={{ width: "120px" }}>
+          <option>All Clients</option>
+        </Form.Select>
+
+        <Dropdown>
+          <Dropdown.Toggle variant="light" id="project-dropdown">
+            {/* {selectedProject} */}
+          </Dropdown.Toggle>
+          <Dropdown.Menu>
+            <Dropdown.Item onClick={() => setSelectedProject("All Projects")}>All Projects</Dropdown.Item>
+            {job?.jobs?.map((j, i) => (
+              <Dropdown.Item key={i} onClick={() => setSelectedProject(j.project?.projectName || "N/A")}>
+                {j.project?.projectName || "N/A"}
+              </Dropdown.Item>
+            ))}
+          </Dropdown.Menu>
+        </Dropdown>
+      </div>
+
+      {/* Table */}
+      <div className="table-responsive" >
+        <Table hover className="align-middle sticky-header">
+          <thead className="bg-light">
+            <tr>
+              <th>
+                <input
+                  type="checkbox"
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    const newSelectedJobs = {};
+                    job?.jobs?.forEach((job) => {
+                      newSelectedJobs[job._id] = checked;
+                    });
+                    setSelectedJobs(newSelectedJobs);
+                  }}
+                  checked={
+                    job?.jobs?.length > 0 &&
+                    job?.jobs?.every((j) => selectedJobs[j._id])
+                  }
+                />
+              </th>
+              <th>JobNo</th>
+              <th style={{ whiteSpace: 'nowrap' }}>Project Name</th>
+              <th>Brand</th>
+              <th style={{ whiteSpace: 'nowrap' }}>Sub Brand</th>
+              <th>Flavour</th>
+              <th>PackType</th>
+              <th>PackSize</th>
+              <th>PackCode</th>
+              <th>TimeLogged</th>
+              <th>Due Date</th>
+              {/* <th>Assign</th> */}
+              <th>Priority</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+           <tbody>
+                 {paginatedProjects.slice().reverse().map((job, index) => (
+                   <tr key={job._id}>
+                     <td>
+                       <input
+                         type="checkbox"
+                         checked={selectedJobs[job._id] || false}
+                         onChange={() => handleCheckboxChange(job._id)}
+                       />
+                     </td>
+                     <td onClick={() => JobDetails(job)}>
+                       <Link style={{ textDecoration: 'none' }}>{job.JobNo}</Link>
+                     </td>
+                     <td style={{ whiteSpace: 'nowrap' }}>{job.projectId?.[0]?.projectName || 'N/A'}</td>
+                     <td style={{ whiteSpace: 'nowrap' }}>{job.brandName}</td>
+                     <td style={{ whiteSpace: 'nowrap' }}>{job.subBrand}</td>
+                     <td style={{ whiteSpace: 'nowrap' }}>{job.flavour}</td>
+                     <td style={{ whiteSpace: 'nowrap' }}>{job.packType}</td>
+                     <td style={{ whiteSpace: 'nowrap' }}>{job.packSize}</td>
+                     <td style={{ whiteSpace: 'nowrap' }}>{job?.packCode}</td>
+                     <td style={{ whiteSpace: 'nowrap' }}>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
+                     <td style={{ whiteSpace: 'nowrap' }}>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
+                     {/* <td style={{ whiteSpace: 'nowrap' }}>{job.assign}</td> */}
+                     <td>
+                       <span className={getPriorityClass(job.priority)}>{job.priority}</span>
+                     </td>
+                     <td>
+                       <span className={`badge ${getStatusClass(job.Status)} px-2 py-1`}>
+                         {job.Status}
+                       </span>
+                     </td>
+                     <td>
+                       <div className="d-flex gap-2">
+                         <Button id="icone_btn" size="sm"><FaFilePdf /></Button>
+                         <Button id="icone_btn" size="sm"><FaUpload /></Button>
+                         <Button id="icone_btn" size="sm"><FaLink /></Button>
+                         <Button id="icone_btn" size="sm"><FaClock /></Button>
+                         <Button
+                           id="icone_btn"
+                           size="sm"
+                           onClick={() => handleUpdate(job)}
+                         >
+                           <FaEdit />
+                         </Button>
+                       </div>
+                     </td>
+                   </tr>
+                 ))}
+               </tbody>
+        </Table>
+      </div>
+
+
+      {/* Assign Modal */}
+      <Modal show={showAssignModal} onHide={() => setShowAssignModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Assign Job</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>Select Designer</Form.Label>
+              <Form.Select
+                value={selectedDesigner}
+                onChange={(e) => {
+                  setSelectedDesigner(e.target.value);
+                  setSelectedEmployee("");
+                }}
+              >
+                <option value="">-- Select --</option>
+                <option value="Production">Production</option>
+                <option value="Designer">Designer</option>
+              </Form.Select>
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Select Employee</Form.Label>
+              <Form.Select
+                value={selectedEmployee}
+                onChange={(e) => setSelectedEmployee(e.target.value)}
+                disabled={!selectedDesigner}
+              >
+                <option value="">-- Select Employee --</option>
+                {paginatedAssignment.map((emp) => (
+                  <option key={emp._id} value={emp._id}>
+                    {emp.firstName || 'Unnamed Employee'}_
+                    {emp.lastName || 'Unnamed Employee'}
+                  </option>
+
+                ))}
+              </Form.Select>
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Description</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
+                value={assignmentDescription}
+                onChange={(e) => setAssignmentDescription(e.target.value)}
+                placeholder="Enter assignment details or instructions..."
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowAssignModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleSubmitAssignment}>
+            Assign
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+
+      {/* Reject Modal */}
+      {/* <Modal show={showRejectModal} onHide={() => setShowRejectModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Reject Job</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className="alert alert-warning">
+            Are you sure you want to reject this job?
+          </div>
+          <Form.Group className="mb-3">
+            <Form.Label>Reason for Rejection</Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={3}
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              placeholder="Enter reason..."
+            />
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowRejectModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={handleSubmitRejection}>
+            Reject
+          </Button>
+        </Modal.Footer>
+      </Modal> */}
+
+      {!loading && !error && (
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <div className="text-muted small">
+            Showing {(currentPage - 1) * itemsPerPage + 1} to {(currentPage - 1) * itemsPerPage + paginatedProjects.length} of {filteredProjects.length}
+          </div>
+          <ul className="pagination pagination-sm mb-0">
+            <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
+                <span aria-hidden="true">&laquo;</span>
+
+              </button>
+            </li>
+            {Array.from({ length: totalPages }, (_, i) => (
+              <li key={i + 1} className={`page-item ${currentPage === i + 1 ? 'active' : ''}`}>
+                <button className="page-link" onClick={() => setCurrentPage(i + 1)}>
+                  {i + 1}
+                </button>
+              </li>
+            ))}
+            <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
+
+                <span aria-hidden="true">&raquo;</span>
+              </button>
+            </li>
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default NewJobsList;
+
+
+
+
+
+
+
+
+
+import React, { useEffect, useState } from 'react';
+import { Table, Badge, Button, Row, Col, Card, Modal, Form, Dropdown, Spinner } from 'react-bootstrap';
+import { FaEye, FaEdit, FaUpload, FaPlus, FaTrash } from 'react-icons/fa';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import './Project.css';
+import { useDispatch, useSelector } from 'react-redux';
+import { deleteproject, fetchProject } from '../../../redux/slices/ProjectsSlice';
+import Swal from 'sweetalert2';
+import { fetchClient } from '../../../redux/slices/ClientSlice';
+import { Project_job_Id } from '../../../redux/slices/JobsSlice';
+
+function ProjectList() {
+  const [activeTab, setActiveTab] = useState('Active Project');
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const dispatch = useDispatch();
+  const navigate = useNavigate()
+  const { project, loading, error } = useSelector((state) => state.projects);
+  const [selectedJobs, setSelectedJobs] = useState({});
+
+  const tabs = [
+    'Active Project',
+    'In Progress',
+    'Completed',
+    'Closed',
+    'Cancelled',
+    'On Hold',
+    'All',
+    // 'Completed (To Be Invoiced)',
+  ];
+
+  useEffect(() => {
+    dispatch(fetchProject());
+  }, [dispatch]);
+
+  const filteredProjects =
+    activeTab === 'All'
+      ? project.data
+      : activeTab === 'Completed (To Be Invoiced)'
+        ? project.data?.filter(
+          (project) => project.status === 'Completed' && !project.invoiceCreated
+        )
+        : project.data?.filter((project) => project.status === activeTab);
+
+  const handleCheckboxChange = (projectId) => {
+    setSelectedJobs((prev) => ({
+      ...prev,
+      [projectId]: !prev[projectId],
+    }));
+  };
+
+  const handleDelete = (id) => {
+    console.log(id);
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        dispatch(deleteproject(id))
+          .then(() => {
+            Swal.fire("Deleted!", "The document has been deleted.", "success");
+            dispatch(fetchProject());
+          })
+          .catch(() => {
+            Swal.fire("Error!", "Something went wrong.", "error");
+          });
+      }
+    });
+  }
+  const handleUpdate = (project) => {
+    navigate(/admin/AddProjectList, { state: { project } });
+  };
+
+  const CreatJobs = (id) => {
+    navigate(/admin/ProjectOverview/${id}, { state: { id, openTab: 'jobs' } });
+  };
+
+  const getStatusClass = (status) => {
+    switch ((status || "").toLowerCase().trim()) {
+      case "active project":
+        return "bg-primary text-white";
+      case "in progress":
+      case "in_progress":
+        return "bg-warning text-dark";
+      case "completed":
+        return "bg-success text-white";
+      case "closed":
+        return "bg-dark text-white";
+      case "cancelled":
+        return "bg-danger text-white";
+      case "on hold":
+        return "bg-info text-dark";
+      case "review":
+        return "bg-info text-dark";
+      case "not started":
+        return "bg-secondary text-white";
+      case "open":
+        return "bg-primary text-white";
+      default:
+        return "bg-light text-dark";
+    }
+  };
+
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil((filteredProjects?.length || 0) / itemsPerPage);
+  const paginatedProjects = filteredProjects?.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  return (
+    <div className="project-container" >
+      {/* Header */}
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h5 className="m-0 fw-bold">Project List</h5>
+      </div>
+
+      {/* Search and Actions */}
+      <div className="mb-4">
+        <div className="row g-2">
+          <div className="col-12 col-md-6">
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Search projects.."
+            />
+          </div>
+          <div className="col-12 col-md-6 d-flex justify-content-md-end gap-2">
+            <Button variant="outline-secondary" size="sm">
+              <FaUpload className="me-1" /> Import
+            </Button>
+            <Link to={"/admin/AddProjectList"}>
+              <Button id="All_btn" variant="dark" size="sm">
+                <FaPlus className="me-1" /> Add project
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Project Status Tabs */}
+      {/* Project Status Tabs - Responsive */}
+      <div className="project-tabs mb-4">
+        {/* Large screens: show tabs */}
+        <ul className="nav nav-tabs d-none d-md-flex">
+          {tabs.map((tab) => (
+            <li className="nav-item" key={tab}>
+              <button
+                className={nav-link ${activeTab === tab ? 'active' : ''}}
+                onClick={() => setActiveTab(tab)}
+                style={{ color: "#0d6efd", borderColor: "#0d6efd" }}
+              >
+                {tab}
+              </button>
+            </li>
+          ))}
+        </ul>
+
+        {/* Small screens: show dropdown */}
+        <div className="d-flex d-md-none">
+          <Dropdown>
+            <Dropdown.Toggle variant="outline-primary" id="dropdown-tabs" className="w-100">
+              {activeTab}
+            </Dropdown.Toggle>
+
+            <Dropdown.Menu className="w-100">
+              {tabs.map((tab) => (
+                <Dropdown.Item
+                  key={tab}
+                  active={tab === activeTab}
+                  onClick={() => setActiveTab(tab)}
+                >
+                  {tab}
+                </Dropdown.Item>
+              ))}
+            </Dropdown.Menu>
+          </Dropdown>
+        </div>
+      </div>
+
+      {/* Loader */}
+      {loading && (
+        <div className="text-center my-5">
+          <Spinner animation="border" variant="primary" />
+          <div className="mt-2">Loading projects...</div>
+        </div>
+      )}
+
+      {/* Error */}
+      {error && (
+        <div className="text-danger text-center my-5">
+          Failed to load projects. Please try again later.
+        </div>
+      )}
+
+      {/* Projects Table */}
+      {!loading && !error && filteredProjects?.length > 0 && (
+        <Table responsive className="project-table mb-4">
+          <thead>
+            <tr>
+              <th>
+                <input
+                  type="checkbox"
+                  onChange={() => {
+                    const isChecked =
+                      Object.keys(selectedJobs).length === project.data.length;
+                    const newSelectedJobs = {};
+                    project.data.forEach((project) => {
+                      newSelectedJobs[project.id] = !isChecked;
+                    });
+                    setSelectedJobs(newSelectedJobs);
+                  }}
+                />
+              </th>
+              <th style={{ whiteSpace: 'nowrap' }}>Project No</th>
+              <th style={{ textWrap: 'nowrap' }}>Project Name</th>
+              <th>Description</th>
+              <th style={{ whiteSpace: 'nowrap' }}>Start Date</th>
+              <th style={{ whiteSpace: 'nowrap' }}>End Date</th>
+              <th>Client</th>
+              <th style={{ whiteSpace: 'nowrap' }}>project Requirements</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {paginatedProjects.slice().reverse().map((project, index) => (
+              <tr key={project.id}>
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={selectedJobs[project.id] || false}
+                    onChange={() => handleCheckboxChange(project.id)}
+                  />
+                </td>
+                {/* <td onClick={() => CreatJobs(project.id)}>
+                  <Link>
+                    {String(index + 1).padStart(4, '0')}
+                  </Link>
+                </td> */}
+                <td onClick={() => CreatJobs(project.id)}>
+                  <Link style={{ textDecoration: 'none' }}>{project.projectNo}</Link>
+                </td>
+                <td style={{ whiteSpace: 'nowrap' }}>{project.projectName}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{project.description}</td>
+                <td>{new Date(project.startDate).toLocaleDateString('en-GB').replace(/\/20/, '/')}</td>
+                <td>{new Date(project.endDate).toLocaleDateString('en-GB').replace(/\/20/, '/')}</td>
+                <td>{project.client}Client</td>
+                <th>
+                  {project.projectRequirements && project.projectRequirements.length > 0
+                    ? Object.entries(project.projectRequirements[0])
+                      .filter(([_, value]) => value === true)
+                      .map(([key]) => key)
+                      .join(', ')
+                    : 'N/A'}
+                </th>
+                <td>
+                  <span className={badge ${getStatusClass(project.status)} px-2 py-1}>
+                    {project.status}
+                  </span>
+                </td>
+                <td>
+                  <div className="action-buttons d-flex">
+                    {/* <Button style={{ color: "#0d6efd" }} variant="link" className="p-0 me-2">
+                      <FaEye />
+                    </Button> */}
+                    <Button style={{ color: "#0d6efd" }} variant="link" className="p-0 me-2" onClick={() => handleUpdate(project)}>
+                      <FaEdit />
+                    </Button>
+                    {/* <Button
+                      style={{ color: "red" }}
+                      variant="link"
+                      className="p-0"
+                      onClick={() => handleDelete(project.id)}
+                    >
+                      <FaTrash />
+                    </Button> */}
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      )}
+
+      {/* Pagination */}
+      {!loading && !error && (
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <div className="text-muted small">
+            Showing 1 to {filteredProjects?.length || 0} of {project.data?.length || 0} entries
+          </div>
+          <ul className="pagination pagination-sm mb-0">
+            <li className={page-item ${currentPage === 1 ? 'disabled' : ''}}>
+              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
+                <span aria-hidden="true">&laquo;</span>
+              </button>
+            </li>
+            {Array.from({ length: totalPages }, (_, i) => (
+              <li key={i + 1} className={page-item ${currentPage === i + 1 ? 'active' : ''}}>
+                <button className="page-link" onClick={() => setCurrentPage(i + 1)}>
+                  {i + 1}
+                </button>
+              </li>
+            ))}
+            <li className={page-item ${currentPage === totalPages ? 'disabled' : ''}}>
+              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
+                <span aria-hidden="true">&raquo;</span>
+              </button>
+            </li>
+          </ul>
+
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default ProjectList;

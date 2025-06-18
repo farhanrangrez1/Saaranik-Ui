@@ -55,15 +55,17 @@ function Dashbord() {
  const inProgressJobs = (job?.jobs || []).filter(
   (j) => j.Status?.toLowerCase() === "in_progress"
 );
+ const ProjectCompleted = (project?.data || []).filter(
+    (j) => j.status?.toLowerCase() === "completed"
+  );
+  const projectCompleted = ProjectCompleted.length;
+ 
+  
 const inProgressCount = inProgressJobs.length;
-
-
-
 const Costestimates = (estimates?.costEstimates || []).filter(
   (j) => (j.POStatus || "").toLowerCase().replace(/\s|_/g, "") === "pending"
 );
 const CostestimatesCount = Costestimates.length;
-
 
 const today = new Date().toLocaleDateString("en-CA");
 const todaysJobs = (job?.jobs || []).filter((j) => {
@@ -106,14 +108,13 @@ const projectStatusData = {
   }],
 };
 
-
   return (
     <Container fluid className="container p-3">
       <Row className="g-4 mb-4">
         {/* Projects in Progress */}
         {/* Jobs in Progress */}
         <Col md={4} lg={4}>
-          <Link to="/admin/InProgressDashboard" className="text-decoration-none w-100 d-block">
+          <Link to="/admin/DProjectInProgress" className="text-decoration-none w-100 d-block">
             <Card className="h-100 shadow-sm">
               <Card.Body className="d-flex align-items-center">
                 <div
@@ -133,7 +134,7 @@ const projectStatusData = {
         </Col>
 
         <Col md={4} lg={4}>
-          <Link to="/admin/inProgress" className="text-decoration-none w-100 d-block">
+          <Link to="/admin/DJobsInProgress" className="text-decoration-none w-100 d-block">
             <Card className="h-100 shadow-sm border-0">
               <Card.Body className="d-flex align-items-center">
                 <div className="rounded-circle p-3 bg-light-green me-3">
@@ -154,7 +155,7 @@ const projectStatusData = {
 
         {/* Jobs Due Today */}
         <Col md={4} lg={4}>
-          <Link to="/admin/JobsDueTodayDashboard" className="text-decoration-none w-100 d-block">
+          <Link to="/admin/DTodayJobsDue" className="text-decoration-none w-100 d-block">
             <Card className="h-100 shadow-sm">
               <Card.Body className="d-flex align-items-center">
                 <div className="rounded-circle p-3 bg-light-yellow me-3">
@@ -172,7 +173,7 @@ const projectStatusData = {
 
         {/* Cost Estimates Awaiting POs */}
         <Col md={4} lg={4}>
-          <Link to="/admin/CostEstimatesDashbord" className="text-decoration-none w-100 d-block">
+          <Link to="/admin/DCostEstimates" className="text-decoration-none w-100 d-block">
             <Card className="h-100 shadow-sm">
               <Card.Body className="d-flex align-items-center">
                 <div className="rounded-circle p-3 bg-light-purple me-3">
@@ -190,14 +191,14 @@ const projectStatusData = {
 
         {/* Completed Projects to be Invoiced */}
         <Col md={4} lg={4}>
-          <Link to="/admin/Invoicing_Billing" className="text-decoration-none w-100 d-block">
+          <Link to="/admin/DCompletedProject" className="text-decoration-none w-100 d-block">
             <Card className="h-100 shadow-sm">
               <Card.Body className="d-flex align-items-center">
                 <div className="rounded-circle p-3 bg-light-red me-3">
                   <FaFileInvoiceDollar className="text-danger" size={24} />
                 </div>
                 <div>
-                  <h3 className="mb-0">285.4k</h3>
+                  <h3 className="mb-0">{projectCompleted}</h3>
                   <p className="text-muted mb-0">Completed Projects</p>
                   <small className="text-danger">To be Invoiced</small>
                 </div>
@@ -207,7 +208,7 @@ const projectStatusData = {
         </Col>
 
         {/* Timesheet Discrepancies */}
-        <Col md={4} lg={4}>
+        {/* <Col md={4} lg={4}>
           <Link to="/admin/TimesheetWorklog" className="text-decoration-none w-100 d-block">
             <Card className="h-100 shadow-sm">
               <Card.Body className="d-flex align-items-center">
@@ -222,7 +223,7 @@ const projectStatusData = {
               </Card.Body>
             </Card>
           </Link>
-        </Col>
+        </Col> */}
       </Row>
 
       <Row className="g-4">

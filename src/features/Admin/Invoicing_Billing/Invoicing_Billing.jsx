@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Form, Table, Badge, InputGroup, Button } from 'react-bootstrap';
+import { Form, Table, Badge, InputGroup, Button,Dropdown  } from 'react-bootstrap';
 import { FaSearch, FaSort, FaEdit, FaTrash, FaDownload, FaFilter } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
@@ -10,6 +10,8 @@ import { useDispatch, useSelector } from 'react-redux';
 
 function Invoicing_Billing() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedProject, setSelectedProject] = useState('All Projects');
   const [sortField, setSortField] = useState(null);
   const [sortDirection, setSortDirection] = useState('asc');
   const dispatch = useDispatch();
@@ -301,13 +303,35 @@ function Invoicing_Billing() {
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
-  const totalItems = invocing?.InvoicingBilling?.length || 0;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-  const paginatedEstimates = invocing?.InvoicingBilling
+  // Add filtering logic before pagination
+  const filteredEstimates = invocing?.InvoicingBilling
     ?.slice()
     .reverse()
-    .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    .filter((invoice) => {
+      const searchLower = searchQuery.toLowerCase().trim();
+      const matchesSearch = !searchQuery || 
+        (invoice.invoiceNumber?.toLowerCase().includes(searchLower) ||
+        invoice.clients?.[0]?.clientName?.toLowerCase().includes(searchLower) ||
+        invoice.projectId?.[0]?.projectName?.toLowerCase().includes(searchLower) ||
+        invoice.status?.toLowerCase().includes(searchLower) ||
+        invoice.lineItems?.[0]?.amount?.toString().includes(searchLower));
+
+      const matchesProject = selectedProject === 'All Projects' || 
+        invoice.projectId?.[0]?.projectName === selectedProject;
+
+      const matchesDate = !selectedDate || 
+        new Date(invoice.date).toLocaleDateString() === new Date(selectedDate).toLocaleDateString();
+
+      return matchesSearch && matchesProject && matchesDate;
+    });
+
+  // Update pagination to use filtered data
+  const totalItems = filteredEstimates?.length || 0;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+  const paginatedEstimates = filteredEstimates
+    ?.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const handleDelete = (_id) => {
     Swal.fire({
@@ -355,45 +379,56 @@ function Invoicing_Billing() {
         </div>
       </div>
 
-      {/* Search and Filters */}
-      <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap">
-        {/* Desktop search */}
-        <div className="d-none d-md-block w-25">
-          <InputGroup>
-            <InputGroup.Text>
-              <FaSearch />
-            </InputGroup.Text>
-            <Form.Control
+      <div
+        className={`row g-3 mb-4 
+          ${showFilters ? 'd-block' : 'd-none d-md-flex'}
+        `}
+      >
+        <div className="col-md-4">
+          <div className="input-group">
+            <span className="input-group-text bg-white border-end-0">
+              <FaSearch className="text-muted" />
+            </span>
+            <input
+              type="text"
+              className="form-control border-start-0"
               placeholder="Search invoices..."
               value={searchQuery}
-              onChange={handleSearch}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
-          </InputGroup>
+          </div>
         </div>
-
-        {/* Desktop Filters */}
-        <div className="d-none d-md-flex gap-2 align-items-center">
-          <Form.Select className="w-auto">
-            <option>All Clients</option>
-          </Form.Select>
-          <Form.Select className="w-auto">
-            <option>All Status</option>
-          </Form.Select>
-          <button className="btn btn-outline-secondary">
-            <FaSort /> Sort
-          </button>
+        <div className="col-md-4">
+          <div className="input-group">
+            <span className="input-group-text bg-white border-end-0">
+              {/* <FaCalendarAlt className="text-muted" /> */}
+            </span>
+            <input
+              type="date"
+              className="form-control border-start-0"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+            />
+          </div>
         </div>
-
-        {/* Mobile filter toggle button */}
-        <div className="d-flex d-md-none align-items-center gap-2">
-          <Button
-            variant="outline-secondary"
-            onClick={() => setShowFilters((prev) => !prev)}
-            aria-expanded={showFilters}
-            aria-controls="mobile-filters"
-          >
-            <FaFilter /> Filter
-          </Button>
+        <div className="col-md-4">
+          <Dropdown>
+            <Dropdown.Toggle variant="light" id="project-dropdown" className="w-100">
+              {selectedProject}
+            </Dropdown.Toggle>
+            <Dropdown.Menu>
+              <Dropdown.Item onClick={() => setSelectedProject("All Projects")}>
+                All Projects
+              </Dropdown.Item>
+              {[...new Set((invocing?.InvoicingBilling || []).map((invoice) => 
+                invoice.projectId?.[0]?.projectName || "N/A"
+              ))].filter(name => name !== "N/A").map((projectName, index) => (
+                <Dropdown.Item key={index} onClick={() => setSelectedProject(projectName)}>
+                  {projectName}
+                </Dropdown.Item>
+              ))}
+            </Dropdown.Menu>
+          </Dropdown>
         </div>
       </div>
 
@@ -416,9 +451,9 @@ function Invoicing_Billing() {
             />
           </InputGroup>
 
-          <Form.Select className="mb-2">
+          {/* <Form.Select className="mb-2">
             <option>All Clients</option>
-          </Form.Select>
+          </Form.Select> */}
           <Form.Select className="mb-2">
             <option>All Status</option>
           </Form.Select>

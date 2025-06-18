@@ -31,12 +31,26 @@ function ClientManagement() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    setCurrentPage(1); // Reset to first page when filter changes
   };
 
+  // Enhanced filtering logic
   const filteredClients = (Clients?.data || []).filter(client => {
-    const matchesSearch = (client.clientName || '').toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'All' || (client.clientStatus || '').toLowerCase() === statusFilter.toLowerCase();
-    return matchesSearch && matchesStatus;
+    const searchLower = searchTerm.toLowerCase().trim();
+    const matchesSearch = !searchTerm || 
+      (client.clientName || '').toLowerCase().includes(searchLower) ||
+      (client.contactPersons?.[0]?.contactName || '').toLowerCase().includes(searchLower) ||
+      (client.contactPersons?.[0]?.email || '').toLowerCase().includes(searchLower) ||
+      (client.contactPersons?.[0]?.phone || '').toLowerCase().includes(searchLower) ||
+      (client.industry || '').toLowerCase().includes(searchLower);
+
+    const matchesStatus = statusFilter === 'All' || 
+      (client.Status || '').toLowerCase() === statusFilter.toLowerCase();
+
+    const matchesIndustry = formData.industry === 'Client' || 
+      (client.industry || '').toLowerCase() === formData.industry.toLowerCase();
+
+    return matchesSearch && matchesStatus && matchesIndustry;
   });
 
   const indexOfLastClient = currentPage * clientsPerPage;
@@ -128,7 +142,11 @@ function ClientManagement() {
             </Col>
 
             <Col md={2} className="mb-2">
-              <Form.Select name="industry" value={formData.industry} onChange={handleChange}>
+              <Form.Select 
+                name="industry" 
+                value={formData.industry} 
+                onChange={handleChange}
+              >
                 <option value="Client">Client</option>
                 <option value="Sup">Suppliers</option>
                 <option value="Other">Other</option>

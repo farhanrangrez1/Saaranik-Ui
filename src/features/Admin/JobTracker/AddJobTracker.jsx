@@ -169,9 +169,9 @@ function AddJobTracker() {
 
             <form className="row g-3" onSubmit={handleSubmit}>
               {/* Project Name */}
-              <div className="col-md-6">
-                <label className="form-label">Project Name</label>
-                {/* <select
+              {/* <div className="col-md-6">
+                <label className="form-label">Project Name</label> */}
+              {/* <select
                   name="projectsId"
                   className="form-control"
                   value={formData.projectsId}
@@ -184,7 +184,7 @@ function AddJobTracker() {
                     </option>
                   ))}
                 </select> */}
-                {/* <select
+              {/* <select
                   name="projectsId"
                   className="form-control"
                   value={formData.projectsId}
@@ -197,8 +197,8 @@ function AddJobTracker() {
                     </option>
                   ))}
                 </select> */}
-                {/* ok map  */}
-                {/* <select
+              {/* ok map  */}
+              {/* <select
                   name="projectsId"
                   className="form-control"
                   value={formData.projectsId || ""}
@@ -212,7 +212,7 @@ function AddJobTracker() {
                   ))}
                 </select> */}
 
-                <select
+              {/* <select
                   name="projectsId"
                   className="form-control"
                   value={formData.projectsId || ""}
@@ -222,9 +222,9 @@ function AddJobTracker() {
                     {selectedProjectName}
                   </option>
                 </select>
-              </div>
+              </div> */}
 
-              <div className="col-md-6">
+              {/* <div className="col-md-6">
                 <label className="form-label">Project</label>
                 <select
                   name="projectsId"
@@ -239,9 +239,28 @@ function AddJobTracker() {
                     </option>
                   ))}
                 </select>
+              </div> */}
+              <div className="col-md-6">
+                <label className="form-label">Project Name</label>
+                <input
+                  type="text"
+                  name="projectName"
+                  className="form-control"
+                  value={selectedProjectName || ""}
+                  readOnly
+                />
               </div>
 
-
+              <div className="col-md-6">
+                <label className="form-label">Project Number</label>
+                <input
+                  type="text"
+                  name="projectNumber"
+                  className="form-control"
+                  value={idToIndexMap[formData.projectsId] || ""}
+                  readOnly
+                />
+              </div>
 
               {/* Brand Name */}
               <div className="col-md-6">

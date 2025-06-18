@@ -12,7 +12,7 @@ import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchjobs } from "../../../redux/slices/JobsSlice";
 
-function JobsDueTodayDashboard() {
+function DTodayJobsDue() {
   const dispatch = useDispatch();
   const fileInputRef = useRef(null);
 
@@ -71,7 +71,7 @@ function JobsDueTodayDashboard() {
 
   // 🔧 Utility Functions
 
- const getStatusClass = (status) => {
+  const getStatusClass = (status) => {
     switch (status.toLowerCase().trim()) {
       case "in progress":
       case "in_progress":
@@ -90,7 +90,7 @@ function JobsDueTodayDashboard() {
         return "bg-light text-dark";
     }
   };
- const getPriorityClass = (priority) => {
+  const getPriorityClass = (priority) => {
     switch (priority.toLowerCase()) {
       case "high":
         return "text-danger";
@@ -108,7 +108,7 @@ function JobsDueTodayDashboard() {
         <h5 className="fw-bold m-0">Jobs Due Today</h5>
       </div>
 
-      <div className="d-flex flex-wrap gap-2 mb-3 align-items-center">
+      {/* <div className="d-flex flex-wrap gap-2 mb-3 align-items-center">
         <Form.Control
           type="text"
           placeholder="Search jobs..."
@@ -125,13 +125,13 @@ function JobsDueTodayDashboard() {
             </option>
           ))}
         </Form.Select>
-      </div>
+      </div> */}
 
       <div className="table-responsive">
         <table className="table table-hover">
           <thead>
             <tr>
-              <th>
+              {/* <th>
                 <input
                   type="checkbox"
                   onChange={(e) => {
@@ -147,16 +147,16 @@ function JobsDueTodayDashboard() {
                     todaysJobs.every((j) => selectedJobs[j._id])
                   }
                 />
-              </th>
+              </th> */}
               <th>JobNo</th>
-              <th  style={{ whiteSpace: 'nowrap' }}>Project Name</th>
-              <th  style={{ whiteSpace: 'nowrap' }}>Brand</th>
+              <th style={{ whiteSpace: 'nowrap' }}>Project Name</th>
+              <th style={{ whiteSpace: 'nowrap' }}>Brand</th>
               <th>SubBrand</th>
               <th>Flavour</th>
               <th>PackType</th>
               <th>PackSize</th>
               <th>Priority</th>
-              <th  style={{ whiteSpace: 'nowrap' }}>Due Date</th>
+              <th style={{ whiteSpace: 'nowrap' }}>Due Date</th>
               <th>Assign</th>
               <th>TotalTime</th>
               <th>Status</th>
@@ -166,15 +166,15 @@ function JobsDueTodayDashboard() {
           <tbody>
             {todaysJobs.slice().reverse().map((job, index) => (
               <tr key={job._id}>
-                <td>
+                {/* <td>
                   <input
                     type="checkbox"
                     checked={selectedJobs[job._id] || false}
                     onChange={() => handleCheckboxChange(job._id)}
                   />
-                </td>
-                <td>
-                  <Link>{String(index + 1).padStart(4, "0")}</Link>
+                </td> */}
+                <td onClick={() => JobDetails(job)}>
+                  {job.JobNo}
                 </td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.projectId?.[0]?.projectName || "N/A"}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.brandName}</td>
@@ -229,19 +229,19 @@ function JobsDueTodayDashboard() {
       </div>
 
       <div className="d-flex justify-content-between align-items-center mt-3">
-   <div>
-     Showing 1 to {job.jobs?.length || 0} of {job.jobs?.length || 0} jobs
-   </div>
-   <Pagination className="m-0">
-     <Pagination.Prev disabled>
-       <span aria-hidden="true">&laquo;</span>
-     </Pagination.Prev>
-     <Pagination.Item active>{1}</Pagination.Item>
-     <Pagination.Next>
-       <span aria-hidden="true">&raquo;</span>
-     </Pagination.Next>
-   </Pagination>
- </div>
+        <div>
+          Showing 1 to {job.jobs?.length || 0} of {job.jobs?.length || 0} jobs
+        </div>
+        <Pagination className="m-0">
+          <Pagination.Prev disabled>
+            <span aria-hidden="true">&laquo;</span>
+          </Pagination.Prev>
+          <Pagination.Item active>{1}</Pagination.Item>
+          <Pagination.Next>
+            <span aria-hidden="true">&raquo;</span>
+          </Pagination.Next>
+        </Pagination>
+      </div>
 
       <Modal show={showDesignerModal} onHide={() => setShowDesignerModal(false)}>
         <Modal.Header closeButton>
@@ -268,4 +268,4 @@ function JobsDueTodayDashboard() {
   );
 }
 
-export default JobsDueTodayDashboard;
+export default DTodayJobsDue;

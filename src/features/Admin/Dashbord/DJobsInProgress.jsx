@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Form, Table, Modal } from "react-bootstrap";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchjobs, filterStatus } from "../../../redux/slices/JobsSlice";
 import { Dropdown } from "react-bootstrap";
 
-function InProgress() {
+function DJobsInProgress() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
@@ -33,7 +33,7 @@ function InProgress() {
    const [Status, setStatus] = useState("in_progress");
 
   useEffect(() => {
-    dispatch(filterStatus(Status)); // use variable here
+    dispatch(filterStatus(Status));
   }, [dispatch, Status]);
 
   const handleDesignerClick = (job) => {
@@ -88,33 +88,36 @@ function InProgress() {
 const [currentPage, setCurrentPage] = useState(1);
 const itemsPerPage = 10;
 
-const filteredProjects = (job?.jobs || []).filter((j) => {
-  const search = searchQuery.toLowerCase().trim();
+const filteredProjects = useMemo(() => {
+  return (job?.jobs || []).filter((j) => {
+    const search = searchQuery.toLowerCase().trim();
 
-  const matchesSearch =
-    (j.JobNo?.toString().toLowerCase().includes(search) || false) ||
-    (j.projectId?.[0]?.projectName?.toLowerCase().includes(search) || false) ||
-    (j.brandName?.toLowerCase().includes(search) || false) ||
-    (j.subBrand?.toLowerCase().includes(search) || false) ||
-    (j.flavour?.toLowerCase().includes(search) || false) ||
-    (j.packType?.toLowerCase().includes(search) || false) ||
-    (j.packSize?.toLowerCase().includes(search) || false) ||
-    (j.packCode?.toLowerCase().includes(search) || false);
+    const matchesSearch =
+      (j.JobNo?.toString().toLowerCase().includes(search) || false) ||
+      (j.projectId?.[0]?.projectName?.toLowerCase().includes(search) || false) ||
+      (j.brandName?.toLowerCase().includes(search) || false) ||
+      (j.subBrand?.toLowerCase().includes(search) || false) ||
+      (j.flavour?.toLowerCase().includes(search) || false) ||
+      (j.packType?.toLowerCase().includes(search) || false) ||
+      (j.packSize?.toLowerCase().includes(search) || false) ||
+      (j.packCode?.toLowerCase().includes(search) || false);
 
-  const matchesProject =
-    selectedProject === "All Projects" ||
-    (j.projectId?.[0]?.projectName?.toLowerCase() === selectedProject.toLowerCase());
+    const matchesProject =
+      selectedProject === "All Projects" ||
+      (j.projectId?.[0]?.projectName?.toLowerCase() === selectedProject.toLowerCase());
 
-  return matchesSearch && matchesProject;
-});
+    return matchesSearch && matchesProject;
+  });
+}, [job?.jobs, searchQuery, selectedProject]);
 
 const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
 
-const paginatedProjects = filteredProjects.slice(
-  (currentPage - 1) * itemsPerPage,
-  currentPage * itemsPerPage
-);
-
+const paginatedProjects = useMemo(() => {
+  return filteredProjects.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+}, [filteredProjects, currentPage, itemsPerPage]);
 
   return (
     <div className="container bg-white p-4 mt-4 rounded shadow-sm">
@@ -125,7 +128,7 @@ const paginatedProjects = filteredProjects.slice(
       </div>
 
          {/* Filters */}
-         <div className="d-flex flex-wrap gap-2 mb-3 align-items-center">
+         {/* <div className="d-flex flex-wrap gap-2 mb-3 align-items-center">
         <Form.Control
           type="search"
           placeholder="Search jobs..."
@@ -150,14 +153,14 @@ const paginatedProjects = filteredProjects.slice(
             )}
           </Dropdown.Menu>
         </Dropdown>
-      </div>
+      </div> */}
 
       {/* Table */}
       <div className="table-responsive">
         <Table hover className="align-middle sticky-header">
           <thead className="bg-light">
             <tr>
-              <th><input type="checkbox" /></th>
+              {/* <th><input type="checkbox" /></th> */}
               <th>JobNo</th>
               <th>ProjectName</th>
               <th>Brand</th>
@@ -177,15 +180,15 @@ const paginatedProjects = filteredProjects.slice(
           <tbody>
             {paginatedProjects.slice().reverse().map((job, index) => (
               <tr key={job._id}>
-                <td>
+                {/* <td>
                   <input
                     type="checkbox"
                     checked={selectedJobs[job._id] || false}
                     onChange={() => handleCheckboxChange(job._id)}
                   />
-                </td>
+                </td> */}
                 <td onClick={() => JobDetails(job)}>
-                  <Link style={{ textDecoration: 'none' }}>{job.JobNo}</Link>
+                  {job.JobNo}
                 </td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.projectId?.[0]?.projectName || 'N/A'}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.brandName}</td>
@@ -265,4 +268,4 @@ const paginatedProjects = filteredProjects.slice(
   );
 }
 
-export default InProgress;
+export default DJobsInProgress;

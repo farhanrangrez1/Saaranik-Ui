@@ -123,11 +123,11 @@ function Reports() {
       <h4 className="mb-4">Reports & Analytics</h4>
       
       {/* Filter Buttons */}
-      <div className="mb-4">
+      {/* <div className="mb-4">
         <button className="btn btn-outline-secondary btn-sm me-2">Last 7 Days</button>
         <button className="btn btn-outline-secondary btn-sm me-2">All Clients</button>
         <button className="btn btn-outline-secondary btn-sm">All Projects</button>
-      </div>
+      </div> */}
 
       {/* First Row */}
       <div className="row mb-4">

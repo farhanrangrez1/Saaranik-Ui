@@ -14,7 +14,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchjobs } from "../../../redux/slices/JobsSlice";
 import { fetchProject } from "../../../redux/slices/ProjectsSlice";
 
-function InProgressDashboard() {
+function DCompletedProject() {
   const dispatch = useDispatch();
   const { job } = useSelector((state) => state.jobs);
   const { project, loading, error } = useSelector((state) => state.projects);
@@ -108,24 +108,24 @@ function InProgressDashboard() {
   // ✅ FILTER PROJECTS by status === in_progress / in progress
   const filteredProjects = project?.data?.filter(
     (proj) =>
-      (proj.status || "").toLowerCase().replace(/\s|_/g, "") === "inprogress"
+      (proj.status || "").toLowerCase().replace(/\s|_/g, "") === "completed"
   );
 
   return (
     <div className="container bg-white p-4 mt-4 rounded shadow-sm">
       {/* Title */}
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <h5 className="fw-bold m-0">Projects in Progress</h5>
+        <h5 className="fw-bold m-0">Completed Project</h5>
       </div>
 
       {/* Filters */}
-      <div className="d-flex flex-wrap gap-2 mb-3 align-items-center">
+      {/* <div className="d-flex flex-wrap gap-2 mb-3 align-items-center">
         <Form.Control
           type="text"
           placeholder="Search jobs..."
           className="w-auto"
         />
-      </div>
+      </div> */}
 
       {/* Table */}
       <div className=" rounded-2 overflow-hidden">
@@ -133,7 +133,7 @@ function InProgressDashboard() {
           <Table responsive className="project-table mb-4">
             <thead className="table-light">
               <tr>
-                <th>Select</th>
+                {/* <th>Select</th> */}
                 <th style={{ whiteSpace: 'nowrap' }}>Project No</th>
                 <th style={{ whiteSpace: 'nowrap' }}>Project Name</th>
                 <th style={{ whiteSpace: 'nowrap' }}>Description</th>
@@ -142,22 +142,22 @@ function InProgressDashboard() {
                 <th style={{ whiteSpace: 'nowrap' }}>Client</th>
                 <th style={{ whiteSpace: 'nowrap' }}>Project Requirements</th>
                 <th style={{ whiteSpace: 'nowrap' }}>Status</th>
-                <th style={{ whiteSpace: 'nowrap' }}>Actions</th>
+                {/* <th style={{ whiteSpace: 'nowrap' }}>Actions</th> */}
               </tr>
             </thead>
             <tbody>
               {filteredProjects.slice().reverse().map((project, index) => (
                 <tr key={project.id}>
-                  <td>
+                  {/* <td>
                     <input
                       type="checkbox"
                       checked={selectedJobs[project.id] || false}
                       onChange={() => handleCheckboxChange(project.id)}
                     />
-                  </td>
+                  </td> */}
                   <td onClick={() => CreatJobs(project.id)}>
-                    <Link>{String(index + 1).padStart(4, "0")}</Link>
-                  </td>
+                 {project.projectNo}
+                </td>
                   <td style={{ whiteSpace: 'nowrap' }}>{project.projectName}</td>
                   <td style={{ whiteSpace: 'nowrap' }}>{project.description}</td>
                   <td>
@@ -276,4 +276,4 @@ function InProgressDashboard() {
   );
 }
 
-export default InProgressDashboard;
+export default DCompletedProject;

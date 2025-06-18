@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Form, Table, Badge, InputGroup, Button, Collapse } from "react-bootstrap";
+import { Form, Table, Badge, InputGroup, Button, Collapse,Dropdown } from "react-bootstrap";
 import { FaSearch, FaFilter, FaSort } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
@@ -7,9 +7,9 @@ import { fetchReceivablePurchases } from "../../../redux/slices/receivablePurcha
 
 function ReciveablePurchase() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("All Status");
   const [sortField, setSortField] = useState(null);
   const [sortDirection, setSortDirection] = useState("asc");
-  const [status, setStatus] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [showFilters, setShowFilters] = useState(false);
   const dispatch = useDispatch();
@@ -26,19 +26,19 @@ function ReciveablePurchase() {
   const allOrders = purchases?.receivablePurchases || [];
 
   // 🔍 Filtering based on search and status
-  const searched = allOrders.filter((po) => {
-    const q = searchQuery.toLowerCase();
-    return (
-      po?.poNumber?.toLowerCase().includes(q) ||
-      po?.projectId?.[0]?.projectName?.toLowerCase().includes(q) ||
-      po?.ClientId?.[0]?.clientName?.toLowerCase().includes(q) ||
-      po?.EstimateRef?.toLowerCase().includes(q)
-    );
-  });
+  const filteredOrders = allOrders.filter((po) => {
+    const searchLower = searchQuery.toLowerCase().trim();
+    const matchesSearch = !searchQuery || 
+      (po?.PONumber?.toLowerCase().includes(searchLower) ||
+      po?.projectId?.[0]?.projectName?.toLowerCase().includes(searchLower) ||
+      po?.ClientId?.[0]?.clientName?.toLowerCase().includes(searchLower) ||
+      po?.costEstimates?.[0]?.estimateRef?.toLowerCase().includes(searchLower) ||
+      po?.Status?.toLowerCase().includes(searchLower));
 
-  const filteredOrders = searched.filter((po) => {
-    if (!status) return true;
-    return po?.Status?.toLowerCase() === status.toLowerCase();
+    const matchesStatus = selectedStatus === "All Status" || 
+      po?.Status?.toLowerCase() === selectedStatus.toLowerCase();
+
+    return matchesSearch && matchesStatus;
   });
 
   // ↕️ Sorting
@@ -47,7 +47,7 @@ function ReciveablePurchase() {
     const aVal = a[sortField] || "";
     const bVal = b[sortField] || "";
 
-    if (sortField === "amount") {
+    if (sortField === "Amount") {
       return sortDirection === "asc" ? aVal - bVal : bVal - aVal;
     }
 
@@ -93,7 +93,7 @@ function ReciveablePurchase() {
 
   return (
     <div
-      className="p-4 m-3"
+      className="p-4 m-2"
       style={{ backgroundColor: "white", borderRadius: "10px" }}
     >
       <h2 className="mb-4">Receivable Purchase Orders</h2>
@@ -102,26 +102,34 @@ function ReciveablePurchase() {
       <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         {/* Filters for md and above */}
         <div className="d-none d-md-flex align-items-center gap-3 w-100 w-md-auto">
-          <InputGroup className="w-50">
-            <InputGroup.Text>
-              <FaSearch />
-            </InputGroup.Text>
+        <div className="search-container flex-grow-1">
             <Form.Control
-              placeholder="Search POs..."
+              type="search"
+              placeholder="Search by Job #, Brand Name, Sub Brand, Flavour, Pack Type, Pack Size..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              className="search-input"
             />
-          </InputGroup>
+          </div>
 
-          <Form.Select
-            style={{ width: "110px" }}
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-          >
-            <option value="">All Status</option>
-            <option value="open">Open</option>
-            <option value="invoiced">Invoiced</option>
-          </Form.Select>
+          <Dropdown className="filter-dropdown">
+            <Dropdown.Toggle
+              variant="light"
+              id="status-dropdown"
+              className="custom-dropdown"
+            >
+              {selectedStatus}
+            </Dropdown.Toggle>
+            <Dropdown.Menu>
+              <Dropdown.Item onClick={() => setSelectedStatus("All Status")}>All Status</Dropdown.Item>
+              <Dropdown.Item onClick={() => setSelectedStatus("Pending")}>Pending</Dropdown.Item>
+              <Dropdown.Item onClick={() => setSelectedStatus("Received")}>Received</Dropdown.Item>
+              <Dropdown.Item onClick={() => setSelectedStatus("Cancelled")}>Cancelled</Dropdown.Item>
+              <Dropdown.Item onClick={() => setSelectedStatus("Completed")}>Completed</Dropdown.Item>
+              <Dropdown.Item onClick={() => setSelectedStatus("Open")}>Open</Dropdown.Item>
+              <Dropdown.Item onClick={() => setSelectedStatus("Invoiced")}>Invoiced</Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown>
 
           <div className="d-flex align-items-center gap-2 flex-wrap">
             {/* <button className="btn btn-outline-secondary" onClick={() => handleSort(sortField || "poNumber")}>
@@ -166,12 +174,16 @@ function ReciveablePurchase() {
           </InputGroup>
 
           <Form.Select
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value)}
           >
-            <option value="">All Status</option>
-            <option value="open">Open</option>
-            <option value="invoiced">Invoiced</option>
+            <option value="All Status">All Status</option>
+            <option value="Pending">Pending</option>
+            <option value="Received">Received</option>
+            <option value="Cancelled">Cancelled</option>
+            <option value="Completed">Completed</option>
+            <option value="Open">Open</option>
+            <option value="Invoiced">Invoiced</option>
           </Form.Select>
         </div>
       </Collapse>

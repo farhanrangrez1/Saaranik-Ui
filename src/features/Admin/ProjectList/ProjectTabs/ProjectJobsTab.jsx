@@ -92,39 +92,39 @@ function ProjectJobsTab() {
     currentAssignment * itemsAssignment
   );
 
-const handleSubmitAssignment = () => {
-  const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
-  const payload = {
-    employeeId: [selectedEmployee],
-    jobId: selectedJobIds,
-    selectDesigner: selectedDesigner,
-    description: assignmentDescription,
+  const handleSubmitAssignment = () => {
+    const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
+    const payload = {
+      employeeId: [selectedEmployee],
+      jobId: selectedJobIds,
+      selectDesigner: selectedDesigner,
+      description: assignmentDescription,
+    };
+
+    console.log("Assignment Payload:", payload);
+
+    if (id) {
+      dispatch(createAssigns(payload))
+        .unwrap()
+        .then((response) => {
+          console.log("API Response:", response);
+          // ✅ Agar API success ho to navigate kare
+          if (response.success) {
+            toast.success(response.message || "Project Assigned Successfully!");
+            setShowAssignModal(false);
+            setSelectedJobs(false);
+            navigate("/admin/MyJobs");
+          } else {
+            setShowAssignModal(false);
+            toast.error(response.message || "Assignment failed!");
+          }
+        })
+        .catch((error) => {
+          console.error("API Error:", error);
+          toast.error(error.message || "Failed to update project!");
+        });
+    }
   };
-
-  console.log("Assignment Payload:", payload);
-
-  if (id) {
-    dispatch(createAssigns(payload))
-      .unwrap()
-      .then((response) => {
-        console.log("API Response:", response);
-        // ✅ Agar API success ho to navigate kare
-        if (response.success) {
-          toast.success(response.message || "Project Assigned Successfully!");
-          setShowAssignModal(false);
-          setSelectedJobs(false);
-          navigate("/admin/MyJobs");
-        }else{
-          setShowAssignModal(false);
-          toast.error(response.message || "Assignment failed!");
-        }
-      })
-      .catch((error) => {
-        console.error("API Error:", error);
-        toast.error(error.message || "Failed to update project!");
-      });
-  }
-};
 
   const handleJobAssign = (selectedIds, assignTo) => {
     const payload = {
@@ -179,8 +179,8 @@ const handleSubmitAssignment = () => {
   // const id = location.state?.id || params.id;
   useEffect(() => {
     console.log("Project ID:", id);
-  }, [id]); 
-  
+  }, [id]);
+
   const { job, loading, error } = useSelector((state) => state.jobs);
   console.log(job.jobs, "all jobs");
 
@@ -227,8 +227,6 @@ const handleSubmitAssignment = () => {
   const JobDetails = (job) => {
     navigate(`/admin/OvervieJobsTracker`, { state: { job } });
   }
-
-
   const getStatusClass = (status) => {
     switch (status.toLowerCase().trim()) {
       case "in progress":
@@ -249,8 +247,7 @@ const handleSubmitAssignment = () => {
     }
   };
 
-
-  // // ✅ Copy File Name & Download CSV
+ // ✅ Copy File Name & Download CSV
   const handleDownloadFileNamesCSV = () => {
     const rows = [["JobFileName"]];
     job?.jobs?.forEach((j, index) => {

@@ -66,7 +66,7 @@ export const adminMenuItems = [
     icon: <FaShoppingCart className="menu-icon" />,
     submenu: [
       { title: "Receivable POs", path: "/admin/receivable" },
-      { title: "Issuable POs", path: "/admin/IssuablePurchase" },
+      // { title: "Issuable POs", path: "/admin/IssuablePurchase" },
     ],
   },
   {
@@ -177,11 +177,6 @@ export const clientMenuItems = [
     title: "Notifications",
     icon: <FaBell className="menu-icon" />,
     path: "/admin/Notiifcations",
-  },
-  {
-    title: "New Project",
-    icon: <FaProjectDiagram className="menu-icon" />,
-    path: "/employee/projectList",
   },
   {
     title: "Settings",

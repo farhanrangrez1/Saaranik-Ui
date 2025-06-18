@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Container, Row, Col, Button, Form, Table, Pagination, Badge, Modal } from "react-bootstrap";
+import { Container, Row, Col, Button, Form, Table, Pagination, Badge, Modal,Dropdown } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import * as XLSX from 'xlsx';
 import { useDispatch, useSelector } from "react-redux";
 import { fetchjobs } from "../../../redux/slices/JobsSlice";
+
 import {
   FaFilePdf,
   FaUpload,
@@ -21,6 +22,9 @@ function MyJobs() {
   const [selectedBrief, setSelectedBrief] = useState("");
   const [showFilters, setShowFilters] = useState(false); // 👈 For responsive toggle
   const [expandedJob, setExpandedJob] = useState(null); // Tracking the expanded job
+  const [selectedStatus, setSelectedStatus] = useState("All Status");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedEmployee, setSelectedEmployee] = useState("All Employees");
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -115,7 +119,44 @@ function MyJobs() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const filteredProjects = assigns?.assignments || [];
+  const filteredProjects = (assigns?.assignments || []).filter((job) => {
+    const search = searchQuery.toLowerCase().trim();
+    const employeeName = job.employeeId 
+      ? `${job.employeeId.firstName} ${job.employeeId.lastName}`.toLowerCase()
+      : '';
+    const description = (job.description || '').toLowerCase();
+    const brandName = (job.jobId?.[0]?.brandName || '').toLowerCase();
+    const subBrand = (job.jobId?.[0]?.subBrand || '').toLowerCase();
+    const flavour = (job.jobId?.[0]?.flavour || '').toLowerCase();
+    const packType = (job.jobId?.[0]?.packType || '').toLowerCase();
+    const packSize = (job.jobId?.[0]?.packSize || '').toLowerCase();
+    const packCode = (job.jobId?.[0]?.packCode || '').toLowerCase();
+    const jobNo = (job.jobId?.[0]?.JobNo || '').toString().toLowerCase();
+    const designer = (job.selectDesigner || '').toLowerCase();
+
+    const matchesSearch =
+      employeeName.includes(search) ||
+      description.includes(search) ||
+      brandName.includes(search) ||
+      subBrand.includes(search) ||
+      flavour.includes(search) ||
+      packType.includes(search) ||
+      packSize.includes(search) ||
+      packCode.includes(search) ||
+      jobNo.includes(search) ||
+      designer.includes(search);
+
+    const matchesEmployee =
+      selectedEmployee === "All Employees" ||
+      employeeName === selectedEmployee.toLowerCase();
+
+    const matchesStatus =
+      selectedStatus === "All Status" ||
+      (job.jobId?.[0]?.Status?.toLowerCase() === selectedStatus.toLowerCase());
+
+    return matchesSearch && matchesEmployee && matchesStatus;
+  });
+
   const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
 
   const paginatedProjects = filteredProjects.slice(
@@ -165,20 +206,51 @@ function MyJobs() {
             placeholder="Search jobs..."
             className="flex-grow-1"
             style={{ minWidth: "150px", maxWidth: "200px" }}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
-          <Form.Select className="flex-shrink-0" style={{ minWidth: "140px", maxWidth: "160px" }}>
-            <option>All Status</option>
-          </Form.Select>
-          <Form.Select className="flex-shrink-0" style={{ minWidth: "140px", maxWidth: "160px" }}>
-            <option>All Deadlines</option>
-          </Form.Select>
+          <Dropdown>
+            <Dropdown.Toggle variant="light" id="employee-dropdown">
+              {selectedEmployee}
+            </Dropdown.Toggle>
+            <Dropdown.Menu>
+              <Dropdown.Item onClick={() => setSelectedEmployee("All Employees")}>
+                All Employees
+              </Dropdown.Item>
+              {[...new Set((assigns?.assignments || []).map(job => 
+                job.employeeId 
+                  ? `${job.employeeId.firstName} ${job.employeeId.lastName}`
+                  : 'No Employee'
+              ))].map((employeeName, index) => (
+                <Dropdown.Item 
+                  key={index} 
+                  onClick={() => setSelectedEmployee(employeeName)}
+                >
+                  {employeeName}
+                </Dropdown.Item>
+              ))}
+            </Dropdown.Menu>
+          </Dropdown>
+          <Dropdown>
+            <Dropdown.Toggle variant="light" id="status-dropdown">
+              {selectedStatus}
+            </Dropdown.Toggle>
+            <Dropdown.Menu>
+              {["All Status", "In_progress", "Review", "active", "Completed"].map((item) => (
+                <Dropdown.Item key={item} onClick={() => setSelectedStatus(item)}>
+                  {item}
+                </Dropdown.Item>
+              ))}
+            </Dropdown.Menu>
+          </Dropdown>
         </Col>
+
 
         <Col xs={12} lg={3} className="text-lg-end d-flex flex-wrap justify-content-lg-end gap-2">
           <Button id="All_btn" variant="dark" className="w-lg-auto" onClick={handleReturnJob}>
             Return Job
           </Button>
-        </Col>
+        </Col>      
       </Row>
 
       {/* Table */}
@@ -190,7 +262,6 @@ function MyJobs() {
               {/* <th>JobNo</th>
               <th>ProjectName</th> */}
               <th>EmployeeName</th>
-              <th>Assign</th>
               <th>Description</th>
               <th>Brand</th>
               <th>SubBrand</th>
@@ -218,8 +289,8 @@ function MyJobs() {
                       ? `${job.employeeId.firstName} ${job.employeeId.lastName}`
                       : 'No Employee'}
                   </td>
-                   <td>{job.selectDesigner}</td>
-                   <td>{job.description}</td>
+
+                  <td style={{ whiteSpace: "nowrap" }}>{job.description}</td>
                   <td>{job.jobId?.[0]?.brandName || 'N/A'}</td>
                   <td style={{ whiteSpace: 'nowrap' }}>{job.jobId?.[0]?.subBrand || 'N/A'}</td>
                   <td>{job.jobId?.[0]?.flavour || 'N/A'}</td>
@@ -228,10 +299,10 @@ function MyJobs() {
                   <td>{job.jobId?.[0]?.packCode || 'N/A'}</td>
                   <td><span className={getPriorityClass(job.jobId?.[0]?.priority)}>{job.jobId?.[0]?.priority || 'N/A'}</span></td>
                   <td>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
-                  <td>{job.jobId?.[0]?.assign || 'N/A'}</td>
+                  <td style={{ whiteSpace: "nowrap" }}>{job.selectDesigner}</td>
                   <td>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
                   <td>
-                    <span className={`badge ${getStatusClass(job.jobId?.[0]?.Status) || ''} px-2 py-1`}>
+                    <span className={`badge ${getStatusClass(job.jobId?.[0]?.Status) || ''} `}>
                       {job.jobId?.[0]?.Status || 'N/A'}
                     </span>
                   </td>
@@ -271,10 +342,10 @@ function MyJobs() {
                 {expandedJob === job._id && (
                   <tr>
                     <td colSpan="19">
-                      <div className="">
-                        <table className="">
-                          <thead>
-                            <tr style={{display:"flex",alignItems:"center",justifyContent:"space-between",width:"900px",backgroundColor:"none"}}>
+                      <div className="table-responsive">
+                        <Table hover className="align-middle sticky-header">
+                          <thead className="bg-light">
+                            <tr >
                               <th>JobNo</th>
                               <th>Brand</th>
                               <th>Sub Brand</th>
@@ -287,7 +358,7 @@ function MyJobs() {
                           </thead>
                           <tbody>
                             {job.jobId?.map((j, idx) => (
-                              <tr className="highlighted-row" key={j._id || idx} style={{display:"flex",alignItems:"center",justifyContent:"space-between",width:"940px",backgroundColor:"none"}}>
+                              <tr key={j._id || idx}>
                                 <td>{j.JobNo}</td>
                                 <td>{j.brandName}</td>
                                 <td>{j.subBrand}</td>
@@ -299,7 +370,7 @@ function MyJobs() {
                               </tr>
                             ))}
                           </tbody>
-                        </table>
+                        </Table>
                       </div>
                     </td>
                   </tr>
@@ -307,7 +378,6 @@ function MyJobs() {
               </React.Fragment>
             ))}
           </tbody>
-
         </Table>
       </div>
 

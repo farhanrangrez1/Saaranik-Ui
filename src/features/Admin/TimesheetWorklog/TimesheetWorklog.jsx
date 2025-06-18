@@ -5,13 +5,15 @@ import './TimesheetWorklog.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { deleteTimesheetWorklog, fetchTimesheetWorklogs } from '../../../redux/slices/TimesheetWorklogSlice';
 import Swal from 'sweetalert2';
+import { Form, Table, Badge, InputGroup, Button, Collapse,Dropdown } from "react-bootstrap";
 
 function TimesheetWorklog() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProject, setSelectedProject] = useState('All timesheet');
+  const [selectedDate, setSelectedDate] = useState('');
   const [filtersOpen, setFiltersOpen] = useState(false);
-const [currentPage, setCurrentPage] = useState(1);
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const [showFilters, setShowFilters] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -28,7 +30,34 @@ const [currentPage, setCurrentPage] = useState(1);
      (currentPage - 1) * itemsPerPage,
      currentPage * itemsPerPage
    );
- 
+
+  // Add filtering logic before pagination
+  const filteredTimeLogs = timesheetWorklog.TimesheetWorklogss
+    ?.filter((log) => {
+      const searchLower = searchQuery.toLowerCase().trim();
+      const matchesSearch = !searchQuery || 
+        (log.jobId?.[0]?.JobNo?.toString().toLowerCase().includes(searchLower) ||
+        log.projectId?.[0]?.projectName?.toLowerCase().includes(searchLower) ||
+        `${log.employeeId?.[0]?.firstName} ${log.employeeId?.[0]?.lastName}`.toLowerCase().includes(searchLower) ||
+        log.taskDescription?.toLowerCase().includes(searchLower) ||
+        log.status?.toLowerCase().includes(searchLower));
+
+      const matchesProject = selectedProject === 'All timesheet' || 
+        log.projectId?.[0]?.projectName === selectedProject;
+
+      const matchesDate = !selectedDate || 
+        new Date(log.date).toLocaleDateString() === new Date(selectedDate).toLocaleDateString();
+
+      return matchesSearch && matchesProject && matchesDate;
+    });
+
+  // Update pagination to use filtered data
+  const totalPagesFiltered = Math.ceil((filteredTimeLogs?.length || 0) / itemsPerPage);
+  const paginatedTimeLogssFiltered = filteredTimeLogs?.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   const handleDelete = (_id) => {
     Swal.fire({
       title: "Are you sure?",
@@ -95,7 +124,6 @@ const [currentPage, setCurrentPage] = useState(1);
     };
   }, [filtersOpen]);
 
-  
   function timeStringToDecimalHours(time24) {
     if (!time24) return 0;
     const [hourStr, minuteStr] = time24.split(':');
@@ -112,101 +140,58 @@ const [currentPage, setCurrentPage] = useState(1);
         </Link>
       </div> */}
 
+
       {/* Responsive Filters */}
-      <div className="mb-4">
-        {/* Large screens: show filters inline */}
-        <div className="d-none d-md-flex row g-3">
-          <div className="col-md-8">
-            <div className="input-group">
-              <span className="input-group-text bg-white border-end-0">
-                <FaSearch className="text-muted" />
-              </span>
-              <input
-                type="text"
-                className="form-control border-start-0"
-                placeholder="Search entries..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-          </div>
-          <div className="col-md-4">
-            <select
-              className="form-select"
-              value={selectedProject}
-              onChange={(e) => setSelectedProject(e.target.value)}
-            >
-              <option>All timesheet</option>
-              <option>Project A</option>
-              <option>Project B</option>
-              <option>Project C</option>
-            </select>
+      <div
+        className={`row g-3 mb-4 
+          ${showFilters ? 'd-block' : 'd-none d-md-flex'}
+        `}
+      >
+        <div className="col-md-4">
+          <div className="input-group">
+            <span className="input-group-text bg-white border-end-0">
+              <FaSearch className="text-muted" />
+            </span>
+            <input
+              type="text"
+              className="form-control border-start-0"
+              placeholder="Search time logs..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
         </div>
-
-        {/* Small screens: show button to toggle filters */}
-        <div className="d-flex d-md-none justify-content-start" ref={filterRef} style={{ position: 'relative' }}>
-          <button
-            className="btn btn-outline-secondary"
-            onClick={() => setFiltersOpen(!filtersOpen)}
-            aria-expanded={filtersOpen}
-            aria-controls="mobileFilters"
-          >
-            <FaFilter /> Filters
-          </button>
-
-          {filtersOpen && (
-            <div
-              id="mobileFilters"
-              className="card p-3 shadow"
-              style={{
-                position: 'absolute',
-                top: 'calc(100% + 0.5rem)',
-                left: 0,
-                right: 0,
-                zIndex: 1000,
-                backgroundColor: 'white',
-                borderRadius: '0.25rem',
-                boxShadow: '0 0.5rem 1rem rgb(0 0 0 / 0.15)'
-              }}
-            >
-              <div className="mb-3">
-                <label htmlFor="mobileSearch" className="form-label visually-hidden">Search Entries</label>
-                <div className="input-group">
-                  <span className="input-group-text bg-white border-end-0">
-                    <FaSearch className="text-muted" />
-                  </span>
-                  <input
-                    id="mobileSearch"
-                    type="text"
-                    className="form-control border-start-0"
-                    placeholder="Search entries..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                </div>
-              </div>
-              <div>
-                <label htmlFor="mobileProjectSelect" className="form-label">Select Project</label>
-                <select
-                  id="mobileProjectSelect"
-                  className="form-select"
-                  value={selectedProject}
-                  onChange={(e) => setSelectedProject(e.target.value)}
-                >
-                  <option>All timesheet</option>
-                  <option>Project A</option>
-                  <option>Project B</option>
-                  <option>Project C</option>
-                </select>
-              </div>
-              <div className="mt-3 text-end">
-                <button className="btn btn-secondary btn-sm" onClick={() => setFiltersOpen(false)}>
-                  <FaTimes /> Close
-                </button>
-              </div>
-            </div>
-          )}
+        <div className="col-md-4">
+          <div className="input-group">
+            <span className="input-group-text bg-white border-end-0">
+              <FaCalendarAlt className="text-muted" />
+            </span>
+            <input
+              type="date"
+              className="form-control border-start-0"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+            />
+          </div>
+        </div>
+        <div className="col-md-4">
+          <Dropdown>
+            <Dropdown.Toggle variant="light" id="project-dropdown" className="w-100">
+              {selectedProject}
+            </Dropdown.Toggle>
+            <Dropdown.Menu>
+              <Dropdown.Item onClick={() => setSelectedProject("All timesheet")}>
+                All timesheet
+              </Dropdown.Item>
+              {[...new Set((timesheetWorklog.TimesheetWorklogss || []).map((log) => 
+                log.projectId?.[0]?.projectName || "N/A"
+              ))].filter(name => name !== "N/A").map((projectName, index) => (
+                <Dropdown.Item key={index} onClick={() => setSelectedProject(projectName)}>
+                  {projectName}
+                </Dropdown.Item>
+              ))}
+            </Dropdown.Menu>
+          </Dropdown>
         </div>
       </div>
 
@@ -229,7 +214,7 @@ const [currentPage, setCurrentPage] = useState(1);
               </tr>
             </thead>
             <tbody>
-               {paginatedTimeLogss?.map((log, index) => {
+               {paginatedTimeLogssFiltered?.map((log, index) => {
                            const extraHoursDecimal = timeStringToDecimalHours(log.extraHours);
                            const hoursDecimal = timeStringToDecimalHours(log.hours);
          
@@ -327,7 +312,7 @@ const [currentPage, setCurrentPage] = useState(1);
          {!loading && !error && (
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div className="text-muted small">
-            Showing 1 to {paginatedTimeLogss?.length || 0} of {timesheetWorklog.TimesheetWorklogss?.length || 0} entries
+            Showing 1 to {paginatedTimeLogssFiltered?.length || 0} of {timesheetWorklog.TimesheetWorklogss?.length || 0} entries
           </div>
           <ul className="pagination pagination-sm mb-0">
             <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
@@ -336,15 +321,15 @@ const [currentPage, setCurrentPage] = useState(1);
 
               </button>
             </li>
-            {Array.from({ length: totalPages }, (_, i) => (
+            {Array.from({ length: totalPagesFiltered }, (_, i) => (
               <li key={i + 1} className={`page-item ${currentPage === i + 1 ? 'active' : ''}`}>
                 <button className="page-link" onClick={() => setCurrentPage(i + 1)}>
                   {i + 1}
                 </button>
               </li>
             ))}
-            <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
+            <li className={`page-item ${currentPage === totalPagesFiltered ? 'disabled' : ''}`}>
+              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPagesFiltered))}>
 
                 <span aria-hidden="true">&raquo;</span>
               </button>

@@ -81,14 +81,10 @@ function ProjectOverview() {
           </div>
         </div>
         <div className="mt-3 mt-md-0 d-flex flex-wrap gap-2 justify-content-md-end">
-  <Link to="/admin/projectList">
-    <button className="btn btn-outline-secondary">← Back to Projects</button>
-  </Link>
-  <button className="btn btn-outline-secondary">Import File</button>
-  <Link to="/admin/UpdateProjectLis">
-    <button id="All_btn" className="btn btn-dark">Create Project</button>
-  </Link>
-</div>
+          <Link to="/admin/projectList">
+            <button className="btn btn-outline-secondary">← Back to Projects</button>
+          </Link>
+        </div>
 
       </div>
 
@@ -108,36 +104,36 @@ function ProjectOverview() {
       </ul>
 
       {/* Dropdown for Mobile */}
-    <div className="d-block d-md-none mb-4">
-  <div className="dropdown">
-    <button
-      className="btn btn-outline-primary dropdown-toggle w-100"
-      type="button"
-      id="tabDropdown"
-      data-bs-toggle="dropdown"
-      aria-expanded="false"
-    >
-      {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
-    </button>
-    <ul className="dropdown-menu w-100" aria-labelledby="tabDropdown">
-      <li>
-        <button className="dropdown-item" onClick={() => setActiveTab('overview')}>Overview</button>
-      </li>
-      <li>
-        <button className="dropdown-item" onClick={() => setActiveTab('jobs')}>Jobs</button>
-      </li>
-      <li>
-        <button className="dropdown-item" onClick={() => setActiveTab('finance')}>Finance</button>
-      </li>
-      <li>
-        <button className="dropdown-item" onClick={() => setActiveTab('documents')}>Documents</button>
-      </li>
-      <li>
-        <button className="dropdown-item" onClick={() => setActiveTab('team')}>Team</button>
-      </li>
-    </ul>
-  </div>
-</div>
+      <div className="d-block d-md-none mb-4">
+        <div className="dropdown">
+          <button
+            className="btn btn-outline-primary dropdown-toggle w-100"
+            type="button"
+            id="tabDropdown"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
+          </button>
+          <ul className="dropdown-menu w-100" aria-labelledby="tabDropdown">
+            <li>
+              <button className="dropdown-item" onClick={() => setActiveTab('overview')}>Overview</button>
+            </li>
+            <li>
+              <button className="dropdown-item" onClick={() => setActiveTab('jobs')}>Jobs</button>
+            </li>
+            <li>
+              <button className="dropdown-item" onClick={() => setActiveTab('finance')}>Finance</button>
+            </li>
+            <li>
+              <button className="dropdown-item" onClick={() => setActiveTab('documents')}>Documents</button>
+            </li>
+            <li>
+              <button className="dropdown-item" onClick={() => setActiveTab('team')}>Team</button>
+            </li>
+          </ul>
+        </div>
+      </div>
 
 
       {/* Tab Content */}

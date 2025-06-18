@@ -10,7 +10,7 @@ import { FaTrash } from "react-icons/fa";
 import Swal from 'sweetalert2';
 
 
-function CostEstimatesDashbord() {
+function DCostEstimates() {
     const [searchQuery, setSearchQuery] = useState("");
     const [sortField, setSortField] = useState(null);
     const [sortDirection, setSortDirection] = useState("asc");
@@ -235,7 +235,7 @@ function CostEstimatesDashbord() {
             <h2 className="fw-semibold mb-3">Cost Estimates</h2>
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <div className="filters d-flex flex-wrap gap-1 mb-4">
-                    <div className="search-container flex-grow-1">
+                    {/* <div className="search-container flex-grow-1">
                         <Form.Control
                             type="search"
                             placeholder="Search by Job #, Brand Name, Sub Brand, Flavour, Pack Type, Pack Size..."
@@ -243,7 +243,7 @@ function CostEstimatesDashbord() {
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="search-input"
                         />
-                    </div>
+                    </div> */}
 
                     {/* <Dropdown className="filter-dropdown">
             <Dropdown.Toggle
@@ -315,7 +315,7 @@ function CostEstimatesDashbord() {
                 <Table hover className="align-middle sticky-header">
                     <thead style={{ backgroundColor: "#f8f9fa", position: "sticky", top: 0, zIndex: 1 }}>
                         <tr>
-                            <th><input type="checkbox" /></th>
+                            {/* <th><input type="checkbox" /></th> */}
                             <th>CENo</th>
                             <th>Date</th>
                             <th>Client</th>
@@ -324,13 +324,13 @@ function CostEstimatesDashbord() {
                             <th>Amount</th>
                             <th>POStatus</th>
                             <th>Status</th>
-                            <th>Actions</th>
+                            {/* <th>Actions</th> */}
                         </tr>
                     </thead>
                     <tbody>
                         {paginatedEstimates?.map((po, index) => (
                             <tr style={{ whiteSpace: "nowrap" }} key={po.poNumber}>
-                                <td><input type="checkbox" /></td>
+                                {/* <td><input type="checkbox" /></td> */}
                                 <td onClick={() => CreatJobs(po.projectId)}>
                                     <Link style={{ textDecoration: 'none', border: 'none', color: 'inherit' }}>
                                         {po.estimateRef}
@@ -348,24 +348,24 @@ function CostEstimatesDashbord() {
                                     {po.lineItems?.reduce((total, item) => total + (item.amount || 0), 0).toFixed(2)}
                                 </td>
                                 <td>
-                                    <span style={{color:"black"}} className={`badge ${getStatusClass(po.Status)} px-2 py-1`}>
+                                    <span style={{ color: "black" }} className={`badge ${getStatusClass(po.Status)} px-2 py-1`}>
                                         {po.POStatus}
                                     </span>
                                 </td>
                                 <td>
-                                    <span style={{color:"black"}} className={`badge ${getStatusClass(po.Status)} px-2 py-1`}>
+                                    <span style={{ color: "black" }} className={`badge ${getStatusClass(po.Status)} px-2 py-1`}>
                                         {po.Status}
                                     </span>
                                 </td>
                                 <td>
                                     <div className="d-flex gap-2">
                                         {/* <button className="btn btn-sm btn-primary" onClick={() => Duplicate(po)}>Duplicate</button>
-                    <button className="btn btn-sm btn-primary" onClick={() => handleConvertToInvoice(po)}>ConvertInvoice</button>
-                    <button className="btn btn-sm btn-success" onClick={() => setShowAddPOModal(true)}>AddPO</button> */}
-                                        <button className="btn btn-sm btn-outline-primary" onClick={() => UpdateEstimate(po)}><BsPencil /></button>
+                                         <button className="btn btn-sm btn-primary" onClick={() => handleConvertToInvoice(po)}>ConvertInvoice</button>
+                                          <button className="btn btn-sm btn-success" onClick={() => setShowAddPOModal(true)}>AddPO</button> */}
+                                        {/* <button className="btn btn-sm btn-outline-primary" onClick={() => UpdateEstimate(po)}><BsPencil /></button> */}
                                         {/* <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(po._id)}>
-                          <FaTrash />
-                        </button> */}
+                                         <FaTrash />
+                                          </button> */}
                                     </div>
                                 </td>
                             </tr>
@@ -373,7 +373,6 @@ function CostEstimatesDashbord() {
                     </tbody>
                 </Table>
             </div>
-
 
             {/* Modal for converting to invoice */}
             <Modal
@@ -561,4 +560,4 @@ function CostEstimatesDashbord() {
     )
 }
 
-export default CostEstimatesDashbord
+export default DCostEstimates

@@ -12,6 +12,7 @@ import { Project_job_Id } from '../../../redux/slices/JobsSlice';
 function ProjectList() {
   const [activeTab, setActiveTab] = useState('Active Project');
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState(''); // 👈 Add search state
 
   const dispatch = useDispatch();
   const navigate = useNavigate()
@@ -26,21 +27,26 @@ function ProjectList() {
     'Cancelled',
     'On Hold',
     'All',
-    // 'Completed (To Be Invoiced)',
   ];
 
   useEffect(() => {
     dispatch(fetchProject());
   }, [dispatch]);
 
-  const filteredProjects =
+  const filteredProjects = (
     activeTab === 'All'
       ? project.data
       : activeTab === 'Completed (To Be Invoiced)'
         ? project.data?.filter(
-          (project) => project.status === 'Completed' && !project.invoiceCreated
-        )
-        : project.data?.filter((project) => project.status === activeTab);
+            (project) => project.status === 'Completed' && !project.invoiceCreated
+          )
+        : project.data?.filter((project) => project.status === activeTab)
+  )?.filter((project) =>
+    project.projectName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    project.projectNo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    project.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    project.client?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const handleCheckboxChange = (projectId) => {
     setSelectedJobs((prev) => ({
@@ -50,7 +56,6 @@ function ProjectList() {
   };
 
   const handleDelete = (id) => {
-    console.log(id);
     Swal.fire({
       title: "Are you sure?",
       text: "You won't be able to revert this!",
@@ -72,6 +77,7 @@ function ProjectList() {
       }
     });
   }
+
   const handleUpdate = (project) => {
     navigate(`/admin/AddProjectList`, { state: { project } });
   };
@@ -114,7 +120,7 @@ function ProjectList() {
   );
 
   return (
-    <div className="project-container" >
+    <div className="project-container">
       {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h5 className="m-0 fw-bold">Project List</h5>
@@ -128,6 +134,8 @@ function ProjectList() {
               type="text"
               className="form-control"
               placeholder="Search projects.."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)} // 👈 Handle input
             />
           </div>
           <div className="col-12 col-md-6 d-flex justify-content-md-end gap-2">
@@ -144,9 +152,7 @@ function ProjectList() {
       </div>
 
       {/* Project Status Tabs */}
-      {/* Project Status Tabs - Responsive */}
       <div className="project-tabs mb-4">
-        {/* Large screens: show tabs */}
         <ul className="nav nav-tabs d-none d-md-flex">
           {tabs.map((tab) => (
             <li className="nav-item" key={tab}>
@@ -161,13 +167,11 @@ function ProjectList() {
           ))}
         </ul>
 
-        {/* Small screens: show dropdown */}
         <div className="d-flex d-md-none">
           <Dropdown>
             <Dropdown.Toggle variant="outline-primary" id="dropdown-tabs" className="w-100">
               {activeTab}
             </Dropdown.Toggle>
-
             <Dropdown.Menu className="w-100">
               {tabs.map((tab) => (
                 <Dropdown.Item
@@ -190,7 +194,6 @@ function ProjectList() {
           <div className="mt-2">Loading projects...</div>
         </div>
       )}
-
       {/* Error */}
       {error && (
         <div className="text-danger text-center my-5">
@@ -238,11 +241,6 @@ function ProjectList() {
                     onChange={() => handleCheckboxChange(project.id)}
                   />
                 </td>
-                {/* <td onClick={() => CreatJobs(project.id)}>
-                  <Link>
-                    {String(index + 1).padStart(4, '0')}
-                  </Link>
-                </td> */}
                 <td onClick={() => CreatJobs(project.id)}>
                   <Link style={{ textDecoration: 'none' }}>{project.projectNo}</Link>
                 </td>
@@ -266,20 +264,9 @@ function ProjectList() {
                 </td>
                 <td>
                   <div className="action-buttons d-flex">
-                    {/* <Button style={{ color: "#0d6efd" }} variant="link" className="p-0 me-2">
-                      <FaEye />
-                    </Button> */}
                     <Button style={{ color: "#0d6efd" }} variant="link" className="p-0 me-2" onClick={() => handleUpdate(project)}>
                       <FaEdit />
                     </Button>
-                    {/* <Button
-                      style={{ color: "red" }}
-                      variant="link"
-                      className="p-0"
-                      onClick={() => handleDelete(project.id)}
-                    >
-                      <FaTrash />
-                    </Button> */}
                   </div>
                 </td>
               </tr>
@@ -313,7 +300,6 @@ function ProjectList() {
               </button>
             </li>
           </ul>
-
         </div>
       )}
     </div>

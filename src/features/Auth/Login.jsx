@@ -233,6 +233,7 @@ import { usersLogin } from "../../redux/slices/userSlice";
 import axios from "axios";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { apiUrl } from '../../redux/utils/config';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -295,7 +296,7 @@ const Login = () => {
 
   try {
     setLoading(true);
-    const res = await axios.post("https://xt2cpwt7-8000.inc1.devtunnels.ms/api/user/login", { email, password });
+    const res = await axios.post(`${apiUrl}/user/login`, { email, password });
     console.log("API Response:", res.data);
 
     // localStorage.setItem("authResponse", JSON.stringify(res.data));
@@ -327,7 +328,7 @@ const Login = () => {
 };
 
   return (
-    <div className="auth-container d-flex justify-content-center align-items-center min-vh-100 bg-light">
+    <div id="login-bg" className="auth-container d-flex justify-content-center align-items-center min-vh-100 bg-light">
       <main className="w-100" style={{ maxWidth: "550px" }}>
         <div className="login-container bg-white p-4 rounded shadow-sm">
           <h4 className="text-center mb-4">Welcome Back</h4>
