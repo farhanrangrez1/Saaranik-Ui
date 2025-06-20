@@ -10,6 +10,11 @@ import MyJobs from '../features/Employee/MyJobs/MyJobs.jsx';
 import ProtectedRoute from "../Protecuted/Protecuted.jsx";
 import TimeLogs from '../features/Employee/TimeLogs/TimeLogs.jsx';
 import AddTimeLog from '../features/Employee/TimeLogs/AddTimeLog.jsx';
+import Notification from '../features/Employee/Notiifcations/Notiifcations.jsx';
+import Profile from '../features/Employee/Profile/Profile.jsx';
+import SettingsPage from '../features/Employee/Settings/Settings.jsx';
+import ChangePassword from '../features/Layouts/ChangePassword.jsx';
+import UpdateProfile from '../features/Employee/Profile/UpdateProfile.jsx';
 
 function Employee() {
   const [isSidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 768);
@@ -35,8 +40,13 @@ function Employee() {
             <Route path="/projectList" element={<ProtectedRoute><ProjectList /></ProtectedRoute>} />
             <Route path="/picktask" element={<ProtectedRoute><PickTask /></ProtectedRoute>} />
             <Route path="/myJobs" element={<ProtectedRoute><MyJobs /></ProtectedRoute>} />
-            <Route path="/TimeTracking" element={<ProtectedRoute><TimeLogs/></ProtectedRoute>} />
-            <Route path="/AddTimeLog" element={<ProtectedRoute><AddTimeLog/></ProtectedRoute>} />
+            <Route path="/TimeTracking" element={<ProtectedRoute><TimeLogs /></ProtectedRoute>} />
+            <Route path="/AddTimeLog" element={<ProtectedRoute><AddTimeLog /></ProtectedRoute>} />
+            <Route path="/Notification" element={<ProtectedRoute><Notification /></ProtectedRoute>} />
+            <Route path="/Profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="/Settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+            <Route path="/changePassword" element={<ProtectedRoute><ChangePassword/></ProtectedRoute>} />
+            <Route path="/UpdateProfile" element={<ProtectedRoute><UpdateProfile/></ProtectedRoute>} />
           </Routes>
         </div>
       </div>

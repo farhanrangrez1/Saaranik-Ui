@@ -1,5 +1,3 @@
-
-
 import React, { useEffect, useState } from "react";
 import { Modal, Form, Table, Badge, Dropdown, Button } from "react-bootstrap";
 import { BsPlusLg, BsPencil, BsTrash, BsUpload } from "react-icons/bs";
@@ -14,6 +12,8 @@ function DCostEstimates() {
     const [searchQuery, setSearchQuery] = useState("");
     const [sortField, setSortField] = useState(null);
     const [sortDirection, setSortDirection] = useState("asc");
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10; // Changed to 10 items per page
 
     const dispatch = useDispatch()
     const navigate = useNavigate()
@@ -178,7 +178,44 @@ function DCostEstimates() {
             case "in progress":
             case "pending":
                 return "bg-warning text-dark";
+        }
+    };
 
+    // Add new function for POStatus styling
+    const getPOStatusClass = (poStatus) => {
+        switch ((poStatus || "").toLowerCase().trim()) {
+            case "pending":
+                return "bg-warning text-dark";
+            case "completed":
+                return "bg-success text-white";
+            case "received":
+                return "bg-info text-white";
+            case "cancelled":
+                return "bg-danger text-white";
+            case "active":
+                return "bg-primary text-white";
+            default:
+                return "bg-secondary text-white";
+        }
+    };
+
+    // Add new function for Status styling
+    const getStatusBadgeClass = (status) => {
+        switch ((status || "").toLowerCase().trim()) {
+            case "pending":
+                return "bg-warning text-dark";
+            case "completed":
+                return "bg-success text-white";
+            case "in progress":
+                return "bg-info text-white";
+            case "cancelled":
+                return "bg-danger text-white";
+            case "active":
+                return "bg-primary text-white";
+            case "closed":
+                return "bg-dark text-white";
+            default:
+                return "bg-secondary text-white";
         }
     };
 
@@ -207,107 +244,83 @@ function DCostEstimates() {
     }
 
     // PAGINATION SETUP FOR ESTIMATES
-    const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 7;
-
     // Filter only pending estimates
     const filteredEstimates = estimates?.costEstimates?.filter(
         (proj) =>
             (proj.POStatus || "").toLowerCase().replace(/\s|_/g, "") === "pending"
     ) || [];
 
+    // Add search filter
+    const searchFilteredEstimates = filteredEstimates.filter((estimate) => {
+        const search = searchQuery.toLowerCase().trim();
+        return (
+            (estimate.estimateRef?.toLowerCase().includes(search) || false) ||
+            (estimate.clientId?.[0]?.clientName?.toLowerCase().includes(search) || false) ||
+            (estimate.projectId?.map(project => project.projectName || project.name).join(" ").toLowerCase().includes(search) || false) ||
+            (estimate.projectId?.map((project, i) => `${String(i + 1).padStart(4, '0')}`).join(" ").toLowerCase().includes(search) || false)
+        );
+    });
+
     // Calculate pagination based on filtered data
-    const totalItems = filteredEstimates.length;
+    const totalItems = searchFilteredEstimates.length;
     const totalPages = Math.ceil(totalItems / itemsPerPage);
 
     // Apply pagination to filtered data
-    const paginatedEstimates = filteredEstimates
+    const paginatedEstimates = searchFilteredEstimates
         .slice()
         .reverse()
         .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
+    // Function to generate page numbers
+    const getPageNumbers = () => {
+        const pageNumbers = [];
+        const maxPagesToShow = 5;
+        
+        if (totalPages <= maxPagesToShow) {
+            for (let i = 1; i <= totalPages; i++) {
+                pageNumbers.push(i);
+            }
+        } else {
+            pageNumbers.push(1);
+            
+            let startPage = Math.max(2, currentPage - 1);
+            let endPage = Math.min(totalPages - 1, currentPage + 1);
+            
+            if (startPage > 2) {
+                pageNumbers.push('...');
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                pageNumbers.push(i);
+            }
+            
+            if (endPage < totalPages - 1) {
+                pageNumbers.push('...');
+            }
+            
+            pageNumbers.push(totalPages);
+        }
+        
+        return pageNumbers;
+    };
 
     return (
         <div
             className="p-4 m-3"
             style={{ backgroundColor: "white", borderRadius: "10px" }}
         >
-            <h2 className="fw-semibold mb-3">Cost Estimates</h2>
+            <h4 className="fw-semibold mb-3">Cost Estimates POs</h4>
             <div className="d-flex justify-content-between align-items-center mb-4">
-                <div className="filters d-flex flex-wrap gap-1 mb-4">
-                    {/* <div className="search-container flex-grow-1">
+                <div className="filters d-flex flex-wrap gap-1">
+                    <div className="d-flex flex-wrap gap-2 mb-3 align-items-center">
                         <Form.Control
-                            type="search"
-                            placeholder="Search by Job #, Brand Name, Sub Brand, Flavour, Pack Type, Pack Size..."
+                            type="text"
+                            placeholder="Search estimates..."
+                            className="w-auto"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="search-input"
                         />
-                    </div> */}
-
-                    {/* <Dropdown className="filter-dropdown">
-            <Dropdown.Toggle
-              variant="light"
-              id="designer-dropdown"
-              className="custom-dropdown"
-            >
-              Sort by Client
-            </Dropdown.Toggle>
-            <Dropdown.Menu>
-              <Dropdown.Item>Sort by Client</Dropdown.Item>
-              <Dropdown.Item>John Smith</Dropdown.Item>
-              <Dropdown.Item>Sarah Johnson</Dropdown.Item>
-              <Dropdown.Item>Unassigned</Dropdown.Item>
-            </Dropdown.Menu>
-          </Dropdown>
-
-           <Dropdown className="filter-dropdown">
-            <Dropdown.Toggle variant="light" id="priority-dropdown" className="custom-dropdown">
-              All Priorities
-            </Dropdown.Toggle>
-            <Dropdown.Menu>
-              <Dropdown.Item>All Priorities</Dropdown.Item>
-              <Dropdown.Item>High</Dropdown.Item>
-              <Dropdown.Item>Medium</Dropdown.Item>
-              <Dropdown.Item>Low</Dropdown.Item>
-            </Dropdown.Menu>
-          </Dropdown> 
-
-          <Dropdown className="filter-dropdown">
-            <Dropdown.Toggle
-              variant="light"
-              id="viewall-dropdown"
-              className="custom-dropdown"
-            >
-              View All
-            </Dropdown.Toggle>
-            <Dropdown.Menu>
-              <Dropdown.Item>Active</Dropdown.Item>
-              <Dropdown.Item>Invoiced</Dropdown.Item>
-              <Dropdown.Item>Cancelled</Dropdown.Item>
-            </Dropdown.Menu>
-          </Dropdown>
-
-          <Dropdown className="filter-dropdown">
-            <Dropdown.Toggle
-              variant="light"
-              id="status-dropdown"
-              className="custom-dropdown"
-            >
-              All Status
-            </Dropdown.Toggle>
-            <Dropdown.Menu>
-              <Dropdown.Item>Active</Dropdown.Item>
-              <Dropdown.Item>Invoice</Dropdown.Item>
-              <Dropdown.Item>Cancelled</Dropdown.Item>
-            </Dropdown.Menu>
-          </Dropdown>
-
-          <Link to={"/AddCostEstimates"}>
-            <button id="btn-All" className=" btn-dark" style={{border:"none",borderRadius:"10px"}}>
-              <BsPlusLg className="me-2" /> New Estimate
-            </button>
-          </Link> */}
+                    </div>
                 </div>
             </div>
 
@@ -348,26 +361,26 @@ function DCostEstimates() {
                                     {po.lineItems?.reduce((total, item) => total + (item.amount || 0), 0).toFixed(2)}
                                 </td>
                                 <td>
-                                    <span style={{ color: "black" }} className={`badge ${getStatusClass(po.Status)} px-2 py-1`}>
+                                    <span className={`badge ${getPOStatusClass(po.POStatus)} px-2 py-1`}>
                                         {po.POStatus}
                                     </span>
                                 </td>
                                 <td>
-                                    <span style={{ color: "black" }} className={`badge ${getStatusClass(po.Status)} px-2 py-1`}>
+                                    <span className={`badge ${getStatusBadgeClass(po.Status)} px-2 py-1`}>
                                         {po.Status}
                                     </span>
                                 </td>
-                                <td>
+                                {/* <td>
                                     <div className="d-flex gap-2">
-                                        {/* <button className="btn btn-sm btn-primary" onClick={() => Duplicate(po)}>Duplicate</button>
+                                        <button className="btn btn-sm btn-primary" onClick={() => Duplicate(po)}>Duplicate</button>
                                          <button className="btn btn-sm btn-primary" onClick={() => handleConvertToInvoice(po)}>ConvertInvoice</button>
-                                          <button className="btn btn-sm btn-success" onClick={() => setShowAddPOModal(true)}>AddPO</button> */}
-                                        {/* <button className="btn btn-sm btn-outline-primary" onClick={() => UpdateEstimate(po)}><BsPencil /></button> */}
-                                        {/* <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(po._id)}>
+                                          <button className="btn btn-sm btn-success" onClick={() => setShowAddPOModal(true)}>AddPO</button> 
+                                        <button className="btn btn-sm btn-outline-primary" onClick={() => UpdateEstimate(po)}><BsPencil /></button>
+                                        <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(po._id)}>
                                          <FaTrash />
-                                          </button> */}
+                                          </button>
                                     </div>
-                                </td>
+                                </td> */}
                             </tr>
                         ))}
                     </tbody>
@@ -528,32 +541,42 @@ function DCostEstimates() {
                 </Modal.Footer>
             </Modal>
 
-            {!loading && !error && (
+            {/* Pagination */}
+            {!loading && !error && searchFilteredEstimates.length > 0 && (
                 <div className="d-flex justify-content-between align-items-center mt-3">
                     <div className="text-muted small">
-                        Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems}
+                        Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, totalItems)} 
                     </div>
                     <ul className="pagination pagination-sm mb-0">
                         <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-                            <button className="page-link" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
-                                <span aria-hidden="true">&laquo;</span>
+                            <button className="page-link" onClick={() => setCurrentPage(1)}>
+                                <span aria-hidden="true">&laquo;&laquo;</span>
                             </button>
                         </li>
-                        {Array.from({ length: totalPages }, (_, i) => (
-                            <li key={i + 1} className={`page-item ${currentPage === i + 1 ? 'active' : ''}`}>
-                                <button className="page-link" onClick={() => setCurrentPage(i + 1)}>
-                                    {i + 1}
-                                </button>
-                            </li>
+                  
+                        
+                        {getPageNumbers().map((pageNum, index) => (
+                            pageNum === '...' ? (
+                                <li key={`ellipsis-${index}`} className="page-item disabled">
+                                    <span className="page-link">...</span>
+                                </li>
+                            ) : (
+                                <li key={pageNum} className={`page-item ${currentPage === pageNum ? 'active' : ''}`}>
+                                    <button className="page-link" onClick={() => setCurrentPage(pageNum)}>
+                                        {pageNum}
+                                    </button>
+                                </li>
+                            )
                         ))}
+                        
+
                         <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-                            <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
-                                <span aria-hidden="true">&raquo;</span>
+                            <button className="page-link" onClick={() => setCurrentPage(totalPages)}>
+                                <span aria-hidden="true">&raquo;&raquo;</span>
                             </button>
                         </li>
                     </ul>
                 </div>
-
             )}
 
         </div>

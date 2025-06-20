@@ -54,6 +54,8 @@ function JobTracker() {
       case "in progress":
       case "in_progress":
         return "bg-warning text-dark";
+      case "reject":
+        return "bg-danger text-white";
       case "review":
         return "bg-info text-dark";
       case "not started":
@@ -100,7 +102,7 @@ function JobTracker() {
   });
 
   const handleUpdate = (job) => {
-    navigate(`/admin/AddJobTracker`, { state: { job } });
+    navigate(`/admin/AddJobTracker/${job._id}`, { state: { job } });
   };
 
   const [currentPage, setCurrentPage] = useState(1);

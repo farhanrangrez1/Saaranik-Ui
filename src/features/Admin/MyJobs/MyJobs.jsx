@@ -262,6 +262,7 @@ function MyJobs() {
               {/* <th>JobNo</th>
               <th>ProjectName</th> */}
               <th>EmployeeName</th>
+              <th>EmployeeEmail</th>
               <th>Description</th>
               <th>Brand</th>
               <th>SubBrand</th>
@@ -289,7 +290,7 @@ function MyJobs() {
                       ? `${job.employeeId.firstName} ${job.employeeId.lastName}`
                       : 'No Employee'}
                   </td>
-
+                 <td style={{ whiteSpace: "nowrap" }}>{job.employeeId.email}</td>
                   <td style={{ whiteSpace: "nowrap" }}>{job.description}</td>
                   <td>{job.jobId?.[0]?.brandName || 'N/A'}</td>
                   <td style={{ whiteSpace: 'nowrap' }}>{job.jobId?.[0]?.subBrand || 'N/A'}</td>

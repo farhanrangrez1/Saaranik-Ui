@@ -56,6 +56,8 @@ import ProtectedRoute from "../Protecuted/Protecuted.jsx";
 import 'react-toastify/dist/ReactToastify.css';
 import DCompletedProject from "../features/Admin/Dashbord/DCompletedProject.jsx";
 import DJobsInProgress from "../features/Admin/Dashbord/DJobsInProgress.jsx";
+import ChangePassword from "../features/Layouts/ChangePassword.jsx";
+import UpdateProfile from "../features/Admin/Profile/UpdateProfile.jsx";
 
 function Admin() {
   const [isSidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 768);
@@ -136,6 +138,8 @@ function Admin() {
             <Route path="/Settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/Extrahr" element={<ProtectedRoute><Extrahr /></ProtectedRoute>} />
+            <Route path="/ChangePassword" element={<ProtectedRoute><ChangePassword/></ProtectedRoute>} />
+            <Route path="/UpdateProfile" element={<ProtectedRoute><UpdateProfile/></ProtectedRoute>} />
           </Routes>
         </div>
       </div>

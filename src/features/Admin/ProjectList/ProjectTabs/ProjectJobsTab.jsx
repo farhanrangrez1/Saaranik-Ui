@@ -232,6 +232,8 @@ function ProjectJobsTab() {
       case "in progress":
       case "in_progress":
         return "bg-warning text-dark";
+      case "reject":
+        return "bg-danger text-white";
       case "review":
         return "bg-info text-dark";
       case "not started":
@@ -247,7 +249,7 @@ function ProjectJobsTab() {
     }
   };
 
- // ✅ Copy File Name & Download CSV
+  // ✅ Copy File Name & Download CSV
   const handleDownloadFileNamesCSV = () => {
     const rows = [["JobFileName"]];
     job?.jobs?.forEach((j, index) => {
@@ -471,13 +473,13 @@ function ProjectJobsTab() {
                 disabled={!selectedDesigner}
               >
                 <option value="">-- Select Employee --</option>
-                {paginatedAssignment.map((emp) => (
-                  <option key={emp._id} value={emp._id}>
-                    {emp.firstName || 'Unnamed Employee'}_
-                    {emp.lastName || 'Unnamed Employee'}
-                  </option>
-
-                ))}
+                {paginatedAssignment
+                  .filter((emp) => emp.role === 'employee')
+                  .map((emp) => (
+                    <option key={emp._id} value={emp._id}>
+                      {emp.firstName || "Unnamed Employee"} {emp.lastName || "Unnamed Employee"}
+                    </option>
+                  ))}
               </Form.Select>
             </Form.Group>
 

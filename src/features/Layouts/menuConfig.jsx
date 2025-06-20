@@ -18,7 +18,7 @@ import {
   FaCheckCircle,
   FaHistory,
   FaUsers,
-
+  FaUserCircle
 } from "react-icons/fa";
 import { FaUsersLine } from "react-icons/fa6";
 import { FaDiagramProject } from "react-icons/fa6";
@@ -100,6 +100,11 @@ export const adminMenuItems = [
     path: "/admin/Notiifcations",
   },
   {
+    title: "Profile",
+    icon: <FaUserCircle className="menu-icon" />,
+    path: "/admin/profile",
+  },
+  {
     title: "Settings",
     icon: <FaCog className="menu-icon" />,
     path: "/admin/Settings",
@@ -147,12 +152,18 @@ export const employeeMenuItems = [
   {
     title: "Notifications",
     icon: <FaBell className="menu-icon" />,
-    path: "/admin/Notiifcations",
+    path: "/employee/Notification",
   },
+  {
+    title: "Profile",
+    icon: <FaUserCircle className="menu-icon" />,
+    path: "/employee/Profile",
+  },
+
   {
     title: "Settings",
     icon: <FaCog className="menu-icon" />,
-    path: "/admin/Settings",
+    path: "/employee/Settings",
   },
 ];
 
@@ -176,7 +187,7 @@ export const clientMenuItems = [
   {
     title: "Notifications",
     icon: <FaBell className="menu-icon" />,
-    path: "/admin/Notiifcations",
+    path: "/employee/Notification",
   },
   {
     title: "Settings",

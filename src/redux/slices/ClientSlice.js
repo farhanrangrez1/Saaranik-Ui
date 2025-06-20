@@ -53,18 +53,23 @@ export const fetchClientsById = createAsyncThunk('Client/fetchById', async (id) 
     return await response.json();
   });
 
-  export const updateClients = createAsyncThunk('Client/updateClients', async ({ id, data }) => {
-    const response = await fetch(`/api/Client/${id}`, {
-      method: "PUT",
+export const UpdateClients = createAsyncThunk(
+  'Client/updateClients',
+  async ({ _id, data }) => {
+    console.log("DJ", _id);
+
+    const response = await fetch(`${apiUrl}/client/${_id}`, {
+      method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
     if (!response.ok) throw new Error("Failed to update Clients");
     return await response.json();
-  });
-  
+  }
+);
 
-export const UpdateClientsAssign = createAsyncThunk('Client/updateClients', async ({ id, assign }) => {
+
+export const UpdateClientsAssign = createAsyncThunk('Client/UpdateClientsAssign', async ({ id, assign }) => {
   const response = await fetch(`${apiUrl}/Client`, {
     method: "put",
     headers: {

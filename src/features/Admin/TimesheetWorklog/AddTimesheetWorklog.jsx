@@ -224,9 +224,8 @@ function AddTimesheetWorklog() {
                         const selectedId = e.target.value;
 
                         const selectedEmployee = reversedEmployeeList.find(
-                          (emp) => String(emp._id) === String(selectedId) // type-safe compare
+                          (emp) => String(emp._id) === String(selectedId)
                         );
-
                         console.log("Selected ID:", selectedId);
                         console.log("Selected Employee:", selectedEmployee);
 
@@ -243,13 +242,11 @@ function AddTimesheetWorklog() {
 
                       {Array.isArray(reversedEmployeeList) && reversedEmployeeList.map((emp) => (
                         <option key={emp._id} value={emp._id}>
-                          {emp.name || emp.fullName || "Unnamed"} {/* Safe fallback */}
+                          {emp.name || emp.fullName || `${emp.firstName || ""} ${emp.lastName || ""}` || "Unnamed"}
                         </option>
                       ))}
                     </select>
                   </div>
-
-
 
                   <div className="col-md-6">
                     <label className="form-label">Status</label>
@@ -326,13 +323,14 @@ function AddTimesheetWorklog() {
                       value={formData.tags}
                       onChange={handleInputChange}
                       placeholder="Add tags separated by commas"
+                      required
                     />
                   </div>
                 </div>
 
                 <div className="d-flex justify-content-end gap-2 mt-4">
                   <Link to="/admin/TimesheetWorklog" className="btn btn-light">Cancel</Link>
-                  <button type="submit" className="btn btn-dark">
+                  <button id='All_btn' type="submit" className="btn btn-dark">
                     {id ? "Update Time Entry" : "Submit Time Entry"}
                   </button>
                 </div>

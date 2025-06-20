@@ -18,6 +18,9 @@ function DCompletedProject() {
   const dispatch = useDispatch();
   const { job } = useSelector((state) => state.jobs);
   const { project, loading, error } = useSelector((state) => state.projects);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const [showDesignerModal, setShowDesignerModal] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
@@ -105,31 +108,89 @@ function DCompletedProject() {
     console.log("Update project:", project);
   };
 
-  // ✅ FILTER PROJECTS by status === in_progress / in progress
+  // Add function to handle invoicing
+  const handleToBeInvoiced = (project) => {
+    console.log("To be invoiced for project:", project);
+    // Add your invoicing logic here
+  };
+
+  // ✅ FILTER PROJECTS by status === completed
   const filteredProjects = project?.data?.filter(
     (proj) =>
       (proj.status || "").toLowerCase().replace(/\s|_/g, "") === "completed"
   );
 
+  // Add search filter
+  const searchFilteredProjects = filteredProjects?.filter((proj) => {
+    const search = searchQuery.toLowerCase().trim();
+    return (
+      (proj.projectNo?.toString().toLowerCase().includes(search) || false) ||
+      (proj.projectName?.toLowerCase().includes(search) || false) ||
+      (proj.description?.toLowerCase().includes(search) || false) ||
+      (proj.client?.toLowerCase().includes(search) || false)
+    );
+  });
+
+  // Add pagination logic
+  const totalPages = Math.ceil((searchFilteredProjects?.length || 0) / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = searchFilteredProjects?.slice(indexOfFirstItem, indexOfLastItem);
+
+  // Function to generate page numbers
+  const getPageNumbers = () => {
+    const pageNumbers = [];
+    const maxPagesToShow = 5;
+    
+    if (totalPages <= maxPagesToShow) {
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      pageNumbers.push(1);
+      
+      let startPage = Math.max(2, currentPage - 1);
+      let endPage = Math.min(totalPages - 1, currentPage + 1);
+      
+      if (startPage > 2) {
+        pageNumbers.push('...');
+      }
+      
+      for (let i = startPage; i <= endPage; i++) {
+        pageNumbers.push(i);
+      }
+      
+      if (endPage < totalPages - 1) {
+        pageNumbers.push('...');
+      }
+      
+      pageNumbers.push(totalPages);
+    }
+    
+    return pageNumbers;
+  };
+
   return (
     <div className="container bg-white p-4 mt-4 rounded shadow-sm">
       {/* Title */}
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <h5 className="fw-bold m-0">Completed Project</h5>
+        <h4 className="fw-bold m-0">Completed Project</h4>
       </div>
 
       {/* Filters */}
-      {/* <div className="d-flex flex-wrap gap-2 mb-3 align-items-center">
+      <div className="d-flex flex-wrap gap-2 mb-3 align-items-center">
         <Form.Control
           type="text"
-          placeholder="Search jobs..."
+          placeholder="Search projects..."
           className="w-auto"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
         />
-      </div> */}
+      </div>
 
       {/* Table */}
       <div className=" rounded-2 overflow-hidden">
-        {!loading && !error && filteredProjects?.length > 0 ? (
+        {!loading && !error && searchFilteredProjects?.length > 0 ? (
           <Table responsive className="project-table mb-4">
             <thead className="table-light">
               <tr>
@@ -142,11 +203,11 @@ function DCompletedProject() {
                 <th style={{ whiteSpace: 'nowrap' }}>Client</th>
                 <th style={{ whiteSpace: 'nowrap' }}>Project Requirements</th>
                 <th style={{ whiteSpace: 'nowrap' }}>Status</th>
-                {/* <th style={{ whiteSpace: 'nowrap' }}>Actions</th> */}
+                <th style={{ whiteSpace: 'nowrap' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredProjects.slice().reverse().map((project, index) => (
+              {currentItems?.slice().reverse().map((project, index) => (
                 <tr key={project.id}>
                   {/* <td>
                     <input
@@ -190,7 +251,23 @@ function DCompletedProject() {
                     </span>
                   </td>
                   <td>
-                    <div className="action-buttons d-flex">
+                    <div >
+                     <Link to={"/admin/AddInvoice"}>
+                     <Button
+                        variant="outline-primary"
+                        size="sm"
+                        onClick={() => handleToBeInvoiced(project)}
+                        className="px-3 py-1 fw-semibold border-2"
+                        style={{
+                          transition: 'all 0.3s ease',
+                          borderRadius: '6px',
+                          fontSize: '12px',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px'
+                        }}
+                      >
+                        To be invoiced
+                      </Button></Link>
                       {/* <Button
                         style={{ color: "#0d6efd" }}
                         variant="link"
@@ -207,43 +284,45 @@ function DCompletedProject() {
           </Table>
         ) : (
           <div className="text-center py-4">
-            {loading ? "Loading..." : "No in-progress projects found."}
+            {loading ? "Loading..." : "No completed projects found."}
           </div>
         )}
       </div>
 
       {/* Pagination */}
-            {/* <ul className="pagination pagination-sm mb-0">
-            <li className="page-item disabled">
-              <a className="page-link" href="#" aria-label="Previous">
-                <span aria-hidden="true">&laquo;</span>
-              </a>
-            </li>
-            <li className="page-item active" aria-current="page">
-              <a className="page-link" href="#">1</a>
-            </li>
-           
-            <li className="page-item">
-              <a className="page-link" href="#" aria-label="Next">
-                <span aria-hidden="true">&raquo;</span>
-              </a>
-            </li>
-          </ul> */}
+      {!loading && !error && searchFilteredProjects?.length > 0 && (
+        <div className="d-flex justify-content-between align-items-center mt-3">
+          <div>
+            Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, searchFilteredProjects.length)} 
+          </div>
+          <Pagination className="m-0">
+            <Pagination.First 
+              onClick={() => setCurrentPage(1)}
+              disabled={currentPage === 1}
+            />
+          
+            
+            {getPageNumbers().map((pageNum, index) => (
+              pageNum === '...' ? (
+                <Pagination.Ellipsis key={`ellipsis-${index}`} disabled />
+              ) : (
+                <Pagination.Item
+                  key={pageNum}
+                  active={currentPage === pageNum}
+                  onClick={() => setCurrentPage(pageNum)}
+                >
+                  {pageNum}
+                </Pagination.Item>
+              )
+            ))}
 
-     <div className="d-flex justify-content-between align-items-center mt-3">
-  <div>
-    Showing 1 to {job.jobs?.length || 0} of {job.jobs?.length || 0} jobs
-  </div>
-  <Pagination className="m-0">
-    <Pagination.Prev disabled>
-      <span aria-hidden="true">&laquo;</span>
-    </Pagination.Prev>
-    <Pagination.Item active>{1}</Pagination.Item>
-    <Pagination.Next>
-      <span aria-hidden="true">&raquo;</span>
-    </Pagination.Next>
-  </Pagination>
-</div>
+            <Pagination.Last
+              onClick={() => setCurrentPage(totalPages)}
+              disabled={currentPage === totalPages}
+            />
+          </Pagination>
+        </div>
+      )}
 
       {/* Designer Selection Modal */}
       <Modal

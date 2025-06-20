@@ -7,6 +7,8 @@ import Employee from './Routes/Employee';
 import Client from './Routes/Client';
 import ProtectedRoute from './Protecuted/Protecuted';
 import PageNotfound from './Routes/PageNotfound';
+import ForgotPassword from './features/Auth/ForgotPassword';
+import ResetPassword from './features/Auth/ResetPassword';
 
 function App() {
   return (
@@ -16,6 +18,8 @@ function App() {
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/Signup" element={<Register />} />
+          <Route path="/forgotPassword" element={<ForgotPassword/>} />
+          <Route path="/resetPassword" element={<ResetPassword/>} />
           {/* Admin Routes */}
           <Route path='/admin/*' element={<ProtectedRoute>
             <Admin />

@@ -22,9 +22,17 @@ function UserRoleModal() {
   }, [dispatch]);
 
   const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    password: '',
+    passwordConfirm: '',
     role: '',
-    roleDescription: '',
-    assign:'Not Assign',
+    assign: 'Not Assign',
+    state: '',
+    country: '',
+    image: null,
     permissions: {
       dashboardAccess: false,
       clientManagement: false,
@@ -39,11 +47,18 @@ function UserRoleModal() {
   });
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    const { name, value, type, files } = e.target;
+    if (type === 'file') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: files[0]
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
   useEffect(() => {
     if (user) {
@@ -66,8 +81,17 @@ function UserRoleModal() {
 
       setFormData({
          _id: user._id || '',  
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        password: '',
+        passwordConfirm: '',
+        state: user.state || '',
+        country: user.country || '',
+        assign: user.assign || 'Not Assign',
+        image: user.image || null,
         role: user.role?.charAt(0).toUpperCase() + user.role?.slice(1).toLowerCase() || '',
-        roleDescription: user.roleDescription || '',
         permissions: {
           dashboardAccess: false,
           clientManagement: false,
@@ -105,13 +129,25 @@ function UserRoleModal() {
   
 const handleSubmit = (e) => {
   e.preventDefault();
+  if (formData.password !== formData.passwordConfirm) {
+    toast.error('Passwords do not match!');
+    return;
+  }
   const filteredpermissions = Object.fromEntries(
     Object.entries(formData.permissions).filter(([_, value]) => value === true)
   );
   const payload = {
     _id: formData._id,
+    firstName: formData.firstName,
+    lastName: formData.lastName,
+    email: formData.email,
+    phone: formData.phone,
+    password: formData.password,
+    state: formData.state,
+    country: formData.country,
+    assign: formData.assign,
+    image: formData.image,
     role: formData.role,
-    roleDescription: formData.roleDescription,
     permissions: filteredpermissions,
     accessLevel: formData.accessLevel
   };
@@ -174,9 +210,67 @@ const handleSubmit = (e) => {
     <div className="container py-4">
       <div className="card shadow-sm">
         <div className="card-body">
-          <h5 className="card-title mb-4">Add New Role</h5>
+          <h5 className="card-title mb-4">Add New User</h5>
           <form onSubmit={handleSubmit}>
-            <div className="mb-3">
+          <div className="col-md-6">
+          {formData.image && (
+                  <img src={typeof formData.image === 'string' ? formData.image : URL.createObjectURL(formData.image)} alt="Preview" className="img-thumbnail mt-2" style={{ maxWidth: '120px' }} />
+                )}
+                <label className="form-label">Profile Image</label>
+                <input type="file" className="form-control" name="image" accept="image/*" onChange={handleInputChange} />
+               
+              </div>
+            <div className="row g-3 mb-3">
+              <div className="col-md-6">
+                <label className="form-label">First Name</label>
+                <input type="text" className="form-control" name="firstName" value={formData.firstName} onChange={handleInputChange} required />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Last Name</label>
+                <input type="text" className="form-control" name="lastName" value={formData.lastName} onChange={handleInputChange} required />
+              </div>
+            </div>
+            <div className="row g-3 mb-3">
+              <div className="col-md-6">
+                <label className="form-label">Email</label>
+                <input type="email" className="form-control" name="email" value={formData.email} onChange={handleInputChange} required />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Phone</label>
+                <input type="text" className="form-control" name="phone" value={formData.phone} onChange={handleInputChange} required />
+              </div>
+            </div>
+            <div className="row g-3 mb-3">
+              <div className="col-md-6">
+                <label className="form-label">Password</label>
+                <input type="password" className="form-control" name="password" value={formData.password} onChange={handleInputChange} required />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Confirm Password</label>
+                <input type="password" className="form-control" name="passwordConfirm" value={formData.passwordConfirm} onChange={handleInputChange} required />
+              </div>
+            </div>
+            <div className="row g-3 mb-3">
+              <div className="col-md-6">
+                <label className="form-label">State</label>
+                <input type="text" className="form-control" name="state" value={formData.state} onChange={handleInputChange} required />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Country</label>
+                <input type="text" className="form-control" name="country" value={formData.country} onChange={handleInputChange} required />
+              </div>
+            </div>
+            <div className="row g-3 mb-3">
+              <div className="col-md-6">
+                <label className="form-label">Assign</label>
+                <select className="form-select" name="assign" value={formData.assign} onChange={handleInputChange} required>
+                  <option value="Not Assign">Not Assign</option>
+                  <option value="Production">Designer</option>
+                  <option value="Employee">Production</option>
+                </select>
+              </div>
+          
+              <div className="col-md-6">
               <label className="form-label">Role Name</label>
               <select
                 className="form-select"
@@ -192,18 +286,8 @@ const handleSubmit = (e) => {
                 <option value="Employee">Employee</option>
               </select>
             </div>
-
-
-            <div className="mb-3">
-              <label className="form-label">Role Description</label>
-              <textarea
-                className="form-control"
-                name="roleDescription"
-                value={formData.roleDescription}
-                onChange={handleInputChange}
-                placeholder="Brief description of the role"
-                rows="3" />
             </div>
+            
 
             <div className="mb-4">
               <label className="form-label">permissions (Select Only One)</label>
@@ -248,7 +332,7 @@ const handleSubmit = (e) => {
 
             <div className="d-flex justify-content-end gap-2">
               <button type="button" className="btn btn-outline-secondary" onClick={handleCancel}>Cancel</button>
-              <button type="submit" className="btn btn-dark">Create Role</button>
+              <button type="submit" className="btn btn-dark">Create User</button>
             </div>
           </form>
         </div>

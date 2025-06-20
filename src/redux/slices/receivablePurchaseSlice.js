@@ -37,7 +37,6 @@ export const createReceivablePurchase = createAsyncThunk(
   }
 );
 
-
 export const deleteReceivablePurchase = createAsyncThunk(
   'ReceivablePurchases/deleteReceivablePurchase',
   async (id, { rejectWithValue }) => {

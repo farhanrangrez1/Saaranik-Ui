@@ -5,7 +5,7 @@ import './TimesheetWorklog.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { deleteTimesheetWorklog, fetchTimesheetWorklogs } from '../../../redux/slices/TimesheetWorklogSlice';
 import Swal from 'sweetalert2';
-import { Form, Table, Badge, InputGroup, Button, Collapse,Dropdown } from "react-bootstrap";
+import { Form, Table, Badge, InputGroup, Button, Collapse, Dropdown } from "react-bootstrap";
 
 function TimesheetWorklog() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -17,35 +17,35 @@ function TimesheetWorklog() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-   const { timesheetWorklog, error, loading } = useSelector((state) => state.TimesheetWorklogs);
-   console.log(timesheetWorklog.TimesheetWorklogss);
- 
-   useEffect(() => {
-     dispatch(fetchTimesheetWorklogs());
-   }, [dispatch]);
- 
-   const itemsPerPage = 7;
-   const totalPages = Math.ceil((timesheetWorklog.TimesheetWorklogss?.length || 0) / itemsPerPage);
-   const paginatedTimeLogss = timesheetWorklog.TimesheetWorklogss?.slice(
-     (currentPage - 1) * itemsPerPage,
-     currentPage * itemsPerPage
-   );
+  const { timesheetWorklog, error, loading } = useSelector((state) => state.TimesheetWorklogs);
+  console.log(timesheetWorklog.TimesheetWorklogss);
+
+  useEffect(() => {
+    dispatch(fetchTimesheetWorklogs());
+  }, [dispatch]);
+
+  const itemsPerPage = 7;
+  const totalPages = Math.ceil((timesheetWorklog.TimesheetWorklogss?.length || 0) / itemsPerPage);
+  const paginatedTimeLogss = timesheetWorklog.TimesheetWorklogss?.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   // Add filtering logic before pagination
   const filteredTimeLogs = timesheetWorklog.TimesheetWorklogss
     ?.filter((log) => {
       const searchLower = searchQuery.toLowerCase().trim();
-      const matchesSearch = !searchQuery || 
+      const matchesSearch = !searchQuery ||
         (log.jobId?.[0]?.JobNo?.toString().toLowerCase().includes(searchLower) ||
-        log.projectId?.[0]?.projectName?.toLowerCase().includes(searchLower) ||
-        `${log.employeeId?.[0]?.firstName} ${log.employeeId?.[0]?.lastName}`.toLowerCase().includes(searchLower) ||
-        log.taskDescription?.toLowerCase().includes(searchLower) ||
-        log.status?.toLowerCase().includes(searchLower));
+          log.projectId?.[0]?.projectName?.toLowerCase().includes(searchLower) ||
+          `${log.employeeId?.[0]?.firstName} ${log.employeeId?.[0]?.lastName}`.toLowerCase().includes(searchLower) ||
+          log.taskDescription?.toLowerCase().includes(searchLower) ||
+          log.status?.toLowerCase().includes(searchLower));
 
-      const matchesProject = selectedProject === 'All timesheet' || 
+      const matchesProject = selectedProject === 'All timesheet' ||
         log.projectId?.[0]?.projectName === selectedProject;
 
-      const matchesDate = !selectedDate || 
+      const matchesDate = !selectedDate ||
         new Date(log.date).toLocaleDateString() === new Date(selectedDate).toLocaleDateString();
 
       return matchesSearch && matchesProject && matchesDate;
@@ -183,7 +183,7 @@ function TimesheetWorklog() {
               <Dropdown.Item onClick={() => setSelectedProject("All timesheet")}>
                 All timesheet
               </Dropdown.Item>
-              {[...new Set((timesheetWorklog.TimesheetWorklogss || []).map((log) => 
+              {[...new Set((timesheetWorklog.TimesheetWorklogss || []).map((log) =>
                 log.projectId?.[0]?.projectName || "N/A"
               ))].filter(name => name !== "N/A").map((projectName, index) => (
                 <Dropdown.Item key={index} onClick={() => setSelectedProject(projectName)}>
@@ -201,52 +201,52 @@ function TimesheetWorklog() {
           <table className="table table-hover align-middle mb-0">
             <thead>
               <tr className="bg-light">
-              <th>JobID</th>
-                  <th style={{ whiteSpace: 'nowrap' }}>Project Name</th>
-                  <th style={{ whiteSpace: 'nowrap' }}>Employee Name</th>
-                  <th>Date</th>
-                  <th style={{ whiteSpace: 'nowrap' }}>Start Time</th>
-                  <th style={{ whiteSpace: 'nowrap' }}>End Time</th>
-                  <th>Hours</th>
-                  <th style={{ whiteSpace: 'nowrap' }}>Task Description</th>
-                  <th>Status</th>
-                  <th className="text-end">Actions</th>
+                <th>JobID</th>
+                <th style={{ whiteSpace: 'nowrap' }}>Project Name</th>
+                <th style={{ whiteSpace: 'nowrap' }}>Employee Name</th>
+                <th>Date</th>
+                <th style={{ whiteSpace: 'nowrap' }}>Start Time</th>
+                <th style={{ whiteSpace: 'nowrap' }}>End Time</th>
+                <th>Hours</th>
+                <th style={{ whiteSpace: 'nowrap' }}>Task Description</th>
+                <th>Status</th>
+                <th className="text-end">Actions</th>
               </tr>
             </thead>
             <tbody>
-               {paginatedTimeLogssFiltered?.map((log, index) => {
-                           const extraHoursDecimal = timeStringToDecimalHours(log.extraHours);
-                           const hoursDecimal = timeStringToDecimalHours(log.hours);
-         
-                           const isHoursDiscrepant = hoursDecimal > 8;
-                           const isExtraHoursDiscrepant = extraHoursDecimal < 8;
-                           return (
-                             <tr key={index}>
-                               <td className="no-border-bottom">
-                                 #JOB{log.jobId?.[0]?.JobNo || '----'}
-                               </td>
-                               <td style={{ whiteSpace: 'nowrap' }} key={index}>
-                                 {log.projectId?.[0]?.projectName || 'No Project Name'}
-                               </td>
-                               <td style={{ whiteSpace: 'nowrap' }} key={index}>
-                                 {log.employeeId?.[0]
-                                   ? `${log.employeeId[0].firstName} ${log.employeeId[0].lastName}`
-                                   : 'No Employee'}
-                               </td>
-                               <td>{new Date(log.date).toLocaleDateString('en-GB').replace(/\/20/, '/')}</td>
-                               <td>
-                                 {log.startTime}
-                               </td>
-                               <td>
-                                 {log.endTime}
-                               </td>
-                               {/* <td>
+              {paginatedTimeLogssFiltered?.map((log, index) => {
+                const extraHoursDecimal = timeStringToDecimalHours(log.extraHours);
+                const hoursDecimal = timeStringToDecimalHours(log.hours);
+
+                const isHoursDiscrepant = hoursDecimal > 8;
+                const isExtraHoursDiscrepant = extraHoursDecimal < 8;
+                return (
+                  <tr key={index}>
+                    <td className="no-border-bottom">
+                      #JOB{log.jobId?.[0]?.JobNo || '----'}
+                    </td>
+                    <td style={{ whiteSpace: 'nowrap' }} key={index}>
+                      {log.projectId?.[0]?.projectName || 'No Project Name'}
+                    </td>
+                    <td style={{ whiteSpace: 'nowrap' }} key={index}>
+                      {log.employeeId?.[0]
+                        ? `${log.employeeId[0].firstName} ${log.employeeId[0].lastName}`
+                        : 'No Employee'}
+                    </td>
+                    <td>{new Date(log.date).toLocaleDateString('en-GB').replace(/\/20/, '/')}</td>
+                    <td>
+                      {log.startTime}
+                    </td>
+                    <td>
+                      {log.endTime}
+                    </td>
+                    {/* <td>
                                  {(!log.extraHours || log.extraHours === '0' || log.extraHours === '0:00') ? '-' : formatTimeTo12Hour(log.extraHours)}
                                </td> */}
-                               <td>
-                                 {log.hours}
-                               </td>
-                               {/* <td
+                    <td>
+                      {log.hours}
+                    </td>
+                    {/* <td
                                  style={{
                                    color: isHoursDiscrepant ? 'red' : 'inherit',
                                    fontWeight: isHoursDiscrepant ? 'bold' : 'normal',
@@ -255,36 +255,36 @@ function TimesheetWorklog() {
                                >
                                  {formatTimeTo12Hour(log.hours)}
                                </td> */}
-                               <td style={{ whiteSpace: 'nowrap' }}>{log.taskDescription}</td>
-                               <td className="py-3">
-                                 <span className={`badge rounded-pill ${log.status === 'Approved' ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning'} px-3 py-2`}>
-                                   {log.status}
-                                 </span>
-                               </td>
-                               <td className="text-end" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                 <button
-                                   className="btn btn-link text-dark p-0 me-3"
-                                   onClick={() => handleEdit(log)}
-                                 >
-                                   <FaPencilAlt />
-                                 </button>
-                                 {/* <button
+                    <td style={{ whiteSpace: 'nowrap' }}>{log.taskDescription}</td>
+                    <td className="py-3">
+                      <span className={`badge rounded-pill ${log.status === 'Approved' ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning'} px-3 py-2`}>
+                        {log.status}
+                      </span>
+                    </td>
+                    <td className="text-end" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <button
+                        className="btn btn-link text-dark p-0 me-3"
+                        onClick={() => handleEdit(log)}
+                      >
+                        <FaPencilAlt />
+                      </button>
+                      {/* <button
                                    className="btn btn-link text-danger p-0"
                                    onClick={() => handleDelete(log._id)}
                                  >
                                    <FaTrashAlt />
                                  </button> */}
-                               </td>
-                             </tr>
-                           );
-                         })}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
       </div>
 
       {/* Timesheet Discrepancies */}
-      <div className="card shadow-sm custom-table-card mb-4">
+      {/* <div className="card shadow-sm custom-table-card mb-4">
         <div className="card-header bg-light fw-semibold">
           Timesheet Discrepancies
         </div>
@@ -306,10 +306,10 @@ function TimesheetWorklog() {
             </tbody>
           </table>
         </div>
-      </div>
+      </div> */}
 
       {/* Pagination */}
-         {!loading && !error && (
+      {!loading && !error && (
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div className="text-muted small">
             Showing 1 to {paginatedTimeLogssFiltered?.length || 0} of {timesheetWorklog.TimesheetWorklogss?.length || 0} entries

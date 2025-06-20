@@ -3,18 +3,18 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useDispatch } from 'react-redux';
-import { createClients, fetchClient, updateClients } from '../../../redux/slices/ClientSlice';
+import { createClients, fetchClient, UpdateClients } from '../../../redux/slices/ClientSlice';
 import "react-toastify/dist/ReactToastify.css";
 
 
 function AddClientManagement() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { id } = useParams(); // for edit mode
+  const { id } = useParams(); // for edit mo
   const location = useLocation();
   const { client } = location.state || {};
-  console.log(client);
-
+  const _id = client?._id 
+  console.log("oo",_id);
   // Initial form state
   const [formData, setFormData] = useState({
     clientName: '',
@@ -23,7 +23,7 @@ function AddClientManagement() {
     clientAddress: '',
     TaxID_VATNumber: '',
     CSRCode: '',
-    Status: 'Active'
+    Status: ''
   });
 
   // Contact persons state
@@ -92,41 +92,41 @@ function AddClientManagement() {
   });
 
 
-useEffect(() => {
-  const updateStates = (clientData) => {
-    setFormData({
-      clientName: clientData.clientName || '',
-      industry: clientData.industry || '',
-      website: clientData.website || '',
-      clientAddress: clientData.clientAddress || '',
-      TaxID_VATNumber: clientData.TaxID_VATNumber || '',
-      CSRCode: clientData.CSRCode || '',
-      Status: clientData.Status || 'Active'
-    });
+  useEffect(() => {
+    const updateStates = (clientData) => {
+      setFormData({
+        clientName: clientData.clientName || '',
+        industry: clientData.industry || '',
+        website: clientData.website || '',
+        clientAddress: clientData.clientAddress || '',
+        TaxID_VATNumber: clientData.TaxID_VATNumber || '',
+        CSRCode: clientData.CSRCode || '',
+        Status: clientData.Status || ''
+      });
 
-    setContactPersons(clientData.contactPersons || []);
-    setBillingInformation(clientData.billingInformation || []);
-    setShippingInformation(clientData.shippingInformation || []);
-    setFinancialInformation(clientData.financialInformation || []);
-    setLedgerInformation(clientData.ledgerInformation || []);
-    setAdditionalInformation(clientData.additionalInformation || {
-      paymentTerms: '',
-      creditLimit: '',
-      notes: ''
-    });
-  };
+      setContactPersons(clientData.contactPersons || []);
+      setBillingInformation(clientData.billingInformation || []);
+      setShippingInformation(clientData.shippingInformation || []);
+      setFinancialInformation(clientData.financialInformation || []);
+      setLedgerInformation(clientData.ledgerInformation || []);
+      setAdditionalInformation(clientData.additionalInformation || {
+        paymentTerms: '',
+        creditLimit: '',
+        notes: ''
+      });
+    };
 
-  if (client) {
-    updateStates(client);
-  } else if (id) {
-    dispatch(fetchclientById(id)).then((res) => {
-      const fetchedclient = res.payload;
-      if (fetchedclient) {
-        updateStates(fetchedclient);
-      }
-    });
-  }
-}, [id, dispatch, client]);
+    if (client) {
+      updateStates(client);
+    } else if (id) {
+      dispatch(fetchclientById(id)).then((res) => {
+        const fetchedclient = res.payload;
+        if (fetchedclient) {
+          updateStates(fetchedclient);
+        }
+      });
+    }
+  }, [id, dispatch, client]);
 
 
 
@@ -216,24 +216,24 @@ useEffect(() => {
       additionalInformation
     };
     console.log('Full Data Object:', fullData);
-    if (id) {
-      dispatch(updateClients(fullData))
+    if (_id) {
+      dispatch(UpdateClients({ _id, data: fullData }))
         .unwrap()
         .then(() => {
           toast.success("clientupdated successfully!");
           navigate("/admin/clientManagement");
-              dispatch(fetchClient());
+          dispatch(fetchClient());
         })
         .catch(() => {
           toast.error("Failed to update client!");
         });
     } else {
-          dispatch(createClients(fullData))
+      dispatch(createClients(fullData))
         .unwrap()
         .then(() => {
           toast.success("clientcreated successfully!");
           navigate("/admin/clientManagement");
-              dispatch(fetchClient());
+          dispatch(fetchClient());
         })
         .catch(() => {
           toast.error("Error creating client");
@@ -262,7 +262,7 @@ useEffect(() => {
   //       .catch(() => {
   //         toast.error("Error creating client");
   //       });
-    
+
   // };
 
   return (
@@ -272,17 +272,17 @@ useEffect(() => {
         <div className="card shadow-sm">
           <div className="card-body">
             {/* <h1 className="card-title h4 mb-4">Add Company</h1> */}
-                   <h2 className="mb-4">{id || client?._id ? "Edit client" : "New Company"}</h2>
+            <h2 className="mb-4">{id || client?._id ? "Edit client" : "New Company (Client)"}</h2>
             <form className="row g-3" onSubmit={handleSubmit}>
               <div className='col-md-3'>  <h6 className="mb-3">Client/Supplier Information</h6></div>
               <div className="col-md-6"></div>
               <div className="col-md-6">
                 <label className="form-label">Name</label>
-                <input type="text" name="clientName" value={formData.clientName} onChange={handleChange} className="form-control" placeholder="Enter  name" />
+                <input required type="text" name="clientName" value={formData.clientName} onChange={handleChange} className="form-control" placeholder="Enter  name" />
               </div>
               <div className="col-md-6">
                 <label className="form-label">Industry</label>
-                <select className="form-select" name="industry" value={formData.industry} onChange={handleChange}>
+                <select className="form-select" name="industry" required value={formData.industry} onChange={handleChange}>
                   <option value="">Select industry</option>
                   <option value="manufacturing">Manufacturing</option>
                   <option value="tech">Technology</option>
@@ -291,27 +291,35 @@ useEffect(() => {
               </div>
               <div className="col-md-6">
                 <label className="form-label">Website</label>
-                <input type="url" name="website" value={formData.website} onChange={handleChange} className="form-control" placeholder="https://" />
+                <input required type="url" name="website" value={formData.website} onChange={handleChange} className="form-control" placeholder="https://" />
               </div>
               <div className="col-md-6">
                 <label className="form-label">Client Address</label>
-                <textarea className="form-control" name="clientAddress" value={formData.clientAddress} onChange={handleChange}></textarea>
+                <textarea required className="form-control" name="clientAddress" value={formData.clientAddress} onChange={handleChange}></textarea>
               </div>
               <div className="col-md-6">
                 <label className="form-label">Tax ID/VAT Number</label>
-                <input type="text" name="TaxID_VATNumber" value={formData.TaxID_VATNumber} onChange={handleChange} className="form-control" />
+                <input required type="text" name="TaxID_VATNumber" value={formData.TaxID_VATNumber} onChange={handleChange} className="form-control" />
               </div>
               <div className="col-md-6">
                 <label className="form-label">CSR Code</label>
-                <input type="text" name="CSRCode" value={formData.CSRCode} onChange={handleChange} className="form-control" />
+                <input type="text" name="CSRCode" required value={formData.CSRCode} onChange={handleChange} className="form-control" />
               </div>
               <div className="col-md-6">
                 <label className="form-label">Status</label>
-                <select className="form-select" name="Status" value={formData.Status} onChange={handleChange}>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
+                <select
+                  className="form-select"
+                  name="Status"
+                  required
+                  value={formData.Status}
+                  onChange={handleChange}
+                >
+                  <option value="">Select Status</option> {/* empty option for forcing selection */}
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
                 </select>
               </div>
+
               <div className='col-md-12 row'>
                 <h5 className="mb-3 mt-4">Contact Persons</h5>
 
@@ -323,6 +331,7 @@ useEffect(() => {
                         <input
                           type="text"
                           name="contactName"
+                          required
                           value={contact.contactName}
                           onChange={(e) => handleContactChange(index, e)}
                           className="form-control"
@@ -335,6 +344,7 @@ useEffect(() => {
                         <input
                           type="text"
                           name="jobTitle"
+                          required
                           value={contact.jobTitle}
                           onChange={(e) => handleContactChange(index, e)}
                           className="form-control"
@@ -347,6 +357,7 @@ useEffect(() => {
                         <input
                           type="email"
                           name="email"
+                          required
                           value={contact.email}
                           onChange={(e) => handleContactChange(index, e)}
                           className="form-control"
@@ -359,6 +370,7 @@ useEffect(() => {
                         <input
                           type="tel"
                           name="phone"
+                          required
                           value={contact.phone}
                           onChange={(e) => handleContactChange(index, e)}
                           className="form-control"
@@ -371,6 +383,7 @@ useEffect(() => {
                         <input
                           type="text"
                           name="department"
+                          required
                           value={contact.department}
                           onChange={(e) => handleContactChange(index, e)}
                           className="form-control"
@@ -383,6 +396,7 @@ useEffect(() => {
                         <input
                           type="text"
                           name="salesRepresentative"
+                          required
                           value={contact.salesRepresentative}
                           onChange={(e) => handleContactChange(index, e)}
                           className="form-control"
@@ -438,23 +452,23 @@ useEffect(() => {
                 <h5 className="mb-3 mt-4">Billing Information</h5>
                 <div className="col-md-12">
                   <label className="form-label">Billing Address</label>
-                  <textarea className="form-control" rows="3" name="billingAddress" value={billingInformation[0].billingAddress} onChange={(e) => handleBillingChange(0, e)}></textarea>
+                  <textarea className="form-control" rows="3" name="billingAddress" required value={billingInformation[0].billingAddress} onChange={(e) => handleBillingChange(0, e)}></textarea>
                 </div>
                 <div className="col-md-6">
                   <label className="form-label">Billing Contact Name</label>
-                  <input type="text" className="form-control" name="billingContactName" value={billingInformation[0].billingContactName} onChange={(e) => handleBillingChange(0, e)} />
+                  <input type="text" className="form-control" name="billingContactName" required value={billingInformation[0].billingContactName} onChange={(e) => handleBillingChange(0, e)} />
                 </div>
                 <div className="col-md-6">
                   <label className="form-label">Billing Email</label>
-                  <input type="email" className="form-control" name="billingEmail" value={billingInformation[0].billingEmail} onChange={(e) => handleBillingChange(0, e)} />
+                  <input type="email" className="form-control" name="billingEmail" required value={billingInformation[0].billingEmail} onChange={(e) => handleBillingChange(0, e)} />
                 </div>
                 <div className="col-md-6">
                   <label className="form-label">Billing Phone</label>
-                  <input type="tel" className="form-control" name="billingPhone" value={billingInformation[0].billingPhone} onChange={(e) => handleBillingChange(0, e)} />
+                  <input type="tel" className="form-control" name="billingPhone" required value={billingInformation[0].billingPhone} onChange={(e) => handleBillingChange(0, e)} />
                 </div>
                 <div className="col-md-6">
                   <label className="form-label">Currency</label>
-                  <select className="form-select" name="currency" value={billingInformation[0].currency} onChange={(e) => handleBillingChange(0, e)}>
+                  <select className="form-select" name="currency" required value={billingInformation[0].currency} onChange={(e) => handleBillingChange(0, e)}>
                     <option value="USD">USD</option>
                     <option value="EUR">EUR</option>
                     <option value="GBP">GBP</option>
@@ -462,7 +476,7 @@ useEffect(() => {
                 </div>
                 <div className="col-md-6">
                   <label className="form-label">Preferred Payment Method</label>
-                  <select className="form-select" name="preferredPaymentMethod" value={billingInformation[0].preferredPaymentMethod} onChange={(e) => handleBillingChange(0, e)}>
+                  <select className="form-select" name="preferredPaymentMethod" required value={billingInformation[0].preferredPaymentMethod} onChange={(e) => handleBillingChange(0, e)}>
                     <option value="">Select Payment Method</option>
                     <option value="BankTransfer">BankTransfer</option>
                     <option value="CreditCard">CreditCard</option>
@@ -474,23 +488,23 @@ useEffect(() => {
                 <h5 className="mb-3 mt-4">Shipping Information</h5>
                 <div className="col-md-12">
                   <label className="form-label">Shipping Address</label>
-                  <textarea className="form-control" rows="3" name="shippingAddress" value={shippingInformation[0].shippingAddress} onChange={(e) => handleShippingChange(0, e)}></textarea>
+                  <textarea className="form-control" rows="3" name="shippingAddress" required value={shippingInformation[0].shippingAddress} onChange={(e) => handleShippingChange(0, e)}></textarea>
                 </div>
                 <div className="col-md-6">
                   <label className="form-label">Shipping Contact Name</label>
-                  <input type="text" className="form-control" name="shippingContactName" value={shippingInformation[0].shippingContactName} onChange={(e) => handleShippingChange(0, e)} />
+                  <input type="text" className="form-control" name="shippingContactName" required value={shippingInformation[0].shippingContactName} onChange={(e) => handleShippingChange(0, e)} />
                 </div>
                 <div className="col-md-6">
                   <label className="form-label">Shipping Email</label>
-                  <input type="email" className="form-control" name="shippingEmail" value={shippingInformation[0].shippingEmail} onChange={(e) => handleShippingChange(0, e)} />
+                  <input type="email" className="form-control" name="shippingEmail" required value={shippingInformation[0].shippingEmail} onChange={(e) => handleShippingChange(0, e)} />
                 </div>
                 <div className="col-md-6">
                   <label className="form-label">Shipping Phone</label>
-                  <input type="tel" className="form-control" name="shippingPhone" value={shippingInformation[0].shippingPhone} onChange={(e) => handleShippingChange(0, e)} />
+                  <input type="tel" className="form-control" name="shippingPhone" required value={shippingInformation[0].shippingPhone} onChange={(e) => handleShippingChange(0, e)} />
                 </div>
                 <div className="col-md-6">
                   <label className="form-label">Preferred Shipping Method</label>
-                  <select className="form-select" name="preferredShippingMethod" value={shippingInformation[0].preferredShippingMethod} onChange={(e) => handleShippingChange(0, e)}>
+                  <select className="form-select" name="preferredShippingMethod" required value={shippingInformation[0].preferredShippingMethod} onChange={(e) => handleShippingChange(0, e)}>
                     <option value="">Select Shipping Method</option>
                     <option value="Standard">Standard</option>
                     <option value="Express">Express</option>
@@ -500,45 +514,45 @@ useEffect(() => {
                 </div>
                 <div className="col-md-12">
                   <label className="form-label">Special Instructions</label>
-                  <textarea className="form-control" rows="3" name="specialInstructions" value={shippingInformation[0].specialInstructions} onChange={(e) => handleShippingChange(0, e)}></textarea>
+                  <textarea className="form-control" rows="3" name="specialInstructions" required value={shippingInformation[0].specialInstructions} onChange={(e) => handleShippingChange(0, e)}></textarea>
                 </div>
 
                 {/* Financial Information */}
                 <h5 className="mb-3 mt-4">Financial Information</h5>
                 <div className="col-md-6">
                   <label className="form-label">Annual Revenue</label>
-                  <input type="number" className="form-control" name="annualRevenue" value={financialInformation[0].annualRevenue} onChange={(e) => handleFinancialChange(0, e)} />
+                  <input type="number" className="form-control" name="annualRevenue" required value={financialInformation[0].annualRevenue} onChange={(e) => handleFinancialChange(0, e)} />
                 </div>
                 <div className="col-md-6">
                   <label className="form-label">Credit Rating</label>
-                  <input type="text" className="form-control" name="creditRating" value={financialInformation[0].creditRating} onChange={(e) => handleFinancialChange(0, e)} />
+                  <input type="text" className="form-control" name="creditRating" required value={financialInformation[0].creditRating} onChange={(e) => handleFinancialChange(0, e)} />
                 </div>
                 <div className="col-md-6">
                   <label className="form-label">Bank Name</label>
-                  <input type="text" className="form-control" name="bankName" value={financialInformation[0].bankName} onChange={(e) => handleFinancialChange(0, e)} />
+                  <input type="text" className="form-control" name="bankName" required value={financialInformation[0].bankName} onChange={(e) => handleFinancialChange(0, e)} />
                 </div>
                 <div className="col-md-6">
                   <label className="form-label">Account Number</label>
-                  <input type="text" className="form-control" name="accountNumber" value={financialInformation[0].accountNumber} onChange={(e) => handleFinancialChange(0, e)} />
+                  <input type="text" className="form-control" name="accountNumber" required value={financialInformation[0].accountNumber} onChange={(e) => handleFinancialChange(0, e)} />
                 </div>
                 <div className="col-md-6">
                   <label className="form-label">Fiscal Year End</label>
-                  <input type="date" className="form-control" name="fiscalYearEnd" value={financialInformation[0].fiscalYearEnd} onChange={(e) => handleFinancialChange(0, e)} />
+                  <input type="date" className="form-control" name="fiscalYearEnd" required value={financialInformation[0].fiscalYearEnd} onChange={(e) => handleFinancialChange(0, e)} />
                 </div>
                 <div className="col-md-6">
                   <label className="form-label">Financial Contact</label>
-                  <input type="text" className="form-control" name="financialContact" value={financialInformation[0].financialContact} onChange={(e) => handleFinancialChange(0, e)} />
+                  <input type="text" className="form-control" name="financialContact" required value={financialInformation[0].financialContact} onChange={(e) => handleFinancialChange(0, e)} />
                 </div>
 
                 {/* Ledger Information */}
                 <h5 className="mb-3 mt-4">Ledger Information</h5>
                 <div className="col-md-6">
                   <label className="form-label">Account Code</label>
-                  <input type="text" className="form-control" name="accountCode" value={ledgerInformation[0].accountCode} onChange={(e) => handleLedgerChange(0, e)} />
+                  <input type="text" className="form-control" name="accountCode" required value={ledgerInformation[0].accountCode} onChange={(e) => handleLedgerChange(0, e)} />
                 </div>
                 <div className="col-md-6">
                   <label className="form-label">Account Type</label>
-                  <select className="form-select" name="accountType" value={ledgerInformation[0].accountType} onChange={(e) => handleLedgerChange(0, e)}>
+                  <select className="form-select" name="accountType" required value={ledgerInformation[0].accountType} onChange={(e) => handleLedgerChange(0, e)}>
                     <option value="">Select Account Type</option>
                     <option value="AccountsReceivable">AccountsReceivable</option>
                     <option value="AccountsPayable">AccountsPayable</option>
@@ -546,15 +560,15 @@ useEffect(() => {
                 </div>
                 <div className="col-md-6">
                   <label className="form-label">Opening Balance</label>
-                  <input type="number" className="form-control" name="openingBalance" value={ledgerInformation[0].openingBalance} onChange={(e) => handleLedgerChange(0, e)} />
+                  <input type="number" className="form-control" name="openingBalance" required value={ledgerInformation[0].openingBalance} onChange={(e) => handleLedgerChange(0, e)} />
                 </div>
                 <div className="col-md-6">
                   <label className="form-label">Balance Date</label>
-                  <input type="date" className="form-control" name="balanceDate" value={ledgerInformation[0].balanceDate} onChange={(e) => handleLedgerChange(0, e)} />
+                  <input type="date" className="form-control" name="balanceDate" required value={ledgerInformation[0].balanceDate} onChange={(e) => handleLedgerChange(0, e)} />
                 </div>
                 <div className="col-md-6">
                   <label className="form-label">Tax Category</label>
-                  <select className="form-select" name="taxCategory" value={ledgerInformation[0].taxCategory} onChange={(e) => handleLedgerChange(0, e)}>
+                  <select className="form-select" name="taxCategory" required value={ledgerInformation[0].taxCategory} onChange={(e) => handleLedgerChange(0, e)}>
                     <option value="standard">Standard Rate</option>
                     <option value="reduced">Reduced Rate</option>
                     <option value="zero">Zero Rate</option>
@@ -562,33 +576,41 @@ useEffect(() => {
                 </div>
                 <div className="col-md-6">
                   <label className="form-label">Cost Center</label>
-                  <input type="text" className="form-control" name="costCenter" value={ledgerInformation[0].costCenter} onChange={(e) => handleLedgerChange(0, e)} />
+                  <input type="text" className="form-control" name="costCenter" required value={ledgerInformation[0].costCenter} onChange={(e) => handleLedgerChange(0, e)} />
                 </div>
 
                 {/* Additional Information */}
                 <h5 className="mb-3 mt-4">Additional Information</h5>
                 <div className="col-md-6">
                   <label className="form-label">Payment Terms</label>
-                  <select className="form-select" name="paymentTerms" value={additionalInformation.paymentTerms} onChange={handleAdditionalChange}>
+                  <select
+                    className="form-select"
+                    name="paymentTerms"
+                    required
+                    value={additionalInformation.paymentTerms}
+                    onChange={handleAdditionalChange}
+                  >
+                    <option value="">Select Payment Terms</option>  {/* <-- placeholder */}
                     <option value="net30">Net 30</option>
                     <option value="net60">Net 60</option>
                     <option value="net90">Net 90</option>
                   </select>
                 </div>
+
                 <div className="col-md-6">
                   <label className="form-label">Credit Limit</label>
-                  <input type="number" className="form-control" name="creditLimit" value={additionalInformation.creditLimit} onChange={handleAdditionalChange} />
+                  <input type="number" className="form-control" name="creditLimit" required value={additionalInformation.creditLimit} onChange={handleAdditionalChange} />
                 </div>
               </div>
               <div className="col-md-12">
                 <label className="form-label">Notes</label>
-                <textarea className="form-control" rows="3" name="notes" value={additionalInformation.notes} onChange={handleAdditionalChange} placeholder="Additional notes"></textarea>
+                <textarea className="form-control" rows="3" name="notes" required value={additionalInformation.notes} onChange={handleAdditionalChange} placeholder="Additional notes"></textarea>
               </div>
 
 
               <div className="col-12 d-flex justify-content-end gap-2 mt-4">
                 <button type="button" className="btn btn-outline-secondary">Cancel</button>
-                <button type="submit" id="btn-All" className="btn btn-dark">Create </button>
+                <button type="submit" id="btn-All" className="btn btn-dark">{id || client?._id ? "Update client" : "Create"}</button>
               </div>
             </form>
           </div>

@@ -10,7 +10,7 @@ import TimeLogsReducer from "../redux/slices/TimeLogsSlice"
 import TimesheetWorklogReducer from "../redux/slices/TimesheetWorklogSlice"
 import InvoicingBillingReducer from "../redux/slices/InvoicingBillingSlice"
 import AssignReducer from "../redux/slices/AssignSlice"
-
+import ReportsReducer from "../redux/slices/ReportsSlice"
 // Employee
 import MyJobsReducer from "../redux/slices/Employee/MyJobsSlice"
 
@@ -26,7 +26,8 @@ export const store = configureStore({
     TimesheetWorklogs:TimesheetWorklogReducer,
     InvoicingBilling:InvoicingBillingReducer,
     Assign:AssignReducer,
-    // 
+    reportss:ReportsReducer,
+    //Employee
     MyJobs:MyJobsReducer
 }
 });

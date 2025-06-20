@@ -28,9 +28,8 @@ function DJobsInProgress() {
   ];
 
   const { job, loading, error } = useSelector((state) => state.jobs);
-  console.log("erjhgkjwerfgkelgbwer",job);
-  
-   const [Status, setStatus] = useState("in_progress");
+
+  const [Status, setStatus] = useState("in_progress");
 
   useEffect(() => {
     dispatch(filterStatus(Status));
@@ -85,8 +84,8 @@ function DJobsInProgress() {
   }
 
 
-const [currentPage, setCurrentPage] = useState(1);
-const itemsPerPage = 10;
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
 const filteredProjects = useMemo(() => {
   return (job?.jobs || []).filter((j) => {
@@ -106,36 +105,44 @@ const filteredProjects = useMemo(() => {
       selectedProject === "All Projects" ||
       (j.projectId?.[0]?.projectName?.toLowerCase() === selectedProject.toLowerCase());
 
-    return matchesSearch && matchesProject;
+   const matchesStatus =
+  (j.Status?.toLowerCase().trim() === "in_progress");
+
+
+    return matchesSearch && matchesProject && matchesStatus;
   });
 }, [job?.jobs, searchQuery, selectedProject]);
 
-const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
 
-const paginatedProjects = useMemo(() => {
-  return filteredProjects.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-}, [filteredProjects, currentPage, itemsPerPage]);
+  const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
+
+  const paginatedProjects = useMemo(() => {
+    return filteredProjects.slice(
+      (currentPage - 1) * itemsPerPage,
+      currentPage * itemsPerPage
+    );
+  }, [filteredProjects, currentPage, itemsPerPage]);
 
   return (
     <div className="container bg-white p-4 mt-4 rounded shadow-sm">
       {/* Title */}
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <h5 className="fw-bold m-0">Jobs In Progress</h5>
+        <h4 className="fw-bold m-0">Jobs In Progress</h4>
         {/* <Button id="All_btn" variant="dark" onClick={() => setShowDesignerModal(true)}>Change Designer</Button> */}
       </div>
 
-         {/* Filters */}
-         {/* <div className="d-flex flex-wrap gap-2 mb-3 align-items-center">
-        <Form.Control
-          type="search"
-          placeholder="Search jobs..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          style={{ width: "250px" }}
-        />
+      {/* Filters */}
+      <div className="d-flex flex-wrap gap-2 mb-3 align-items-center">
+        <div className="d-flex flex-wrap gap-2 mb-3 align-items-center">
+          <Form.Control
+            type="text"
+            placeholder="Search jobs..."
+            className="w-auto"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        {/*    
         <Dropdown>
           <Dropdown.Toggle variant="light" id="project-dropdown">
             {selectedProject}
@@ -152,8 +159,8 @@ const paginatedProjects = useMemo(() => {
             )
             )}
           </Dropdown.Menu>
-        </Dropdown>
-      </div> */}
+        </Dropdown> */}
+      </div>
 
       {/* Table */}
       <div className="table-responsive">
@@ -201,7 +208,7 @@ const paginatedProjects = useMemo(() => {
                   <span className={getPriorityClass(job.priority)}>{job.priority}</span>
                 </td>
                 <td>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
-                <td  onClick={() => handleDesignerClick(job)} style={{ whiteSpace: 'nowrap',cursor: 'pointer', color: 'darkblue' }}>
+                <td onClick={() => handleDesignerClick(job)} style={{ whiteSpace: 'nowrap', cursor: 'pointer', color: 'darkblue' }}>
                   {job.assign}
                 </td>
                 <td style={{ whiteSpace: 'nowrap' }}>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
@@ -240,7 +247,7 @@ const paginatedProjects = useMemo(() => {
       {!loading && !error && (
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div className="text-muted small">
-            Showing {(currentPage - 1) * itemsPerPage + 1} to {(currentPage - 1) * itemsPerPage + paginatedProjects.length} of {filteredProjects.length} entries
+            Showing {(currentPage - 1) * itemsPerPage + 1} to {(currentPage - 1) * itemsPerPage + paginatedProjects.length} 
           </div>
           <ul className="pagination pagination-sm mb-0">
             <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>

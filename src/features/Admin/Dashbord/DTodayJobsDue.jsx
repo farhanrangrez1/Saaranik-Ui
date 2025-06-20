@@ -15,6 +15,9 @@ import { fetchjobs } from "../../../redux/slices/JobsSlice";
 function DTodayJobsDue() {
   const dispatch = useDispatch();
   const fileInputRef = useRef(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const [showDesignerModal, setShowDesignerModal] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
@@ -37,7 +40,7 @@ function DTodayJobsDue() {
     "Reviewed",
   ];
 
-  const { job } = useSelector((state) => state.jobs);
+  const { job, loading, error } = useSelector((state) => state.jobs);
 
   useEffect(() => {
     dispatch(fetchjobs());
@@ -48,6 +51,59 @@ function DTodayJobsDue() {
     const dueDate = new Date(j.dueDate || j.createdAt).toLocaleDateString("en-CA");
     return dueDate === today;
   }) || [];
+
+  // Add search filter
+  const filteredJobs = todaysJobs.filter((job) => {
+    const search = searchQuery.toLowerCase().trim();
+    return (
+      (job.JobNo?.toString().toLowerCase().includes(search) || false) ||
+      (job.projectId?.[0]?.projectName?.toLowerCase().includes(search) || false) ||
+      (job.brandName?.toLowerCase().includes(search) || false) ||
+      (job.subBrand?.toLowerCase().includes(search) || false) ||
+      (job.flavour?.toLowerCase().includes(search) || false) ||
+      (job.packType?.toLowerCase().includes(search) || false) ||
+      (job.packSize?.toLowerCase().includes(search) || false)
+    );
+  });
+
+  // Add pagination logic
+  const totalPages = Math.ceil(filteredJobs.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredJobs.slice(indexOfFirstItem, indexOfLastItem);
+
+  // Function to generate page numbers
+  const getPageNumbers = () => {
+    const pageNumbers = [];
+    const maxPagesToShow = 5;
+    
+    if (totalPages <= maxPagesToShow) {
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      pageNumbers.push(1);
+      
+      let startPage = Math.max(2, currentPage - 1);
+      let endPage = Math.min(totalPages - 1, currentPage + 1);
+      
+      if (startPage > 2) {
+        pageNumbers.push('...');
+      }
+      
+      for (let i = startPage; i <= endPage; i++) {
+        pageNumbers.push(i);
+      }
+      
+      if (endPage < totalPages - 1) {
+        pageNumbers.push('...');
+      }
+      
+      pageNumbers.push(totalPages);
+    }
+    
+    return pageNumbers;
+  };
 
   const handleCheckboxChange = (jobId) => {
     setSelectedJobs((prev) => ({
@@ -105,27 +161,18 @@ function DTodayJobsDue() {
   return (
     <div className="container bg-white p-4 mt-4 rounded shadow-sm">
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <h5 className="fw-bold m-0">Jobs Due Today</h5>
+        <h4 className="fw-bold m-0">Jobs Due Today</h4>
       </div>
 
-      {/* <div className="d-flex flex-wrap gap-2 mb-3 align-items-center">
+     <div className="d-flex flex-wrap gap-2 mb-3 align-items-center">
         <Form.Control
           type="text"
           placeholder="Search jobs..."
           className="w-auto"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
         />
-        <Form.Select
-          className="w-auto"
-          value={selectedStatus}
-          onChange={handleChange}
-        >
-          {statusOptions.map((status, index) => (
-            <option key={index} value={status}>
-              {status}
-            </option>
-          ))}
-        </Form.Select>
-      </div> */}
+      </div> 
 
       <div className="table-responsive">
         <table className="table table-hover">
@@ -164,7 +211,7 @@ function DTodayJobsDue() {
             </tr>
           </thead>
           <tbody>
-            {todaysJobs.slice().reverse().map((job, index) => (
+            {currentItems.slice().reverse().map((job, index) => (
               <tr key={job._id}>
                 {/* <td>
                   <input
@@ -202,8 +249,8 @@ function DTodayJobsDue() {
                     {job.Status}
                   </span>
                 </td>
-                <td className="d-flex">
-                  {/* <button
+                {/* <td className="d-flex">
+                  <button
                     className="btn btn-sm btn-outline-primary me-1"
                     onClick={() => JobDetails(job)}
                   >
@@ -214,34 +261,61 @@ function DTodayJobsDue() {
                     onClick={() => handleUpdate(job)}
                   >
                     <i className="bi bi-pencil"></i> Edit
-                  </button> */}
-                  {/* <button
+                  </button>
+                  <button
                     className="btn btn-sm btn-outline-danger"
                     onClick={() => handleDelete(job._id)}
                   >
                     <i className="bi bi-trash"></i> Remove
-                  </button> */}
-                </td>
+                  </button>
+                </td> */}
               </tr>
             ))}
           </tbody>
         </table>
       </div>
 
-      <div className="d-flex justify-content-between align-items-center mt-3">
-        <div>
-          Showing 1 to {job.jobs?.length || 0} of {job.jobs?.length || 0} jobs
+      {/* Pagination */}
+      {!loading && !error && filteredJobs.length > 0 && (
+        <div className="d-flex justify-content-between align-items-center mt-3">
+          <div>
+            Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredJobs.length)} 
+          </div>
+          <Pagination className="m-0">
+            <Pagination.First 
+              onClick={() => setCurrentPage(1)}
+              disabled={currentPage === 1}
+            />
+            <Pagination.Prev 
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+            />
+            
+            {getPageNumbers().map((pageNum, index) => (
+              pageNum === '...' ? (
+                <Pagination.Ellipsis key={`ellipsis-${index}`} disabled />
+              ) : (
+                <Pagination.Item
+                  key={pageNum}
+                  active={currentPage === pageNum}
+                  onClick={() => setCurrentPage(pageNum)}
+                >
+                  {pageNum}
+                </Pagination.Item>
+              )
+            ))}
+
+            <Pagination.Next
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+            />
+            <Pagination.Last
+              onClick={() => setCurrentPage(totalPages)}
+              disabled={currentPage === totalPages}
+            />
+          </Pagination>
         </div>
-        <Pagination className="m-0">
-          <Pagination.Prev disabled>
-            <span aria-hidden="true">&laquo;</span>
-          </Pagination.Prev>
-          <Pagination.Item active>{1}</Pagination.Item>
-          <Pagination.Next>
-            <span aria-hidden="true">&raquo;</span>
-          </Pagination.Next>
-        </Pagination>
-      </div>
+      )}
 
       <Modal show={showDesignerModal} onHide={() => setShowDesignerModal(false)}>
         <Modal.Header closeButton>

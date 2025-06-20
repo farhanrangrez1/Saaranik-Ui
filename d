@@ -19893,3 +19893,3386 @@ function ProjectList() {
 }
 
 export default ProjectList;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { useDispatch, useSelector } from "react-redux";
+import { createCostEstimate, updateCostEstimate } from "../../../redux/slices/costEstimatesSlice";
+import { fetchProject } from "../../../redux/slices/ProjectsSlice";
+import { fetchClient } from "../../../redux/slices/ClientSlice";
+
+const currencies = [
+  { label: "USD - US Dollar", value: "USD" },
+  { label: "EUR - Euro", value: "EUR" },
+  { label: "INR - Indian Rupee", value: "INR" },
+  { label: "GBP - British Pound", value: "GBP" },
+  { label: "JPY - Japanese Yen", value: "JPY" },
+  { label: "AED - UAE Dirham", value: "AED" },
+  { label: "SAR - Saudi Riyal", value: "SAR" },
+];
+
+const poStatuses = ["Approved","pending",  "Rejected"];
+const statuses = [ "Active", "Inactive", "Completed"];
+
+function AddCostEstimates() {
+  const location = useLocation();
+  const po = location.state?.po;
+  const id = po?._id;
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  console.log("hhhhhhh", po);
+
+  const { project } = useSelector((state) => state.projects);
+  useEffect(() => {
+    dispatch(fetchProject());
+  }, [dispatch]);
+  const reversedProjectList = project?.data?.slice().reverse() || [];
+
+  const { Clients } = useSelector((state) => state.client);
+  useEffect(() => {
+    if (Clients && project?.data?.length) {
+      const foundProject = project.data.find(p => p._id === Clients);
+      if (foundProject) {
+        setFormData(prev => ({
+          ...prev,
+          projectsId: foundProject._id,
+        }));
+      }
+    }
+  }, [Clients, project]);
+
+  useEffect(() => {
+    dispatch(fetchClient());
+  }, [dispatch]);
+
+  const [items, setItems] = useState([
+    { description: "", quantity: 0, rate: 0, amount: 0 },
+  ]);
+
+  const [formData, setFormData] = useState({
+    clientId: [""],
+    projectsId: [""],
+    estimateDate: "",
+    validUntil: "",
+    Notes: "",
+    currency: "USD",
+    POStatus: "",
+    Status: "",
+  });
+
+  useEffect(() => {
+    if (po && project?.data?.length) {
+      let projectId = '';
+      if (Array.isArray(po.projectId) && po.projectId.length > 0) {
+        projectId = po.projectId[0]._id;
+      } else if (Array.isArray(po.projects) && po.projects.length > 0) {
+        projectId = typeof po.projects[0] === 'object'
+          ? po.projects[0]._id
+          : po.projects[0];
+      }
+
+      let clientId = "";
+      let clientName = "";
+      if (po.clientId && Array.isArray(po.clientId) && po.clientId.length > 0) {
+        clientId = po.clientId[0]._id || "";
+        clientName = po.clientId[0].clientName || "";
+      } else if (Array.isArray(po.clients) && po.clients.length > 0) {
+        clientId = po.clients[0]?.clientId || "";
+        // Try to get client name from Clients data if available
+        const clientObj = Clients?.data?.find(c => c._id === clientId);
+        clientName = clientObj ? clientObj.clientName : "";
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        ...po,
+        projectsId: projectId ? [projectId] : [""],
+        clientId: clientId ? [clientId] : [""],
+        clientName: clientName,
+        Notes: po.Notes || "",
+        currency: po.currency || "USD",
+        estimateDate: po.estimateDate ? po.estimateDate.substring(0, 10) : "",
+        validUntil: po.validUntil ? po.validUntil.substring(0, 10) : "",
+      }));
+
+      if (Array.isArray(po.lineItems) && po.lineItems.length > 0) {
+        setItems(po.lineItems);
+      }
+    }
+  }, [po, project?.data, Clients]);
+
+
+  const [taxRate, setTaxRate] = useState(0.05);
+
+  const calculateAmount = (quantity, rate) => quantity * rate;
+
+  const handleItemChange = (index, field, value) => {
+    const newItems = [...items];
+    newItems[index][field] = value;
+    newItems[index].amount = calculateAmount(
+      newItems[index].quantity,
+      newItems[index].rate
+    );
+    setItems(newItems);
+  };
+
+  const handleFormChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const addItem = () => {
+    setItems([...items, { description: "", quantity: 0, rate: 0, amount: 0 }]);
+  };
+
+  const removeItem = (index) => {
+    const newItems = [...items];
+    newItems.splice(index, 1);
+    setItems(newItems);
+  };
+
+  const subtotal = items.reduce((acc, item) => acc + item.amount, 0);
+  const tax = subtotal * taxRate;
+  const total = subtotal + tax;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const payload = {
+      ...formData,
+      VATRate: taxRate * 100,
+      lineItems: items,
+    };
+
+    const isDuplicate = location.state?.isDuplicate;
+    if (isDuplicate || !id) {
+      dispatch(createCostEstimate(payload))
+        .unwrap()
+        .then(() => {
+          toast.success("Estimates created successfully!");
+          navigate('/admin/CostEstimates', { state: { openTab: 'jobs' } });
+        })
+        .catch(() => {
+          toast.error("Failed to create estimates");
+        });
+    } else {
+      dispatch(updateCostEstimate({ id, data: payload }))
+        .unwrap()
+        .then(() => {
+          toast.success("Estimates updated successfully!");
+          navigate('/admin/CostEstimates', { state: { openTab: 'jobs' } });
+        })
+        .catch(() => {
+          toast.error("Failed to update estimates");
+        });
+    }
+  };
+
+  return (
+    <>
+      <ToastContainer />
+      <div className="container py-4">
+        <h4 className="fw-bold mb-4">Cost Estimates</h4>
+        <div className="bg-white border rounded-3 p-4 shadow-sm">
+          <h4 className="fw-semibold mb-4">Create New Estimate</h4>
+
+          <div className="row mb-3">
+            <div className="col-md-4 mb-3">
+              <label className="form-label">Client</label>
+              <select
+                className="form-select"
+                name="clientId"
+                value={formData.clientId[0] || ""}
+                onChange={(e) => {
+                  const selectedClientId = e.target.value;
+                  const selectedClient = Clients?.data?.find(c => c._id === selectedClientId);
+
+                  setFormData({
+                    ...formData,
+                    clientId: [selectedClientId],
+                    clientName: selectedClient ? selectedClient.clientName : "",
+                  });
+                }}
+              >
+                <option value="">Select Client</option>
+                {Clients?.data?.map((client) => (
+                  <option key={client._id} value={client._id}>
+                    {client.clientName}
+                  </option>
+                ))}
+              </select>
+
+            </div>
+
+
+            <div className="col-md-4 mb-3">
+              <label className="form-label">Project</label>
+              <select
+                className="form-select"
+                name="projectsId"
+                value={formData.projectsId[0] || ""}
+                onChange={(e) => {
+                  const selectedId = e.target.value;
+                  const selectedProject = project?.data?.find(p => p._id === selectedId);
+                  setFormData({
+                    ...formData,
+                    projectsId: [selectedId],
+                    projectName: selectedProject?.projectName || "",
+                  });
+                }}
+              >
+                <option value="">Select a project</option>
+                {reversedProjectList.map((proj) => (
+                  <option key={proj._id} value={proj._id}>
+                    {proj.projectName}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="col-md-4 mb-3">
+              <label className="form-label">Estimate Date</label>
+              <input
+                type="date"
+                className="form-control"
+                name="estimateDate"
+                value={formData.estimateDate}
+                onChange={handleFormChange}
+              />
+            </div>
+
+            <div className="col-md-4 mb-3">
+              <label className="form-label">Valid Until</label>
+              <input
+                type="date"
+                className="form-control"
+                name="validUntil"
+                value={formData.validUntil}
+                onChange={handleFormChange}
+              />
+            </div>
+
+            <div className="col-md-4 mb-3">
+              <label className="form-label">Currency</label>
+              <select
+                className="form-select"
+                name="currency"
+                value={formData.currency}
+                onChange={handleFormChange}
+              >
+                {currencies.map((curr) => (
+                  <option key={curr.value} value={curr.value}>
+                    {curr.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="col-md-4 mb-3">
+              <label className="form-label">PO Status</label>
+              <select
+                className="form-select"
+                name="POStatus"
+                value={formData.POStatus}
+                onChange={handleFormChange}
+              >
+                {poStatuses.map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="col-md-4 mb-3">
+              <label className="form-label">Status</label>
+              <select
+                className="form-select"
+                name="Status"
+                value={formData.Status}
+                onChange={handleFormChange}
+              >
+                {statuses.map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <h6 className="fw-semibold mb-3">Line Items</h6>
+          <div className="row fw-semibold text-muted mb-2 px-2">
+            <div className="col-md-5">Description</div>
+            <div className="col-md-2">Quantity</div>
+            <div className="col-md-2">Rate</div>
+            <div className="col-md-2">Amount</div>
+            <div className="col-md-1 text-end"></div>
+          </div>
+
+          {items.map((item, index) => (
+            <div
+              className="row gx-2 gy-2 align-items-center mb-2 px-2 py-2"
+              key={index}
+              style={{ background: "#f9f9f9", borderRadius: "8px" }}
+            >
+              <div className="col-md-5">
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Item description"
+                  value={item.description}
+                  required
+                  onChange={(e) =>
+                    handleItemChange(index, "description", e.target.value)
+                  }
+                />
+              </div>
+              <div className="col-md-2">
+                <input
+                  type="number"
+                  className="form-control"
+                  value={item.quantity}
+                  onChange={(e) =>
+                    handleItemChange(index, "quantity", parseInt(e.target.value))
+                  }
+                />
+              </div>
+              <div className="col-md-2">
+                <input
+                  type="number"
+                  className="form-control"
+                  value={item.rate}
+                  onChange={(e) =>
+                    handleItemChange(index, "rate", parseFloat(e.target.value))
+                  }
+                />
+              </div>
+              <div className="col-md-2">
+                <span>
+                  {formData.currency} {item.amount.toFixed(2)}
+                </span>
+              </div>
+              <div className="col-md-1 text-end">
+                <button
+                  className="btn btn-link text-danger p-0"
+                  onClick={() => removeItem(index)}
+                >
+                  remove
+                </button>
+              </div>
+            </div>
+          ))}
+
+          <button
+            className="btn border rounded px-3 py-1 mb-4 text-dark"
+            onClick={addItem}
+          >
+            + Add Line Item
+          </button>
+
+          <div className="row mt-4">
+            <div className="col-md-6">
+              <label className="form-label">VAT Rate (%)</label>
+              <input
+                type="number"
+                className="form-control"
+                value={(taxRate * 100).toFixed(2)}
+                onChange={(e) =>
+                  setTaxRate(isNaN(parseFloat(e.target.value)) ? 0 : parseFloat(e.target.value) / 100)
+                }
+              />
+              <div className="mt-3">
+                Subtotal: {formData.currency} {subtotal.toFixed(2)}<br />
+                VAT: {formData.currency} {tax.toFixed(2)}<br />
+                <strong>Total: {formData.currency} {total.toFixed(2)}</strong>
+              </div>
+            </div>
+            <div className="col-md-6">
+              <label className="form-label">Notes</label>
+              <textarea
+                className="form-control"
+                rows="4"
+                name="Notes"
+                value={formData.Notes}
+                onChange={handleFormChange}
+              ></textarea>
+            </div>
+          </div>
+
+          <div className="text-end mt-4">
+            <Link to="/admin/CostEstimates">
+              <button className="btn btn-light me-2">Cancel</button>
+            </Link>
+            <button className="btn btn-dark" onClick={handleSubmit}>
+              Create Estimate
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export default AddCostEstimates;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { useDispatch } from 'react-redux';
+import { createClients, fetchClient, updateClients } from '../../../redux/slices/ClientSlice';
+import "react-toastify/dist/ReactToastify.css";
+
+
+function AddClientManagement() {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { id } = useParams(); // for edit mode
+  const location = useLocation();
+  const { client } = location.state || {};
+  console.log(client);
+
+  // Initial form state
+  const [formData, setFormData] = useState({
+    clientName: '',
+    industry: '',
+    website: '',
+    clientAddress: '',
+    TaxID_VATNumber: '',
+    CSRCode: '',
+    Status: 'Active'
+  });
+
+  // Contact persons state
+  const [contactPersons, setContactPersons] = useState([
+    {
+      contactName: '',
+      jobTitle: '',
+      email: '',
+      phone: '',
+      department: '',
+      salesRepresentative: ''
+    }
+  ]);
+
+  // Billing information state
+  const [billingInformation, setBillingInformation] = useState([
+    {
+      billingAddress: '',
+      billingContactName: '',
+      billingEmail: '',
+      billingPhone: '',
+      currency: '',
+      preferredPaymentMethod: ''
+    }
+  ]);
+  // Shipping information state
+  const [shippingInformation, setShippingInformation] = useState([
+    {
+      shippingAddress: '',
+      shippingContactName: '',
+      shippingEmail: '',
+      shippingPhone: '',
+      preferredShippingMethod: '',
+      specialInstructions: ''
+    }
+  ]);
+  // Financial information state
+  const [financialInformation, setFinancialInformation] = useState([
+    {
+      annualRevenue: '',
+      creditRating: '',
+      bankName: '',
+      accountNumber: '',
+      fiscalYearEnd: '',
+      financialContact: ''
+    }
+  ]);
+
+  // Ledger information state
+  const [ledgerInformation, setLedgerInformation] = useState([
+    {
+      accountCode: '',
+      accountType: '',
+      openingBalance: '',
+      balanceDate: '',
+      taxCategory: '',
+      costCenter: ''
+    }
+  ]);
+
+  // Additional information state
+  const [additionalInformation, setAdditionalInformation] = useState({
+    paymentTerms: '',
+    creditLimit: '',
+    notes: ''
+  });
+
+
+useEffect(() => {
+  const updateStates = (clientData) => {
+    setFormData({
+      clientName: clientData.clientName || '',
+      industry: clientData.industry || '',
+      website: clientData.website || '',
+      clientAddress: clientData.clientAddress || '',
+      TaxID_VATNumber: clientData.TaxID_VATNumber || '',
+      CSRCode: clientData.CSRCode || '',
+      Status: clientData.Status || 'Active'
+    });
+
+    setContactPersons(clientData.contactPersons || []);
+    setBillingInformation(clientData.billingInformation || []);
+    setShippingInformation(clientData.shippingInformation || []);
+    setFinancialInformation(clientData.financialInformation || []);
+    setLedgerInformation(clientData.ledgerInformation || []);
+    setAdditionalInformation(clientData.additionalInformation || {
+      paymentTerms: '',
+      creditLimit: '',
+      notes: ''
+    });
+  };
+
+  if (client) {
+    updateStates(client);
+  } else if (id) {
+    dispatch(fetchclientById(id)).then((res) => {
+      const fetchedclient = res.payload;
+      if (fetchedclient) {
+        updateStates(fetchedclient);
+      }
+    });
+  }
+}, [id, dispatch, client]);
+
+
+
+  // Handle basic form field changes
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Handle contact person changes
+  const handleContactChange = (index, e) => {
+    const { name, value } = e.target;
+    const updatedContacts = [...contactPersons];
+    updatedContacts[index] = {
+      ...updatedContacts[index],
+      [name]: value
+    };
+    setContactPersons(updatedContacts);
+  };
+
+  // Handle billing information changes
+  const handleBillingChange = (index, e) => {
+    const { name, value } = e.target;
+    const updatedBilling = [...billingInformation];
+    updatedBilling[index] = {
+      ...updatedBilling[index],
+      [name]: value
+    };
+    setBillingInformation(updatedBilling);
+  };
+
+  // Handle shipping information changes
+  const handleShippingChange = (index, e) => {
+    const { name, value } = e.target;
+    const updatedShipping = [...shippingInformation];
+    updatedShipping[index] = {
+      ...updatedShipping[index],
+      [name]: value
+    };
+    setShippingInformation(updatedShipping);
+  };
+
+  // Handle financial information changes
+  const handleFinancialChange = (index, e) => {
+    const { name, value } = e.target;
+    const updatedFinancial = [...financialInformation];
+    updatedFinancial[index] = {
+      ...updatedFinancial[index],
+      [name]: value
+    };
+    setFinancialInformation(updatedFinancial);
+  };
+
+  // Handle ledger information changes
+  const handleLedgerChange = (index, e) => {
+    const { name, value } = e.target;
+    const updatedLedger = [...ledgerInformation];
+    updatedLedger[index] = {
+      ...updatedLedger[index],
+      [name]: value
+    };
+    setLedgerInformation(updatedLedger);
+  };
+
+
+  const handleAdditionalChange = (e) => {
+    const { name, value } = e.target;
+    setAdditionalInformation(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const fullData = {
+      ...formData,
+      contactPersons,
+      billingInformation,
+      shippingInformation,
+      financialInformation,
+      ledgerInformation,
+      additionalInformation
+    };
+    console.log('Full Data Object:', fullData);
+    if (id) {
+      dispatch(updateClients(fullData))
+        .unwrap()
+        .then(() => {
+          toast.success("clientupdated successfully!");
+          navigate("/admin/clientManagement");
+              dispatch(fetchClient());
+        })
+        .catch(() => {
+          toast.error("Failed to update client!");
+        });
+    } else {
+          dispatch(createClients(fullData))
+        .unwrap()
+        .then(() => {
+          toast.success("clientcreated successfully!");
+          navigate("/admin/clientManagement");
+              dispatch(fetchClient());
+        })
+        .catch(() => {
+          toast.error("Error creating client");
+        });
+    }
+  };
+
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+
+  //   const fullData = {
+  //     ...formData,
+  //     contactPersons,
+  //     billingInformation,
+  //     shippingInformation,
+  //     financialInformation,
+  //     ledgerInformation,
+  //     additionalInformation
+  //   };
+  //         dispatch(createClients(fullData))
+  //       .unwrap()
+  //       .then(() => {
+  //         toast.success("clientcreated successfully!");
+  //         navigate("/clientManagement");
+  //       })
+  //       .catch(() => {
+  //         toast.error("Error creating client");
+  //       });
+    
+  // };
+
+  return (
+    <>
+      <ToastContainer />
+      <div className="container mt-5">
+        <div className="card shadow-sm">
+          <div className="card-body">
+            {/* <h1 className="card-title h4 mb-4">Add Company</h1> */}
+                   <h2 className="mb-4">{id || client?._id ? "Edit client" : "New Company (Client)"}</h2>
+            <form className="row g-3" onSubmit={handleSubmit}>
+              <div className='col-md-3'>  <h6 className="mb-3">Client/Supplier Information</h6></div>
+              <div className="col-md-6"></div>
+              <div className="col-md-6">
+                <label className="form-label">Name</label>
+                <input type="text" name="clientName" value={formData.clientName} onChange={handleChange} className="form-control" placeholder="Enter  name" />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Industry</label>
+                <select className="form-select" name="industry" value={formData.industry} onChange={handleChange}>
+                  <option value="">Select industry</option>
+                  <option value="manufacturing">Manufacturing</option>
+                  <option value="tech">Technology</option>
+                  <option value="retail">Retail</option>
+                </select>
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Website</label>
+                <input type="url" name="website" value={formData.website} onChange={handleChange} className="form-control" placeholder="https://" />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Client Address</label>
+                <textarea className="form-control" name="clientAddress" value={formData.clientAddress} onChange={handleChange}></textarea>
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Tax ID/VAT Number</label>
+                <input type="text" name="TaxID_VATNumber" value={formData.TaxID_VATNumber} onChange={handleChange} className="form-control" />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">CSR Code</label>
+                <input type="text" name="CSRCode" value={formData.CSRCode} onChange={handleChange} className="form-control" />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Status</label>
+                <select className="form-select" name="Status" value={formData.Status} onChange={handleChange}>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+              <div className='col-md-12 row'>
+                <h5 className="mb-3 mt-4">Contact Persons</h5>
+
+                {contactPersons.map((contact, index) => (
+                  <div className="border p-3 mb-3" key={index}>
+                    <div className="row">
+                      <div className="col-md-6">
+                        <label className="form-label">Contact Name</label>
+                        <input
+                          type="text"
+                          name="contactName"
+                          value={contact.contactName}
+                          onChange={(e) => handleContactChange(index, e)}
+                          className="form-control"
+                          placeholder="Enter Contact Name"
+                        />
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label">Job Title</label>
+                        <input
+                          type="text"
+                          name="jobTitle"
+                          value={contact.jobTitle}
+                          onChange={(e) => handleContactChange(index, e)}
+                          className="form-control"
+                          placeholder="Enter Job Title"
+                        />
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label">Email</label>
+                        <input
+                          type="email"
+                          name="email"
+                          value={contact.email}
+                          onChange={(e) => handleContactChange(index, e)}
+                          className="form-control"
+                          placeholder="Enter Email"
+                        />
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label">Phone</label>
+                        <input
+                          type="tel"
+                          name="phone"
+                          value={contact.phone}
+                          onChange={(e) => handleContactChange(index, e)}
+                          className="form-control"
+                          placeholder="Enter Phone"
+                        />
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label">Department</label>
+                        <input
+                          type="text"
+                          name="department"
+                          value={contact.department}
+                          onChange={(e) => handleContactChange(index, e)}
+                          className="form-control"
+                          placeholder="Enter Department"
+                        />
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label">Sales Representative</label>
+                        <input
+                          type="text"
+                          name="salesRepresentative"
+                          value={contact.salesRepresentative}
+                          onChange={(e) => handleContactChange(index, e)}
+                          className="form-control"
+                          placeholder="Enter Sales Representative"
+                        />
+                      </div>
+
+                      <div className="col-md-12 mt-2 d-flex justify-content-end">
+                        {contactPersons.length > 1 && (
+                          <button
+                            type="button"
+                            className="btn btn-danger btn-sm"
+                            onClick={() => {
+                              const updatedContacts = [...contactPersons];
+                              updatedContacts.splice(index, 1);
+                              setContactPersons(updatedContacts);
+                            }}
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Add More Button */}
+                <div className="mb-3">
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={() => {
+                      setContactPersons([
+                        ...contactPersons,
+                        {
+                          contactName: '',
+                          jobTitle: '',
+                          email: '',
+                          phone: '',
+                          department: '',
+                          salesRepresentative: ''
+                        }
+                      ]);
+                    }}
+                  >
+                    + Add Another Contact
+                  </button>
+                </div>
+              </div>
+
+              {/* Billing Information */}
+              <div className='col-md-12 row'>
+                <h5 className="mb-3 mt-4">Billing Information</h5>
+                <div className="col-md-12">
+                  <label className="form-label">Billing Address</label>
+                  <textarea className="form-control" rows="3" name="billingAddress" value={billingInformation[0].billingAddress} onChange={(e) => handleBillingChange(0, e)}></textarea>
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Billing Contact Name</label>
+                  <input type="text" className="form-control" name="billingContactName" value={billingInformation[0].billingContactName} onChange={(e) => handleBillingChange(0, e)} />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Billing Email</label>
+                  <input type="email" className="form-control" name="billingEmail" value={billingInformation[0].billingEmail} onChange={(e) => handleBillingChange(0, e)} />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Billing Phone</label>
+                  <input type="tel" className="form-control" name="billingPhone" value={billingInformation[0].billingPhone} onChange={(e) => handleBillingChange(0, e)} />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Currency</label>
+                  <select className="form-select" name="currency" value={billingInformation[0].currency} onChange={(e) => handleBillingChange(0, e)}>
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="GBP">GBP</option>
+                  </select>
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Preferred Payment Method</label>
+                  <select className="form-select" name="preferredPaymentMethod" value={billingInformation[0].preferredPaymentMethod} onChange={(e) => handleBillingChange(0, e)}>
+                    <option value="">Select Payment Method</option>
+                    <option value="BankTransfer">BankTransfer</option>
+                    <option value="CreditCard">CreditCard</option>
+                    <option value="Check">Check</option>
+                  </select>
+                </div>
+
+                {/* Shipping Information */}
+                <h5 className="mb-3 mt-4">Shipping Information</h5>
+                <div className="col-md-12">
+                  <label className="form-label">Shipping Address</label>
+                  <textarea className="form-control" rows="3" name="shippingAddress" value={shippingInformation[0].shippingAddress} onChange={(e) => handleShippingChange(0, e)}></textarea>
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Shipping Contact Name</label>
+                  <input type="text" className="form-control" name="shippingContactName" value={shippingInformation[0].shippingContactName} onChange={(e) => handleShippingChange(0, e)} />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Shipping Email</label>
+                  <input type="email" className="form-control" name="shippingEmail" value={shippingInformation[0].shippingEmail} onChange={(e) => handleShippingChange(0, e)} />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Shipping Phone</label>
+                  <input type="tel" className="form-control" name="shippingPhone" value={shippingInformation[0].shippingPhone} onChange={(e) => handleShippingChange(0, e)} />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Preferred Shipping Method</label>
+                  <select className="form-select" name="preferredShippingMethod" value={shippingInformation[0].preferredShippingMethod} onChange={(e) => handleShippingChange(0, e)}>
+                    <option value="">Select Shipping Method</option>
+                    <option value="Standard">Standard</option>
+                    <option value="Express">Express</option>
+                    <option value="Overnight">Overnight</option>
+                    <option value="Ground">Ground</option>
+                  </select>
+                </div>
+                <div className="col-md-12">
+                  <label className="form-label">Special Instructions</label>
+                  <textarea className="form-control" rows="3" name="specialInstructions" value={shippingInformation[0].specialInstructions} onChange={(e) => handleShippingChange(0, e)}></textarea>
+                </div>
+
+                {/* Financial Information */}
+                <h5 className="mb-3 mt-4">Financial Information</h5>
+                <div className="col-md-6">
+                  <label className="form-label">Annual Revenue</label>
+                  <input type="number" className="form-control" name="annualRevenue" value={financialInformation[0].annualRevenue} onChange={(e) => handleFinancialChange(0, e)} />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Credit Rating</label>
+                  <input type="text" className="form-control" name="creditRating" value={financialInformation[0].creditRating} onChange={(e) => handleFinancialChange(0, e)} />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Bank Name</label>
+                  <input type="text" className="form-control" name="bankName" value={financialInformation[0].bankName} onChange={(e) => handleFinancialChange(0, e)} />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Account Number</label>
+                  <input type="text" className="form-control" name="accountNumber" value={financialInformation[0].accountNumber} onChange={(e) => handleFinancialChange(0, e)} />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Fiscal Year End</label>
+                  <input type="date" className="form-control" name="fiscalYearEnd" value={financialInformation[0].fiscalYearEnd} onChange={(e) => handleFinancialChange(0, e)} />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Financial Contact</label>
+                  <input type="text" className="form-control" name="financialContact" value={financialInformation[0].financialContact} onChange={(e) => handleFinancialChange(0, e)} />
+                </div>
+
+                {/* Ledger Information */}
+                <h5 className="mb-3 mt-4">Ledger Information</h5>
+                <div className="col-md-6">
+                  <label className="form-label">Account Code</label>
+                  <input type="text" className="form-control" name="accountCode" value={ledgerInformation[0].accountCode} onChange={(e) => handleLedgerChange(0, e)} />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Account Type</label>
+                  <select className="form-select" name="accountType" value={ledgerInformation[0].accountType} onChange={(e) => handleLedgerChange(0, e)}>
+                    <option value="">Select Account Type</option>
+                    <option value="AccountsReceivable">AccountsReceivable</option>
+                    <option value="AccountsPayable">AccountsPayable</option>
+                  </select>
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Opening Balance</label>
+                  <input type="number" className="form-control" name="openingBalance" value={ledgerInformation[0].openingBalance} onChange={(e) => handleLedgerChange(0, e)} />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Balance Date</label>
+                  <input type="date" className="form-control" name="balanceDate" value={ledgerInformation[0].balanceDate} onChange={(e) => handleLedgerChange(0, e)} />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Tax Category</label>
+                  <select className="form-select" name="taxCategory" value={ledgerInformation[0].taxCategory} onChange={(e) => handleLedgerChange(0, e)}>
+                    <option value="standard">Standard Rate</option>
+                    <option value="reduced">Reduced Rate</option>
+                    <option value="zero">Zero Rate</option>
+                  </select>
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Cost Center</label>
+                  <input type="text" className="form-control" name="costCenter" value={ledgerInformation[0].costCenter} onChange={(e) => handleLedgerChange(0, e)} />
+                </div>
+
+                {/* Additional Information */}
+                <h5 className="mb-3 mt-4">Additional Information</h5>
+                <div className="col-md-6">
+                  <label className="form-label">Payment Terms</label>
+                  <select className="form-select" name="paymentTerms" value={additionalInformation.paymentTerms} onChange={handleAdditionalChange}>
+                    <option value="net30">Net 30</option>
+                    <option value="net60">Net 60</option>
+                    <option value="net90">Net 90</option>
+                  </select>
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Credit Limit</label>
+                  <input type="number" className="form-control" name="creditLimit" value={additionalInformation.creditLimit} onChange={handleAdditionalChange} />
+                </div>
+              </div>
+              <div className="col-md-12">
+                <label className="form-label">Notes</label>
+                <textarea className="form-control" rows="3" name="notes" value={additionalInformation.notes} onChange={handleAdditionalChange} placeholder="Additional notes"></textarea>
+              </div>
+
+
+              <div className="col-12 d-flex justify-content-end gap-2 mt-4">
+                <button type="button" className="btn btn-outline-secondary">Cancel</button>
+                <button type="submit" id="btn-All" className="btn btn-dark">Create </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </>
+
+  );
+}
+
+export default AddClientManagement;
+
+
+
+
+
+
+
+
+
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import "./Navbar.css";
+
+const Navbar = ({ toggleSidebar }) => {
+  const [roledata, setRoleData]= useState("")
+  useEffect(()=>{
+    const Role= localStorage.getItem("userRole")
+     if(Role){
+     setRoleData(Role)
+     }else{
+      setRoleData()
+     }
+  },[])
+
+  
+const handleLogout = () => {
+  // Clear entire localStorage
+  localStorage.clear();
+  // Optionally redirect to login page
+  window.location.href = "/"; // ya "/login"
+};
+
+  return (
+    <>
+      <nav className="navbar me-5 d-flex justify-content-end">
+        <div className="navbar-left">
+          <p className="navbar-logo">logo</p>
+          <button onClick={toggleSidebar} className="toggle-button d-block d-md-none">
+            <i className="fas fa-bars"></i>
+          </button>
+        </div>
+
+        <div className="navbar-right">
+          <div className="dropdown profile-dropdown d-none d-md-block">
+            <div className="profile-trigger" data-bs-toggle="dropdown" aria-expanded="false">
+              <div className="profile-info">
+                <span className="profile-name">{roledata}</span>
+                <span className="profile-role">Project Manager</span>
+              </div>
+              <div className="profile-avatar">
+                <img src="https://wac-cdn.atlassian.com/dam/jcr:ba03a215-2f45-40f5-8540-b2015223c918/Max-R_Headshot%20(1).jpg?cdnVersion=2654" alt="profile" />
+              </div>
+            </div>
+
+            <ul className="dropdown-menu dropdown-menu-end profile-menu">
+              <li>
+              <Link to="/admin/profile" className="dropdown-item" style={{ textDecoration: 'none', color: 'inherit' }}>
+                 <i className="fas fa-user" style={{ marginRight: '8px' }}></i>
+                   <span>My Profile</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/admin/profile/update" className="dropdown-item">
+                  <i className="fas fa-edit"></i>
+                  <span>Update Profile</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/admin/profile/password" className="dropdown-item">
+                  <i className="fas fa-lock"></i>
+                  <span>Change Password</span>
+                </Link>
+              </li>
+              <li><hr className="dropdown-divider"/></li>
+              <li onClick={handleLogout}>
+                <Link to="/" className="dropdown-item text-danger">
+                  <i className="fas fa-sign-out-alt"></i>
+                  <span>Logout</span>
+                </Link>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+    </>
+  );
+};
+
+export default Navbar;
+
+
+
+
+
+
+
+
+
+import React from 'react'
+import 'bootstrap/dist/css/bootstrap.min.css'
+
+function Profile() {
+  return (
+    <div className="container py-5">
+      <div className="row justify-content-center">
+        <div className="col-lg-4 mb-4">
+          <div className="card shadow-sm border-0 h-100">
+            <div className="card-body text-center">
+              <div className="d-flex flex-column align-items-center">
+                <img
+                  src="https://wac-cdn.atlassian.com/dam/jcr:ba03a215-2f45-40f5-8540-b2015223c918/Max-R_Headshot%20(1).jpg?cdnVersion=2654"
+                  alt="avatar"
+                  className="rounded-circle img-fluid border border-3 border-primary mb-3"
+                  style={{ width: '140px', height: '140px', objectFit: 'cover' }}
+                />
+                <h4 className="fw-bold mb-1">John Smith</h4>
+                <span className="badge bg-primary mb-2">Full Stack Developer</span>
+                <p className="text-muted mb-2"><i className="bi bi-geo-alt-fill me-1"></i>Bay Area, San Francisco, CA</p>
+                <div className="d-flex gap-2 justify-content-center mt-2">
+                  <button type="button" className="btn btn-primary px-4 shadow-sm">Follow</button>
+                  <button type="button" className="btn btn-outline-primary px-4 shadow-sm">Message</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="col-lg-8">
+          <div className="card shadow-sm border-0 mb-4">
+            <div className="card-body">
+              <div className="row mb-3">
+                <div className="col-sm-4 fw-semibold">Full Name</div>
+                <div className="col-sm-8 text-muted">John Smith</div>
+              </div>
+              <div className="row mb-3">
+                <div className="col-sm-4 fw-semibold">Email</div>
+                <div className="col-sm-8 text-muted">example@example.com</div>
+              </div>
+              <div className="row mb-3">
+                <div className="col-sm-4 fw-semibold">Phone</div>
+                <div className="col-sm-8 text-muted">(097) 234-5678</div>
+              </div>
+              <div className="row mb-3">
+                <div className="col-sm-4 fw-semibold">Mobile</div>
+                <div className="col-sm-8 text-muted">(098) 765-4321</div>
+              </div>
+              <div className="row mb-3">
+                <div className="col-sm-4 fw-semibold">Address</div>
+                <div className="col-sm-8 text-muted">Bay Area, San Francisco, CA</div>
+              </div>
+            </div>
+          </div>
+          <div className="row g-3">
+            <div className="col-md-6">
+              <div className="card shadow-sm border-0 h-100">
+                <div className="card-body">
+                  <h6 className="mb-3 text-primary fw-bold">Account Status</h6>
+                  <div className="mb-2">
+                    <span className="fw-semibold">Status:</span> <span className="badge bg-success ms-2">Active</span>
+                  </div>
+                  <div className="mb-2">
+                    <span className="fw-semibold">Department:</span> <span className="text-muted ms-2">Development</span>
+                  </div>
+                  <div className="mb-2">
+                    <span className="fw-semibold">Role:</span> <span className="text-muted ms-2">Full Stack Developer</span>
+                  </div>
+                  <div className="mb-2">
+                    <span className="fw-semibold">Joining Date:</span> <span className="text-muted ms-2">01 Jan 2022</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="col-md-6">
+              <div className="card shadow-sm border-0 h-100">
+                <div className="card-body">
+                  <h6 className="mb-3 text-primary fw-bold">About / Bio</h6>
+                  <p className="text-muted mb-0">
+                    Passionate developer with 5+ years of experience in building scalable web applications. Loves to work with modern JavaScript frameworks and always eager to learn new technologies.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default Profile
+
+
+
+
+
+
+
+
+
+import React, { useState, useRef } from 'react';
+import 'bootstrap/dist/css/bootstrap.min.css';
+
+// Example user data (replace with props or redux in real app)
+const userData = {
+  permissions: {
+    dashboardAccess: true,
+    userManagement: true,
+    clientManagement: false,
+    projectManagement: false,
+    designTools: false,
+    financialManagement: false,
+    reportGeneration: false,
+    systemSettings: false
+  },
+  accessLevel: {
+    fullAccess: true,
+    limitedAccess: false,
+    viewOnly: false
+  },
+  _id: '68418bc45df221af4efdffee',
+  firstName: 'employee',
+  lastName: '1',
+  email: 'employee@gmail.com',
+  phone: '1234567890',
+  role: 'employee',
+  state: 'California',
+  country: 'California',
+  assign: 'Production',
+  isAdmin: false,
+  profileImage: [
+    ''
+  ],
+  googleSignIn: false,
+  createdAt: '2025-06-05T12:21:24.100Z',
+  updatedAt: '2025-06-05T12:21:24.100Z',
+};
+
+function Profile() {
+  // Form state
+  const [form, setForm] = useState({
+    firstName: userData.firstName,
+    lastName: userData.lastName,
+    email: userData.email,
+    phone: userData.phone,
+    state: userData.state,
+    country: userData.country,
+    assign: userData.assign,
+    profileImage: userData.profileImage[0] || '',
+  });
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef();
+
+  // Handle form changes
+  const handleChange = (e) => {
+    const { name, value, files } = e.target;
+    if (name === 'profileImage' && files && files[0]) {
+      setForm({ ...form, profileImage: URL.createObjectURL(files[0]) });
+    } else {
+      setForm({ ...form, [name]: value });
+    }
+  };
+
+  const handleImageClick = () => {
+    fileInputRef.current.click();
+  };
+
+  // Handle form submit (simulate update)
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setMessage('');
+    setError('');
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      setMessage('Profile updated successfully!');
+    }, 1200);
+  };
+
+  // Permissions badges
+  const permissionBadges = Object.entries(userData.permissions).map(([key, value]) => (
+    <span key={key} className={`badge me-2 mb-1 ${value ? 'bg-success' : 'bg-secondary'}`} title={key.replace(/([A-Z])/g, ' $1')}>
+      {key.replace(/([A-Z])/g, ' $1')}
+    </span>
+  ));
+  // Access level badges
+  const accessBadges = Object.entries(userData.accessLevel).map(([key, value]) => (
+    <span key={key} className={`badge me-2 mb-1 ${value ? 'bg-primary' : 'bg-light text-dark border'}`} title={key.replace(/([A-Z])/g, ' $1')}>
+      {key.replace(/([A-Z])/g, ' $1')}
+    </span>
+  ));
+
+  return (
+    <div className="container py-5">
+      <div className="row justify-content-center g-4">
+        {/* Profile summary */}
+        <div className="col-lg-4 mb-4">
+          <div className="card border-0 shadow-lg h-100" style={{ background: 'linear-gradient(135deg, #f8fafc 60%, #e0e7ff 100%)' }}>
+            <div className="card-body text-center p-4">
+              <div className="position-relative d-inline-block mb-3">
+                <img
+                  src={form.profileImage || 'https://wac-cdn.atlassian.com/dam/jcr:ba03a215-2f45-40f5-8540-b2015223c918/Max-R_Headshot%20(1).jpg?cdnVersion=2654'}
+                  alt="avatar"
+                  className="rounded-circle border border-3 border-primary shadow"
+                  style={{ width: '140px', height: '140px', objectFit: 'cover', background: '#fff' }}
+                />
+                <button
+                  type="button"
+                  className="btn btn-light btn-sm rounded-circle position-absolute bottom-0 end-0 border shadow"
+                  style={{ transform: 'translate(25%, 25%)' }}
+                  onClick={handleImageClick}
+                  title="Change profile picture"
+                >
+                  <i className="bi bi-pencil-fill"></i>
+                </button>
+                <input
+                  type="file"
+                  name="profileImage"
+                  accept="image/*"
+                  ref={fileInputRef}
+                  style={{ display: 'none' }}
+                  onChange={handleChange}
+                />
+              </div>
+              <h4 className="fw-bold mb-1">{userData.firstName} {userData.lastName}</h4>
+              <span className="badge bg-primary mb-2 text-capitalize">{userData.role}</span>
+              <div className="d-flex align-items-center justify-content-center mb-2">
+                <i className="bi bi-geo-alt-fill text-secondary me-1"></i>
+                <span className="text-muted">{userData.state}, {userData.country}</span>
+              </div>
+              <div className="mb-2">
+                <i className="bi bi-diagram-3-fill text-secondary me-1"></i>
+                <span className="fw-semibold">Department:</span> <span className="text-muted ms-1">{userData.assign}</span>
+              </div>
+              <div className="mb-2">
+                <i className="bi bi-person-badge-fill text-secondary me-1"></i>
+                <span className="fw-semibold">Status:</span> <span className={`badge ms-2 ${userData.isAdmin ? 'bg-info' : 'bg-success'}`}>{userData.isAdmin ? 'Admin' : 'Active'}</span>
+              </div>
+              <div className="mb-2">
+                <i className="bi bi-google text-secondary me-1"></i>
+                <span className="fw-semibold">Google Sign In:</span> <span className={`badge ms-2 ${userData.googleSignIn ? 'bg-success' : 'bg-secondary'}`}>{userData.googleSignIn ? 'Yes' : 'No'}</span>
+              </div>
+              <div className="mb-2">
+                <i className="bi bi-calendar-event text-secondary me-1"></i>
+                <span className="fw-semibold">Account Created:</span> <span className="text-muted ms-1">{new Date(userData.createdAt).toLocaleDateString()}</span>
+              </div>
+              <div className="mb-2 text-start">
+                <span className="fw-semibold">Access Level:</span>
+                <div className="d-flex flex-wrap mt-1" style={{ gap: '0.25rem' }}>{accessBadges}</div>
+              </div>
+              <div className="mb-2 text-start">
+                <span className="fw-semibold">Permissions:</span>
+                <div className="d-flex flex-wrap mt-1" style={{ gap: '0.25rem', maxWidth: 260, overflowX: 'auto' }}>{permissionBadges}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {/* Profile details & update form */}
+        <div className="col-lg-8">
+          <div className="card border-0 shadow-lg mb-4">
+            <div className="card-body p-4">
+              <h5 className="mb-4 fw-bold"><i className="bi bi-pencil-square me-2"></i>Update Profile</h5>
+              <form onSubmit={handleSubmit} autoComplete="off">
+                <div className="row g-3">
+                  <div className="col-md-6 form-floating">
+                    <input type="text" className="form-control" id="firstName" name="firstName" value={form.firstName} onChange={handleChange} required placeholder="First Name" />
+                    <label htmlFor="firstName">First Name</label>
+                  </div>
+                  <div className="col-md-6 form-floating">
+                    <input type="text" className="form-control" id="lastName" name="lastName" value={form.lastName} onChange={handleChange} required placeholder="Last Name" />
+                    <label htmlFor="lastName">Last Name</label>
+                  </div>
+                  <div className="col-md-6 form-floating">
+                    <input type="email" className="form-control" id="email" name="email" value={form.email} onChange={handleChange} required placeholder="Email" />
+                    <label htmlFor="email">Email</label>
+                  </div>
+                  <div className="col-md-6 form-floating">
+                    <input type="text" className="form-control" id="phone" name="phone" value={form.phone} onChange={handleChange} placeholder="Phone" />
+                    <label htmlFor="phone">Phone</label>
+                  </div>
+                  <div className="col-md-6 form-floating">
+                    <input type="text" className="form-control" id="state" name="state" value={form.state} onChange={handleChange} placeholder="State" />
+                    <label htmlFor="state">State</label>
+                  </div>
+                  <div className="col-md-6 form-floating">
+                    <input type="text" className="form-control" id="country" name="country" value={form.country} onChange={handleChange} placeholder="Country" />
+                    <label htmlFor="country">Country</label>
+                  </div>
+                  <div className="col-md-6 form-floating">
+                    <input type="text" className="form-control" id="assign" name="assign" value={form.assign} onChange={handleChange} placeholder="Department/Assign" />
+                    <label htmlFor="assign">Department/Assign</label>
+                  </div>
+                  <div className="col-md-6 d-flex align-items-center">
+                    <label className="form-label me-2 mb-0">Profile Image</label>
+                    <input type="file" className="form-control" name="profileImage" accept="image/*" onChange={handleChange} />
+                  </div>
+                </div>
+                {error && <div className="alert alert-danger mt-4 d-flex align-items-center"><i className="bi bi-x-circle-fill me-2"></i>{error}</div>}
+                {message && <div className="alert alert-success mt-4 d-flex align-items-center"><i className="bi bi-check-circle-fill me-2"></i>{message}</div>}
+                <button type="submit" className="btn btn-primary mt-4 px-4" disabled={loading}>
+                  {loading ? <span><span className="spinner-border spinner-border-sm me-2"></span>Updating...</span> : 'Update Profile'}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default Profile;
+
+
+
+import React, { useState, useRef } from 'react';
+import 'bootstrap/dist/css/bootstrap.min.css';
+
+const initialUser = {
+  _id: '68418bc45df221af4efdffee',
+  firstName: 'employee',
+  lastName: '1',
+  email: 'employee@gmail.com',
+  phone: '1234567890',
+  role: 'employee',
+  state: 'California',
+  country: 'California',
+  assign: 'Production',
+  profileImage: '',
+  googleSignIn: false,
+  createdAt: '2025-06-05T12:21:24.100Z',
+  isAdmin: false,
+};
+
+function UpdateProfile() {
+  const [form, setForm] = useState(initialUser);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef();
+
+  const handleChange = (e) => {
+    const { name, value, files } = e.target;
+    if (name === 'profileImage' && files && files[0]) {
+      setForm({ ...form, profileImage: URL.createObjectURL(files[0]) });
+    } else {
+      setForm({ ...form, [name]: value });
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setMessage('');
+    setError('');
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      setMessage('Profile updated successfully!');
+    }, 1200);
+  };
+
+  return (
+    <div className="container py-5 d-flex justify-content-center align-items-center" style={{ minHeight: '90vh' }}>
+      <div className="w-100" style={{ maxWidth: 540 }}>
+        <div className="bg-white rounded-4 shadow-sm border p-4 p-md-5">
+          <h2 className="fw-bold mb-4 text-primary text-center"><i className="bi bi-pencil-square me-2"></i>Update Profile</h2>
+          <form onSubmit={handleSubmit} autoComplete="off">
+            <div className="d-flex flex-column align-items-center mb-4">
+              <div className="position-relative mb-2">
+                <img
+                  src={form.profileImage || 'https://wac-cdn.atlassian.com/dam/jcr:ba03a215-2f45-40f5-8540-b2015223c918/Max-R_Headshot%20(1).jpg?cdnVersion=2654'}
+                  alt="Preview"
+                  className="rounded-circle border border-2 shadow"
+                  style={{ width: 90, height: 90, objectFit: 'cover', background: '#fff' }}
+                />
+                <input
+                  type="file"
+                  className="form-control mt-2"
+                  name="profileImage"
+                  accept="image/*"
+                  onChange={handleChange}
+                  ref={fileInputRef}
+                  style={{ width: 180, margin: '0 auto', display: 'block' }}
+                />
+              </div>
+            </div>
+            <div className="row g-4">
+              <div className="col-md-6 form-floating">
+                <input type="text" className="form-control" id="firstName" name="firstName" value={form.firstName} onChange={handleChange} required placeholder="First Name" />
+                <label htmlFor="firstName">First Name</label>
+              </div>
+              <div className="col-md-6 form-floating">
+                <input type="text" className="form-control" id="lastName" name="lastName" value={form.lastName} onChange={handleChange} required placeholder="Last Name" />
+                <label htmlFor="lastName">Last Name</label>
+              </div>
+              <div className="col-md-6 form-floating">
+                <input type="email" className="form-control" id="email" name="email" value={form.email} onChange={handleChange} required placeholder="Email" />
+                <label htmlFor="email">Email</label>
+              </div>
+              <div className="col-md-6 form-floating">
+                <input type="text" className="form-control" id="phone" name="phone" value={form.phone} onChange={handleChange} placeholder="Phone" />
+                <label htmlFor="phone">Phone</label>
+              </div>
+              <div className="col-md-6 form-floating">
+                <input type="text" className="form-control" id="state" name="state" value={form.state} onChange={handleChange} placeholder="State" />
+                <label htmlFor="state">State</label>
+              </div>
+              <div className="col-md-6 form-floating">
+                <input type="text" className="form-control" id="country" name="country" value={form.country} onChange={handleChange} placeholder="Country" />
+                <label htmlFor="country">Country</label>
+              </div>
+              <div className="col-md-12 form-floating">
+                <input type="text" className="form-control" id="assign" name="assign" value={form.assign} onChange={handleChange} placeholder="Department/Assign" />
+                <label htmlFor="assign">Department/Assign</label>
+              </div>
+              {/* Non-editable fields */}
+              <div className="col-md-6 form-floating">
+                <input type="text" className="form-control" id="role" name="role" value={form.role} readOnly disabled placeholder="Role" />
+                <label htmlFor="role">Role</label>
+              </div>
+              <div className="col-md-6 d-flex align-items-center">
+                <span className={`badge ${form.googleSignIn ? 'bg-success' : 'bg-secondary'} fs-6 px-3 py-2`}><i className="bi bi-google me-1"></i>Google Sign In: {form.googleSignIn ? 'Yes' : 'No'}</span>
+              </div>
+              <div className="col-md-6 d-flex align-items-center">
+                <span className="badge bg-success fs-6 px-3 py-2"><i className="bi bi-check-circle-fill me-1"></i>Status: Active</span>
+              </div>
+              <div className="col-md-6 d-flex align-items-center">
+                <span className="text-secondary small"><i className="bi bi-calendar-event me-1"></i>Account Created: {new Date(form.createdAt).toLocaleDateString('en-GB')}</span>
+              </div>
+              <div className="col-12 d-flex align-items-center justify-content-end">
+                <span className="text-secondary small"><i className="bi bi-hash me-1"></i>User ID: {form._id}</span>
+              </div>
+            </div>
+            {error && <div className="alert alert-danger mt-4 d-flex align-items-center"><i className="bi bi-x-circle-fill me-2"></i>{error}</div>}
+            {message && <div className="alert alert-success mt-4 d-flex align-items-center"><i className="bi bi-check-circle-fill me-2"></i>{message}</div>}
+            <button type="submit" className="btn btn-primary mt-4 px-4 w-100" style={{ fontWeight: 600, fontSize: '1.1rem' }} disabled={loading}>
+              {loading ? <span><span className="spinner-border spinner-border-sm me-2"></span>Updating...</span> : 'Update Profile'}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default UpdateProfile;
+
+
+
+
+
+
+
+import React from 'react'
+import 'bootstrap/dist/css/bootstrap.min.css'
+
+function Profile() {
+  return (
+    <div className="container py-5">
+      <div className="row">
+        <div className="col-lg-4">
+          <div className="card mb-4">
+            <div className="card-body text-center">
+              <img src="https://wac-cdn.atlassian.com/dam/jcr:ba03a215-2f45-40f5-8540-b2015223c918/Max-R_Headshot%20(1).jpg?cdnVersion=2654" 
+                   alt="avatar" className="rounded-circle img-fluid" style={{ width: '150px',marginLeft:"80px" }} />
+              <h5 className="my-3">John Smith</h5>
+              <p className="text-muted mb-1">Full Stack Developer</p>
+              <p className="text-muted mb-4">Bay Area, San Francisco, CA</p>
+              <div className="d-flex justify-content-center mb-2">
+                <button type="button" className="btn btn-primary">Follow</button>
+                <button type="button" className="btn btn-outline-primary ms-1">Message</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="col-lg-8">
+          <div className="card mb-4">
+            <div className="card-body">
+              <div className="row">
+                <div className="col-sm-3">
+                  <p className="mb-0">Full Name</p>
+                </div>
+                <div className="col-sm-9">
+                  <p className="text-muted mb-0">John Smith</p>
+                </div>
+              </div>
+              <hr />
+              <div className="row">
+                <div className="col-sm-3">
+                  <p className="mb-0">Email</p>
+                </div>
+                <div className="col-sm-9">
+                  <p className="text-muted mb-0">example@example.com</p>
+                </div>
+              </div>
+              <hr />
+              <div className="row">
+                <div className="col-sm-3">
+                  <p className="mb-0">Phone</p>
+                </div>
+                <div className="col-sm-9">
+                  <p className="text-muted mb-0">(097) 234-5678</p>
+                </div>
+              </div>
+              <hr />
+              <div className="row">
+                <div className="col-sm-3">
+                  <p className="mb-0">Mobile</p>
+                </div>
+                <div className="col-sm-9">
+                  <p className="text-muted mb-0">(098) 765-4321</p>
+                </div>
+              </div>
+              <hr />
+              <div className="row">
+                <div className="col-sm-3">
+                  <p className="mb-0">Address</p>
+                </div>
+                <div className="col-sm-9">
+                  <p className="text-muted mb-0">Bay Area, San Francisco, CA</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="row">
+            <div className="col-md-6">
+              <div className="card mb-4 mb-md-0">
+                <div className="card-body">
+                  <p className="mb-4"><span className="text-primary font-italic me-1">Skills</span></p>
+                  <p className="mb-1">Web Design</p>
+                  <div className="progress rounded mb-2" style={{ height: '5px' }}>
+                    <div className="progress-bar" role="progressbar" style={{ width: '80%' }} aria-valuenow="80" aria-valuemin="0" aria-valuemax="100"></div>
+                  </div>
+                  <p className="mb-1">Website Markup</p>
+                  <div className="progress rounded mb-2" style={{ height: '5px' }}>
+                    <div className="progress-bar" role="progressbar" style={{ width: '72%' }} aria-valuenow="72" aria-valuemin="0" aria-valuemax="100"></div>
+                  </div>
+                  <p className="mb-1">One Page</p>
+                  <div className="progress rounded mb-2" style={{ height: '5px' }}>
+                    <div className="progress-bar" role="progressbar" style={{ width: '89%' }} aria-valuenow="89" aria-valuemin="0" aria-valuemax="100"></div>
+                  </div>
+                  <p className="mb-1">Mobile Template</p>
+                  <div className="progress rounded mb-2" style={{ height: '5px' }}>
+                    <div className="progress-bar" role="progressbar" style={{ width: '55%' }} aria-valuenow="55" aria-valuemin="0" aria-valuemax="100"></div>
+                  </div>
+                  <p className="mb-1">Backend API</p>
+                  <div className="progress rounded mb-2" style={{ height: '5px' }}>
+                    <div className="progress-bar" role="progressbar" style={{ width: '66%' }} aria-valuenow="66" aria-valuemin="0" aria-valuemax="100"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="col-md-6">
+              <div className="card mb-4 mb-md-0">
+                <div className="card-body">
+                  <p className="mb-4"><span className="text-primary font-italic me-1">Projects</span></p>
+                  <p className="mb-1">E-commerce Website</p>
+                  <div className="progress rounded mb-2" style={{ height: '5px' }}>
+                    <div className="progress-bar" role="progressbar" style={{ width: '90%' }} aria-valuenow="90" aria-valuemin="0" aria-valuemax="100"></div>
+                  </div>
+                  <p className="mb-1">Social Media App</p>
+                  <div className="progress rounded mb-2" style={{ height: '5px' }}>
+                    <div className="progress-bar" role="progressbar" style={{ width: '85%' }} aria-valuenow="85" aria-valuemin="0" aria-valuemax="100"></div>
+                  </div>
+                  <p className="mb-1">Portfolio Website</p>
+                  <div className="progress rounded mb-2" style={{ height: '5px' }}>
+                    <div className="progress-bar" role="progressbar" style={{ width: '75%' }} aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+                  </div>
+                  <p className="mb-1">Blog Platform</p>
+                  <div className="progress rounded mb-2" style={{ height: '5px' }}>
+                    <div className="progress-bar" role="progressbar" style={{ width: '80%' }} aria-valuenow="80" aria-valuemin="0" aria-valuemax="100"></div>
+                  </div>
+                  <p className="mb-1">Task Management System</p>
+                  <div className="progress rounded mb-2" style={{ height: '5px' }}>
+                    <div className="progress-bar" role="progressbar" style={{ width: '70%' }} aria-valuenow="70" aria-valuemin="0" aria-valuemax="100"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default Profile
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import "./Navbar.css";
+
+const Navbar = ({ toggleSidebar }) => {
+  const [roledata, setRoleData]= useState("")
+  useEffect(()=>{
+    const Role= localStorage.getItem("userRole")
+     if(Role){
+     setRoleData(Role)
+     }else{
+      setRoleData()
+     }
+  },[])
+
+  
+const handleLogout = () => {
+  // Clear entire localStorage
+  localStorage.clear();
+  // Optionally redirect to login page
+  window.location.href = "/"; // ya "/login"
+};
+
+  return (
+    <>
+      <nav className="navbar me-5 d-flex justify-content-end">
+        <div className="navbar-left">
+          <p className="navbar-logo">logo</p>
+          <button onClick={toggleSidebar} className="toggle-button d-block d-md-none">
+            <i className="fas fa-bars"></i>
+          </button>
+        </div>
+
+        <div className="navbar-right">
+          <div className="dropdown profile-dropdown d-none d-md-block">
+            <div className="profile-trigger" data-bs-toggle="dropdown" aria-expanded="false">
+              <div className="profile-info">
+                <span className="profile-name">{roledata}</span>
+                <span className="profile-role">Project Manager</span>
+              </div>
+              <div className="profile-avatar">
+                <img src="https://wac-cdn.atlassian.com/dam/jcr:ba03a215-2f45-40f5-8540-b2015223c918/Max-R_Headshot%20(1).jpg?cdnVersion=2654" alt="profile" />
+              </div>
+            </div>
+
+            <ul className="dropdown-menu dropdown-menu-end profile-menu">
+              <li>
+              <Link to="/admin/profile" className="dropdown-item" style={{ textDecoration: 'none', color: 'inherit' }}>
+                 <i className="fas fa-user" style={{ marginRight: '8px' }}></i>
+                   <span>My Profile</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/admin/profile/update" className="dropdown-item">
+                  <i className="fas fa-edit"></i>
+                  <span>Update Profile</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/admin/profile/password" className="dropdown-item">
+                  <i className="fas fa-lock"></i>
+                  <span>Change Password</span>
+                </Link>
+              </li>
+              <li><hr className="dropdown-divider"/></li>
+              <li onClick={handleLogout}>
+                <Link to="/" className="dropdown-item text-danger">
+                  <i className="fas fa-sign-out-alt"></i>
+                  <span>Logout</span>
+                </Link>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+    </>
+  );
+};
+
+export default Navbar;
+
+
+
+
+
+
+import React, { useState, useRef } from 'react';
+import 'bootstrap/dist/css/bootstrap.min.css';
+
+// Example user data (replace with props or redux in real app)
+const userData = {
+  permissions: {
+    dashboardAccess: true,
+    userManagement: true,
+   
+  },
+  accessLevel: {
+    fullAccess: true,
+    limitedAccess: false,
+    viewOnly: false
+  },
+  _id: '68418bc45df221af4efdffee',
+  firstName: 'employee',
+  lastName: '1',
+  email: 'employee@gmail.com',
+  phone: '1234567890',
+  role: 'employee',
+  state: 'California',
+  country: 'California',
+  assign: 'Production',
+  isAdmin: false,
+  profileImage: [
+    ''
+  ],
+  googleSignIn: false,
+  createdAt: '2025-06-05T12:21:24.100Z',
+  updatedAt: '2025-06-05T12:21:24.100Z',
+};
+
+
+// // Example user data (replace with props or redux in real app)
+const Data = {
+  permissions: {
+    dashboardAccess: true,
+    userManagement: true,
+    clientManagement: false,
+    projectManagement: false,
+    designTools: false,
+    financialManagement: false,
+    reportGeneration: false,
+    systemSettings: false
+  },
+  accessLevel: {
+    fullAccess: true,
+    limitedAccess: false,
+    viewOnly: false
+  },
+  _id: '68418bc45df221af4efdffee',
+  firstName: 'employee',
+  lastName: '1',
+  email: 'employee@gmail.com',
+  phone: '1234567890',
+  role: 'employee',
+  state: 'California',
+  country: 'California',
+  assign: 'Production',
+  isAdmin: false,
+  profileImage: [
+    ''
+  ],
+  googleSignIn: false,
+  createdAt: '2025-06-05T12:21:24.100Z',
+  updatedAt: '2025-06-05T12:21:24.100Z',
+};
+function Profile() {
+  // Form state
+  const [form, setForm] = useState({
+    firstName: userData.firstName,
+    lastName: userData.lastName,
+    email: userData.email,
+    phone: userData.phone,
+    state: userData.state,
+    country: userData.country,
+    assign: userData.assign,
+    profileImage: userData.profileImage[0] || '',
+  });
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef();
+
+  // Handle form changes
+  const handleChange = (e) => {
+    const { name, value, files } = e.target;
+    if (name === 'profileImage' && files && files[0]) {
+      setForm({ ...form, profileImage: URL.createObjectURL(files[0]) });
+    } else {
+      setForm({ ...form, [name]: value });
+    }
+  };
+
+  const handleImageClick = () => {
+    fileInputRef.current.click();
+  };
+
+  // Handle form submit (simulate update)
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setMessage('');
+    setError('');
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      setMessage('Profile updated successfully!');
+    }, 1200);
+  };
+
+  // Permissions badges
+  const permissionBadges = Object.entries(userData.permissions).map(([key, value]) => (
+    <span key={key} className={`badge me-2 mb-1 ${value ? 'bg-success' : 'bg-secondary'}`} title={key.replace(/([A-Z])/g, ' $1')}>
+      {key.replace(/([A-Z])/g, ' $1')}
+    </span>
+  ));
+  // Access level badges
+  const accessBadges = Object.entries(userData.accessLevel).map(([key, value]) => (
+    <span key={key} className={`badge me-2 mb-1 ${value ? 'bg-primary' : 'bg-light text-dark border'}`} title={key.replace(/([A-Z])/g, ' $1')}>
+      {key.replace(/([A-Z])/g, ' $1')}
+    </span>
+  ));
+
+
+
+
+  const createdDate = new Date(userData.createdAt).toLocaleDateString('en-GB');
+  const updatedDate = new Date(userData.updatedAt).toLocaleDateString('en-GB');
+
+  // Access Level list
+  const accessLevels = Object.entries(userData.accessLevel).map(([key, value]) => (
+    <li key={key} className="mb-2">
+      <span className={`badge px-3 py-2 fs-6 d-flex align-items-center gap-2 ${value ? 'bg-primary' : 'bg-light text-dark border'}`}
+        title={key.replace(/([A-Z])/g, ' $1').toLowerCase()}>
+        <i className="bi bi-shield-lock-fill"></i>
+        {key.replace(/([A-Z])/g, ' $1').toLowerCase()}
+      </span>
+    </li>
+  ));
+
+  // Permissions list
+  const permissions = Object.entries(userData.permissions).map(([key, value]) => (
+    <li key={key} className="mb-2">
+      <span className={`badge px-3 py-2 fs-6 d-flex align-items-center gap-2 ${value ? 'bg-success' : 'bg-secondary'}`}
+        title={key.replace(/([A-Z])/g, ' $1').toLowerCase()}>
+        <i className="bi bi-check2-circle"></i>
+        {key.replace(/([A-Z])/g, ' $1').toLowerCase()}
+      </span>
+    </li>
+  ));
+
+  return (
+    <>
+      <div className="container py-2">
+        <div className="row justify-content-center g-4">
+          {/* Profile summary */}
+          <div className="col-lg-4 mb-4">
+            <div className="card border-0 shadow-lg " style={{ background: 'linear-gradient(135deg, #f8fafc 60%, #e0e7ff 100%)', borderRadius: '1.5rem' }}>
+              <div className="card-body text-center p-4 d-flex flex-column align-items-center justify-content-between h-100">
+                <div className="position-relative d-inline-block mb-3">
+                  <img
+                    src={form.profileImage || 'https://wac-cdn.atlassian.com/dam/jcr:ba03a215-2f45-40f5-8540-b2015223c918/Max-R_Headshot%20(1).jpg?cdnVersion=2654'}
+                    alt="avatar"
+                    className="rounded-circle border border-3 border-primary shadow"
+                    style={{ width: '140px', height: '140px', objectFit: 'cover', background: '#fff', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}
+                  />
+                </div>
+                <h4 className="fw-bold mb-1 mt-2">{userData.firstName} {userData.lastName}</h4>
+                <div className="mb-2">
+                  <i className="bi bi-envelope-at me-1"></i>
+                  <span className="fw-semibold">{Data.email}</span>
+                </div>
+                <div className="mb-2">
+                  <i className="bi bi-telephone me-1"></i>
+                  <span className="fw-semibold">{Data.phone}</span>
+                </div>
+                <div className="d-flex flex-wrap gap-2 justify-content-center mt-3">
+                  <span className="small text-secondary"><i className="bi bi-clock-history me-1"></i>Last Updated: {updatedDate}</span>
+                  <span className="small text-secondary"><i className="bi bi-hash me-1"></i>User ID: {Data._id}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Profile details & update form */}
+          <div className="col-lg-8">
+            <div className="card border-0 shadow-lg mb-4" style={{ background: 'linear-gradient(135deg, #f8fafc 60%, #e0e7ff 100%)', borderRadius: '1.5rem' }}>
+              <div className="card-body p-4">
+                <h5 className="mb-4 fw-bold d-flex align-items-center"><i className="bi bi-pencil-square me-2"></i>Profile Details</h5>
+                {/* User Details Section */}
+                <div className="row mb-3 g-3">
+                  <div className="col-md-6">
+                    <div className="mb-3">
+                      <div className="d-flex align-items-center mb-2">
+                        <i className="bi bi-envelope-at me-2 text-primary"></i>
+                        <span className="fw-semibold">{Data.email}</span>
+                      </div>
+                      <div className="d-flex align-items-center mb-2">
+                        <i className="bi bi-telephone me-2 text-primary"></i>
+                        <span className="fw-semibold">{Data.phone}</span>
+                      </div>
+                      <div className="d-flex align-items-center mb-2">
+                        <i className="bi bi-geo-alt me-2 text-primary"></i>
+                        <span className="fw-semibold">{Data.state}, {Data.country}</span>
+                      </div>
+                      <div className="mb-2">
+                        <span className="fw-semibold">Access Level:</span>
+                        <span className="badge bg-primary ms-2 text-capitalize">Full Access</span>
+                      </div>
+                      <div className="mb-2 text-muted small">
+                        {Data.role && <span className="badge bg-info text-dark me-1 text-capitalize">{Data.role}</span>}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-md-6">
+                    <div className="mb-3">
+                      <div className="d-flex align-items-center mb-2">
+                        <i className="bi bi-google me-2 text-primary"></i>
+                        <span className="fw-semibold">Google Sign In:</span>
+                        <span className={`badge ms-2 ${Data.googleSignIn ? 'bg-success' : 'bg-secondary'}`}>{Data.googleSignIn ? 'Yes' : 'No'}</span>
+                      </div>
+                      <div className="d-flex align-items-center mb-2">
+                        <i className="bi bi-diagram-3-fill me-2 text-primary"></i>
+                        <span className="fw-semibold">Department:</span>
+                        <span className="text-muted ms-1">{Data.assign}</span>
+                      </div>
+                      <div className="d-flex align-items-center mb-2">
+                        <i className="bi bi-check-circle-fill me-2 text-primary"></i>
+                        <span className="fw-semibold">Status:</span>
+                        <span className="badge ms-2 bg-success">Active</span>
+                      </div>
+                      <div className="d-flex align-items-center mb-2">
+                        <i className="bi bi-calendar-event me-2 text-primary"></i>
+                        <span className="fw-semibold">Account Created:</span>
+                        <span className="text-muted ms-1">{createdDate}</span>
+                      </div>
+                      <div>
+                        <h5 className="fw-bold mb-3 d-flex align-items-center"><i className="bi bi-check2-circle me-2"></i>Permissions</h5>
+                        <ul className="list-unstyled d-flex flex-wrap gap-2 mb-0">
+                          {permissions}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className=" mt-4 border-0 ">
+                  <div className="card-body p-4">
+                    <h5 className="fw-bold mb-2 d-flex align-items-center"><i className="bi bi-info-circle me-2"></i>About</h5>
+                    <p className="text-muted mb-2">This is a placeholder for user bio or additional information. You can add more details about the employee here.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+    </>
+  );
+}
+
+export default Profile;
+
+
+import React, { useRef, useState } from "react";
+import { Card, Row, Col, Button, Table, OverlayTrigger, Tooltip, Modal, Badge } from "react-bootstrap";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { FaUpload, FaFileExcel, FaTimes, FaBarcode, FaUser, FaClock, FaCalendarAlt, FaInfoCircle, FaPlus } from "react-icons/fa";
+import { useDispatch } from "react-redux";
+
+const OvervieJobsTracker = ({ onClose }) => {
+  const fileInputRef = useRef(null);
+  const [showModal, setShowModal] = useState(false);
+  const [modalContent, setModalContent] = useState("");
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      alert(`Selected file: ${file.name}`);
+    }
+  };
+
+  const handleShowDetails = (title) => {
+    setModalContent(title);
+    setShowModal(true);
+  };
+
+  const assignments = [
+    {
+      date: "25/03/2025",
+      title: "Design Brief",
+      assignedTo: "Designer",
+      timeSpent: "3:00",
+    },
+    {
+      date: "25/03/2025",
+      title: "Color Palette Selection",
+      assignedTo: "Designer",
+      timeSpent: "3:00",
+    },
+    {
+      date: "25/03/2025",
+      title: "Client Review",
+      assignedTo: "Designer",
+      timeSpent: "3:00",
+    },
+  ];
+
+  // Sample job data
+  const jobs = {
+    jobNo: "Banner Design - Spring Campaign",
+    status: "In Progress",
+    dueDate: "April 25, 2025",
+    instructions:
+      "Create a visually appealing banner for the Spring Sale. Use pastel color palette and add product highlights.",
+    brand: "BrandA",
+    subBrand: "SubBrandA",
+    flavour: "Vanilla",
+    packType: "Box",
+    packSize: "500g",
+    priority: "High",
+  };
+
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { id } = useParams(); // for edit mode
+  const location = useLocation();
+  const { job } = location.state || {};
+
+  // Responsive two-column grid for job details
+  const jobDetails = [
+    { label: "Job No", value: jobs.jobNo, icon: <FaCalendarAlt className="me-2 text-primary" /> },
+    { label: "Status", value: job?.Status || jobs.status, icon: <FaInfoCircle className="me-2 text-primary" /> },
+    { label: "Due Date", value: job?.createdAt ? new Date(job?.createdAt).toLocaleDateString('en-GB').replace(/\/20/, '/') : jobs.dueDate, icon: <FaCalendarAlt className="me-2 text-primary" /> },
+    { label: "Brand", value: job?.brandName, icon: <FaUser className="me-2 text-primary" /> },
+    { label: "Flavour", value: job?.flavour, icon: <FaUser className="me-2 text-primary" /> },
+    { label: "SubBrand", value: job?.subBrand, icon: <FaUser className="me-2 text-primary" /> },
+    { label: "Pack Type", value: job?.packType, icon: <FaUser className="me-2 text-primary" /> },
+    { label: "Pack Size", value: job?.packSize, icon: <FaUser className="me-2 text-primary" /> },
+    { label: "Priority", value: job?.priority, icon: <FaUser className="me-2 text-primary" /> },
+    { label: "Project Name", value: job?.packType, icon: <FaBarcode className="me-2 text-primary" /> },
+    { label: "Assign", value: job?.assign, icon: <FaUser className="me-2 text-primary" /> },
+    { label: "Total Time", value: job?.totalTime, icon: <FaClock className="me-2 text-primary" /> },
+    { label: "Project Barcode", value: job?.barcode, icon: <FaBarcode className="me-2 text-primary" /> },
+  ];
+
+  return (
+    <div className="container py-4 px-1 px-md-4">
+      {/* Modern Header */}
+      
+
+      {/* Job Details Grid */}
+      <Card className="border-0 shadow-sm rounded-4 mb-4 p-4">
+      <div className="d-flex justify-content-between align-items-center mb-4 p-3 rounded-4 shadow-sm" style={{ background: "linear-gradient(90deg, #4e54c8 0%, #8f94fb 100%)" }}>
+        <div className="d-flex align-items-center gap-2">
+          <FaInfoCircle className="text-white" size={28} />
+          <h2 className="mb-0 fw-bold text-white" style={{ letterSpacing: 1 }}>Job Details</h2>
+        </div>
+        <Link to={"/admin/JobTracker"}>
+          <Button variant="light" size="sm" className="rounded-circle d-flex align-items-center justify-content-center shadow-sm border-0" style={{ width: 36, height: 36 }}>
+            <FaTimes className="text-primary" size={18} />
+          </Button>
+        </Link>
+      </div>
+        <Row className="g-4">
+          {jobDetails.map((item, idx) => (
+            <Col xs={12} md={6} key={idx}>
+              <div className="d-flex align-items-center bg-light rounded-3 p-3 mb-2 shadow-sm h-100">
+                {item.icon}
+                <span className="fw-semibold text-secondary" style={{ minWidth: 120 }}>{item.label}:</span>
+                <span className="ms-2 fs-6 text-dark">{item.value || <span className="text-muted">-</span>}</span>
+              </div>
+            </Col>
+          ))}
+        </Row>
+        {/* Instructions Section */}
+        <div className="mt-4 border-top pt-3">
+          <h5 className="fw-bold text-primary mb-2">Instructions</h5>
+          <div className="fs-6 text-dark">{jobs.instructions}</div>
+        </div>
+      </Card>
+
+      {/* Assignments Table Section */}
+      {/* <Card className="border-0 shadow-sm rounded-4 mb-4 p-4">
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <h5 className="fw-bold text-danger mb-0">Assignments</h5>
+          <Button variant="primary" size="sm" className="d-flex align-items-center gap-1 shadow-sm" style={{ borderRadius: 20 }}>
+            <FaPlus /> Add Assignment
+          </Button>
+        </div>
+        <Table responsive hover className="align-middle bg-white rounded overflow-hidden" style={{ fontSize: "1rem" }}>
+          <thead className="table-light">
+            <tr>
+              <th>Date</th>
+              <th>Instruction</th>
+              <th>Assigned To</th>
+              <th>Time Spent</th>
+              <th>Uploaded File/Link</th>
+            </tr>
+          </thead>
+          <tbody>
+            {assignments.map((assignment, index) => (
+              <tr key={index} className={index % 2 === 0 ? "bg-light" : ""}>
+                <td>{assignment.date}</td>
+                <td>
+                  <OverlayTrigger placement="top" overlay={<Tooltip>Click for details</Tooltip>}>
+                    <a
+                      href="#"
+                      className="text-decoration-none text-primary fw-semibold"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleShowDetails(assignment.title);
+                      }}
+                      style={{ cursor: "pointer" }}
+                    >
+                      {assignment.title}
+                    </a>
+                  </OverlayTrigger>
+                </td>
+                <td>
+                  <Badge bg="info" className="text-dark px-3 py-1 rounded-pill shadow-sm" style={{ fontSize: "0.95em" }}>{assignment.assignedTo}</Badge>
+                </td>
+                <td>
+                  <span className="d-flex align-items-center gap-1">
+                    <FaClock className="text-primary" /> {assignment.timeSpent}
+                  </span>
+                </td>
+                <td className="d-flex gap-2 align-items-center">
+                  <OverlayTrigger placement="top" overlay={<Tooltip>Upload File</Tooltip>}>
+                    <Button size="sm" variant="outline-primary" onClick={() => fileInputRef.current.click()}>
+                      <FaUpload />
+                    </Button>
+                  </OverlayTrigger>
+                  <input type="file" ref={fileInputRef} style={{ display: "none" }} onChange={handleFileChange} />
+                  <OverlayTrigger placement="top" overlay={<Tooltip>Export to Excel</Tooltip>}>
+                    <Button size="sm" variant="outline-success" onClick={() => alert("Excel export functionality")}> <FaFileExcel /> </Button>
+                  </OverlayTrigger>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      </Card> */}
+
+      {/* Assignment Details Modal */}
+      {/* <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Assignment Details</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>{modalContent}</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowModal(false)}>
+            Close
+          </Button>
+        </Modal.Footer>
+      </Modal> */}
+    </div>
+  );
+};
+
+export default OvervieJobsTracker;
+
+
+
+
+
+
+
+
+
+
+
+
+
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import axios from 'axios';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchusers, fetchusersById, updateusers } from '../../../redux/slices/userSlice';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+function UserRoleModal() {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const { id } = useParams();
+  const location = useLocation();
+  const { user } = location.state || {};
+  const userId = location.state?.id;
+    console.log("hhhhhhhhhh", user);
+
+    const { userAll, loading, error } = useSelector((state) => state.user);
+  useEffect(() => {
+    dispatch(fetchusers());
+  }, [dispatch]);
+
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    password: '',
+    passwordConfirm: '',
+    role: '',
+    roleDescription: '',
+    assign: 'Not Assign',
+    state: '',
+    country: '',
+    image: null,
+    permissions: {
+      dashboardAccess: false,
+      clientManagement: false,
+      projectManagement: false,
+      designTools: false,
+      financialManagement: false,
+      userManagement: false,
+      reportGeneration: false,
+      systemSettings: false
+    },
+    accessLevel: ''
+  });
+
+  const handleInputChange = (e) => {
+    const { name, value, type, files } = e.target;
+    if (type === 'file') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: files[0]
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+  };
+  useEffect(() => {
+    if (user) {
+      let parsedPermissions = {};
+      let parsedAccessLevel = 'fullAccess';
+
+      try {
+        parsedPermissions = typeof user.permissions === 'string'
+          ? JSON.parse(user.permissions)
+          : user.permissions || {};
+
+        const accessLevelData = typeof user.accessLevel === 'string'
+          ? JSON.parse(user.accessLevel)
+          : {};
+
+        parsedAccessLevel = Object.keys(accessLevelData).find(key => accessLevelData[key]) || 'fullAccess';
+      } catch (error) {
+        console.error('Error parsing permissions or access level:', error);
+      }
+
+      setFormData({
+         _id: user._id || '',  
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        password: '',
+        passwordConfirm: '',
+        state: user.state || '',
+        country: user.country || '',
+        assign: user.assign || 'Not Assign',
+        image: user.image || null,
+        role: user.role?.charAt(0).toUpperCase() + user.role?.slice(1).toLowerCase() || '',
+        roleDescription: user.roleDescription || '',
+        permissions: {
+          dashboardAccess: false,
+          clientManagement: false,
+          projectManagement: false,
+          designTools: false,
+          financialManagement: false,
+          userManagement: false,
+          reportGeneration: false,
+          systemSettings: false,
+          ...parsedPermissions
+        },
+        accessLevel: parsedAccessLevel
+      });
+
+    }
+  }, [user]);
+
+  const handlePermissionChange = (e) => {
+    const { name } = e.target;
+    const updatedpermissions = Object.fromEntries(
+      Object.keys(formData.permissions).map((key) => [key, key === name])
+    );
+    setFormData(prev => ({
+      ...prev,
+      permissions: updatedpermissions
+    }));
+  };
+
+  const handleaccessLevelChange = (e) => {
+    setFormData(prev => ({
+      ...prev,
+      accessLevel: e.target.value
+    }));
+  };
+  
+const handleSubmit = (e) => {
+  e.preventDefault();
+  if (formData.password !== formData.passwordConfirm) {
+    toast.error('Passwords do not match!');
+    return;
+  }
+  const filteredpermissions = Object.fromEntries(
+    Object.entries(formData.permissions).filter(([_, value]) => value === true)
+  );
+  const payload = {
+    _id: formData._id,
+    firstName: formData.firstName,
+    lastName: formData.lastName,
+    email: formData.email,
+    phone: formData.phone,
+    password: formData.password,
+    state: formData.state,
+    country: formData.country,
+    assign: formData.assign,
+    image: formData.image,
+    role: formData.role,
+    roleDescription: formData.roleDescription,
+    permissions: filteredpermissions,
+    accessLevel: formData.accessLevel
+  };
+  console.log('Payload to be sent hh:', payload);
+
+  if (formData._id) {
+    dispatch(fetchusersById({ _id: formData._id, data: payload }))
+      .unwrap()
+      .then(() => {
+        toast.success("user updated successfully!");
+        navigate('/admin/ProjectOverview', { state: { openTab: 'users' } });
+        dispatch(fetchusers());
+      })
+      .catch(() => {
+        toast.error("Failed to update user!");
+      });
+  } else {
+    dispatch(createuser(payload))
+      .unwrap()
+      .then(() => {
+        toast.success("user created successfully!");
+        navigate('/admin/ProjectOverview', { state: { openTab: 'users' } });
+        dispatch(fetchProject());
+      })
+      .catch(() => {
+        toast.error("Error creating user");
+      });
+  }
+};
+
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+
+  //   const filteredpermissions = Object.fromEntries(
+  //     Object.entries(formData.permissions).filter(([_, value]) => value === true)
+  //   );
+
+  //   const payload = {
+  //     role: formData.role,
+  //     roleDescription: formData.roleDescription,
+  //     permissions: filteredpermissions,
+  //     accessLevel: formData.accessLevel
+  //   };
+
+  //   console.log('Payload to be sent:', payload);
+  //   try {
+  //     await axios.post('/api/roles', payload);
+  //     navigate(-1);
+  //   } catch (error) {
+  //     console.error('Error submitting form:', error);
+  //     alert('Failed to create role. Please try again.');
+  //   }
+  // };
+
+  const handleCancel = () => {
+    navigate(-1);
+  };
+
+  return (
+    <div className="container py-4">
+      <div className="card shadow-sm">
+        <div className="card-body">
+          <h5 className="card-title mb-4">Add New User</h5>
+          <form onSubmit={handleSubmit}>
+            <div className="row g-3 mb-3">
+              <div className="col-md-6">
+                <label className="form-label">First Name</label>
+                <input type="text" className="form-control" name="firstName" value={formData.firstName} onChange={handleInputChange} required />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Last Name</label>
+                <input type="text" className="form-control" name="lastName" value={formData.lastName} onChange={handleInputChange} required />
+              </div>
+            </div>
+            <div className="row g-3 mb-3">
+              <div className="col-md-6">
+                <label className="form-label">Email</label>
+                <input type="email" className="form-control" name="email" value={formData.email} onChange={handleInputChange} required />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Phone</label>
+                <input type="text" className="form-control" name="phone" value={formData.phone} onChange={handleInputChange} required />
+              </div>
+            </div>
+            <div className="row g-3 mb-3">
+              <div className="col-md-6">
+                <label className="form-label">Password</label>
+                <input type="password" className="form-control" name="password" value={formData.password} onChange={handleInputChange} required />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Confirm Password</label>
+                <input type="password" className="form-control" name="passwordConfirm" value={formData.passwordConfirm} onChange={handleInputChange} required />
+              </div>
+            </div>
+            <div className="row g-3 mb-3">
+              <div className="col-md-6">
+                <label className="form-label">State</label>
+                <input type="text" className="form-control" name="state" value={formData.state} onChange={handleInputChange} required />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Country</label>
+                <input type="text" className="form-control" name="country" value={formData.country} onChange={handleInputChange} required />
+              </div>
+            </div>
+            <div className="row g-3 mb-3">
+              <div className="col-md-6">
+                <label className="form-label">Assign</label>
+                <select className="form-select" name="assign" value={formData.assign} onChange={handleInputChange} required>
+                  <option value="Not Assign">Not Assign</option>
+                  <option value="Production">Production</option>
+                  <option value="Employee">Employee</option>
+                  <option value="Client">Client</option>
+                  <option value="Admin">Admin</option>
+                </select>
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Profile Image</label>
+                <input type="file" className="form-control" name="image" accept="image/*" onChange={handleInputChange} />
+                {formData.image && (
+                  <img src={typeof formData.image === 'string' ? formData.image : URL.createObjectURL(formData.image)} alt="Preview" className="img-thumbnail mt-2" style={{ maxWidth: '120px' }} />
+                )}
+              </div>
+            </div>
+            <div className="mb-3">
+              <label className="form-label">Role Description</label>
+              <textarea
+                className="form-control"
+                name="roleDescription"
+                value={formData.roleDescription}
+                onChange={handleInputChange}
+                placeholder="Brief description of the role"
+                rows="3" />
+            </div>
+
+            <div className="mb-4">
+              <label className="form-label">permissions (Select Only One)</label>
+              <div className="row g-3">
+                {Object.keys(formData.permissions).map((key) => (
+                  <div className="col-md-6" key={key}>
+                    <div className="form-check">
+                      <input
+                        type="checkbox"
+                        className="form-check-input"
+                        name={key}
+                        checked={formData.permissions[key]}
+                        onChange={handlePermissionChange}
+                      />
+                      <label className="form-check-label text-capitalize">
+                        {key.replace(/([A-Z])/g, ' $1')}
+                      </label>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label className="form-label">Access Level</label>
+              <div>
+                {['fullAccess', 'limitedAccess', 'viewOnly'].map((level) => (
+                  <div className="form-check" key={level}>
+                    <input
+                      type="radio"
+                      className="form-check-input"
+                      name="accessLevel"
+                      value={level}
+                      checked={formData.accessLevel === level}
+                      onChange={handleaccessLevelChange}
+                    />
+                    <label className="form-check-label text-capitalize">{level.replace(/([A-Z])/g, ' $1')}</label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="d-flex justify-content-end gap-2">
+              <button type="button" className="btn btn-outline-secondary" onClick={handleCancel}>Cancel</button>
+              <button type="submit" className="btn btn-dark">Create User</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default UserRoleModal;
+
+
+
+
+
+
+
+
+
+
+
+
+
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import axios from 'axios';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchusers, fetchusersById, updateusers } from '../../../redux/slices/userSlice';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+function UserRoleModal() {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const { id } = useParams();
+  const location = useLocation();
+  const { user } = location.state || {};
+  const userId = location.state?.id;
+    console.log("hhhhhhhhhh", user);
+
+    const { userAll, loading, error } = useSelector((state) => state.user);
+  useEffect(() => {
+    dispatch(fetchusers());
+  }, [dispatch]);
+
+  const [formData, setFormData] = useState({
+    role: '',
+    roleDescription: '',
+    assign:'Not Assign',
+    permissions: {
+      dashboardAccess: false,
+      clientManagement: false,
+      projectManagement: false,
+      designTools: false,
+      financialManagement: false,
+      userManagement: false,
+      reportGeneration: false,
+      systemSettings: false
+    },
+    accessLevel: ''
+  });
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+  useEffect(() => {
+    if (user) {
+      let parsedPermissions = {};
+      let parsedAccessLevel = 'fullAccess';
+
+      try {
+        parsedPermissions = typeof user.permissions === 'string'
+          ? JSON.parse(user.permissions)
+          : user.permissions || {};
+
+        const accessLevelData = typeof user.accessLevel === 'string'
+          ? JSON.parse(user.accessLevel)
+          : {};
+
+        parsedAccessLevel = Object.keys(accessLevelData).find(key => accessLevelData[key]) || 'fullAccess';
+      } catch (error) {
+        console.error('Error parsing permissions or access level:', error);
+      }
+
+      setFormData({
+         _id: user._id || '',  
+        role: user.role?.charAt(0).toUpperCase() + user.role?.slice(1).toLowerCase() || '',
+        roleDescription: user.roleDescription || '',
+        permissions: {
+          dashboardAccess: false,
+          clientManagement: false,
+          projectManagement: false,
+          designTools: false,
+          financialManagement: false,
+          userManagement: false,
+          reportGeneration: false,
+          systemSettings: false,
+          ...parsedPermissions
+        },
+        accessLevel: parsedAccessLevel
+      });
+
+    }
+  }, [user]);
+
+  const handlePermissionChange = (e) => {
+    const { name } = e.target;
+    const updatedpermissions = Object.fromEntries(
+      Object.keys(formData.permissions).map((key) => [key, key === name])
+    );
+    setFormData(prev => ({
+      ...prev,
+      permissions: updatedpermissions
+    }));
+  };
+
+  const handleaccessLevelChange = (e) => {
+    setFormData(prev => ({
+      ...prev,
+      accessLevel: e.target.value
+    }));
+  };
+  
+const handleSubmit = (e) => {
+  e.preventDefault();
+  const filteredpermissions = Object.fromEntries(
+    Object.entries(formData.permissions).filter(([_, value]) => value === true)
+  );
+  const payload = {
+    _id: formData._id,
+    role: formData.role,
+    roleDescription: formData.roleDescription,
+    permissions: filteredpermissions,
+    accessLevel: formData.accessLevel
+  };
+  console.log('Payload to be sent hh:', payload);
+
+  if (formData._id) {
+    dispatch(fetchusersById({ _id: formData._id, data: payload }))
+      .unwrap()
+      .then(() => {
+        toast.success("user updated successfully!");
+        navigate('/admin/ProjectOverview', { state: { openTab: 'users' } });
+        dispatch(fetchusers());
+      })
+      .catch(() => {
+        toast.error("Failed to update user!");
+      });
+  } else {
+    dispatch(createuser(payload))
+      .unwrap()
+      .then(() => {
+        toast.success("user created successfully!");
+        navigate('/admin/ProjectOverview', { state: { openTab: 'users' } });
+        dispatch(fetchProject());
+      })
+      .catch(() => {
+        toast.error("Error creating user");
+      });
+  }
+};
+
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+
+  //   const filteredpermissions = Object.fromEntries(
+  //     Object.entries(formData.permissions).filter(([_, value]) => value === true)
+  //   );
+
+  //   const payload = {
+  //     role: formData.role,
+  //     roleDescription: formData.roleDescription,
+  //     permissions: filteredpermissions,
+  //     accessLevel: formData.accessLevel
+  //   };
+
+  //   console.log('Payload to be sent:', payload);
+  //   try {
+  //     await axios.post('/api/roles', payload);
+  //     navigate(-1);
+  //   } catch (error) {
+  //     console.error('Error submitting form:', error);
+  //     alert('Failed to create role. Please try again.');
+  //   }
+  // };
+
+  const handleCancel = () => {
+    navigate(-1);
+  };
+
+  return (
+    <div className="container py-4">
+      <div className="card shadow-sm">
+        <div className="card-body">
+          <h5 className="card-title mb-4">Add New Role</h5>
+          <form onSubmit={handleSubmit}>
+            <div className="mb-3">
+              <label className="form-label">Role Name</label>
+              <select
+                className="form-select"
+                name="role"
+                value={formData.role}
+                onChange={handleInputChange}
+                required
+              >
+                <option value="">Select a role</option>
+                <option value="Admin">Admin</option>
+                <option value="Client">Client</option>
+                <option value="Production">Production</option>
+                <option value="Employee">Employee</option>
+              </select>
+            </div>
+
+
+            <div className="mb-3">
+              <label className="form-label">Role Description</label>
+              <textarea
+                className="form-control"
+                name="roleDescription"
+                value={formData.roleDescription}
+                onChange={handleInputChange}
+                placeholder="Brief description of the role"
+                rows="3" />
+            </div>
+
+            <div className="mb-4">
+              <label className="form-label">permissions (Select Only One)</label>
+              <div className="row g-3">
+                {Object.keys(formData.permissions).map((key) => (
+                  <div className="col-md-6" key={key}>
+                    <div className="form-check">
+                      <input
+                        type="checkbox"
+                        className="form-check-input"
+                        name={key}
+                        checked={formData.permissions[key]}
+                        onChange={handlePermissionChange}
+                      />
+                      <label className="form-check-label text-capitalize">
+                        {key.replace(/([A-Z])/g, ' $1')}
+                      </label>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label className="form-label">Access Level</label>
+              <div>
+                {['fullAccess', 'limitedAccess', 'viewOnly'].map((level) => (
+                  <div className="form-check" key={level}>
+                    <input
+                      type="radio"
+                      className="form-check-input"
+                      name="accessLevel"
+                      value={level}
+                      checked={formData.accessLevel === level}
+                      onChange={handleaccessLevelChange}
+                    />
+                    <label className="form-check-label text-capitalize">{level.replace(/([A-Z])/g, ' $1')}</label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="d-flex justify-content-end gap-2">
+              <button type="button" className="btn btn-outline-secondary" onClick={handleCancel}>Cancel</button>
+              <button type="submit" className="btn btn-dark">Create Role</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default UserRoleModal;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import React, { useRef } from 'react';
+// import { Card, Row, Col, Button, ProgressBar, Table } from 'react-bootstrap';
+// import { Link } from 'react-router-dom';
+// import { FaPlus, FaUpload } from "react-icons/fa";
+
+// const OvervieJobsTracker = ({ onClose }) => {
+//   const fileInputRef = useRef(null);
+
+//   const handleFileChange = (e) => {
+//     const file = e.target.files[0];
+//     if (file) {
+//       alert(`Selected file: ${file.name}`);
+//       // Aap apni file handling logic yahan likh sakte hain
+//     }
+//   };
+
+//   const assignments = [
+//     {
+//       date: '25/03/2025',
+//       title: '',
+//       assignedTo: 'Designer',
+//       timeSpent: '3:00',
+//     },
+//     {
+//       date: '25/03/2025',
+//       title: '',
+//       assignedTo: 'Designer',
+//       timeSpent: '3:00',
+//     },
+//     {
+//       date: '25/03/2025',
+//       title: '',
+//       assignedTo: 'Designer',
+//       timeSpent: '3:00',
+//     },
+//   ];
+
+//   return (
+//     <div className="container mt-5">
+//       <Card className="shadow-lg p-4 border-0 rounded-4">
+//         <div className="d-flex justify-content-between align-items-center mb-4">
+//           <h4 className="mb-0 fw-bold text-primary">Job Details</h4>
+//           <Link to={"/JobTracker"}>
+//             <Button variant="outline-secondary" size="sm" onClick={onClose}>Close</Button>
+//           </Link>
+//         </div>
+
+//         <Row className="mb-4">
+//           <Col md={6}>
+//             <p><strong>Job No:</strong><br />Banner Design - Spring Campaign</p>
+//           </Col>
+//           <Col md={6}>
+//             <p><strong>Status:</strong><br />In Progress</p>
+//           </Col>
+//           <Col md={6}>
+//             <p><strong>Due Date:</strong><br />April 25, 2025</p>
+//           </Col>
+//           <Col md={12}>
+//             <p><strong>Instructions:</strong><br />Create a visually appealing banner for the Spring Sale. Use pastel color palette and add product highlights.</p>
+//           </Col>
+//         </Row>
+
+//         <h5 className="fw-bold text-primary mb-3">Progress</h5>
+
+//         <Row className="mb-4">
+//           <Col md={12}>
+//             <Card className="p-3 text-center border-0 shadow-sm">
+//               <h6 className="mb-2">Job Progress</h6>
+//               <ProgressBar now={45} variant="info" />
+//               <small className="text-muted mt-1 d-block">45% Completed</small>
+//             </Card>
+//           </Col>
+//         </Row>
+
+//         <h5 className="fw-bold text-danger mb-3">Assignments:</h5>
+//         <Table responsive hover className="align-middle bg-white rounded shadow-sm overflow-hidden">
+//           <thead className="table-light">
+//             <tr>
+//               <th className="text-nowrap">Date</th>
+//               <th className="text-nowrap">Instruction</th>
+//               <th className="text-nowrap">Assigned To</th>
+//               <th className="text-nowrap">Time Spent</th>
+//               <th className="text-nowrap">Uploaded File/Link</th>
+//             </tr>
+//           </thead>
+//           <tbody>
+//             {assignments.map((assignment, index) => (
+//               <tr key={index}>
+//                 <td>{assignment.date}</td>
+//                 <td>
+//                   <a
+//                     href="#"
+//                     className=" text-decoration-none"
+//                     onClick={(e) => {
+//                       e.preventDefault();
+//                       alert(`Details for: ${assignment.title}`);
+//                     }}
+//                   >
+//                     {assignment.title} - wasaadasdadasdsa
+//                   </a>
+//                 </td>
+//                 <td className="">{assignment.assignedTo}</td>
+//                 <td className="">{assignment.timeSpent}</td>
+             
+//                 <td className="d-flex gap-2">
+//                   <input
+//                     type="file"
+//                     ref={fileInputRef}
+//                     style={{ display: 'none' }}
+//                     onChange={handleFileChange}
+//                   />
+
+//                   <Button
+//                     size="sm"
+//                     variant="dark"
+//                     className="me-2"
+//                     onClick={() => {
+//                       const workbook = XLSX.utils.book_new();
+//                       const worksheet = XLSX.utils.json_to_sheet(jobs.map(job => ({
+//                         'Job #': job.id,
+//                         'BrandName': job.brandName,
+//                         'SubBrand': job.subBrand,
+//                         'Flavour': job.flavour,
+//                         'PackType': job.packType,
+//                         'PackSize': job.packSize,
+//                         'PackCode': job.packCode,
+//                         'Deadline': job.deadline,
+//                         'Brief': job.brief,
+//                         'Status': job.status
+//                       })));
+//                       XLSX.utils.book_append_sheet(workbook, worksheet, 'Jobs');
+//                       XLSX.writeFile(workbook, 'jobs_data.xlsx');
+//                     }}
+//                   >
+//                     <FaUpload className="me-1" />
+//                     Excel
+//                   </Button>
+//                 </td>
+//               </tr>
+//             ))}
+//           </tbody>
+//         </Table>
+//       </Card>
+//     </div>
+//   );
+// };
+
+// export default OvervieJobsTracker;
+
+
+
+
+
+
+
+
+import React, { useRef } from "react";
+import { Card, Row, Col, Button, ProgressBar, Table } from "react-bootstrap";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { FaUpload } from "react-icons/fa";
+import { useDispatch } from "react-redux";
+
+const OvervieJobsTracker = ({ onClose }) => {
+  const fileInputRef = useRef(null);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      alert(`Selected file: ${file.name}`);
+    }
+  };
+
+  const assignments = [
+    {
+      date: "25/03/2025",
+      title: "Design Brief",
+      assignedTo: "Designer",
+      timeSpent: "3:00",
+    },
+    {
+      date: "25/03/2025",
+      title: "Color Palette Selection",
+      assignedTo: "Designer",
+      timeSpent: "3:00",
+    },
+    {
+      date: "25/03/2025",
+      title: "Client Review",
+      assignedTo: "Designer",
+      timeSpent: "3:00",
+    },
+  ];
+
+  // Sample job data
+  const jobs = {
+    jobNo: "Banner Design - Spring Campaign",
+    status: "In Progress",
+    dueDate: "April 25, 2025",
+    instructions:
+      "Create a visually appealing banner for the Spring Sale. Use pastel color palette and add product highlights.",
+    brand: "BrandA",
+    subBrand: "SubBrandA",
+    flavour: "Vanilla",
+    packType: "Box",
+    packSize: "500g",
+    priority: "High",
+  };
+
+
+  // /////
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const { id } = useParams(); // for edit mode
+    const location = useLocation();
+    const { job } = location.state || {};
+  console.log(job);
+
+  return (
+    <div className="container mt-5">
+      <Card className="shadow-lg p-4 border-0 rounded-4">
+        {/* Header Section */}
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <h4 className="mb-0 fw-bold text-primary">Job Details</h4>
+          <Link to={"/admin/JobTracker"}>
+            <Button variant="outline-secondary" size="sm">
+              Close
+            </Button>
+          </Link>
+        </div>
+
+        {/* Job Information Section */}
+        <Row className="mb-4">
+          <Col md={6}>
+            <p>
+              <strong>Job No:</strong>
+              <br />
+              {jobs.jobNo}
+            </p>
+          </Col>
+          <Col md={6}>
+            <p>
+              <strong>Status:</strong>
+              <br />
+              {job?.Status}
+            </p>
+          </Col>
+          <Col md={6}>
+            <p>
+              <strong>Due Date:</strong>
+              <br />
+              <td>{new Date(job?.createdAt).toLocaleDateString('en-GB').replace(/\/20/, '/')}</td>
+            </p>
+          </Col>
+          <Col md={12}>
+            <p>
+              <strong>Instructions:</strong>
+              <br />
+              {jobs.instructions}
+            </p>
+          </Col>
+        </Row>
+
+        {/* Job Additional Information */}
+
+        <Row className="mb-4">
+  <Col md={4} className="mb-3">
+    <h6 className="text-bold">Brand:</h6>
+    <p className="mb-0">{job?.brandName}</p>
+  </Col>
+
+  <Col md={4} className="mb-3">
+    <h6 className="text-bold">Flavour:</h6>
+    <p className="mb-0">{job?.flavour}</p>
+  </Col>
+
+  <Col md={4} className="mb-3">
+    <h6 className="text-bold">SubBrand:</h6>
+    <p className="mb-0">{job?.subBrand}</p>
+  </Col>
+</Row>
+
+<Row className="mb-4">
+  <Col md={4} className="mb-3">
+    <h6 className="text-bold">Pack Type:</h6>
+    <p className="mb-0">{job?.packType}</p>
+  </Col>
+
+  <Col md={4} className="mb-3">
+    <h6 className="text-bold">Pack Size:</h6>
+    <p className="mb-0">{job?.packSize}</p>
+  </Col>
+
+  <Col md={4} className="mb-3">
+    <h6 className="text-bold">Priority:</h6>
+    <p className="mb-0">{job?.priority}</p>
+  </Col>
+</Row>
+
+<Row className="mb-4">
+  <Col md={4} className="mb-3">
+    <h6 className="text-bold">Project Name:</h6>
+    <p className="mb-0">{job?.packType}</p>
+  </Col>
+
+  <Col md={4} className="mb-3">
+    <h6 className="text-bold">Assign:</h6>
+    <p className="mb-0">{job?.assign}</p>
+  </Col>
+
+  <Col md={4} className="mb-3">
+    <h6 className="text-bold">Total Time:</h6>
+    <p className="mb-0">{job?.totalTime}</p>
+  </Col>
+</Row>
+
+{/* <div className="col-md-6 text-center mt-4">
+  <label className="form-label">Project Barcode</label>
+  <div className="border p-3 d-inline-block bg-light rounded shadow-sm">
+  
+    <div className="mt-2 fw-bold">POS-123456</div>
+  </div>
+</div> */}
+<div className="col-md-6 mt-4 mb-4">
+<label className="fw-bold">Project Barcode</label>
+<div className="mt-2 form-label ">{job?.barcode || "POS-123456"}</div>
+</div>
+
+        {/* Progress Section */}
+        {/* <h5 className="fw-bold text-primary mb-3">Progress</h5>
+        <Row className="mb-4">
+          <Col md={12}>
+            <Card className="p-3 text-center border-0 shadow-sm">
+              <h6 className="mb-2">Job Progress</h6>
+              <ProgressBar now={45} variant="info" />
+              <small className="text-muted mt-1 d-block">45% Completed</small>
+            </Card>
+          </Col>
+        </Row> */}
+
+        {/* Assignments Table */}
+        <h5 className="fw-bold text-danger mb-3">Assignments:</h5>
+        <Table
+          responsive
+          hover
+          className="align-middle bg-white rounded shadow-sm overflow-hidden"
+        >
+          <thead className="table-light">
+            <tr>
+              <th className="text-nowrap">Date</th>
+              <th className="text-nowrap">Instruction</th>
+              <th className="text-nowrap">Assigned To</th>
+              <th className="text-nowrap">Time Spent</th>
+              <th className="text-nowrap">Uploaded File/Link</th>
+            </tr>
+          </thead>
+          <tbody>
+            {assignments.map((assignment, index) => (
+              <tr key={index}>
+                <td>{assignment.date}</td>
+                <td>
+                  <a
+                    href="#"
+                    className="text-decoration-none"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      alert(`Details for: ${assignment.title}`);
+                    }}
+                  >
+                    {assignment.title}
+                  </a>
+                </td>
+                <td>{assignment.assignedTo}</td>
+                <td>{assignment.timeSpent}</td>
+                <td className="d-flex gap-2">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    style={{ display: "none" }}
+                    onChange={handleFileChange}
+                  />
+                  <Button
+                    size="sm"
+                    variant="dark"
+                    className="me-2"
+                    onClick={() => {
+                      alert("Excel export functionality");
+                    }}
+                  >
+                    <FaUpload className="me-1" />
+                    Excel
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      </Card>
+    </div>
+  );
+};
+
+export default OvervieJobsTracker;
+
+
+

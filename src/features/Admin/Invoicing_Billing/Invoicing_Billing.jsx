@@ -48,12 +48,23 @@ function Invoicing_Billing() {
 
   const getStatusBadgeVariant = (status) => {
     switch (status.toLowerCase()) {
-      case 'paid': return 'success';
-      case 'pending': return 'warning';
-      case 'overdue': return 'danger';
-      default: return 'secondary';
+      case 'paid': 
+        return 'success';
+      case 'pending': 
+        return 'warning';
+      case 'overdue': 
+        return 'danger';
+      case 'Inactive': 
+        return 'secondary';
+      case 'completed': 
+        return 'primary';
+      case 'active': 
+        return 'success';
+      default: 
+        return 'secondary';
     }
   };
+  
 
   const handleSearch = (e) => {
     const query = e.target.value.toLowerCase();

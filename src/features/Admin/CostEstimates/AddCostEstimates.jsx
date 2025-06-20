@@ -18,8 +18,8 @@ const currencies = [
   { label: "SAR - Saudi Riyal", value: "SAR" },
 ];
 
-const poStatuses = ["Approved","pending",  "Rejected"];
-const statuses = [ "Active", "Inactive", "Completed"];
+const poStatuses = ["Approved", "pending", "Rejected"];
+const statuses = ["Active", "Inactive", "Completed"];
 
 function AddCostEstimates() {
   const location = useLocation();
@@ -27,8 +27,6 @@ function AddCostEstimates() {
   const id = po?._id;
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
-  console.log("hhhhhhh", po);
 
   const { project } = useSelector((state) => state.projects);
   useEffect(() => {
@@ -86,7 +84,6 @@ function AddCostEstimates() {
         clientName = po.clientId[0].clientName || "";
       } else if (Array.isArray(po.clients) && po.clients.length > 0) {
         clientId = po.clients[0]?.clientId || "";
-        // Try to get client name from Clients data if available
         const clientObj = Clients?.data?.find(c => c._id === clientId);
         clientName = clientObj ? clientObj.clientName : "";
       }
@@ -108,7 +105,6 @@ function AddCostEstimates() {
       }
     }
   }, [po, project?.data, Clients]);
-
 
   const [taxRate, setTaxRate] = useState(0.05);
 
@@ -178,241 +174,255 @@ function AddCostEstimates() {
     <>
       <ToastContainer />
       <div className="container py-4">
-        <h5 className="fw-bold mb-4">Cost Estimates</h5>
+        <h4 className="fw-bold mb-4">Cost Estimates</h4>
         <div className="bg-white border rounded-3 p-4 shadow-sm">
-          <h6 className="fw-semibold mb-4">Create New Estimate</h6>
+          <h4 className="fw-semibold mb-4">Create New Estimate</h4>
 
-          <div className="row mb-3">
-            <div className="col-md-4 mb-3">
-              <label className="form-label">Client</label>
-              <select
-                className="form-select"
-                name="clientId"
-                value={formData.clientId[0] || ""}
-                onChange={(e) => {
-                  const selectedClientId = e.target.value;
-                  const selectedClient = Clients?.data?.find(c => c._id === selectedClientId);
+          <form onSubmit={handleSubmit}>
+            <div className="row mb-3">
+              <div className="col-md-4 mb-3">
+                <label className="form-label">Client</label>
+                <select
+                  className="form-select"
+                  name="clientId"
+                  value={formData.clientId[0] || ""}
+                  onChange={(e) => {
+                    const selectedClientId = e.target.value;
+                    const selectedClient = Clients?.data?.find(c => c._id === selectedClientId);
 
-                  setFormData({
-                    ...formData,
-                    clientId: [selectedClientId],
-                    clientName: selectedClient ? selectedClient.clientName : "",
-                  });
-                }}
-              >
-                <option value="">Select Client</option>
-                {Clients?.data?.map((client) => (
-                  <option key={client._id} value={client._id}>
-                    {client.clientName}
-                  </option>
-                ))}
-              </select>
-
-            </div>
-
-
-            <div className="col-md-4 mb-3">
-              <label className="form-label">Project</label>
-              <select
-                className="form-select"
-                name="projectsId"
-                value={formData.projectsId[0] || ""}
-                onChange={(e) => {
-                  const selectedId = e.target.value;
-                  const selectedProject = project?.data?.find(p => p._id === selectedId);
-                  setFormData({
-                    ...formData,
-                    projectsId: [selectedId],
-                    projectName: selectedProject?.projectName || "",
-                  });
-                }}
-              >
-                <option value="">Select a project</option>
-                {reversedProjectList.map((proj) => (
-                  <option key={proj._id} value={proj._id}>
-                    {proj.projectName}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="col-md-4 mb-3">
-              <label className="form-label">Estimate Date</label>
-              <input
-                type="date"
-                className="form-control"
-                name="estimateDate"
-                value={formData.estimateDate}
-                onChange={handleFormChange}
-              />
-            </div>
-
-            <div className="col-md-4 mb-3">
-              <label className="form-label">Valid Until</label>
-              <input
-                type="date"
-                className="form-control"
-                name="validUntil"
-                value={formData.validUntil}
-                onChange={handleFormChange}
-              />
-            </div>
-
-            <div className="col-md-4 mb-3">
-              <label className="form-label">Currency</label>
-              <select
-                className="form-select"
-                name="currency"
-                value={formData.currency}
-                onChange={handleFormChange}
-              >
-                {currencies.map((curr) => (
-                  <option key={curr.value} value={curr.value}>
-                    {curr.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="col-md-4 mb-3">
-              <label className="form-label">PO Status</label>
-              <select
-                className="form-select"
-                name="POStatus"
-                value={formData.POStatus}
-                onChange={handleFormChange}
-              >
-                {poStatuses.map((status) => (
-                  <option key={status} value={status}>
-                    {status}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="col-md-4 mb-3">
-              <label className="form-label">Status</label>
-              <select
-                className="form-select"
-                name="Status"
-                value={formData.Status}
-                onChange={handleFormChange}
-              >
-                {statuses.map((status) => (
-                  <option key={status} value={status}>
-                    {status}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <h6 className="fw-semibold mb-3">Line Items</h6>
-          <div className="row fw-semibold text-muted mb-2 px-2">
-            <div className="col-md-5">Description</div>
-            <div className="col-md-2">Quantity</div>
-            <div className="col-md-2">Rate</div>
-            <div className="col-md-2">Amount</div>
-            <div className="col-md-1 text-end"></div>
-          </div>
-
-          {items.map((item, index) => (
-            <div
-              className="row gx-2 gy-2 align-items-center mb-2 px-2 py-2"
-              key={index}
-              style={{ background: "#f9f9f9", borderRadius: "8px" }}
-            >
-              <div className="col-md-5">
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Item description"
-                  value={item.description}
-                  onChange={(e) =>
-                    handleItemChange(index, "description", e.target.value)
-                  }
-                />
-              </div>
-              <div className="col-md-2">
-                <input
-                  type="number"
-                  className="form-control"
-                  value={item.quantity}
-                  onChange={(e) =>
-                    handleItemChange(index, "quantity", parseInt(e.target.value))
-                  }
-                />
-              </div>
-              <div className="col-md-2">
-                <input
-                  type="number"
-                  className="form-control"
-                  value={item.rate}
-                  onChange={(e) =>
-                    handleItemChange(index, "rate", parseFloat(e.target.value))
-                  }
-                />
-              </div>
-              <div className="col-md-2">
-                <span>
-                  {formData.currency} {item.amount.toFixed(2)}
-                </span>
-              </div>
-              <div className="col-md-1 text-end">
-                <button
-                  className="btn btn-link text-danger p-0"
-                  onClick={() => removeItem(index)}
+                    setFormData({
+                      ...formData,
+                      clientId: [selectedClientId],
+                      clientName: selectedClient ? selectedClient.clientName : "",
+                    });
+                  }}
+                  required
                 >
-                  remove
-                </button>
+                  <option value="">Select Client</option>
+                  {Clients?.data?.map((client) => (
+                    <option key={client._id} value={client._id}>
+                      {client.clientName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="col-md-4 mb-3">
+                <label className="form-label">Project</label>
+                <select
+                  className="form-select"
+                  name="projectsId"
+                  value={formData.projectsId[0] || ""}
+                  onChange={(e) => {
+                    const selectedId = e.target.value;
+                    const selectedProject = project?.data?.find(p => p._id === selectedId);
+                    setFormData({
+                      ...formData,
+                      projectsId: [selectedId],
+                      projectName: selectedProject?.projectName || "",
+                    });
+                  }}
+                  required
+                >
+                  <option value="">Select a project</option>
+                  {reversedProjectList.map((proj) => (
+                    <option key={proj._id} value={proj._id}>
+                      {proj.projectName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="col-md-4 mb-3">
+                <label className="form-label">Estimate Date</label>
+                <input
+                  type="date"
+                  className="form-control"
+                  name="estimateDate"
+                  value={formData.estimateDate}
+                  onChange={handleFormChange}
+                  required
+                />
+              </div>
+
+              <div className="col-md-4 mb-3">
+                <label className="form-label">Valid Until</label>
+                <input
+                  type="date"
+                  className="form-control"
+                  name="validUntil"
+                  value={formData.validUntil}
+                  onChange={handleFormChange}
+                  required
+                />
+              </div>
+
+              <div className="col-md-4 mb-3">
+                <label className="form-label">Currency</label>
+                <select
+                  className="form-select"
+                  name="currency"
+                  value={formData.currency}
+                  onChange={handleFormChange}
+                  required
+                >
+                  {currencies.map((curr) => (
+                    <option key={curr.value} value={curr.value}>
+                      {curr.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="col-md-4 mb-3">
+                <label className="form-label">PO Status</label>
+                <select
+                  className="form-select"
+                  name="POStatus"
+                  value={formData.POStatus}
+                  onChange={handleFormChange}
+                  required
+                >
+                  {poStatuses.map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="col-md-4 mb-3">
+                <label className="form-label">Status</label>
+                <select
+                  className="form-select"
+                  name="Status"
+                  value={formData.Status}
+                  onChange={handleFormChange}
+                  required
+                >
+                  {statuses.map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
-          ))}
 
-          <button
-            className="btn border rounded px-3 py-1 mb-4 text-dark"
-            onClick={addItem}
-          >
-            + Add Line Item
-          </button>
+            <h6 className="fw-semibold mb-3">Line Items</h6>
+            <div className="row fw-semibold text-muted mb-2 px-2">
+              <div className="col-md-5">Description</div>
+              <div className="col-md-2">Quantity</div>
+              <div className="col-md-2">Rate</div>
+              <div className="col-md-2">Amount</div>
+              <div className="col-md-1 text-end"></div>
+            </div>
 
-          <div className="row mt-4">
-            <div className="col-md-6">
-              <label className="form-label">VAT Rate (%)</label>
-              <input
-                type="number"
-                className="form-control"
-                value={(taxRate * 100).toFixed(2)}
-                onChange={(e) =>
-                  setTaxRate(isNaN(parseFloat(e.target.value)) ? 0 : parseFloat(e.target.value) / 100)
-                }
-              />
-              <div className="mt-3">
-                Subtotal: {formData.currency} {subtotal.toFixed(2)}<br />
-                VAT: {formData.currency} {tax.toFixed(2)}<br />
-                <strong>Total: {formData.currency} {total.toFixed(2)}</strong>
+            {items.map((item, index) => (
+              <div
+                className="row gx-2 gy-2 align-items-center mb-2 px-2 py-2"
+                key={index}
+                style={{ background: "#f9f9f9", borderRadius: "8px" }}
+              >
+                <div className="col-md-5">
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Item description"
+                    value={item.description}
+                    required
+                    onChange={(e) =>
+                      handleItemChange(index, "description", e.target.value)
+                    }
+                  />
+                </div>
+                <div className="col-md-2">
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={item.quantity}
+                    required
+                    onChange={(e) =>
+                      handleItemChange(index, "quantity", parseInt(e.target.value))
+                    }
+                  />
+                </div>
+                <div className="col-md-2">
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={item.rate}
+                    required
+                    onChange={(e) =>
+                      handleItemChange(index, "rate", parseFloat(e.target.value))
+                    }
+                  />
+                </div>
+                <div className="col-md-2">
+                  <span>
+                    {formData.currency} {item.amount.toFixed(2)}
+                  </span>
+                </div>
+                <div className="col-md-1 text-end">
+                  <button
+                    className="btn btn-link text-danger p-0"
+                    onClick={() => removeItem(index)}
+                    type="button"
+                  >
+                    remove
+                  </button>
+                </div>
               </div>
-            </div>
-            <div className="col-md-6">
-              <label className="form-label">Notes</label>
-              <textarea
-                className="form-control"
-                rows="4"
-                name="Notes"
-                value={formData.Notes}
-                onChange={handleFormChange}
-              ></textarea>
-            </div>
-          </div>
+            ))}
 
-          <div className="text-end mt-4">
-            <Link to="/admin/CostEstimates">
-              <button className="btn btn-light me-2">Cancel</button>
-            </Link>
-            <button className="btn btn-dark" onClick={handleSubmit}>
-              Create Estimate
+            <button
+              className="btn border rounded px-3 py-1 mb-4 text-dark"
+              onClick={addItem}
+              type="button"
+            >
+              + Add Line Item
             </button>
-          </div>
+
+            <div className="row mt-4">
+              <div className="col-md-6">
+                <label className="form-label">VAT Rate (%)</label>
+                <input
+                  type="number"
+                  className="form-control"
+                  value={(taxRate * 100).toFixed(2)}
+                  onChange={(e) =>
+                    setTaxRate(isNaN(parseFloat(e.target.value)) ? 0 : parseFloat(e.target.value) / 100)
+                  }
+                  required
+                />
+                <div className="mt-3">
+                  Subtotal: {formData.currency} {subtotal.toFixed(2)}<br />
+                  VAT: {formData.currency} {tax.toFixed(2)}<br />
+                  <strong>Total: {formData.currency} {total.toFixed(2)}</strong>
+                </div>
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Notes</label>
+                <textarea
+                  className="form-control"
+                  rows="4"
+                  name="Notes"
+                  value={formData.Notes}
+                  onChange={handleFormChange}
+                  required
+                ></textarea>
+              </div>
+            </div>
+
+            <div className="text-end mt-4">
+              <Link to="/admin/CostEstimates">
+                <button className="btn btn-light me-2" type="button">Cancel</button>
+              </Link>
+              <button className="btn btn-dark" type="submit">
+                Create Estimate
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </>

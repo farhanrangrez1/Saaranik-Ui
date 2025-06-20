@@ -126,7 +126,7 @@ const projectStatusData = {
                 <div>
                   <h3 className="mb-0">{inProgressProjectsCount}</h3>
                   <p className="text-muted mb-0">Projects in Progress</p>
-                  <small className="text-success">↑ 8% from last month</small>
+                  <small className="text-success">Active Projects</small>
                 </div>
               </Card.Body>
             </Card>
@@ -143,7 +143,7 @@ const projectStatusData = {
                 <div>
                   <h3 className="mb-0">{inProgressCount}</h3>
                   <p className="text-muted mb-0">Jobs in Progress</p>
-                  <small className="text-info">+5 since last week</small>
+                  <small className="text-info">Active Jobs</small>
                 </div>
               </Card.Body>
             </Card>

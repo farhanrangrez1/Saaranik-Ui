@@ -5,7 +5,7 @@ import { Button, Form, Table, Pagination, Modal } from "react-bootstrap";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { FaEye } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchjobs, UpdateJobAssign } from "../../../redux/slices/JobsSlice";
+import { fetchjobs, updatejob, UpdateJobAssign } from "../../../redux/slices/JobsSlice";
 import {
   FaFilePdf,
   FaUpload,
@@ -20,7 +20,7 @@ import { createAssigns } from "../../../redux/slices/AssignSlice";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-function NewJobsList(){
+function NewJobsList() {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -70,6 +70,12 @@ function NewJobsList(){
     },
   ];
 
+  const { job, loading, error } = useSelector((state) => state.jobs);
+
+  useEffect(() => {
+    dispatch(fetchjobs());
+  }, [dispatch]);
+
   const handleShowDescription = (job) => {
     setSelectedJob(job);
     setShowModal(true);
@@ -101,32 +107,61 @@ function NewJobsList(){
       return;
     }
     setShowRejectModal(true);
+
   };
+
 
   const handleSubmitRejection = () => {
     const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
+    console.log(selectedJobIds);
 
     if (!rejectionReason.trim()) {
       setErrorMessage("Please enter a reason for rejection.");
       setTimeout(() => setErrorMessage(""), 3000);
       return;
     }
-
-    console.log("Rejected job(s):", selectedJobIds, "Reason:", rejectionReason);
-
+    // dispatch(updatejob({ id: selectedJobIds, data: { Status: "Reject" } }))
+    dispatch(updatejob({ id: selectedJobIds, data: { Status: "Cancelled" } }))
     setSuccessMessage("Jobs rejected successfully.");
+    dispatch(fetchjobs());
     setTimeout(() => setSuccessMessage(""), 3000);
-
+    dispatch(fetchjobs());
     setSelectedJobs({});
+    dispatch(fetchjobs());
     setRejectionReason("");
+    dispatch(fetchjobs());
     setShowRejectModal(false);
   };
 
-  const { job, loading, error } = useSelector((state) => state.jobs);
+  // const handleDelete = (_id) => {
+  //     console.log(_id);
+  //     Swal.fire({
+  //       title: "Are you sure?",
+  //       text: "You want to mark this job as Cancelled?",
+  //       icon: "warning",
+  //       showCancelButton: true,
+  //       confirmButtonColor: "#3085d6",
+  //       cancelButtonColor: "#d33",
+  //       confirmButtonText: "Yes, mark as Cancelled!",
+  //     }).then((result) => {
+  //       if (result.isConfirmed) {
+  //         // dispatch(deletejob({ id: _id, data: { status: "Cancelled" } }))
+  //         console.log(id);
 
-  useEffect(() => {
-    dispatch(fetchjobs());
-  }, [dispatch]);
+  //         dispatch(updatejob({ id: _id, data: { Status: "Cancelled" } }))
+  //           .unwrap()
+  //           .then(() => {
+  //             Swal.fire("Updated!", "The job has been marked as Cancelled.", "success");
+  //             dispatch(Project_job_Id(id));
+  //           })
+  //           .catch(() => {
+  //             Swal.fire("Error!", "Something went wrong while updating.", "error");
+  //           });
+  //       }
+  //     });
+  //   };
+
+
 
   const getPriorityClass = (priority) => {
     switch ((priority || "").toLowerCase()) {
@@ -146,6 +181,8 @@ function NewJobsList(){
       case "in progress":
       case "in_progress":
         return "bg-warning text-dark";
+      case "reject":
+        return "bg-danger text-white";
       case "review":
         return "bg-info text-dark";
       case "not started":
@@ -198,7 +235,7 @@ function NewJobsList(){
   });
 
   const handleUpdate = (job) => {
-    navigate(`/admin/AddJobTracker`, { state: { job } });
+    navigate(`/admin/AddJobTracker/${job._id}`, { state: { job } });
   };
 
   const JobDetails = (job) => {
@@ -228,6 +265,7 @@ function NewJobsList(){
         selectedDesigner.toLowerCase()) &&
       selectedDesigner !== ""
   );
+  console.log("lllll", filteredAssignment);
 
   const paginatedAssignment = filteredAssignment.slice(
     (currentAssignment - 1) * itemsAssignment,
@@ -243,7 +281,6 @@ function NewJobsList(){
       description: assignmentDescription,
     };
     console.log("Assignment Payload:", payload);
-
     dispatch(createAssigns(payload))
       .unwrap()
       .then((response) => {
@@ -278,7 +315,6 @@ function NewJobsList(){
         Swal.fire("Error!", "Something went wrong", "error");
       });
   };
-
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -296,7 +332,7 @@ function NewJobsList(){
         <h5 className="fw-bold m-0">Job Assign</h5>
         <div className="d-flex gap-2 ">
           <Button onClick={handleRejectJobs} id="All_btn" className="m-2" variant="primary">
-            Reject
+            Cancelled Job
           </Button>
           <Button
             id="All_btn"
@@ -477,7 +513,6 @@ function NewJobsList(){
                 <option value="Designer">Designer</option>
               </Form.Select>
             </Form.Group>
-
             <Form.Group className="mb-3">
               <Form.Label>Select Employee</Form.Label>
               <Form.Select
@@ -486,11 +521,13 @@ function NewJobsList(){
                 disabled={!selectedDesigner}
               >
                 <option value="">-- Select Employee --</option>
-                {paginatedAssignment.map((emp) => (
-                  <option key={emp._id} value={emp._id}>
-                    {emp.firstName || "Unnamed Employee"} {emp.lastName || "Unnamed Employee"}
-                  </option>
-                ))}
+                {paginatedAssignment
+                  .filter((emp) => emp.role === 'employee')
+                  .map((emp) => (
+                    <option key={emp._id} value={emp._id}>
+                      {emp.firstName || "Unnamed Employee"} {emp.lastName || "Unnamed Employee"}
+                    </option>
+                  ))}
               </Form.Select>
             </Form.Group>
 
@@ -519,14 +556,14 @@ function NewJobsList(){
       {/* Reject Modal */}
       <Modal show={showRejectModal} onHide={() => setShowRejectModal(false)}>
         <Modal.Header closeButton>
-          <Modal.Title>Reject Job</Modal.Title>
+          <Modal.Title>Cancelled Job</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <div className="alert alert-warning">
             Are you sure you want to reject this job?
           </div>
           <Form.Group className="mb-3">
-            <Form.Label>Reason for Rejection</Form.Label>
+            <Form.Label>Reason for Cancelled</Form.Label>
             <Form.Control
               as="textarea"
               rows={3}
@@ -541,7 +578,7 @@ function NewJobsList(){
             Cancel
           </Button>
           <Button variant="danger" onClick={handleSubmitRejection}>
-            Reject
+            Cancelled
           </Button>
         </Modal.Footer>
       </Modal>
