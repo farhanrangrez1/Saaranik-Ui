@@ -198,8 +198,8 @@ const paginatedProjects = filteredProjects.slice(
                   <span className={getPriorityClass(job.priority)}>{job.priority}</span>
                 </td>
                 <td>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
-                <td  onClick={() => handleDesignerClick(job)} style={{ whiteSpace: 'nowrap',cursor: 'pointer', color: 'darkblue' }}>
-                  {job.assign}
+                <td style={{ whiteSpace: 'nowrap' }}>
+                  {job.assignedTo}
                 </td>
                 <td style={{ whiteSpace: 'nowrap' }}>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
                 <td>

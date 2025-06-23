@@ -18,20 +18,20 @@ import { EmployeeDashboardData } from '../../../redux/slices/Employee/MyJobsSlic
 
 const EmployeeDashboard = () => {
   const [selectedTimeframe, setSelectedTimeframe] = useState('This Week');
-  const dispatch =useDispatch()
+  const dispatch = useDispatch()
 
 
-  const { myjobs, loading, error } = useSelector((state) => state.MyJobs);
+  const { DasbordAll, loading, error } = useSelector((state) => state.MyJobs);
+
+  console.log("DasbordAll", DasbordAll[0]?.data); 
 
   useEffect(() => {
     dispatch(EmployeeDashboardData());
   }, [dispatch]);
 
-  const summary = myjobs?.data?.summary || {};
-  const todaysPerformance = myjobs?.data?.todaysPerformance || {};
-  const weeklyPerformance = myjobs?.data?.weeklyPerformance || {};
-
-
+  const summary = DasbordAll[0]?.data?.summary || {};
+  const todaysPerformance = DasbordAll[0]?.data?.todaysPerformance || {};
+  const weeklyPerformance = DasbordAll[0]?.data?.weeklyPerformance || {};
 
   // Mock data for productivity leaderboard
   const leaderboardData = [
@@ -131,13 +131,13 @@ const EmployeeDashboard = () => {
     }
   };
 
-  
+
 
   return (
     <div className="p-4" >
 
       {/* Metrics Cards */}
-     <Row className="g-4 mb-4">
+      <Row className="g-4 mb-4">
         <Col xs={6} md={3}>
           <Card style={{ borderRadius: '16px', boxShadow: '0 2px 4px rgba(145, 158, 171, 0.16)', border: 'none' }}>
             <Card.Body className="d-flex align-items-center">

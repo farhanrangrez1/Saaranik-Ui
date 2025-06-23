@@ -290,7 +290,7 @@ function MyJobs() {
                       ? `${job.employeeId.firstName} ${job.employeeId.lastName}`
                       : 'No Employee'}
                   </td>
-                 <td style={{ whiteSpace: "nowrap" }}>{job.employeeId.email}</td>
+                 <td style={{ whiteSpace: "nowrap" }}>{job.employeeId?.email}</td>
                   <td style={{ whiteSpace: "nowrap" }}>{job.description}</td>
                   <td>{job.jobId?.[0]?.brandName || 'N/A'}</td>
                   <td style={{ whiteSpace: 'nowrap' }}>{job.jobId?.[0]?.subBrand || 'N/A'}</td>
@@ -325,9 +325,9 @@ function MyJobs() {
                       Upload
                     </Button>
                     <Link to={"/admin/MyJobsHolidayPackageDesign"}>
-                      <Button id="All_btn" size="sm" variant="dark" onClick={() => handleLogTime(job.id)}>
+                      {/* <Button id="All_btn" size="sm" variant="dark" onClick={() => handleLogTime(job.id)}>
                         LogTime
-                      </Button>
+                      </Button> */}
                     </Link>
                     <Button
                       id="All_btn"

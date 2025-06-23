@@ -10,6 +10,7 @@ import { fetchClient } from "../../../redux/slices/ClientSlice";
 import { createInvoicingBilling, updateInvoicingBilling } from "../../../redux/slices/InvoicingBillingSlice";
 
 const currencies = [
+   { value: "", label: "Select Currency" }, 
   { label: "USD - US Dollar", value: "USD" },
   { label: "EUR - Euro", value: "EUR" },
   { label: "INR - Indian Rupee", value: "INR" },
@@ -19,9 +20,9 @@ const currencies = [
   { label: "SAR - Saudi Riyal", value: "SAR" },
 ];
 
-const document = ["Invoice", "Dummy Invoice", "Tax Invoice", "Proforma Invoice"];
-const OutputFormat = ["Format 1 (Classic)", "Format 2 (Modern)", "Format 3 (Professional)"];
-const statuses = ["Active", "Inactive", "Completed", "pending", "overdue"];
+const document = ["Invoice Select", "Dummy Invoice", "Tax Invoice", "Proforma Invoice"];
+const OutputFormat = ["", "PDF", "DOCX", "XLSX", "TXT"];
+const statuses = ["Status Select", "Active", "Inactive", "Completed", "pending", "overdue"];
 
 function AddInvoice() {
   const location = useLocation();
@@ -90,7 +91,7 @@ function AddInvoice() {
         projectsId: projectId ? [projectId] : [""],
         clientId: clientId ? [clientId] : [""],
         Notes: invoice.Notes || "",
-        currency: invoice.currency || "USD",
+        currency: invoice.currency || "",
         date: invoice.date ? invoice.date.substring(0, 10) : "",
         validUntil: invoice.validUntil ? invoice.validUntil.substring(0, 10) : "",
       }));
@@ -178,13 +179,13 @@ function AddInvoice() {
                 className="form-select"
                 name="clientId"
                 value={formData.clientId[0] || ""}
-                required
                 onChange={(e) =>
                   setFormData({
                     ...formData,
                     clientId: [e.target.value],
                   })
                 }
+                required
               >
                 <option value="">Select Client</option>
                 {Clients?.data?.map((client) => (
@@ -201,7 +202,6 @@ function AddInvoice() {
                 className="form-select"
                 name="projectsId"
                 value={formData.projectsId[0] || ""}
-                required
                 onChange={(e) => {
                   const selectedId = e.target.value;
                   const selectedProject = project?.data?.find((p) => p._id === selectedId);
@@ -211,6 +211,7 @@ function AddInvoice() {
                     projectName: selectedProject?.projectName || "",
                   });
                 }}
+                required
               >
                 <option value="">Select a project</option>
                 {reversedProjectList.map((proj) => (
@@ -238,50 +239,63 @@ function AddInvoice() {
               <select
                 className="form-select"
                 name="currency"
-                required
                 value={formData.currency}
                 onChange={handleFormChange}
+                required
               >
                 {currencies.map((curr) => (
-                  <option key={curr.value} value={curr.value}>
+                  <option
+                    key={curr.value}
+                    value={curr.value}
+                    disabled={curr.value === ""}
+                  >
                     {curr.label}
                   </option>
                 ))}
               </select>
+
             </div>
 
             <div className="col-md-4 mb-3">
               <label className="form-label">Document Type</label>
-              <select
-                className="form-select"
-                name="document"
-                required
-                value={formData.document}
-                onChange={handleFormChange}
-              >
-                {document.map((doc) => (
-                  <option key={doc} value={doc}>
-                    {doc}
-                  </option>
-                ))}
-              </select>
+            <select
+  className="form-select"
+  name="document"
+  value={formData.document}
+  onChange={handleFormChange}
+  required
+>
+  <option value="" disabled>
+    Select Document
+  </option>
+  {document.slice(1).map((doc) => (
+    <option key={doc} value={doc}>
+      {doc}
+    </option>
+  ))}
+</select>
+
             </div>
 
             <div className="col-md-4 mb-3">
               <label className="form-label">Output Format</label>
-              <select
-                className="form-select"
-                name="output"
-                required
-                value={formData.output}
-                onChange={handleFormChange}
-              >
-                {OutputFormat.map((format) => (
-                  <option key={format} value={format}>
-                    {format}
-                  </option>
-                ))}
-              </select>
+           <select
+  className="form-select"
+  name="output"
+  value={formData.output}
+  onChange={handleFormChange}
+  required
+>
+  <option value="" disabled>
+    Select Output Format
+  </option>
+  {OutputFormat.slice(1).map((format) => (
+    <option key={format} value={format}>
+      {format}
+    </option>
+  ))}
+</select>
+
             </div>
 
             <div className="col-md-4 mb-3">
@@ -289,16 +303,20 @@ function AddInvoice() {
               <select
                 className="form-select"
                 name="status"
-                required
                 value={formData.status}
                 onChange={handleFormChange}
+                required
               >
-                {statuses.map((status) => (
+                <option value="" disabled>
+                  Status Select
+                </option>
+                {statuses.slice(1).map((status) => (
                   <option key={status} value={status}>
                     {status}
                   </option>
                 ))}
               </select>
+
             </div>
           </div>
 
@@ -333,10 +351,10 @@ function AddInvoice() {
               <div className="col-md-2">
                 <input
                   type="number"
-                  className="form-control"
                   required
                   value={item.rate}
                   onChange={(e) => handleItemChange(index, "rate", parseFloat(e.target.value))}
+                  className="form-control"
                 />
               </div>
               <div className="col-md-2">

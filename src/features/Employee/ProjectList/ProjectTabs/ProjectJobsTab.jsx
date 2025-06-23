@@ -11,8 +11,6 @@ function ProjectJobsTab() {
   const id = location.state?.id || params.id;
   console.log("hello me project id", id);
 
-
-
   const [selectedProduction, setSelectedProduction] = useState('');
   const [selectedAdditional, setSelectedAdditional] = useState('');
   const [selectedJob, setSelectedJob] = useState(null);
@@ -75,7 +73,6 @@ function ProjectJobsTab() {
 
   const handleSubmitAssignment = () => {
     const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
-
     if (selectedJobIds.length === 0) {
       setErrorMessage("Please select at least 1 job to assign.");
       setTimeout(() => setErrorMessage(""), 3000);
@@ -106,7 +103,7 @@ function ProjectJobsTab() {
       console.log("CSV file selected:", file.name);
     }
   };
-
+  
   const getPriorityClass = (priority) => {
     switch (priority.toLowerCase()) {
       case "high":
@@ -129,15 +126,12 @@ function ProjectJobsTab() {
     console.log("Project ID:", id);
   }, [id]);
 
-
-  // ///
   const { job, loading, error } = useSelector((state) => state.jobs);
   console.log(job.jobs, "all jobs");
 
   useEffect(() => {
     dispatch(fetchjobs());
   }, [dispatch]);
-
 
 const handleDelete = (_id) => {
   console.log(_id);
@@ -165,7 +159,6 @@ const handleDelete = (_id) => {
   });
 };
 
-
   const handleUpdate = (job) => {
     navigate(`/admin/AddJobTracker`, { state: { job } });
   };
@@ -173,7 +166,6 @@ const handleDelete = (_id) => {
   const JobDetails = (job) => {
     navigate(`/admin/OvervieJobsTracker`, { state: { job } });
   }
-
 
   const getStatusClass = (status) => {
     switch (status.toLowerCase().trim()) {
@@ -196,7 +188,6 @@ const handleDelete = (_id) => {
   };
 
   const handleJobAssign = (selectedIds, assignTo) => {
-
     const payload = {
       id: selectedIds,
       assign: assignTo,
@@ -231,8 +222,6 @@ const handleDelete = (_id) => {
     URL.revokeObjectURL(url);
   };
 
-
-
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -242,7 +231,7 @@ const handleDelete = (_id) => {
   const paginatedProjects = filteredProjects.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
-  );
+ );
 
   return (
     <div className="card">
@@ -383,7 +372,7 @@ const handleDelete = (_id) => {
                     </span>
                   </td>
                   <td>{new Date(job?.createdAt).toLocaleDateString('en-GB').replace(/\/20/, '/')}</td>
-                  <td style={{ whiteSpace: 'nowrap' }}>{job.assign}</td>
+                  <td style={{ whiteSpace: 'nowrap' }}>{job.assignedTo}</td>
                   <td>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
                   {/* <th>
                                         <Button id='All_btn' variant="success" style={{ width: "130px" }} size="sm" >

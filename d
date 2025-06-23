@@ -23276,3 +23276,1385 @@ export default OvervieJobsTracker;
 
 
 
+
+
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import axios from 'axios';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchusers, fetchusersById, updateusers } from '../../../redux/slices/userSlice';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+function UserRoleModal() {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const { id } = useParams();
+  const location = useLocation();
+  const { user } = location.state || {};
+  const userId = location.state?.id;
+    console.log("hhhhhhhhhh", user);
+
+    const { userAll, loading, error } = useSelector((state) => state.user);
+  useEffect(() => {
+    dispatch(fetchusers());
+  }, [dispatch]);
+
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    password: '',
+    passwordConfirm: '',
+    role: '',
+    assign: 'Not Assign',
+    state: '',
+    country: '',
+    image: null,
+    permissions: {
+      dashboardAccess: false,
+      clientManagement: false,
+      projectManagement: false,
+      designTools: false,
+      financialManagement: false,
+      userManagement: false,
+      reportGeneration: false,
+      systemSettings: false
+    },
+    accessLevel: ''
+  });
+
+  const handleInputChange = (e) => {
+    const { name, value, type, files } = e.target;
+    if (type === 'file') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: files[0]
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+  };
+  useEffect(() => {
+    if (user) {
+      let parsedPermissions = {};
+      let parsedAccessLevel = 'fullAccess';
+
+      try {
+        parsedPermissions = typeof user.permissions === 'string'
+          ? JSON.parse(user.permissions)
+          : user.permissions || {};
+
+        const accessLevelData = typeof user.accessLevel === 'string'
+          ? JSON.parse(user.accessLevel)
+          : {};
+
+        parsedAccessLevel = Object.keys(accessLevelData).find(key => accessLevelData[key]) || 'fullAccess';
+      } catch (error) {
+        console.error('Error parsing permissions or access level:', error);
+      }
+
+      setFormData({
+         _id: user._id || '',  
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        password: '',
+        passwordConfirm: '',
+        state: user.state || '',
+        country: user.country || '',
+        assign: user.assign || 'Not Assign',
+        image: user.image || null,
+        role: user.role?.charAt(0).toUpperCase() + user.role?.slice(1).toLowerCase() || '',
+        permissions: {
+          dashboardAccess: false,
+          clientManagement: false,
+          projectManagement: false,
+          designTools: false,
+          financialManagement: false,
+          userManagement: false,
+          reportGeneration: false,
+          systemSettings: false,
+          ...parsedPermissions
+        },
+        accessLevel: parsedAccessLevel
+      });
+
+    }
+  }, [user]);
+
+  const handlePermissionChange = (e) => {
+    const { name } = e.target;
+    const updatedpermissions = Object.fromEntries(
+      Object.keys(formData.permissions).map((key) => [key, key === name])
+    );
+    setFormData(prev => ({
+      ...prev,
+      permissions: updatedpermissions
+    }));
+  };
+
+  const handleaccessLevelChange = (e) => {
+    setFormData(prev => ({
+      ...prev,
+      accessLevel: e.target.value
+    }));
+  };
+  
+const handleSubmit = (e) => {
+  e.preventDefault();
+  if (formData.password !== formData.passwordConfirm) {
+    toast.error('Passwords do not match!');
+    return;
+  }
+  const filteredpermissions = Object.fromEntries(
+    Object.entries(formData.permissions).filter(([_, value]) => value === true)
+  );
+  const payload = {
+    _id: formData._id,
+    firstName: formData.firstName,
+    lastName: formData.lastName,
+    email: formData.email,
+    phone: formData.phone,
+    password: formData.password,
+    state: formData.state,
+    country: formData.country,
+    assign: formData.assign,
+    image: formData.image,
+    role: formData.role,
+    permissions: filteredpermissions,
+    accessLevel: formData.accessLevel
+  };
+  console.log('Payload to be sent hh:', payload);
+
+  if (formData._id) {
+    dispatch(fetchusersById({ _id: formData._id, data: payload }))
+      .unwrap()
+      .then(() => {
+        toast.success("user updated successfully!");
+        navigate('/admin/ProjectOverview', { state: { openTab: 'users' } });
+        dispatch(fetchusers());
+      })
+      .catch(() => {
+        toast.error("Failed to update user!");
+      });
+  } else {
+    dispatch(createuser(payload))
+      .unwrap()
+      .then(() => {
+        toast.success("user created successfully!");
+        navigate('/admin/ProjectOverview', { state: { openTab: 'users' } });
+        dispatch(fetchProject());
+      })
+      .catch(() => {
+        toast.error("Error creating user");
+      });
+  }
+};
+
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+
+  //   const filteredpermissions = Object.fromEntries(
+  //     Object.entries(formData.permissions).filter(([_, value]) => value === true)
+  //   );
+
+  //   const payload = {
+  //     role: formData.role,
+  //     roleDescription: formData.roleDescription,
+  //     permissions: filteredpermissions,
+  //     accessLevel: formData.accessLevel
+  //   };
+
+  //   console.log('Payload to be sent:', payload);
+  //   try {
+  //     await axios.post('/api/roles', payload);
+  //     navigate(-1);
+  //   } catch (error) {
+  //     console.error('Error submitting form:', error);
+  //     alert('Failed to create role. Please try again.');
+  //   }
+  // };
+
+  const handleCancel = () => {
+    navigate(-1);
+  };
+
+  return (
+    <div className="container py-4">
+      <div className="card shadow-sm">
+        <div className="card-body">
+          <h5 className="card-title mb-4">Add New User</h5>
+          <form onSubmit={handleSubmit}>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '1rem' }}>
+            {formData.image && (
+              <img
+                src={typeof formData.image === 'string' ? formData.image : URL.createObjectURL(formData.image)}
+                alt="Preview"
+                className="img-thumbnail mt-2"
+                style={{ width: '120px', height: '120px', objectFit: 'cover', borderRadius: '50%', border: '2px solid #ddd', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
+              />
+            )}
+          </div>
+          <div className="col-md-6">
+            <label className="form-label">Profile Image</label>
+            <input type="file" className="form-control" name="image" accept="image/*" onChange={handleInputChange} />
+          </div>
+            <div className="row g-3 mb-3">
+              <div className="col-md-6">
+                <label className="form-label">First Name</label>
+                <input type="text" className="form-control" name="firstName" value={formData.firstName} onChange={handleInputChange} required />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Last Name</label>
+                <input type="text" className="form-control" name="lastName" value={formData.lastName} onChange={handleInputChange} required />
+              </div>
+            </div>
+            <div className="row g-3 mb-3">
+              <div className="col-md-6">
+                <label className="form-label">Email</label>
+                <input type="email" className="form-control" name="email" value={formData.email} onChange={handleInputChange} required />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Phone</label>
+                <input type="text" className="form-control" name="phone" value={formData.phone} onChange={handleInputChange} required />
+              </div>
+            </div>
+            <div className="row g-3 mb-3">
+              <div className="col-md-6">
+                <label className="form-label">Password</label>
+                <input type="password" className="form-control" name="password" value={formData.password} onChange={handleInputChange} required />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Confirm Password</label>
+                <input type="password" className="form-control" name="passwordConfirm" value={formData.passwordConfirm} onChange={handleInputChange} required />
+              </div>
+            </div>
+            <div className="row g-3 mb-3">
+              <div className="col-md-6">
+                <label className="form-label">State</label>
+                <input type="text" className="form-control" name="state" value={formData.state} onChange={handleInputChange} required />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Country</label>
+                <input type="text" className="form-control" name="country" value={formData.country} onChange={handleInputChange} required />
+              </div>
+            </div>
+            <div className="row g-3 mb-3">
+              <div className="col-md-6">
+                <label className="form-label">Assign</label>
+                <select className="form-select" name="assign" value={formData.assign} onChange={handleInputChange} required>
+                  <option value="Not Assign">Not Assign</option>
+                  <option value="Production">Designer</option>
+                  <option value="Employee">Production</option>
+                </select>
+              </div>
+          
+              <div className="col-md-6">
+              <label className="form-label">Role Name</label>
+              <select
+                className="form-select"
+                name="role"
+                value={formData.role}
+                onChange={handleInputChange}
+                required
+              >
+                <option value="">Select a role</option>
+                <option value="Admin">Admin</option>
+                <option value="Client">Client</option>
+                <option value="Production">Production</option>
+                <option value="Employee">Employee</option>
+              </select>
+            </div>
+            </div>
+            
+
+            <div className="mb-4">
+              <label className="form-label">permissions (Select Only One)</label>
+              <div className="row g-3">
+                {Object.keys(formData.permissions).map((key) => (
+                  <div className="col-md-6" key={key}>
+                    <div className="form-check">
+                      <input
+                        type="checkbox"
+                        className="form-check-input"
+                        name={key}
+                        checked={formData.permissions[key]}
+                        onChange={handlePermissionChange}
+                      />
+                      <label className="form-check-label text-capitalize">
+                        {key.replace(/([A-Z])/g, ' $1')}
+                      </label>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label className="form-label">Access Level</label>
+              <div>
+                {['fullAccess', 'limitedAccess', 'viewOnly'].map((level) => (
+                  <div className="form-check" key={level}>
+                    <input
+                      type="radio"
+                      className="form-check-input"
+                      name="accessLevel"
+                      value={level}
+                      checked={formData.accessLevel === level}
+                      onChange={handleaccessLevelChange}
+                    />
+                    <label className="form-check-label text-capitalize">{level.replace(/([A-Z])/g, ' $1')}</label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="d-flex justify-content-end gap-2">
+              <button type="button" className="btn btn-outline-secondary" onClick={handleCancel}>Cancel</button>
+              <button type="submit" className="btn btn-dark">Create User</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default UserRoleModal;
+
+
+
+
+
+
+
+
+
+
+
+
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import axios from 'axios';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchusers, SignUp, UpdateUsers, updateusers } from '../../../redux/slices/userSlice';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+function UserRoleModal() {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const { id } = useParams();
+  const location = useLocation();
+  const { user } = location.state || {};
+  const _id = user?._id;
+    console.log("hhhhhhhhhh", user);
+
+    const { userAll, loading, error } = useSelector((state) => state.user);
+  useEffect(() => {
+    dispatch(fetchusers());
+  }, [dispatch]);
+
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    password: '',
+    passwordConfirm: '',
+    role: '',
+    assign: '',
+    state: '',
+    country: '',
+    image: null,
+    permissions: {
+      dashboardAccess: false,
+      clientManagement: false,
+      projectManagement: false,
+      designTools: false,
+      financialManagement: false,
+      userManagement: false,
+      reportGeneration: false,
+      systemSettings: false
+    },
+    accessLevel: ''
+  });
+  const [showPasswordMismatch, setShowPasswordMismatch] = useState(false);
+
+  const handleInputChange = (e) => {
+    const { name, value, type, files } = e.target;
+    if (type === 'file') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: files[0]
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+      // Real-time password match check
+      if (name === 'password' || name === 'passwordConfirm') {
+        setShowPasswordMismatch(
+          name === 'password'
+            ? value !== formData.passwordConfirm && formData.passwordConfirm !== ''
+            : value !== formData.password && value !== ''
+        );
+      }
+    }
+  };
+  useEffect(() => {
+    if (user) {
+      let parsedPermissions = {};
+      let parsedAccessLevel = 'fullAccess';
+
+      try {
+        parsedPermissions = typeof user.permissions === 'string'
+          ? JSON.parse(user.permissions)
+          : user.permissions || {};
+
+        const accessLevelData = typeof user.accessLevel === 'string'
+          ? JSON.parse(user.accessLevel)
+          : {};
+
+        parsedAccessLevel = Object.keys(accessLevelData).find(key => accessLevelData[key]) || 'fullAccess';
+      } catch (error) {
+        console.error('Error parsing permissions or access level:', error);
+      }
+
+      setFormData({
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        password: '',
+        passwordConfirm: '',
+        state: user.state || '',
+        country: user.country || '',
+        assign: user.assign || 'Not Assign',
+        image: user.image || null,
+        role: user.role?.charAt(0).toUpperCase() + user.role?.slice(1).toLowerCase() || '',
+        permissions: {
+          dashboardAccess: false,
+          clientManagement: false,
+          projectManagement: false,
+          designTools: false,
+          financialManagement: false,
+          userManagement: false,
+          reportGeneration: false,
+          systemSettings: false,
+          ...parsedPermissions
+        },
+        accessLevel: parsedAccessLevel
+      });
+
+    }
+  }, [user]);
+
+  const handlePermissionChange = (e) => {
+    const { name } = e.target;
+    const updatedpermissions = Object.fromEntries(
+      Object.keys(formData.permissions).map((key) => [key, key === name])
+    );
+    setFormData(prev => ({
+      ...prev,
+      permissions: updatedpermissions
+    }));
+  };
+
+  const handleaccessLevelChange = (e) => {
+    setFormData(prev => ({
+      ...prev,
+      accessLevel: e.target.value
+    }));
+  };
+  
+const handleSubmit = (e) => {
+  e.preventDefault();
+
+  if (formData.password !== formData.passwordConfirm) {
+    toast.error('Passwords do not match!');
+    return;
+  }
+
+  const filteredpermissions = Object.fromEntries(
+    Object.entries(formData.permissions).filter(([_, value]) => value === true)
+  );
+
+  const accessLevelPayload = {
+    fullAccess: formData.accessLevel === 'fullAccess',
+    limitedAccess: formData.accessLevel === 'limitedAccess',
+    viewOnly: formData.accessLevel === 'viewOnly'
+  };
+
+  // Use FormData to send image as binary
+  const data = new FormData();
+  data.append('firstName', formData.firstName);
+  data.append('lastName', formData.lastName);
+  data.append('email', formData.email);
+  data.append('phone', formData.phone);
+  data.append('password', formData.password);
+  data.append('passwordConfirm', formData.passwordConfirm);
+  data.append('state', formData.state);
+  data.append('country', formData.country);
+  data.append('assign', formData.assign);
+  data.append('role', formData.role);
+  data.append('permissions', JSON.stringify(filteredpermissions));
+  data.append('accessLevel', JSON.stringify(accessLevelPayload));
+  if (formData.image && typeof formData.image !== 'string') {
+    data.append('image', formData.image);
+  }
+
+  console.log('Payload to be sent (FormData):', data);
+
+  if (_id) {
+    // For update, you may need to adjust the action to accept FormData
+       dispatch(UpdateUsers({ _id, data }))
+      .unwrap()
+      .then(() => {
+        toast.success("User updated successfully!");
+        navigate('/admin/ProjectOverview', { state: { openTab: 'users' } });
+        dispatch(fetchusers());
+      })
+      .catch(() => {
+        toast.error("Failed to update user!");
+      });
+  } else {
+    dispatch(SignUp(data))
+      .unwrap()
+      .then(() => {
+        toast.success("User created successfully!");
+        navigate('/admin/UserRoles', { state: { openTab: 'users' } });
+        dispatch(fetchusers());
+      })
+      .catch(() => {
+        toast.error("Error creating user");
+      });
+  }
+};
+
+
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+
+  //   const filteredpermissions = Object.fromEntries(
+  //     Object.entries(formData.permissions).filter(([_, value]) => value === true)
+  //   );
+
+  //   const payload = {
+  //     role: formData.role,
+  //     roleDescription: formData.roleDescription,
+  //     permissions: filteredpermissions,
+  //     accessLevel: formData.accessLevel
+  //   };
+
+  //   console.log('Payload to be sent:', payload);
+  //   try {
+  //     await axios.post('/api/roles', payload);
+  //     navigate(-1);
+  //   } catch (error) {
+  //     console.error('Error submitting form:', error);
+  //     alert('Failed to create role. Please try again.');
+  //   }
+  // };
+
+  const handleCancel = () => {
+    navigate(-1);
+  };
+
+  return (
+    <div className="container py-4">
+      <div className="card shadow-sm">
+        <div className="card-body">
+          <h5 className="card-title mb-4">Add New User</h5>
+          <form onSubmit={handleSubmit}>
+          
+          <div style={{display:"flex",alignItems:"center",justifyContent:"center"}}>
+             {formData.image && (
+                  <img src={typeof formData.image === 'string' ? formData.image : URL.createObjectURL(formData.image)} alt="Preview" className="img-thumbnail mt-2" style={{ maxWidth: '120px' }} />
+                )}
+          </div>
+          <div className="col-md-6">
+                <label className="form-label">Profile Image</label>
+                <input type="file" className="form-control" name="image" accept="image/*" onChange={handleInputChange} />
+               
+              </div>
+            <div className="row g-3 mb-3">
+              <div className="col-md-6">
+                <label className="form-label">First Name</label>
+                <input type="text" className="form-control" name="firstName" value={formData.firstName} onChange={handleInputChange} required />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Last Name</label>
+                <input type="text" className="form-control" name="lastName" value={formData.lastName} onChange={handleInputChange} required />
+              </div>
+            </div>
+            <div className="row g-3 mb-3">
+              <div className="col-md-6">
+                <label className="form-label">Email</label>
+                <input type="email" className="form-control" name="email" value={formData.email} onChange={handleInputChange} required />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Phone</label>
+                <input type="text" className="form-control" name="phone" value={formData.phone} onChange={handleInputChange} required />
+              </div>
+            </div>
+            <div className="row g-3 mb-3">
+              <div className="col-md-6">
+                <label className="form-label">Password</label>
+                <input type="password" className="form-control" name="password" value={formData.password} onChange={handleInputChange} required />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Confirm Password</label>
+                <input type="password" className="form-control" name="passwordConfirm" value={formData.passwordConfirm} onChange={handleInputChange} required />
+                {showPasswordMismatch && (
+                  <div style={{ color: 'red', fontSize: '0.9em' }}>Passwords do not match!</div>
+                )}
+              </div>
+            </div>
+            <div className="row g-3 mb-3">
+              <div className="col-md-6">
+                <label className="form-label">State</label>
+                <input type="text" className="form-control" name="state" value={formData.state} onChange={handleInputChange} required />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Country</label>
+                <input type="text" className="form-control" name="country" value={formData.country} onChange={handleInputChange} required />
+              </div>
+            </div>
+            <div className="row g-3 mb-3">
+              <div className="col-md-6">
+                <label className="form-label">Assign</label>
+                <select className="form-select" name="assign" value={formData.assign} onChange={handleInputChange} required>
+                  <option value="Not Assign">Not Assign</option>
+                  <option value="Designer">Designer</option>
+                  <option value="Production">Production</option>
+                </select>
+              </div>
+          
+              <div className="col-md-6">
+              <label className="form-label">Role Name</label>
+              <select
+                className="form-select"
+                name="role"
+                value={formData.role}
+                onChange={handleInputChange}
+                required
+              >
+                <option value="">Select a role</option>
+                <option value="admin">Admin</option>
+                <option value="client">Client</option>
+                <option value="production">Production</option>
+                <option value="employee">Employee</option>
+              </select>
+            </div>
+            </div>
+            
+
+            <div className="mb-4">
+              <label className="form-label">permissions (Select Only One)</label>
+              <div className="row g-3">
+                {Object.keys(formData.permissions).map((key) => (
+                  <div className="col-md-6" key={key}>
+                    <div className="form-check">
+                      <input
+                        type="checkbox"
+                        className="form-check-input"
+                        name={key}
+                        checked={formData.permissions[key]}
+                        onChange={handlePermissionChange}
+                      />
+                      <label className="form-check-label text-capitalize">
+                        {key.replace(/([A-Z])/g, ' $1')}
+                      </label>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label className="form-label">Access Level</label>
+              <div>
+                {['fullAccess', 'limitedAccess', 'viewOnly'].map((level) => (
+                  <div className="form-check" key={level}>
+                    <input
+                      type="radio"
+                      className="form-check-input"
+                      name="accessLevel"
+                      value={level}
+                      checked={formData.accessLevel === level}
+                      onChange={handleaccessLevelChange}
+                    />
+                    <label className="form-check-label text-capitalize">{level.replace(/([A-Z])/g, ' $1')}</label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="d-flex justify-content-end gap-2">
+              <button type="button" className="btn btn-outline-secondary" onClick={handleCancel}>Cancel</button>
+              <button type="submit" className="btn btn-dark">Create User</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default UserRoleModal;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { useDispatch } from 'react-redux';
+import { createClients, fetchClient, UpdateClients } from '../../../redux/slices/ClientSlice';
+import "react-toastify/dist/ReactToastify.css";
+
+
+function AddClientManagement() {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { id } = useParams(); // for edit mo
+  const location = useLocation();
+  const { client } = location.state || {};
+  const _id = client?._id 
+  console.log("oo",_id);
+  // Initial form state
+  const [formData, setFormData] = useState({
+    clientName: '',
+    industry: '',
+    website: '',
+    clientAddress: '',
+    TaxID_VATNumber: '',
+    CSRCode: '',
+    Status: ''
+  });
+
+  // Contact persons state
+  const [contactPersons, setContactPersons] = useState([
+    {
+      contactName: '',
+      jobTitle: '',
+      email: '',
+      phone: '',
+      department: '',
+      salesRepresentative: ''
+    }
+  ]);
+
+  // Billing information state
+  const [billingInformation, setBillingInformation] = useState([
+    {
+      billingAddress: '',
+      billingContactName: '',
+      billingEmail: '',
+      billingPhone: '',
+      currency: '',
+      preferredPaymentMethod: ''
+    }
+  ]);
+  // Shipping information state
+  const [shippingInformation, setShippingInformation] = useState([
+    {
+      shippingAddress: '',
+      shippingContactName: '',
+      shippingEmail: '',
+      shippingPhone: '',
+      preferredShippingMethod: '',
+      specialInstructions: ''
+    }
+  ]);
+  // Financial information state
+  const [financialInformation, setFinancialInformation] = useState([
+    {
+      annualRevenue: '',
+      creditRating: '',
+      bankName: '',
+      accountNumber: '',
+      fiscalYearEnd: '',
+      financialContact: ''
+    }
+  ]);
+
+  // Ledger information state
+  const [ledgerInformation, setLedgerInformation] = useState([
+    {
+      accountCode: '',
+      accountType: '',
+      openingBalance: '',
+      balanceDate: '',
+      taxCategory: '',
+      costCenter: ''
+    }
+  ]);
+
+  // Additional information state
+  const [additionalInformation, setAdditionalInformation] = useState({
+    paymentTerms: '',
+    creditLimit: '',
+    notes: ''
+  });
+
+
+  useEffect(() => {
+    const updateStates = (clientData) => {
+      setFormData({
+        clientName: clientData.clientName || '',
+        industry: clientData.industry || '',
+        website: clientData.website || '',
+        clientAddress: clientData.clientAddress || '',
+        TaxID_VATNumber: clientData.TaxID_VATNumber || '',
+        CSRCode: clientData.CSRCode || '',
+        Status: clientData.Status || ''
+      });
+
+      setContactPersons(clientData.contactPersons || []);
+      setBillingInformation(clientData.billingInformation || []);
+      setShippingInformation(clientData.shippingInformation || []);
+      setFinancialInformation(clientData.financialInformation || []);
+      setLedgerInformation(clientData.ledgerInformation || []);
+      setAdditionalInformation(clientData.additionalInformation || {
+        paymentTerms: '',
+        creditLimit: '',
+        notes: ''
+      });
+    };
+
+    if (client) {
+      updateStates(client);
+    } else if (id) {
+      dispatch(fetchclientById(id)).then((res) => {
+        const fetchedclient = res.payload;
+        if (fetchedclient) {
+          updateStates(fetchedclient);
+        }
+      });
+    }
+  }, [id, dispatch, client]);
+
+
+
+  // Handle basic form field changes
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Handle contact person changes
+  const handleContactChange = (index, e) => {
+    const { name, value } = e.target;
+    const updatedContacts = [...contactPersons];
+    updatedContacts[index] = {
+      ...updatedContacts[index],
+      [name]: value
+    };
+    setContactPersons(updatedContacts);
+  };
+
+  // Handle billing information changes
+  const handleBillingChange = (index, e) => {
+    const { name, value } = e.target;
+    const updatedBilling = [...billingInformation];
+    updatedBilling[index] = {
+      ...updatedBilling[index],
+      [name]: value
+    };
+    setBillingInformation(updatedBilling);
+  };
+
+  // Handle shipping information changes
+  const handleShippingChange = (index, e) => {
+    const { name, value } = e.target;
+    const updatedShipping = [...shippingInformation];
+    updatedShipping[index] = {
+      ...updatedShipping[index],
+      [name]: value
+    };
+    setShippingInformation(updatedShipping);
+  };
+
+  // Handle financial information changes
+  const handleFinancialChange = (index, e) => {
+    const { name, value } = e.target;
+    const updatedFinancial = [...financialInformation];
+    updatedFinancial[index] = {
+      ...updatedFinancial[index],
+      [name]: value
+    };
+    setFinancialInformation(updatedFinancial);
+  };
+
+  // Handle ledger information changes
+  const handleLedgerChange = (index, e) => {
+    const { name, value } = e.target;
+    const updatedLedger = [...ledgerInformation];
+    updatedLedger[index] = {
+      ...updatedLedger[index],
+      [name]: value
+    };
+    setLedgerInformation(updatedLedger);
+  };
+
+
+  const handleAdditionalChange = (e) => {
+    const { name, value } = e.target;
+    setAdditionalInformation(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const fullData = {
+      ...formData,
+      contactPersons,
+      billingInformation,
+      shippingInformation,
+      financialInformation,
+      ledgerInformation,
+      additionalInformation
+    };
+    console.log('Full Data Object:', fullData);
+    if (_id) {
+      dispatch(UpdateClients({ _id, data: fullData }))
+        .unwrap()
+        .then(() => {
+          toast.success("clientupdated successfully!");
+          navigate("/admin/clientManagement");
+          dispatch(fetchClient());
+        })
+        .catch(() => {
+          toast.error("Failed to update client!");
+        });
+    } else {
+      dispatch(createClients(fullData))
+        .unwrap()
+        .then(() => {
+          toast.success("clientcreated successfully!");
+          navigate("/admin/clientManagement");
+          dispatch(fetchClient());
+        })
+        .catch(() => {
+          toast.error("Error creating client");
+        });
+    }
+  };
+
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+
+  //   const fullData = {
+  //     ...formData,
+  //     contactPersons,
+  //     billingInformation,
+  //     shippingInformation,
+  //     financialInformation,
+  //     ledgerInformation,
+  //     additionalInformation
+  //   };
+  //         dispatch(createClients(fullData))
+  //       .unwrap()
+  //       .then(() => {
+  //         toast.success("clientcreated successfully!");
+  //         navigate("/clientManagement");
+  //       })
+  //       .catch(() => {
+  //         toast.error("Error creating client");
+  //       });
+
+  // };
+
+  return (
+    <>
+      <ToastContainer />
+      <div className="container mt-5">
+        <div className="card shadow-sm">
+          <div className="card-body">
+            {/* <h1 className="card-title h4 mb-4">Add Company</h1> */}
+            <h2 className="mb-4">{id || client?._id ? "Edit client" : "New Company (Client)"}</h2>
+            <form className="row g-3" onSubmit={handleSubmit}>
+              <div className='col-md-3'>  <h6 className="mb-3">Client/Supplier Information</h6></div>
+              <div className="col-md-6"></div>
+              <div className="col-md-6">
+                <label className="form-label">Name</label>
+                <input required type="text" name="clientName" value={formData.clientName} onChange={handleChange} className="form-control" placeholder="Enter  name" />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Industry</label>
+                <select className="form-select" name="industry" required value={formData.industry} onChange={handleChange}>
+                  <option value="">Select industry</option>
+                  <option value="manufacturing">Manufacturing</option>
+                  <option value="tech">Technology</option>
+                  <option value="retail">Retail</option>
+                </select>
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Website</label>
+                <input required type="url" name="website" value={formData.website} onChange={handleChange} className="form-control" placeholder="https://" />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Client Address</label>
+                <textarea required className="form-control" name="clientAddress" value={formData.clientAddress} onChange={handleChange}></textarea>
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Tax ID/VAT Number</label>
+                <input required type="text" name="TaxID_VATNumber" value={formData.TaxID_VATNumber} onChange={handleChange} className="form-control" />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">CSR Code</label>
+                <input type="text" name="CSRCode" required value={formData.CSRCode} onChange={handleChange} className="form-control" />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Status</label>
+                <select
+                  className="form-select"
+                  name="Status"
+                  required
+                  value={formData.Status}
+                  onChange={handleChange}
+                >
+                  <option value="">Select Status</option> {/* empty option for forcing selection */}
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+              </div>
+
+              <div className='col-md-12 row'>
+                <h5 className="mb-3 mt-4">Contact Persons</h5>
+
+                {contactPersons.map((contact, index) => (
+                  <div className="border p-3 mb-3" key={index}>
+                    <div className="row">
+                      <div className="col-md-6">
+                        <label className="form-label">Contact Name</label>
+                        <input
+                          type="text"
+                          name="contactName"
+                          required
+                          value={contact.contactName}
+                          onChange={(e) => handleContactChange(index, e)}
+                          className="form-control"
+                          placeholder="Enter Contact Name"
+                        />
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label">Job Title</label>
+                        <input
+                          type="text"
+                          name="jobTitle"
+                          required
+                          value={contact.jobTitle}
+                          onChange={(e) => handleContactChange(index, e)}
+                          className="form-control"
+                          placeholder="Enter Job Title"
+                        />
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label">Email</label>
+                        <input
+                          type="email"
+                          name="email"
+                          required
+                          value={contact.email}
+                          onChange={(e) => handleContactChange(index, e)}
+                          className="form-control"
+                          placeholder="Enter Email"
+                        />
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label">Phone</label>
+                        <input
+                          type="tel"
+                          name="phone"
+                          required
+                          value={contact.phone}
+                          onChange={(e) => handleContactChange(index, e)}
+                          className="form-control"
+                          placeholder="Enter Phone"
+                        />
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label">Department</label>
+                        <input
+                          type="text"
+                          name="department"
+                          required
+                          value={contact.department}
+                          onChange={(e) => handleContactChange(index, e)}
+                          className="form-control"
+                          placeholder="Enter Department"
+                        />
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label">Sales Representative</label>
+                        <input
+                          type="text"
+                          name="salesRepresentative"
+                          required
+                          value={contact.salesRepresentative}
+                          onChange={(e) => handleContactChange(index, e)}
+                          className="form-control"
+                          placeholder="Enter Sales Representative"
+                        />
+                      </div>
+
+                      <div className="col-md-12 mt-2 d-flex justify-content-end">
+                        {contactPersons.length > 1 && (
+                          <button
+                            type="button"
+                            className="btn btn-danger btn-sm"
+                            onClick={() => {
+                              const updatedContacts = [...contactPersons];
+                              updatedContacts.splice(index, 1);
+                              setContactPersons(updatedContacts);
+                            }}
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Add More Button */}
+                <div className="mb-3">
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={() => {
+                      setContactPersons([
+                        ...contactPersons,
+                        {
+                          contactName: '',
+                          jobTitle: '',
+                          email: '',
+                          phone: '',
+                          department: '',
+                          salesRepresentative: ''
+                        }
+                      ]);
+                    }}
+                  >
+                    + Add Another Contact
+                  </button>
+                </div>
+              </div>
+
+              {/* Billing Information */}
+              <div className='col-md-12 row'>
+                <h5 className="mb-3 mt-4">Billing Information</h5>
+                <div className="col-md-12">
+                  <label className="form-label">Billing Address</label>
+                  <textarea className="form-control" rows="3" name="billingAddress" required value={billingInformation[0].billingAddress} onChange={(e) => handleBillingChange(0, e)}></textarea>
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Billing Contact Name</label>
+                  <input type="text" className="form-control" name="billingContactName" required value={billingInformation[0].billingContactName} onChange={(e) => handleBillingChange(0, e)} />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Billing Email</label>
+                  <input type="email" className="form-control" name="billingEmail" required value={billingInformation[0].billingEmail} onChange={(e) => handleBillingChange(0, e)} />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Billing Phone</label>
+                  <input type="tel" className="form-control" name="billingPhone" required value={billingInformation[0].billingPhone} onChange={(e) => handleBillingChange(0, e)} />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Currency</label>
+                  <select className="form-select" name="currency" required value={billingInformation[0].currency} onChange={(e) => handleBillingChange(0, e)}>
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="GBP">GBP</option>
+                  </select>
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Preferred Payment Method</label>
+                  <select className="form-select" name="preferredPaymentMethod" required value={billingInformation[0].preferredPaymentMethod} onChange={(e) => handleBillingChange(0, e)}>
+                    <option value="">Select Payment Method</option>
+                    <option value="BankTransfer">BankTransfer</option>
+                    <option value="CreditCard">CreditCard</option>
+                    <option value="Check">Check</option>
+                  </select>
+                </div>
+
+                {/* Shipping Information */}
+                <h5 className="mb-3 mt-4">Shipping Information</h5>
+                <div className="col-md-12">
+                  <label className="form-label">Shipping Address</label>
+                  <textarea className="form-control" rows="3" name="shippingAddress" required value={shippingInformation[0].shippingAddress} onChange={(e) => handleShippingChange(0, e)}></textarea>
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Shipping Contact Name</label>
+                  <input type="text" className="form-control" name="shippingContactName" required value={shippingInformation[0].shippingContactName} onChange={(e) => handleShippingChange(0, e)} />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Shipping Email</label>
+                  <input type="email" className="form-control" name="shippingEmail" required value={shippingInformation[0].shippingEmail} onChange={(e) => handleShippingChange(0, e)} />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Shipping Phone</label>
+                  <input type="tel" className="form-control" name="shippingPhone" required value={shippingInformation[0].shippingPhone} onChange={(e) => handleShippingChange(0, e)} />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Preferred Shipping Method</label>
+                  <select className="form-select" name="preferredShippingMethod" required value={shippingInformation[0].preferredShippingMethod} onChange={(e) => handleShippingChange(0, e)}>
+                    <option value="">Select Shipping Method</option>
+                    <option value="Standard">Standard</option>
+                    <option value="Express">Express</option>
+                    <option value="Overnight">Overnight</option>
+                    <option value="Ground">Ground</option>
+                  </select>
+                </div>
+                <div className="col-md-12">
+                  <label className="form-label">Special Instructions</label>
+                  <textarea className="form-control" rows="3" name="specialInstructions" required value={shippingInformation[0].specialInstructions} onChange={(e) => handleShippingChange(0, e)}></textarea>
+                </div>
+
+                {/* Financial Information */}
+                <h5 className="mb-3 mt-4">Financial Information</h5>
+                <div className="col-md-6">
+                  <label className="form-label">Annual Revenue</label>
+                  <input type="number" className="form-control" name="annualRevenue" required value={financialInformation[0].annualRevenue} onChange={(e) => handleFinancialChange(0, e)} />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Credit Rating</label>
+                  <input type="text" className="form-control" name="creditRating" required value={financialInformation[0].creditRating} onChange={(e) => handleFinancialChange(0, e)} />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Bank Name</label>
+                  <input type="text" className="form-control" name="bankName" required value={financialInformation[0].bankName} onChange={(e) => handleFinancialChange(0, e)} />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Account Number</label>
+                  <input type="text" className="form-control" name="accountNumber" required value={financialInformation[0].accountNumber} onChange={(e) => handleFinancialChange(0, e)} />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Fiscal Year End</label>
+                  <input type="date" className="form-control" name="fiscalYearEnd" required value={financialInformation[0].fiscalYearEnd} onChange={(e) => handleFinancialChange(0, e)} />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Financial Contact</label>
+                  <input type="text" className="form-control" name="financialContact" required value={financialInformation[0].financialContact} onChange={(e) => handleFinancialChange(0, e)} />
+                </div>
+
+                {/* Ledger Information */}
+                <h5 className="mb-3 mt-4">Ledger Information</h5>
+                <div className="col-md-6">
+                  <label className="form-label">Account Code</label>
+                  <input type="text" className="form-control" name="accountCode" required value={ledgerInformation[0].accountCode} onChange={(e) => handleLedgerChange(0, e)} />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Account Type</label>
+                  <select className="form-select" name="accountType" required value={ledgerInformation[0].accountType} onChange={(e) => handleLedgerChange(0, e)}>
+                    <option value="">Select Account Type</option>
+                    <option value="AccountsReceivable">AccountsReceivable</option>
+                    <option value="AccountsPayable">AccountsPayable</option>
+                  </select>
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Opening Balance</label>
+                  <input type="number" className="form-control" name="openingBalance" required value={ledgerInformation[0].openingBalance} onChange={(e) => handleLedgerChange(0, e)} />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Balance Date</label>
+                  <input type="date" className="form-control" name="balanceDate" required value={ledgerInformation[0].balanceDate} onChange={(e) => handleLedgerChange(0, e)} />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Tax Category</label>
+                  <select className="form-select" name="taxCategory" required value={ledgerInformation[0].taxCategory} onChange={(e) => handleLedgerChange(0, e)}>
+                    <option value="standard">Standard Rate</option>
+                    <option value="reduced">Reduced Rate</option>
+                    <option value="zero">Zero Rate</option>
+                  </select>
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Cost Center</label>
+                  <input type="text" className="form-control" name="costCenter" required value={ledgerInformation[0].costCenter} onChange={(e) => handleLedgerChange(0, e)} />
+                </div>
+
+                {/* Additional Information */}
+                <h5 className="mb-3 mt-4">Additional Information</h5>
+                <div className="col-md-6">
+                  <label className="form-label">Payment Terms</label>
+                  <select
+                    className="form-select"
+                    name="paymentTerms"
+                    required
+                    value={additionalInformation.paymentTerms}
+                    onChange={handleAdditionalChange}
+                  >
+                    <option value="">Select Payment Terms</option>  {/* <-- placeholder */}
+                    <option value="net30">Net 30</option>
+                    <option value="net60">Net 60</option>
+                    <option value="net90">Net 90</option>
+                  </select>
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label">Credit Limit</label>
+                  <input type="number" className="form-control" name="creditLimit" required value={additionalInformation.creditLimit} onChange={handleAdditionalChange} />
+                </div>
+              </div>
+              <div className="col-md-12">
+                <label className="form-label">Notes</label>
+                <textarea className="form-control" rows="3" name="notes" required value={additionalInformation.notes} onChange={handleAdditionalChange} placeholder="Additional notes"></textarea>
+              </div>
+
+
+              <div className="col-12 d-flex justify-content-end gap-2 mt-4">
+                <button type="button" className="btn btn-outline-secondary">Cancel</button>
+                <button type="submit" id="btn-All" className="btn btn-dark">{id || client?._id ? "Update client" : "Create"}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </>
+
+  );
+}
+
+export default AddClientManagement;
+

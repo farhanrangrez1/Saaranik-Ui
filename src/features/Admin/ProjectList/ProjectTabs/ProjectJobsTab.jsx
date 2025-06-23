@@ -77,6 +77,7 @@ function ProjectJobsTab() {
   useEffect(() => {
     dispatch(fetchusers());
   }, [dispatch]);
+
   const [currentAssignment, setCurrentAssignment] = useState(1);
   const itemsAssignment = 10;
 
@@ -411,7 +412,7 @@ function ProjectJobsTab() {
                       </span>
                     </td>
                     <td>{new Date(job?.createdAt).toLocaleDateString('en-GB').replace(/\/20/, '/')}</td>
-                    <td style={{ whiteSpace: 'nowrap' }}>{job.assign}</td>
+                    <td style={{ whiteSpace: 'nowrap' }}>{job.assignedTo}</td>
                     <td>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
                     {/* <th>
                                         <Button id='All_btn' variant="success" style={{ width: "130px" }} size="sm" >

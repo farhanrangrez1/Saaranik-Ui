@@ -18,8 +18,8 @@ const currencies = [
   { label: "SAR - Saudi Riyal", value: "SAR" },
 ];
 
-const poStatuses = ["Approved", "pending", "Rejected"];
-const statuses = ["Active", "Inactive", "Completed"];
+const poStatuses = ["PO Status", "Approved", "pending", "Rejected"];
+const statuses = ["Status Select", "Active", "Inactive", "Completed"];
 
 function AddCostEstimates() {
   const location = useLocation();
@@ -283,12 +283,16 @@ function AddCostEstimates() {
                   onChange={handleFormChange}
                   required
                 >
-                  {poStatuses.map((status) => (
+                  <option value="" disabled>
+                    PO Status
+                  </option>
+                  {poStatuses.slice(1).map((status) => (
                     <option key={status} value={status}>
                       {status}
                     </option>
                   ))}
                 </select>
+
               </div>
 
               <div className="col-md-4 mb-3">
@@ -300,12 +304,16 @@ function AddCostEstimates() {
                   onChange={handleFormChange}
                   required
                 >
-                  {statuses.map((status) => (
+                  <option value="" disabled>
+                    Status Select
+                  </option>
+                  {statuses.slice(1).map((status) => (
                     <option key={status} value={status}>
                       {status}
                     </option>
                   ))}
                 </select>
+
               </div>
             </div>
 

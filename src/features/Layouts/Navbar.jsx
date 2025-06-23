@@ -53,7 +53,6 @@ const Navbar = ({ toggleSidebar }) => {
 
   // decodeTokenAndLog.js SingleUser
   const { UserSingle, loading, error } = useSelector((state) => state.user);
-  console.log("zz", UserSingle);
   useEffect(() => {
     dispatch(SingleUser());
   }, [dispatch]);
@@ -72,11 +71,15 @@ const Navbar = ({ toggleSidebar }) => {
           <div className="dropdown profile-dropdown d-none d-md-block">
             <div className="profile-trigger" data-bs-toggle="dropdown" aria-expanded="false">
               <div className="profile-info" >
-                <span className="profile-name">{UserSingle.firstName} {UserSingle.lastName}</span>
-                <span className="profile-role">{UserSingle.email}</span>
+                <span className="profile-name">{UserSingle?.firstName} {UserSingle?.lastName}</span>
+                <span className="profile-role">{UserSingle?.email}</span>
               </div>
               <div className="profile-avatar">
-                <img src="https://wac-cdn.atlassian.com/dam/jcr:ba03a215-2f45-40f5-8540-b2015223c918/Max-R_Headshot%20(1).jpg?cdnVersion=2654" alt="profile" />
+                {/* <img src="https://wac-cdn.atlassian.com/dam/jcr:ba03a215-2f45-40f5-8540-b2015223c918/Max-R_Headshot%20(1).jpg?cdnVersion=2654" alt="profile" /> */}
+                <img
+                  src={UserSingle?.profileImage && UserSingle?.profileImage.length > 0 ? UserSingle?.profileImage[0] : '/default-profile.png'}
+                  style={{ width: '40px', height: '40px', borderRadius: '50%', marginRight: "25px" }}
+                />
               </div>
             </div>
 

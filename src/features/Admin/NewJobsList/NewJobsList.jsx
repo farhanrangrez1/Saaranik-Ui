@@ -107,7 +107,6 @@ function NewJobsList() {
       return;
     }
     setShowRejectModal(true);
-
   };
 
 
@@ -423,6 +422,7 @@ function NewJobsList() {
               <th>PackCode</th>
               <th>TimeLogged</th>
               <th>Due Date</th>
+              <th>assigned</th>
               <th>Priority</th>
               <th>Status</th>
               <th>Actions</th>
@@ -459,6 +459,7 @@ function NewJobsList() {
                 <td style={{ whiteSpace: "nowrap" }}>
                   {new Date(job.createdAt).toLocaleDateString("en-GB")}
                 </td>
+                <td style={{ whiteSpace: 'nowrap' }}>{job?.assignedTo}</td>
                 <td>
                   <span className={getPriorityClass(job.priority)}>{job.priority}</span>
                 </td>
@@ -469,7 +470,7 @@ function NewJobsList() {
                 </td>
                 <td>
                   <div className="d-flex gap-2">
-                    <Button id="icone_btn" size="sm">
+                    {/* <Button id="icone_btn" size="sm">
                       <FaFilePdf />
                     </Button>
                     <Button id="icone_btn" size="sm">
@@ -480,7 +481,7 @@ function NewJobsList() {
                     </Button>
                     <Button id="icone_btn" size="sm">
                       <FaClock />
-                    </Button>
+                    </Button> */}
                     <Button id="icone_btn" size="sm" onClick={() => handleUpdate(job)}>
                       <FaEdit />
                     </Button>

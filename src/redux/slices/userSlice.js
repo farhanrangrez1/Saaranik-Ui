@@ -27,37 +27,20 @@ export const usersLogin = createAsyncThunk(
   }
 );
 
-export const deleteusers = createAsyncThunk(
-  'users/deleteusers',
-  async (id, { rejectWithValue }) => {
+export const SignUp = createAsyncThunk(
+  'users/SignUp',
+  async (payload, { rejectWithValue }) => {
     try {
-      await axiosInstance.delete(`${apiUrl}/user/${id}`);
-      return id;
+      const response = await axiosInstance.post(`${apiUrl}/user`, payload);
+      return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
     }
   }
 );
-// 
-export const fetchusersById = createAsyncThunk('user/fetchById', async (id) => {
-  const response = await patch(`${apiUrl}/user/${id}`);
-  if (!response.ok) throw new Error("Failed to fetch users");
-  return await response.json();
-});
-
-export const updateusers = createAsyncThunk('user/updateusers', async ({ id, data }) => {
-  const response = await fetch(`/user/${id}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  if (!response.ok) throw new Error("Failed to update users");
-  return await response.json();
-});
-
 
 export const SingleUser = createAsyncThunk(
-  'ProjectJob/fetchMyJobs',
+  'UserSingle/SingleUser',
   async (Status, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem('encode');
@@ -87,7 +70,6 @@ export const SingleUser = createAsyncThunk(
     }
   }
 );
-
 
 export const ResetPasswordThunk = createAsyncThunk(
   'user/ResetPassword',
@@ -124,6 +106,39 @@ export const forgotPasswordThunk = createAsyncThunk(
     }
   }
 );
+
+
+export const UpdateUsers = createAsyncThunk(
+  'users/UpdateUsers',
+  async ({ _id, data }, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.patch(`${apiUrl}/user/${_id}`, data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+export const deleteusers = createAsyncThunk(
+  'users/deleteusers',
+  async (_id, { rejectWithValue }) => {
+    try {
+      await axiosInstance.delete(`${apiUrl}/user/${_id}`);
+      return _id;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+export const updateusers = createAsyncThunk('user/updateusers', async ({ _id, data }) => {
+  const response = await axios.patch(`${apiUrl}/user/${_id}`, data);
+  return response.data;
+});
+
+
+
 
 const userSlice = createSlice({
   name: 'user',
@@ -176,8 +191,6 @@ const userSlice = createSlice({
         state.status = 'failed';
         state.error = action.payload;
       })
-
-
 
     //   .addCase(createusers.fulfilled, (state, action) => {
     //     state.users.push(action.payload);

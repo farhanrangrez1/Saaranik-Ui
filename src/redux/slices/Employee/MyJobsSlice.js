@@ -50,10 +50,42 @@ export const fetchMyJobs = createAsyncThunk(
   }
 );
 
+export const ReturnJob = createAsyncThunk(
+  'DasbordAll/ReturnJob',
+  async ({ jobId }, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem('encode');
+
+      if (!token) {
+        return rejectWithValue("Token or IV is missing in localStorage");
+      }
+
+      const decryptedToken = decryptToken(token);  
+      const tokenParts = decryptedToken.split('.');
+      if (tokenParts.length !== 3) {
+        return rejectWithValue("Invalid token format");
+      }
+
+      const decodedPayload = JSON.parse(atob(tokenParts[1]));
+      const userId = decodedPayload.id;
+
+      const payload = {
+        employeeId: userId,
+        jobId: jobId
+      };
+
+      const response = await axiosInstance.delete(`${apiUrl}/Remove`, { data: payload });
+      return response.data;
+    } catch (error) {
+      console.error("Error occurred while rejecting jobs:", error);
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
 
 
 export const EmployeeDashboardData = createAsyncThunk(
-  'ProjectJob/fetchMyJobs',
+  'DasbordAll/EmployeeDashboardData',
   async (Status, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem('encode');
@@ -159,6 +191,7 @@ const MyJobsSlice = createSlice({
   initialState: {
     myjobs: [],
     ProjectJob: [],
+    DasbordAll:[],
     status: 'idle',
     error: null,
   },
@@ -201,35 +234,21 @@ const MyJobsSlice = createSlice({
         state.status = 'failed';
         state.error = action.payload;
       })
-    //   .addCase(createjob.fulfilled, (state, action) => {
-    //     state.job.push(action.payload);
-    //   })
-    //   .addCase(createjob.rejected, (state, action) => {
-    //     state.status = 'failed';
-    //     state.error = action.payload;
-    //   })
-    //   .addCase(deletejob.fulfilled, (state, action) => {
-    //     state.job = state.job.filter(
-    //       (job) => job.id !== action.payload
-    //     );
-    //   })
-    //   .addCase(deletejob.rejected, (state, action) => {
-    //     state.status = 'failed';
-    //     state.error = action.payload;
-    //   })
+  
 
-    //   .addCase(updatejob.fulfilled, (state, action) => {
-    //     const index = state.job.findIndex(
-    //       (job) => job.id === action.payload.id
-    //     );
-    //     if (index !== -1) {
-    //       state.job[index] = action.payload; 
-    //     }
-    //   })
-    //   .addCase(updatejob.rejected, (state, action) => {
-    //     state.status = 'failed';
-    //     state.error = action.payload;
-    //   });
+    // Dasbord case
+          .addCase(EmployeeDashboardData.pending, (state) => {
+          state.loading = true;
+          state.error = null;
+        })
+        .addCase(EmployeeDashboardData.fulfilled, (state, action) => {
+          state.loading = false;
+          state.DasbordAll.push(action.payload);
+        })
+        .addCase(EmployeeDashboardData.rejected, (state, action) => {
+          state.loading = false;
+          state.error = action.payload;
+        })
   },
 });
 

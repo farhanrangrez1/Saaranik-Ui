@@ -9,7 +9,7 @@ import { Modal, Form, Table, Badge, Dropdown, Button } from "react-bootstrap";
 
 function UserRoles() {
   const dispatch = useDispatch()
-  const navigate =useNavigate()
+  const navigate = useNavigate()
   const [selectedPOStatus, setSelectedPOStatus] = useState("All Roles");
   const [users, setUsers] = useState([
     {
@@ -51,14 +51,14 @@ function UserRoles() {
   // Enhanced filtering logic
   const filteredUsers = (userAll?.data?.users || []).filter(user => {
     const searchLower = searchTerm.toLowerCase().trim();
-    const matchesSearch = !searchTerm || 
+    const matchesSearch = !searchTerm ||
       (user.firstName || '').toLowerCase().includes(searchLower) ||
       (user.lastName || '').toLowerCase().includes(searchLower) ||
       (user.email || '').toLowerCase().includes(searchLower) ||
       (user.role || '').toLowerCase().includes(searchLower) ||
       (user.state || '').toLowerCase().includes(searchLower);
 
-    const matchesRole = selectedPOStatus === "All Roles" || 
+    const matchesRole = selectedPOStatus === "All Roles" ||
       (user.role || '').toLowerCase() === selectedPOStatus.toLowerCase();
 
     return matchesSearch && matchesRole;
@@ -78,6 +78,12 @@ function UserRoles() {
   const handleRoleChange = (role) => {
     setSelectedPOStatus(role);
     setCurrentPage(1);
+  };
+
+  const handlePageChange = (pageNumber) => {
+    if (pageNumber >= 1 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber);
+    }
   };
 
   const handleDeleteUser = (_id) => {
@@ -104,22 +110,47 @@ function UserRoles() {
     });
   }
   const handleEditUser = (user) => {
-  navigate(`/admin/UserRoleModal`, { state: {user} });
+    navigate(`/admin/UserRoleModal`, { state: { user } });
   };
 
+
+
+    const handleDelete = (id) => {
+      Swal.fire({
+        title: "Are you sure?",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, delete it!",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          dispatch(deleteproject(id))
+            .then(() => {
+              Swal.fire("Deleted!", "The document has been deleted.", "success");
+              dispatch(fetchProject());
+            })
+            .catch(() => {
+              Swal.fire("Error!", "Something went wrong.", "error");
+            });
+        }
+      });
+    }
+  
   return (
     <div className=" p-4 m-3" style={{ backgroundColor: "white", borderRadius: "10px", }}>
-  <div className="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
-  <div className="d-flex flex-wrap gap-2 align-items-center">
-    <input
-      type="text"
-      className="form-control"
-      placeholder="Search users..."
-      value={searchTerm}
-      onChange={handleSearch}
-      style={{ width: '200px' }}
-    />
-     <Dropdown className="filter-dropdown">
+      <div className="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+        <div className="d-flex flex-wrap gap-2 align-items-center">
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Search users..."
+            value={searchTerm}
+            onChange={handleSearch}
+            style={{ width: '200px' }}
+          />
+          <Dropdown className="filter-dropdown">
             <Dropdown.Toggle
               variant="light"
               id="viewall-dropdown"
@@ -134,15 +165,14 @@ function UserRoles() {
               <Dropdown.Item onClick={() => handleRoleChange("Client")}>Client</Dropdown.Item>
             </Dropdown.Menu>
           </Dropdown>
-  </div>
+        </div>
 
-  <Link to="/admin/UserRoleModal">
-    <button id="All_btn" className="btn btn-dark">
-      + Add User
-    </button>
-  </Link>
-</div>
-
+        <Link to="/admin/UserRoleModal">
+          <button id="All_btn" className="btn btn-dark">
+            + Add User
+          </button>
+        </Link>
+      </div>
 
       <div className="card shadow-sm">
         <div className="card-body p-0">
@@ -154,6 +184,7 @@ function UserRoles() {
                   <th>Role</th>
                   <th>Status</th>
                   <th>Permissions</th>
+                  <th>Access</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -163,17 +194,23 @@ function UserRoles() {
                     <td>
                       <div className="d-flex align-items-center">
                         <div className="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" style={{ width: '32px', height: '32px' }}>
-                          {user.firstName.charAt(0)}
+                          {/* {user.firstName.charAt(0)}   */}
+                          {/* <img src={user.profileImage[0]} alt="" /> */}
+                          <img
+                            src={user.profileImage && user.profileImage.length > 0 ? user.profileImage[0] : '/default-profile.png'}
+                            alt={`${user.firstName} ${user.lastName}`}
+                            style={{ width: '55px', height: '55px', borderRadius: '50%', marginRight: "25px" }}
+                          />
                         </div>
                         <div>
-                          <div className="fw-semibold">{user.firstName} {user.lastName}</div>
+                          <div style={{ whiteSpace: 'nowrap' }} className="fw-semibold">{user.firstName} {user.lastName}</div>
                           <div className="text-muted small">{user.email}</div>
                         </div>
                       </div>
                     </td>
 
                     <td>
-                      <span className={`badge ${user.role === 'Admin' ? 'text-bg-dark' : user.role === 'Manager' ? 'text-bg-primary' : 'text-bg-info'}`}>
+                      <span   style={{ backgroundColor: '#0056D2', color: '#fff' }} className={`badge ${user.role === 'Admin' ? 'text-bg-white' : user.role === 'Manager' }`}>
                         {user?.role}
                       </span>
                     </td>
@@ -182,7 +219,7 @@ function UserRoles() {
                         {user?.state}
                       </span>
                     </td>
-                    <th style={{ fontWeight: "400" }}>
+                    <th style={{ fontWeight: "400", whiteSpace: 'nowrap' }}>
                       {user && user.permissions
                         ? Object.entries(user.permissions)
                           .filter(([_, value]) => value === true)
@@ -191,7 +228,16 @@ function UserRoles() {
                         : 'N/A'}
                     </th>
 
-                    {/* <td>{user.permissions}</td> */}
+                    <td style={{ whiteSpace: 'nowrap' }}>
+                      {Object.entries(user?.accessLevel || {})
+                        .filter(([_, v]) => v)
+                        .map(([k]) =>
+                          k === 'fullAccess' ? 'Full Access' :
+                            k === 'limitedAccess' ? 'Limited Access' :
+                              k === 'viewOnly' ? 'View Only' : '')
+                        .join(', ') || 'N/A'}
+                    </td>
+
                     <td>
                       <div className="d-flex gap-2">
                         <button
@@ -200,12 +246,12 @@ function UserRoles() {
                         >
                           <FaEdit />
                         </button>
-                        {/* <button
+                        <button
                           className="btn btn-sm btn-outline-danger"
                           onClick={() => handleDeleteUser(user._id)}
                         >
                           <FaTrashAlt />
-                        </button> */}
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -225,8 +271,8 @@ function UserRoles() {
             <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
               <button className="page-link" onClick={() => handlePageChange(currentPage - 1)}>
                 <span aria-hidden="true">&laquo;</span>
-                </button>
-                    
+              </button>
+
             </li>
             {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
               <li key={number} className={`page-item ${currentPage === number ? 'active' : ''}`}>
@@ -235,7 +281,7 @@ function UserRoles() {
             ))}
             <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
               <button className="page-link" onClick={() => handlePageChange(currentPage + 1)}>
-                    <span aria-hidden="true">&raquo;</span></button>
+                <span aria-hidden="true">&raquo;</span></button>
             </li>
           </ul>
         </nav>

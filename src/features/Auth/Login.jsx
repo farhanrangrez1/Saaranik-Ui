@@ -384,12 +384,12 @@ const Login = () => {
               {loading ? "Logging in..." : "Log In"}
             </button>
 
-            <p className="text-center mt-3 mb-0">
+            {/* <p className="text-center mt-3 mb-0">
               <span className="text-secondary">Don't have an account?</span>
               <Link to="/signup" className="text-decoration-none ms-1">
                 Sign up
               </Link>
-            </p>
+            </p> */}
 
             <button
               className="social-signup btn w-100 mb-3 d-flex align-items-center justify-content-center"

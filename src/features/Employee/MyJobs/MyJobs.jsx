@@ -1,42 +1,34 @@
-import React, { useEffect, useState, useRef } from "react";
-import { Container, Row, Col, Button, Form, Table, Pagination, Badge, Modal } from "react-bootstrap";
+import React, { useEffect, useState, useRef, useMemo } from "react";
+import { Row, Col, Button, Form, Table, Modal } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
-import * as XLSX from 'xlsx';
 import { useDispatch, useSelector } from "react-redux";
 import { fetchjobs } from "../../../redux/slices/JobsSlice";
-import {
-  FaFilePdf,
-  FaUpload,
-  FaLink,
-  FaClock,
-  FaEdit,
-  FaFilter,
-} from "react-icons/fa";
-import { fetchMyJobs } from "../../../redux/slices/Employee/MyJobsSlice";
-
+import { fetchMyJobs, ReturnJob } from "../../../redux/slices/Employee/MyJobsSlice";
+import { FaFilter } from "react-icons/fa";
+import Swal from "sweetalert2";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function MyJobs() {
   const [showTimesheetModal, setShowTimesheetModal] = useState(false);
-  const [selectedJobId, setSelectedJobId] = useState(null)
+  const [selectedJobId, setSelectedJobId] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
   const [expandedJob, setExpandedJob] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All Status");
+  const [dateFilter, setDateFilter] = useState("");
+
+  const [selectedJobs, setSelectedJobs] = useState({});
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
-  const handleReturnJob = () => {
-    const hasTimesheet = false;
-    if (!hasTimesheet) {
-      alert('This jobs is send to the production');
-      return;
-    }
-  };
 
   const handleLogTime = (jobId) => {
     setSelectedJobId(jobId);
     setShowTimesheetModal(true);
   };
-
 
   const fileInputRef = useRef(null);
   const handleUploadClick = () => {
@@ -52,28 +44,115 @@ function MyJobs() {
     }
   };
 
-
-  const handleSelectAll = (e) => {
-    const isChecked = e.target.checked;
-    const allJobs = jobs.reduce((acc, job) => {
-      acc[job.id] = isChecked;
-      return acc;
-    }, {});
-    setSelectedJobs(allJobs);
+  const handleCheckboxChange = (jobId) => {
+    setSelectedJobs((prev) => ({
+      ...prev,
+      [jobId]: !prev[jobId],
+    }));
   };
 
-  const getPriorityClass = (priority) => {
-    switch ((priority || "").toLowerCase()) {
-      case "high":
-        return "text-danger";
-      case "medium":
-        return "text-warning";
-      case "low":
-        return "text-success";
-      default:
-        return "";
+  const { myjobs, loading, error } = useSelector((state) => state.MyJobs);
+  const MynewJobsdata =
+    myjobs && myjobs.assignments && myjobs.assignments.length > 0
+      ? myjobs.assignments[0].jobId
+      : [];
+
+  useEffect(() => {
+    dispatch(fetchMyJobs());
+  }, [dispatch]);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, dateFilter]);
+
+  const filteredProjects = useMemo(() => {
+    let jobsToFilter = MynewJobsdata || [];
+
+    if (searchTerm) {
+      jobsToFilter = jobsToFilter.filter((job) => {
+        const searchTermLower = searchTerm.toLowerCase();
+        return (
+          job.JobNo?.toString().toLowerCase().includes(searchTermLower) ||
+          job.projectId?.[0]?.projectName?.toLowerCase().includes(searchTermLower) ||
+          job.brandName?.toLowerCase().includes(searchTermLower) ||
+          job.subBrand?.toLowerCase().includes(searchTermLower) ||
+          job.flavour?.toLowerCase().includes(searchTermLower) ||
+          job.packType?.toLowerCase().includes(searchTermLower) ||
+          job.packSize?.toLowerCase().includes(searchTermLower) ||
+          job.packCode?.toLowerCase().includes(searchTermLower)
+        );
+      });
     }
-  };
+
+    if (statusFilter !== "All Status") {
+      jobsToFilter = jobsToFilter.filter(
+        (job) =>
+          job.Status &&
+          job.Status.toLowerCase().replace(/_/g, " ") === statusFilter.toLowerCase()
+      );
+    }
+
+    if (dateFilter) {
+      jobsToFilter = jobsToFilter.filter((job) => {
+        if (!job.createdAt) return false;
+        const jobDate = new Date(job.createdAt).toISOString().split("T")[0];
+        return jobDate === dateFilter;
+      });
+    }
+
+    return jobsToFilter;
+  }, [MynewJobsdata, searchTerm, statusFilter, dateFilter]);
+
+  const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
+  const paginatedProjects = filteredProjects.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
+
+  const handleRejectJobs = () => {
+const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
+
+if (selectedJobIds.length === 0) {
+  setErrorMessage("Please select at least 1 job to reject.");
+  setTimeout(() => setErrorMessage(""), 3000);
+  return;
+}
+    setShowRejectModal(true);
+const payload = {
+  jobId: selectedJobIds
+};
+console.log("Payload to send:", payload);
+};
+
+const handleSubmitRejection = () => {
+  const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
+
+  if (!rejectionReason.trim()) {
+    setErrorMessage("Please enter a reason for rejection.");
+    setTimeout(() => setErrorMessage(""), 3000);
+    return;
+  }
+
+  dispatch(ReturnJob({ jobId: selectedJobIds }))
+    .unwrap()
+    .then(() => {
+      setSuccessMessage("Jobs rejected successfully.");
+      setTimeout(() => setSuccessMessage(""), 3000);
+      dispatch(fetchMyJobs());
+      setSelectedJobs({});
+      setRejectionReason("");
+      setShowRejectModal(false);
+    })
+    .catch((error) => {
+      setErrorMessage("Failed to reject jobs: " + error);
+    });
+};
 
   const getStatusClass = (status) => {
     switch ((status || "").toLowerCase().trim()) {
@@ -88,51 +167,10 @@ function MyJobs() {
         return "bg-success text-white";
       case "open":
         return "bg-primary text-white";
-      default:
-        return "bg-light text-dark";
       case "cancelled":
         return "bg-dark text-white";
-    }
-  };
-
-
-
-  const { myjobs, loading, error } = useSelector((state) => state.MyJobs);
-  // console.log("uhdfehfbeubfebefjb", myjobs && myjobs.assignments && myjobs.assignments.length > 0 ? myjobs.assignments[0] && myjobs.assignments[0].jobId : "ji");
-
-  const MynewJobsdata = myjobs && myjobs.assignments && myjobs.assignments.length > 0 ? myjobs.assignments[0].jobId : [];
-  // console.log("ferf", myjobs.assignments);
-
-  useEffect(() => {
-    dispatch(fetchMyJobs());
-  }, [dispatch]);
-
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
-
-  const filteredProjects = MynewJobsdata || [];
-  const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
-
-  const paginatedProjects = filteredProjects.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  const handleCopyFileName = (job, index, currentPage, itemsPerPage) => {
-    const displayId = String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0');
-    const fileName = `${displayId}_${job.projectName || ''}__${job.brandName || ''}_${job.subBrand || ''}_${job.flavour || ''}_${job.packType || ''}_${job.packSize || ''}_${job.packCode || ''}_${job.priority || ''}_${job.dueDate || ''}_${job.assign || ''}_${job.timeLogged || ''}_${job.status || ''}`;
-
-    navigator.clipboard.writeText(fileName)
-      .then(() => alert("Copied to clipboard: " + fileName))
-      .catch((err) => console.error("Failed to copy!", err));
-  };
-
-  const handleRowClick = (jobId) => {
-    if (expandedJob === jobId) {
-      setExpandedJob(null);
-    } else {
-      setExpandedJob(jobId);
+      default:
+        return "bg-light text-dark";
     }
   };
 
@@ -140,7 +178,7 @@ function MyJobs() {
     <div className="p-4 m-2" style={{ backgroundColor: "white", borderRadius: "10px" }}>
       <h5 className="fw-bold mb-3 text-start">My Jobs</h5>
 
-      {/* Toggle Filter Button for Mobile */}
+      {/* Filter button */}
       <div className="d-lg-none mb-2 text-end">
         <Button
           variant="primary"
@@ -153,7 +191,7 @@ function MyJobs() {
         </Button>
       </div>
 
-      {/* Filters and Actions */}
+      {/* Filters */}
       <Row className={`mb-3 align-items-center ${showFilters ? "" : "d-none d-lg-flex"}`}>
         <Col xs={12} lg={9} className="d-flex flex-wrap gap-2 mb-2 mb-lg-0">
           <Form.Control
@@ -161,129 +199,141 @@ function MyJobs() {
             placeholder="Search jobs..."
             className="flex-grow-1"
             style={{ minWidth: "150px", maxWidth: "200px" }}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <Form.Select className="flex-shrink-0" style={{ minWidth: "140px", maxWidth: "160px" }}>
+          <Form.Select
+            className="flex-shrink-0"
+            style={{ minWidth: "140px", maxWidth: "160px" }}
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
             <option>All Status</option>
+            <option value="open">Open</option>
+            <option value="in progress">In Progress</option>
+            <option value="review">Review</option>
+            <option value="completed">Completed</option>
+            <option value="not started">Not Started</option>
+            <option value="cancelled">Cancelled</option>
           </Form.Select>
-          <Form.Select className="flex-shrink-0" style={{ minWidth: "140px", maxWidth: "160px" }}>
-            <option>All Deadlines</option>
-          </Form.Select>
+          <Form.Control
+            type="date"
+            className="flex-shrink-0"
+            style={{ minWidth: "140px", maxWidth: "160px" }}
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
+          />
         </Col>
 
         <Col xs={12} lg={3} className="text-lg-end d-flex flex-wrap justify-content-lg-end gap-2">
-          <Button id="All_btn" variant="dark" className="w-lg-auto" onClick={handleReturnJob}>
+          <Button id="All_btn" variant="dark" className="w-lg-auto" onClick={handleRejectJobs}>
             Return Job
           </Button>
         </Col>
       </Row>
+
+      {/* Error Message Display */}
+      {errorMessage && (
+        <div className="alert alert-danger py-2" role="alert">
+          {errorMessage}
+        </div>
+      )}
 
       {/* Table */}
       <div className="table-responsive">
         <Table hover className="align-middle sticky-header">
           <thead className="bg-light">
             <tr>
-              <th><input type="checkbox" onChange={handleSelectAll} /></th>
+              <th>
+                <input
+                  type="checkbox"
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    const newSelectedJobs = {};
+                    paginatedProjects.forEach((job) => {
+                      newSelectedJobs[job._id] = checked;
+                    });
+                    setSelectedJobs(newSelectedJobs);
+                  }}
+                  checked={
+                    paginatedProjects.length > 0 &&
+                    paginatedProjects.every((j) => selectedJobs[j._id])
+                  }
+                />
+              </th>
               <th>JobNo</th>
               <th>ProjectName</th>
-              <th>Assign</th>
-              <th>description</th>
               <th>Brand</th>
               <th>SubBrand</th>
-              <th>Flavour</th>
               <th>PackType</th>
               <th>PackSize</th>
               <th>PackCode</th>
-              <th>Priority</th>
-              <th>Due Date</th>
-              <th>TimeLogged</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {paginatedProjects.slice().reverse().map((job, index) => (
-              <tr onClick={() => handleRowClick(job._id)} style={{ cursor: "pointer" }}>
-                <td><input type="checkbox" onChange={handleSelectAll} /></td>
-                <td style={{ whiteSpace: 'nowrap' }} key={index}>
-                  <Link style={{ textDecoration: 'none' }}>{job.JobNo}</Link>
-                </td>
+            {paginatedProjects.slice().reverse().map((job) => (
+              <tr key={job._id} style={{ cursor: "pointer" }}>
                 <td>
-                  {job.projectId?.[0]?.projectName || "—"}
+                  <input
+                    type="checkbox"
+                    checked={selectedJobs[job._id] || false}
+                    onChange={() => handleCheckboxChange(job._id)}
+                  />
                 </td>
-                {myjobs.assignments.map((item, idx) => (
-                  <td key={idx} style={{ whiteSpace: 'nowrap' }}>
-                    {item?.selectDesigner || "—"}
-                  </td>
-                ))}
-                {myjobs.assignments.map((item, idx) => (
-                  <td key={idx} style={{ whiteSpace: 'nowrap' }}>
-                    {item?.description || "—"}
-                  </td>
-                ))}
-
+                <td>{job.JobNo}</td>
+                <td>{job.projectId?.[0]?.projectName || "—"}</td>
                 <td>{job.brandName}</td>
-                <td style={{ whiteSpace: 'nowrap' }}>{job.subBrand}</td>
-                <td>{job.packType || 'N/A'}</td>
-                <td style={{ whiteSpace: 'nowrap' }}>{job.packSize || 'N/A'}</td>
-                <td>{job.priority || 'N/A'}</td>
-                <td>{job.packCode || 'N/A'}</td>
-
-
-                <td><span className={getPriorityClass(job?.priority)}>{job?.priority || 'N/A'}</span></td>
-                <td>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
-                <td>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
+                <td>{job.subBrand}</td>
+                <td>{job.packType || "N/A"}</td>
+                <td>{job.packSize || "N/A"}</td>
+                <td>{job.packCode || "N/A"}</td>
                 <td>
-                  <span className={`badge ${getStatusClass(job.Status) || ''} px-2 py-1`}>
-                    {job.Status || 'N/A'}
+                  <span className={`badge ${getStatusClass(job.Status)}`}>
+                    {job.Status || "N/A"}
                   </span>
                 </td>
-                <td className="d-flex gap-2">
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    style={{ display: 'none' }}
-                    onChange={handleFileChange}
-                  />
-                  <Link to={""}>
-                    <Button id="All_btn" size="sm" variant="dark" onClick={() => handleLogTime(job.id)}>
-                      LogTime
-                    </Button>
-                  </Link>
+                <td>
+                <Link to={"/employee/AddTimeLog"}><Button id="All_btn" size="sm" variant="dark" onClick={() => handleLogTime(job._id)}>
+                    LogTime
+                  </Button></Link>
                 </td>
               </tr>
             ))}
           </tbody>
-
         </Table>
       </div>
 
-      {/* Pagination */}
-      {!loading && !error && (
-        <div className="d-flex justify-content-between align-items-center mb-4">
-          <div className="text-muted small">
-            Showing{(currentPage - 1) * itemsPerPage + 1} of {filteredProjects.length}
+      {/* Reject Modal */}
+      <Modal show={showRejectModal} onHide={() => setShowRejectModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Return Job</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className="alert alert-warning">
+            Are you sure you want to return this job?
           </div>
-          <ul className="pagination pagination-sm mb-0">
-            <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
-                <span aria-hidden="true">&laquo;</span>
-              </button>
-            </li>
-            {Array.from({ length: totalPages }, (_, i) => (
-              <li key={i + 1} className={`page-item ${currentPage === i + 1 ? 'active' : ''}`}>
-                <button className="page-link" onClick={() => setCurrentPage(i + 1)}>
-                  {i + 1}
-                </button>
-              </li>
-            ))}
-            <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
-                <span aria-hidden="true">&raquo;</span>
-              </button>
-            </li>
-          </ul>
-        </div>
-      )}
+          <Form.Group className="mb-3">
+            <Form.Label>Reason for Return Jobs</Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={3}
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              placeholder="Enter reason..."
+            />
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowRejectModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={handleSubmitRejection}>
+            Return
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 }

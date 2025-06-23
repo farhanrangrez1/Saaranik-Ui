@@ -210,7 +210,7 @@ function TimesheetWorklog() {
                 <th>Hours</th>
                 <th style={{ whiteSpace: 'nowrap' }}>Task Description</th>
                 <th>Status</th>
-                <th className="text-end">Actions</th>
+                {/* <th className="text-end">Actions</th> */}
               </tr>
             </thead>
             <tbody>
@@ -261,20 +261,20 @@ function TimesheetWorklog() {
                         {log.status}
                       </span>
                     </td>
-                    <td className="text-end" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    {/* <td className="text-end" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <button
                         className="btn btn-link text-dark p-0 me-3"
                         onClick={() => handleEdit(log)}
                       >
                         <FaPencilAlt />
                       </button>
-                      {/* <button
+                      <button
                                    className="btn btn-link text-danger p-0"
                                    onClick={() => handleDelete(log._id)}
                                  >
                                    <FaTrashAlt />
-                                 </button> */}
-                    </td>
+                                 </button>
+                    </td> */}
                   </tr>
                 );
               })}

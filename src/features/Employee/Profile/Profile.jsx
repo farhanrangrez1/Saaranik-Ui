@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { SingleUser } from '../../../redux/slices/userSlice';
+import { Link } from 'react-router-dom';
 
 // Example user data (replace with props or redux in real app)
 const userData = {
@@ -152,7 +153,7 @@ function Profile() {
 
 
     const { UserSingle} = useSelector((state) => state.user);
-  console.log("zz", UserSingle);
+  console.log("emp profile console", UserSingle);
   useEffect(() => {
     dispatch(SingleUser());
   }, [dispatch]);
@@ -164,14 +165,15 @@ function Profile() {
           <div className="col-lg-4 mb-4">
             <div className="card border-0 shadow-lg " style={{ background: 'linear-gradient(135deg, #f8fafc 60%, #e0e7ff 100%)', borderRadius: '1.5rem' }}>
               <div className="card-body text-center p-4 d-flex flex-column align-items-center justify-content-between h-100">
+                 <Link to={"/employee/UpdateProfile"}>
                 <div className="position-relative d-inline-block mb-3">
-                  <img
-                    src={form.profileImage || 'https://wac-cdn.atlassian.com/dam/jcr:ba03a215-2f45-40f5-8540-b2015223c918/Max-R_Headshot%20(1).jpg?cdnVersion=2654'}
+                   <img
+                    src={UserSingle?.profileImage && UserSingle?.profileImage.length > 0 ? UserSingle?.profileImage[0] : '/default-profile.png'}
                     alt="avatar"
                     className="rounded-circle border border-3 border-primary shadow"
                     style={{ width: '140px', height: '140px', objectFit: 'cover', background: '#fff', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}
                   />
-                </div>
+                </div></Link>
                 <h4 className="fw-bold mb-1 mt-2">{UserSingle.firstName} {UserSingle.lastName}</h4>
                 <div className="mb-2">
                   <i className="bi bi-envelope-at me-1"></i>

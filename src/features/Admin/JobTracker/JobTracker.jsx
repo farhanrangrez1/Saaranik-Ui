@@ -225,7 +225,7 @@ function JobTracker() {
                   <span className={getPriorityClass(job.priority)}>{job.priority}</span>
                 </td>
                 <td>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
-                <td style={{ whiteSpace: 'nowrap' }}>{job.assign}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{job?.assignedTo}</td>
                 <td>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
                 <td>
                   <span className={`badge ${getStatusClass(job.Status)} px-2 py-1`}>
@@ -234,10 +234,10 @@ function JobTracker() {
                 </td>
                 <td>
                   <div className="d-flex gap-2">
-                    <Button id="icone_btn" size="sm"><FaFilePdf /></Button>
+                    {/* <Button id="icone_btn" size="sm"><FaFilePdf /></Button>
                     <Button id="icone_btn" size="sm"><FaUpload /></Button>
                     <Button id="icone_btn" size="sm"><FaLink /></Button>
-                    <Button id="icone_btn" size="sm"><FaClock /></Button>
+                    <Button id="icone_btn" size="sm"><FaClock /></Button> */}
                     <Button id="icone_btn" size="sm" onClick={() => handleUpdate(job)}>
                       <FaEdit />
                     </Button>

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchusers, fetchusersById, updateusers } from '../../../redux/slices/userSlice';
+import { fetchusers, SignUp, UpdateUsers, updateusers } from '../../../redux/slices/userSlice';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -13,7 +13,7 @@ function UserRoleModal() {
   const { id } = useParams();
   const location = useLocation();
   const { user } = location.state || {};
-  const userId = location.state?.id;
+  const _id = user?._id;
     console.log("hhhhhhhhhh", user);
 
     const { userAll, loading, error } = useSelector((state) => state.user);
@@ -29,7 +29,7 @@ function UserRoleModal() {
     password: '',
     passwordConfirm: '',
     role: '',
-    assign: 'Not Assign',
+    assign: '',
     state: '',
     country: '',
     image: null,
@@ -45,6 +45,7 @@ function UserRoleModal() {
     },
     accessLevel: ''
   });
+  const [showPasswordMismatch, setShowPasswordMismatch] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value, type, files } = e.target;
@@ -58,6 +59,14 @@ function UserRoleModal() {
         ...prev,
         [name]: value
       }));
+      // Real-time password match check
+      if (name === 'password' || name === 'passwordConfirm') {
+        setShowPasswordMismatch(
+          name === 'password'
+            ? value !== formData.passwordConfirm && formData.passwordConfirm !== ''
+            : value !== formData.password && value !== ''
+        );
+      }
     }
   };
   useEffect(() => {
@@ -80,7 +89,6 @@ function UserRoleModal() {
       }
 
       setFormData({
-         _id: user._id || '',  
         firstName: user.firstName || '',
         lastName: user.lastName || '',
         email: user.email || '',
@@ -91,7 +99,7 @@ function UserRoleModal() {
         country: user.country || '',
         assign: user.assign || 'Not Assign',
         image: user.image || null,
-        role: user.role?.charAt(0).toUpperCase() + user.role?.slice(1).toLowerCase() || '',
+        role: user.role || '',
         permissions: {
           dashboardAccess: false,
           clientManagement: false,
@@ -129,54 +137,70 @@ function UserRoleModal() {
   
 const handleSubmit = (e) => {
   e.preventDefault();
-  if (formData.password !== formData.passwordConfirm) {
+
+  if (!_id && formData.password !== formData.passwordConfirm) {
     toast.error('Passwords do not match!');
     return;
   }
+
   const filteredpermissions = Object.fromEntries(
     Object.entries(formData.permissions).filter(([_, value]) => value === true)
   );
-  const payload = {
-    _id: formData._id,
-    firstName: formData.firstName,
-    lastName: formData.lastName,
-    email: formData.email,
-    phone: formData.phone,
-    password: formData.password,
-    state: formData.state,
-    country: formData.country,
-    assign: formData.assign,
-    image: formData.image,
-    role: formData.role,
-    permissions: filteredpermissions,
-    accessLevel: formData.accessLevel
-  };
-  console.log('Payload to be sent hh:', payload);
 
-  if (formData._id) {
-    dispatch(fetchusersById({ _id: formData._id, data: payload }))
+  const accessLevelPayload = {
+    [formData.accessLevel]: true
+  };
+
+  // Use FormData to send image as binary
+  const data = new FormData();
+  data.append('firstName', formData.firstName);
+  data.append('lastName', formData.lastName);
+  data.append('email', formData.email);
+  data.append('phone', formData.phone);
+  if (!_id) {
+    data.append('password', formData.password);
+    data.append('passwordConfirm', formData.passwordConfirm);
+  }
+  data.append('state', formData.state);
+  data.append('country', formData.country);
+  data.append('assign', formData.assign);
+  data.append('role', formData.role);
+  data.append('permissions', JSON.stringify(filteredpermissions));
+  data.append('accessLevel', JSON.stringify(accessLevelPayload));
+  if (formData.image && typeof formData.image !== 'string') {
+    data.append('image', formData.image);
+  }
+
+  console.log('Payload to be sent (FormData):', data);
+
+  if (_id) {
+    // For update, you may need to adjust the action to accept FormData
+       dispatch(UpdateUsers({ _id, data }))
       .unwrap()
       .then(() => {
-        toast.success("user updated successfully!");
-        navigate('/admin/ProjectOverview', { state: { openTab: 'users' } });
+        toast.success("User updated successfully!");
+        navigate('/admin/UserRoles', { state: { openTab: 'users' } })
         dispatch(fetchusers());
       })
-      .catch(() => {
-        toast.error("Failed to update user!");
+      .catch((err) => {
+        const message = err?.message || (typeof err === 'string' ? err : "Failed to update user!");
+        toast.error(message);
       });
   } else {
-    dispatch(createuser(payload))
+    dispatch(SignUp(data))
       .unwrap()
       .then(() => {
-        toast.success("user created successfully!");
-        navigate('/admin/ProjectOverview', { state: { openTab: 'users' } });
-        dispatch(fetchProject());
+        navigate('/admin/UserRoles', { state: { openTab: 'users' } });
+        toast.success("User created successfully!");
+        dispatch(fetchusers());
       })
-      .catch(() => {
-        toast.error("Error creating user");
+      .catch((err) => {
+        const message = err?.message || (typeof err === 'string' ? err : "Error creating user");
+        toast.error(message);
       });
   }
 };
+
 
   // const handleSubmit = async (e) => {
   //   e.preventDefault();
@@ -212,13 +236,15 @@ const handleSubmit = (e) => {
         <div className="card-body">
           <h5 className="card-title mb-4">Add New User</h5>
           <form onSubmit={handleSubmit}>
-          <div className="col-md-6">
-          {formData.image && (
+        
+          <div style={{display:"flex",alignItems:"center",justifyContent:"center"}}>
+             {formData.image && (
                   <img src={typeof formData.image === 'string' ? formData.image : URL.createObjectURL(formData.image)} alt="Preview" className="img-thumbnail mt-2" style={{ maxWidth: '120px' }} />
                 )}
+          </div>
+          <div className="col-md-6">
                 <label className="form-label">Profile Image</label>
-                <input type="file" className="form-control" name="image" accept="image/*" onChange={handleInputChange} />
-               
+                <input type="file" className="form-control" name="image" accept="image/*" onChange={handleInputChange} required />
               </div>
             <div className="row g-3 mb-3">
               <div className="col-md-6">
@@ -240,16 +266,21 @@ const handleSubmit = (e) => {
                 <input type="text" className="form-control" name="phone" value={formData.phone} onChange={handleInputChange} required />
               </div>
             </div>
-            <div className="row g-3 mb-3">
-              <div className="col-md-6">
-                <label className="form-label">Password</label>
-                <input type="password" className="form-control" name="password" value={formData.password} onChange={handleInputChange} required />
+            {!_id && (
+              <div className="row g-3 mb-3">
+                <div className="col-md-6">
+                  <label className="form-label">Password</label>
+                  <input type="password" className="form-control" name="password" value={formData.password} onChange={handleInputChange} required />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Confirm Password</label>
+                  <input type="password" className="form-control" name="passwordConfirm" value={formData.passwordConfirm} onChange={handleInputChange} required />
+                  {showPasswordMismatch && (
+                    <div style={{ color: 'red', fontSize: '0.9em' }}>Passwords do not match!</div>
+                  )}
+                </div>
               </div>
-              <div className="col-md-6">
-                <label className="form-label">Confirm Password</label>
-                <input type="password" className="form-control" name="passwordConfirm" value={formData.passwordConfirm} onChange={handleInputChange} required />
-              </div>
-            </div>
+            )}
             <div className="row g-3 mb-3">
               <div className="col-md-6">
                 <label className="form-label">State</label>
@@ -265,8 +296,8 @@ const handleSubmit = (e) => {
                 <label className="form-label">Assign</label>
                 <select className="form-select" name="assign" value={formData.assign} onChange={handleInputChange} required>
                   <option value="Not Assign">Not Assign</option>
-                  <option value="Production">Designer</option>
-                  <option value="Employee">Production</option>
+                  <option value="Designer">Designer</option>
+                  <option value="Production">Production</option>
                 </select>
               </div>
           
@@ -280,10 +311,9 @@ const handleSubmit = (e) => {
                 required
               >
                 <option value="">Select a role</option>
-                <option value="Admin">Admin</option>
-                <option value="Client">Client</option>
-                <option value="Production">Production</option>
-                <option value="Employee">Employee</option>
+                <option value="admin">Admin</option>
+                <option value="client">Client</option>
+                <option value="employee">Employee</option>
               </select>
             </div>
             </div>

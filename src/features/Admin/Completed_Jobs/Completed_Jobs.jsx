@@ -113,9 +113,9 @@ function Completed_Jobs() {
         <h4>Completed Jobs</h4>
         <div className="d-flex gap-2 mt-2 mt-md-0">
           {/* <button className="btn btn-outline-primary">Back to Designer</button> */}
-          <button className="btn btn-primary" onClick={handleReturnClick}>
+          {/* <button className="btn btn-primary" onClick={handleReturnClick}>
             Return Completed Jobs
-          </button>
+          </button> */}
         </div>
       </div>
 
@@ -205,8 +205,8 @@ function Completed_Jobs() {
                     <td>{job.packCode}</td>
                     <td><span className={getPriorityClass(job.priority)}>{job.priority}</span></td>
                     <td>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
-                    <td onClick={() => handleDesignerClick(job)} style={{ whiteSpace: 'nowrap', cursor: 'pointer', color: 'darkblue' }}>
-                      {job.assign}
+                    <td style={{ whiteSpace: 'nowrap' }}>
+                      {job.assignedTo}
                     </td>
                     <td>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
                     <td>2h 15m</td>
