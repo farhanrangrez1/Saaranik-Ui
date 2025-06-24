@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Form, Table, Badge, InputGroup, Button, Collapse,Dropdown } from "react-bootstrap";
+import { Form, Table, Badge, InputGroup, Button, Collapse, Dropdown } from "react-bootstrap";
 import { FaSearch, FaFilter, FaSort } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
@@ -28,14 +28,14 @@ function ReciveablePurchase() {
   // 🔍 Filtering based on search and status
   const filteredOrders = allOrders.filter((po) => {
     const searchLower = searchQuery.toLowerCase().trim();
-    const matchesSearch = !searchQuery || 
+    const matchesSearch = !searchQuery ||
       (po?.PONumber?.toLowerCase().includes(searchLower) ||
-      po?.projectId?.[0]?.projectName?.toLowerCase().includes(searchLower) ||
-      po?.ClientId?.[0]?.clientName?.toLowerCase().includes(searchLower) ||
-      po?.costEstimates?.[0]?.estimateRef?.toLowerCase().includes(searchLower) ||
-      po?.Status?.toLowerCase().includes(searchLower));
+        po?.projectId?.[0]?.projectName?.toLowerCase().includes(searchLower) ||
+        po?.ClientId?.[0]?.clientName?.toLowerCase().includes(searchLower) ||
+        po?.costEstimates?.[0]?.estimateRef?.toLowerCase().includes(searchLower) ||
+        po?.Status?.toLowerCase().includes(searchLower));
 
-    const matchesStatus = selectedStatus === "All Status" || 
+    const matchesStatus = selectedStatus === "All Status" ||
       po?.Status?.toLowerCase() === selectedStatus.toLowerCase();
 
     return matchesSearch && matchesStatus;
@@ -97,12 +97,11 @@ function ReciveablePurchase() {
       style={{ backgroundColor: "white", borderRadius: "10px" }}
     >
       <h2 className="mb-4">Receivable Purchase Orders</h2>
-
       {/* Responsive Filter Section */}
       <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         {/* Filters for md and above */}
         <div className="d-none d-md-flex align-items-center gap-3 w-100 w-md-auto">
-        <div className="search-container flex-grow-1">
+          <div className="search-container flex-grow-1">
             <Form.Control
               type="search"
               placeholder="Search by Job #, Brand Name, Sub Brand, Flavour, Pack Type, Pack Size..."
@@ -200,10 +199,10 @@ function ReciveablePurchase() {
                 PO Number
               </th>
               <th
-                onClick={() => handleSort("ClientId")}
+                onClick={() => handleSort("EstimateRef")}
                 style={{ whiteSpace: "nowrap", cursor: "pointer" }}
               >
-                Client
+                Estimate Ref
               </th>
               <th
                 onClick={() => handleSort("projectId")}
@@ -212,16 +211,10 @@ function ReciveablePurchase() {
                 Project
               </th>
               <th
-                onClick={() => handleSort("EstimateRef")}
+                onClick={() => handleSort("ClientId")}
                 style={{ whiteSpace: "nowrap", cursor: "pointer" }}
               >
-                Estimate Ref
-              </th>
-              <th
-                onClick={() => handleSort("Status")}
-                style={{ cursor: "pointer" }}
-              >
-                Status
+                Client
               </th>
               <th
                 onClick={() => handleSort("ReceivedDate")}
@@ -235,6 +228,18 @@ function ReciveablePurchase() {
               >
                 Amount
               </th>
+                   <th
+                onClick={() => handleSort("Status")}
+                style={{ cursor: "pointer" }}
+              >
+                Status
+              </th>
+              <th
+                onClick={() => handleSort("Amount")}
+                style={{ whiteSpace: "nowrap", cursor: "pointer" }}
+              >
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -244,12 +249,6 @@ function ReciveablePurchase() {
                   {po.PONumber}
                 </td>
                 <td style={{ whiteSpace: "nowrap" }}>
-                  {po.ClientId?.[0]?.clientName || "—"}
-                </td>
-                <td style={{ whiteSpace: "nowrap" }}>
-                  {po.projectId?.[0]?.projectName || "—"}
-                </td>
-                <td style={{ whiteSpace: "nowrap" }}>
                   <Link
                     to="/admin/CostEstimates"
                     style={{ textDecoration: "none" }}
@@ -257,12 +256,36 @@ function ReciveablePurchase() {
                     {po.costEstimates?.[0]?.estimateRef || "—"}
                   </Link>
                 </td>
+                <td style={{ whiteSpace: "nowrap" }}>
+                  {po.projectId?.[0]?.projectName || "—"}
+                </td>
+                <td style={{ whiteSpace: "nowrap" }}>
+                  {po.ClientId?.[0]?.clientName || "—"}
+                </td>
 
+                <td>{new Date(po.ReceivedDate).toLocaleDateString()}</td>
+                <td>${po.Amount?.toFixed(2)}</td>
                 <td>
                   <Badge bg={getStatusBadgeVariant(po.Status)}>{po.Status}</Badge>
                 </td>
-                <td>{new Date(po.ReceivedDate).toLocaleDateString()}</td>
-                <td>${po.Amount?.toFixed(2)}</td>
+                <div>
+                  <Link to={"/admin/AddInvoice"}>
+                    <Button
+                      variant="outline-primary"
+                      size="sm"
+                      onClick={() => handleToBeInvoiced(project)}
+                      className="px-3 py-1 fw-semibold border-2"
+                      style={{
+                        transition: 'all 0.3s ease',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px'
+                      }}
+                    >
+                      To be invoiced
+                    </Button></Link>
+                </div>
               </tr>
             ))}
           </tbody>
