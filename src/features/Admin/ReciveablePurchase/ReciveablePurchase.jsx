@@ -232,7 +232,7 @@ function ReciveablePurchase() {
                 onClick={() => handleSort("Status")}
                 style={{ cursor: "pointer" }}
               >
-                Status
+                POStatus
               </th>
               <th
                 onClick={() => handleSort("Amount")}
@@ -266,7 +266,7 @@ function ReciveablePurchase() {
                 <td>{new Date(po.ReceivedDate).toLocaleDateString()}</td>
                 <td>${po.Amount?.toFixed(2)}</td>
                 <td>
-                  <Badge bg={getStatusBadgeVariant(po.Status)}>{po.Status}</Badge>
+                  <Badge bg={getStatusBadgeVariant(po.Status)}>{po.POStatus}</Badge>
                 </td>
                 <div>
                   <Link to={"/admin/AddInvoice"}>
