@@ -33,13 +33,15 @@ function CostEstimates() {
   const [costEstimatesId, setCostEstimatesId] = useState("");
 
   const [poDate, setPODate] = useState("");
-  const [status, setStatus] = useState("");
+  const [POStatus, setStatus] = useState("");
   const [amount, setAmount] = useState("");
   const [poDocument, setPODocument] = useState(null);
 
   const { project } = useSelector((state) => state.projects);
   const { Clients } = useSelector((state) => state.client);
+ 
   const statuses = ["Pending", "Received", "Cancelled", "Completed", "open", "invoiced"];
+
 
   useEffect(() => {
     dispatch(fetchProject());
@@ -73,7 +75,7 @@ function CostEstimates() {
 
 
   const handleSavePO = async () => {
-    if (!selectedProjectId || !selectedClientId || !poDate || !status || !amount) {
+    if (!selectedProjectId || !selectedClientId || !poDate || !POStatus || !amount) {
       Swal.fire({
         icon: 'error',
         title: 'Required Fields Missing',
@@ -86,7 +88,7 @@ function CostEstimates() {
     formData.append('projectsId', JSON.stringify([selectedProjectId]));
     formData.append('ClientId', selectedClientId);
     formData.append('ReceivedDate', poDate);
-    formData.append('Status', status);
+    formData.append('POStatus', POStatus);
     formData.append('Amount', amount);
     formData.append('CostEstimatesId', JSON.stringify([costEstimatesId]));
 
@@ -205,7 +207,7 @@ function CostEstimates() {
               <div className="col-md-6">
                 <Form.Label className="d-block ">PO Status</Form.Label>
                 <Form.Select
-                  value={status}
+                  value={POStatus}
                   onChange={(e) => setStatus(e.target.value)}
                   className="form-control"
                   required
@@ -663,8 +665,7 @@ function CostEstimates() {
   return (
     <div
       className="p-4 m-2"
-      style={{ backgroundColor: "white", borderRadius: "10px" }}
-    >
+      style={{ backgroundColor: "white", borderRadius: "10px" }} >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <h2 className="fw-semibold mb-3">Cost Estimates</h2>
         <Link to={"/admin/AddCostEstimates"}>
@@ -801,18 +802,21 @@ function CostEstimates() {
                     {po.Status}
                   </span>
                 </td> */}
-                    <button
-                      className="btn btn-sm btn-success"
-                      onClick={() => {
-                        setCostEstimatesId(po._id); // Store the ID
-                        setShowAddPOModal(true);   // Open Modal
-                      }}
-                    >
-                      PO Add
-                    </button>
-                    <span className={`badge ${getStatusClass(po.receivablePurchases?.[0]?.POStatus)} px-2 py-1`}>
-                      {po.receivablePurchases?.[0]?.POStatus || 'N/A'}
-                    </span>
+                  <button
+  className="btn btn-sm btn-success"
+  disabled={po.receivablePurchases?.[0]?.POStatus !== "pending"}
+  onClick={() => {
+    setCostEstimatesId(po._id); // Store the ID
+    setShowAddPOModal(true);   // Open Modal
+  }}
+>
+  PO Add
+</button>
+
+<span className={`badge ${getStatusClass(po.receivablePurchases?.[0]?.POStatus)} px-2 py-1`}>
+  {po.receivablePurchases?.[0]?.POStatus || 'pending'}
+</span>
+
 
                     <button className="btn btn-sm btn-primary" onClick={() => Duplicate(po)}><FaRegCopy /></button>
                     {/* <button className="btn btn-sm btn-primary" onClick={() => handleConvertToInvoice(po)}>ConvertInvoice</button> */}
