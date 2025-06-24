@@ -1,6 +1,7 @@
 import React from 'react';
 import PurchaseOrder from './PurchaseOrder';
 import ReceivablePurchaseOrders from './ReceivablePurchaseOrders';
+import Invoicing_Billing from '../../Invoicing_Billing/Invoicing_Billing';
 
 function ProjectFinanceTab({ budget, purchaseOrders }) {
   return (
@@ -61,31 +62,10 @@ function ProjectFinanceTab({ budget, purchaseOrders }) {
 
    
       {/* Financial Summary Charts */}
-      <div className="col-md-6">
-        <div className="card">
-          <div className="card-header">
-            <h5 className="card-title mb-0">Monthly Expenses</h5>
-          </div>
-          <div className="card-body">
-            <div className="text-center py-5">
-              <p className="text-muted">Chart will be implemented here</p>
-            </div>
-          </div>
-        </div>
+      <div className="col-12">
+        <Invoicing_Billing/>
       </div>
 
-      <div className="col-md-6">
-        <div className="card">
-          <div className="card-header">
-            <h5 className="card-title mb-0">Budget Distribution</h5>
-          </div>
-          <div className="card-body">
-            <div className="text-center py-5">
-              <p className="text-muted">Chart will be implemented here</p>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
