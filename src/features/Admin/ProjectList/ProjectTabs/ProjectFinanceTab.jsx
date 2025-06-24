@@ -1,4 +1,5 @@
 import React from 'react';
+import PurchaseOrder from './PurchaseOrder';
 
 function ProjectFinanceTab({ budget, purchaseOrders }) {
   return (
@@ -47,39 +48,10 @@ function ProjectFinanceTab({ budget, purchaseOrders }) {
 
       {/* Purchase Orders */}
       <div className="col-12">
-      
+      <PurchaseOrder/>
       </div>
 
-      {/* Cost Estimates Section */}
-      <div className="col-12">
-        <div className="card">
-          <div className="card-header d-flex justify-content-between align-items-center">
-            <h5 className="card-title mb-0">Cost Estimates</h5>
-            <button className="btn btn-primary btn-sm">
-              <i className="bi bi-plus"></i> Add Estimate
-            </button>
-          </div>
-          <div className="card-body">
-            <div className="table-responsive">
-              <table className="table table-hover">
-                <thead>
-                  <tr>
-                    <th>Estimate ID</th>
-                    <th>Description</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                    <th>Date</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {/* Empty state - will be populated with project data */}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
+    
 
       {/* Received POs Section */}
       <div className="col-12">
@@ -112,37 +84,7 @@ function ProjectFinanceTab({ budget, purchaseOrders }) {
         </div>
       </div>
 
-      {/* Invoices Section */}
-      <div className="col-12">
-        <div className="card">
-          <div className="card-header d-flex justify-content-between align-items-center">
-            <h5 className="card-title mb-0">Invoices</h5>
-            <button className="btn btn-primary btn-sm">
-              <i className="bi bi-plus"></i> Add Invoice
-            </button>
-          </div>
-          <div className="card-body">
-            <div className="table-responsive">
-              <table className="table table-hover">
-                <thead>
-                  <tr>
-                    <th>Invoice Number</th>
-                    <th>Description</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                    <th>Due Date</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {/* Empty state - will be populated with project data */}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-
+   
       {/* Financial Summary Charts */}
       <div className="col-md-6">
         <div className="card">
