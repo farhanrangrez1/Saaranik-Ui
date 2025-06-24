@@ -138,37 +138,38 @@ function AddCostEstimates() {
   const tax = subtotal * taxRate;
   const total = subtotal + tax;
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const payload = {
-      ...formData,
-      VATRate: taxRate * 100,
-      lineItems: items,
-    };
-
-    const isDuplicate = location.state?.isDuplicate;
-    if (isDuplicate || !id) {
-      dispatch(createCostEstimate(payload))
-        .unwrap()
-        .then(() => {
-          toast.success("Estimates created successfully!");
-          navigate('/admin/CostEstimates', { state: { openTab: 'jobs' } });
-        })
-        .catch(() => {
-          toast.error("Failed to create estimates");
-        });
-    } else {
-      dispatch(updateCostEstimate({ id, data: payload }))
-        .unwrap()
-        .then(() => {
-          toast.success("Estimates updated successfully!");
-          navigate('/admin/CostEstimates', { state: { openTab: 'jobs' } });
-        })
-        .catch(() => {
-          toast.error("Failed to update estimates");
-        });
-    }
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  const payload = {
+    ...formData,
+    VATRate: taxRate * 100,
+    lineItems: items,
   };
+
+  const isDuplicate = location.state?.isDuplicate;
+  if (isDuplicate || !id) {
+    dispatch(createCostEstimate(payload))
+      .unwrap()
+      .then(() => {
+        toast.success("Estimates created successfully!");
+        navigate(-1); // Go back to previous page
+      })
+      .catch(() => {
+        toast.error("Failed to create estimates");
+      });
+  } else {
+    dispatch(updateCostEstimate({ id, data: payload }))
+      .unwrap()
+      .then(() => {
+        toast.success("Estimates updated successfully!");
+        navigate(-1); // Go back to previous page
+      })
+      .catch(() => {
+        toast.error("Failed to update estimates");
+      });
+  }
+};
+
 
   return (
     <>
@@ -274,26 +275,7 @@ function AddCostEstimates() {
                 </select>
               </div>
 
-              {/* <div className="col-md-4 mb-3">
-                <label className="form-label">PO Status</label>
-                <select
-                  className="form-select"
-                  name="POStatus"
-                  value={formData.POStatus}
-                  onChange={handleFormChange}
-                  required
-                >
-                  <option value="" disabled>
-                    PO Status
-                  </option>
-                  {poStatuses.slice(1).map((status) => (
-                    <option key={status} value={status}>
-                      {status}
-                    </option>
-                  ))}
-                </select>
-
-              </div> */}
+             
 
               <div className="col-md-4 mb-3">
                 <label className="form-label">Status</label>
@@ -423,9 +405,14 @@ function AddCostEstimates() {
             </div>
 
             <div className="text-end mt-4">
-              <Link to="/admin/CostEstimates">
-                <button className="btn btn-light me-2" type="button">Cancel</button>
-              </Link>
+             <button
+  className="btn btn-light me-2"
+  type="button"
+  onClick={() => navigate(-1)}  
+>
+  Cancel
+</button>
+
               <button className="btn btn-dark" type="submit">
                 Create Estimate
               </button>

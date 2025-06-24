@@ -9,9 +9,10 @@ import Swal from 'sweetalert2';
 import { jsPDF } from "jspdf";
 import autoTable from 'jspdf-autotable';
 import { FaRegCopy  } from "react-icons/fa";
-import { fetchCostEstimates } from "../../../../redux/slices/costEstimatesSlice";
 import { fetchProject } from "../../../../redux/slices/ProjectsSlice";
 import { fetchClient } from "../../../../redux/slices/ClientSlice";
+import { deleteCostEstimate, fetchCostEstimates } from "../../../../redux/slices/costEstimatesSlice";
+import { createReceivablePurchase, fetchReceivablePurchases } from "../../../../redux/slices/receivablePurchaseSlice";
 
 function PurchaseOrder() {
   const dispatch = useDispatch()
@@ -687,75 +688,74 @@ function PurchaseOrder() {
             </tr>
           </thead>
           <tbody>
-            {paginatedEstimates?.map((po, index) => (
-
-              <tr style={{ whiteSpace: "nowrap" }} key={po.poNumber}>
-                <td><input type="checkbox" /></td>
-                <td onClick={() => CreatJobs(po.projectId)}>
-                  <Link to={"/admin/receivable"} style={{ textDecoration: 'none', border: 'none' }}>
-                    {po.estimateRef}
-                  </Link>
-                </td>
-                <td>
-                  {po.projectId?.map((project) => project.projectName || project.name).join(", ")}
-                </td>
-                <td>{po.clientId[0]?.clientName || 'N/A'}</td>
-                <td>{new Date(po.estimateDate).toLocaleDateString("en-GB").slice(0, 8)}</td>
-                {/* <td>
-                  {po.projectId?.map((project, i) => `${String(i + 1).padStart(4, '0')}`).join(", ")}
-                </td> */}
-                <td>
-                  {po.lineItems?.reduce((total, item) => total + (item.amount || 0), 0).toFixed(2)}
-                </td>
-                <td>
-                  <span className={`badge ${getStatusClass(po.Status)} px-2 py-1`}>
-                    {po.Status}
-                  </span>
-                </td>
-                {/* <td>
-                  <span className={`badge ${getStatusClass(po.Status)} px-2 py-1`}>
-                    {po.Status}
-                  </span>
-                </td> */}
-                <td>
-                  <div className="d-flex gap-2">
-                      {/* <td>
-                  <span className={`badge ${getStatusClass(po.Status)} px-2 py-1`}>
-                    {po.Status}
-                  </span>
-                </td> */}
-                  <button
-                      className="btn btn-sm btn-success"
-                      onClick={() => {
-                        setCostEstimatesId(po._id); // Store the ID
-                        setShowAddPOModal(true);   // Open Modal
-                      }}
-                    >
-                     PO Add
-                            <td>
-                  <span className={`badge ${getStatusClass(po.Status)} px-2 py-1`}>
-                    {po.POStatus}
-                  </span>
-                </td>
-                    </button>
-              
-                    <button className="btn btn-sm btn-primary" onClick={() => Duplicate(po)}><FaRegCopy /></button>
-                    {/* <button className="btn btn-sm btn-primary" onClick={() => handleConvertToInvoice(po)}>ConvertInvoice</button> */}
-                    <button className="btn btn-sm btn-outline-primary" onClick={() => UpdateEstimate(po)}><BsPencil /></button>
-                    {/* <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(po._id)}>
-                          <FaTrash />
-                        </button> */}
-                    <button
-                      className="btn btn-sm btn-outline-primary"
-                      onClick={handleDownloadPDF}
-                    >
-                      <FaDownload />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
+                 {paginatedEstimates?.map((po, index) => (
+                   <tr style={{ whiteSpace: "nowrap" }} key={po.poNumber}>
+                     <td><input type="checkbox" /></td>
+                     <td onClick={() => CreatJobs(po.projectId)}>
+                       <Link to={"/admin/receivable"} style={{ textDecoration: 'none', border: 'none' }}>
+                         {po.estimateRef}
+                       </Link>
+                     </td>
+                     <td>
+                       {po.projectId?.map((project) => project.projectName || project.name).join(", ")}
+                     </td>
+                     <td>{po.clientId[0]?.clientName || 'N/A'}</td>
+                     <td>{new Date(po.estimateDate).toLocaleDateString("en-GB").slice(0, 8)}</td>
+                     {/* <td>
+                       {po.projectId?.map((project, i) => `${String(i + 1).padStart(4, '0')}`).join(", ")}
+                     </td> */}
+                     <td>
+                       {po.lineItems?.reduce((total, item) => total + (item.amount || 0), 0).toFixed(2)}
+                     </td>
+                     <td>
+                       <span className={`badge ${getStatusClass(po.Status)} px-2 py-1`}>
+                         {po.Status}
+                       </span>
+                     </td>
+                     {/* <td>
+                       <span className={`badge ${getStatusClass(po.Status)} px-2 py-1`}>
+                         {po.Status}
+                       </span>
+                     </td> */}
+                     <td>
+                       <div className="d-flex gap-2">
+                           {/* <td>
+                       <span className={`badge ${getStatusClass(po.Status)} px-2 py-1`}>
+                         {po.Status}
+                       </span>
+                     </td> */}
+                       <button
+                           className="btn btn-sm btn-success"
+                           onClick={() => {
+                             setCostEstimatesId(po._id); // Store the ID
+                             setShowAddPOModal(true);   // Open Modal
+                           }}
+                         >
+                          PO Add
+                                 <td>
+                       <span className={`badge ${getStatusClass(po.Status)} px-2 py-1`}>
+                         {po.Status}
+                       </span>
+                     </td>
+                         </button>
+                   
+                         <button className="btn btn-sm btn-primary" onClick={() => Duplicate(po)}><FaRegCopy /></button>
+                         {/* <button className="btn btn-sm btn-primary" onClick={() => handleConvertToInvoice(po)}>ConvertInvoice</button> */}
+                         <button className="btn btn-sm btn-outline-primary" onClick={() => UpdateEstimate(po)}><BsPencil /></button>
+                         {/* <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(po._id)}>
+                               <FaTrash />
+                             </button> */}
+                         <button
+                           className="btn btn-sm btn-outline-primary"
+                           onClick={handleDownloadPDF}
+                         >
+                           <FaDownload />
+                         </button>
+                       </div>
+                     </td>
+                   </tr>
+                 ))}
+               </tbody>
         </Table>
       </div>
 

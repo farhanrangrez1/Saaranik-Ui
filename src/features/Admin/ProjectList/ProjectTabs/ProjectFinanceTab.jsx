@@ -1,5 +1,6 @@
 import React from 'react';
 import PurchaseOrder from './PurchaseOrder';
+import ReceivablePurchaseOrders from './ReceivablePurchaseOrders';
 
 function ProjectFinanceTab({ budget, purchaseOrders }) {
   return (
@@ -55,33 +56,7 @@ function ProjectFinanceTab({ budget, purchaseOrders }) {
 
       {/* Received POs Section */}
       <div className="col-12">
-        <div className="card">
-          <div className="card-header d-flex justify-content-between align-items-center">
-            <h5 className="card-title mb-0">Received POs</h5>
-            <button className="btn btn-primary btn-sm">
-              <i className="bi bi-plus"></i> Add PO
-            </button>
-          </div>
-          <div className="card-body">
-            <div className="table-responsive">
-              <table className="table table-hover">
-                <thead>
-                  <tr>
-                    <th>PO Number</th>
-                    <th>Vendor</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                    <th>Date Received</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {/* Empty state - will be populated with project data */}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+        <ReceivablePurchaseOrders/>
       </div>
 
    
