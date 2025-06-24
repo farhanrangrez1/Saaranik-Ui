@@ -47,62 +47,7 @@ function ProjectFinanceTab({ budget, purchaseOrders }) {
 
       {/* Purchase Orders */}
       <div className="col-12">
-        <div className="card">
-          <div className="card-header d-flex justify-content-between align-items-center">
-            <h5 className="card-title mb-0">Purchase Orders</h5>
-            <button className="btn btn-primary btn-sm">
-              <i className="bi bi-plus"></i> New Purchase Order
-            </button>
-          </div>
-          <div className="card-body">
-            <div className="table-responsive">
-              <table className="table table-hover">
-                <thead>
-                  <tr>
-                    <th>Order ID</th>
-                    <th>Type</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                    <th>Date</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>PO-001</td>
-                    <td>Materials</td>
-                    <td>$12,000</td>
-                    <td><span className="badge bg-success">Approved</span></td>
-                    <td>2024-01-15</td>
-                    <td>
-                      <button className="btn btn-sm btn-outline-primary me-2">
-                        <i className="bi bi-eye"></i> View
-                      </button>
-                      <button className="btn btn-sm btn-outline-secondary">
-                        <i className="bi bi-download"></i> Download
-                      </button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>PO-002</td>
-                    <td>Services</td>
-                    <td>$8,500</td>
-                    <td><span className="badge bg-warning">Pending</span></td>
-                    <td>2024-01-18</td>
-                    <td>
-                      <button className="btn btn-sm btn-outline-primary me-2">
-                        <i className="bi bi-eye"></i> View
-                      </button>
-                      <button className="btn btn-sm btn-outline-secondary">
-                        <i className="bi bi-download"></i> Download
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+      
       </div>
 
       {/* Cost Estimates Section */}
