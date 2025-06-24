@@ -11,7 +11,7 @@ import { fetchClient } from "../../../redux/slices/ClientSlice";
 import { createReceivablePurchase, fetchReceivablePurchases } from "../../../redux/slices/receivablePurchaseSlice";
 import { jsPDF } from "jspdf";
 import autoTable from 'jspdf-autotable';
-import { FaRegCopy  } from "react-icons/fa";
+import { FaRegCopy } from "react-icons/fa";
 
 function CostEstimates() {
   const dispatch = useDispatch()
@@ -665,14 +665,14 @@ function CostEstimates() {
       className="p-4 m-2"
       style={{ backgroundColor: "white", borderRadius: "10px" }}
     >
-   <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-   <h2 className="fw-semibold mb-3">Cost Estimates</h2>
-      <Link to={"/admin/AddCostEstimates"}>
-            <button id="btn-All" className=" btn-dark" style={{ border: "none", borderRadius: "10px" }}>
-              <BsPlusLg className="me-2" /> New Estimate
-            </button>
-          </Link>
-   </div>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <h2 className="fw-semibold mb-3">Cost Estimates</h2>
+        <Link to={"/admin/AddCostEstimates"}>
+          <button id="btn-All" className=" btn-dark" style={{ border: "none", borderRadius: "10px" }}>
+            <BsPlusLg className="me-2" /> New Estimate
+          </button>
+        </Link>
+      </div>
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div className="filters d-flex flex-wrap gap-1 mb-4">
           <div className="search-container flex-grow-1">
@@ -744,7 +744,7 @@ function CostEstimates() {
             </Dropdown.Menu>
           </Dropdown>
 
-    
+
         </div>
       </div>
 
@@ -766,7 +766,6 @@ function CostEstimates() {
           </thead>
           <tbody>
             {paginatedEstimates?.map((po, index) => (
-
               <tr style={{ whiteSpace: "nowrap" }} key={po.poNumber}>
                 <td><input type="checkbox" /></td>
                 <td onClick={() => CreatJobs(po.projectId)}>
@@ -797,23 +796,24 @@ function CostEstimates() {
                 </td> */}
                 <td>
                   <div className="d-flex gap-2">
-                      {/* <td>
+                    {/* <td>
                   <span className={`badge ${getStatusClass(po.Status)} px-2 py-1`}>
                     {po.Status}
                   </span>
                 </td> */}
-                  <button
+                    <button
                       className="btn btn-sm btn-success"
                       onClick={() => {
                         setCostEstimatesId(po._id); // Store the ID
                         setShowAddPOModal(true);   // Open Modal
                       }}
                     >
-                     PO Add
-                  </button>
-                  <span className={`badge ${getStatusClass(po.Status)} px-2 py-1`}>
-                    {po.POStatus}
-                  </span>
+                      PO Add
+                    </button>
+                    <span className={`badge ${getStatusClass(po.receivablePurchases?.[0]?.POStatus)} px-2 py-1`}>
+                      {po.receivablePurchases?.[0]?.POStatus || 'N/A'}
+                    </span>
+
                     <button className="btn btn-sm btn-primary" onClick={() => Duplicate(po)}><FaRegCopy /></button>
                     {/* <button className="btn btn-sm btn-primary" onClick={() => handleConvertToInvoice(po)}>ConvertInvoice</button> */}
                     <button className="btn btn-sm btn-outline-primary" onClick={() => UpdateEstimate(po)}><BsPencil /></button>
