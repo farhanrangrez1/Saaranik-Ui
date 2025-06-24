@@ -761,7 +761,7 @@ function CostEstimates() {
               {/* <th>ProjectNo</th> */}
               <th>Amount</th>
               <th>CotStatus</th>
-              <th>POStatus</th>
+              {/* <th>POStatus</th> */}
               <th>Actions</th>
             </tr>
           </thead>
