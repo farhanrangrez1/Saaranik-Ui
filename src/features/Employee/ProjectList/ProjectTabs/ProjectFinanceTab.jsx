@@ -7,7 +7,7 @@ function ProjectFinanceTab({ budget, purchaseOrders }) {
       <div className="col-12">
         <div className="card">
           <div className="card-header">
-            <h5 className="card-title mb-0">Budget Overview</h5>
+            <h5 className="card-title mb-0">Budget </h5>
           </div>
           <div className="card-body">
             <div className="row g-4">
