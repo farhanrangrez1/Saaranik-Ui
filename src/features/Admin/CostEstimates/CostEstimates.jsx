@@ -358,16 +358,15 @@ function CostEstimates() {
       const searchLower = searchQuery.toLowerCase().trim();
       const matchesSearch = !searchQuery ||
         (estimate.estimateRef?.toLowerCase().includes(searchLower) ||
-          estimate.clientId[0]?.clientName?.toLowerCase().includes(searchLower) ||
-          estimate.projectId?.some(project =>
-            project.projectName?.toLowerCase().includes(searchLower) ||
-            project.name?.toLowerCase().includes(searchLower)
+          estimate.clients?.[0]?.clientName?.toLowerCase().includes(searchLower) ||
+          estimate.projects?.some(project =>
+            project.projectName?.toLowerCase().includes(searchLower)
           ) ||
           estimate.Status?.toLowerCase().includes(searchLower) ||
           estimate.POStatus?.toLowerCase().includes(searchLower));
 
       const matchesClient = selectedClient === "All Clients" ||
-        estimate.clientId[0]?.clientName === selectedClient;
+        estimate.clients?.[0]?.clientName === selectedClient;
 
       const matchesPOStatus = selectedPOStatus === "All PO Status" ||
         estimate.POStatus === selectedPOStatus;
@@ -703,7 +702,7 @@ function CostEstimates() {
             </Dropdown.Toggle>
             <Dropdown.Menu>
               <Dropdown.Item onClick={() => setSelectedClient("All Clients")}>All Clients</Dropdown.Item>
-              {[...new Set(estimates?.costEstimates?.map(po => po.clientId[0]?.clientName || 'N/A'))]
+              {[...new Set(estimates?.costEstimates?.map(po => po.clients?.[0]?.clientName || 'N/A'))]
                 .filter(name => name !== 'N/A')
                 .map((clientName, index) => (
                   <Dropdown.Item key={index} onClick={() => setSelectedClient(clientName)}>
@@ -776,9 +775,9 @@ function CostEstimates() {
                   </Link>
                 </td>
                 <td>
-                  {po.projectId?.map((project) => project.projectName || project.name).join(", ")}
+                  {po.projects?.map((project) => project.projectName).join(", ")}
                 </td>
-                <td>{po.clientId[0]?.clientName || 'N/A'}</td>
+                <td>{po.clients?.[0]?.clientName || 'N/A'}</td>
                 <td>{new Date(po.estimateDate).toLocaleDateString("en-GB").slice(0, 8)}</td>
                 {/* <td>
                   {po.projectId?.map((project, i) => `${String(i + 1).padStart(4, '0')}`).join(", ")}
@@ -811,17 +810,14 @@ function CostEstimates() {
                       }}
                     >
                      PO Add
-                            <td>
+                  </button>
                   <span className={`badge ${getStatusClass(po.Status)} px-2 py-1`}>
-                    {po.Status}
+                    {po.POStatus}
                   </span>
-                </td>
-                    </button>
-              
                     <button className="btn btn-sm btn-primary" onClick={() => Duplicate(po)}><FaRegCopy /></button>
                     {/* <button className="btn btn-sm btn-primary" onClick={() => handleConvertToInvoice(po)}>ConvertInvoice</button> */}
                     <button className="btn btn-sm btn-outline-primary" onClick={() => UpdateEstimate(po)}><BsPencil /></button>
-                    {/* <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(po._id)}>
+                    {/* <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(po._id))}>
                           <FaTrash />
                         </button> */}
                     <button
