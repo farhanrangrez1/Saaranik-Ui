@@ -18,7 +18,7 @@ const currencies = [
   { label: "SAR - Saudi Riyal", value: "SAR" },
 ];
 
-const poStatuses = ["PO Status", "Approved", "pending", "Rejected"];
+// const poStatuses = ["PO Status", "Approved", "pending", "Rejected"];
 const statuses = ["Status Select", "Active", "Inactive", "Completed"];
 
 function AddCostEstimates() {
@@ -62,7 +62,7 @@ function AddCostEstimates() {
     validUntil: "",
     Notes: "",
     currency: "USD",
-    POStatus: "",
+    // POStatus: "",
     Status: "",
   });
 
@@ -274,7 +274,7 @@ function AddCostEstimates() {
                 </select>
               </div>
 
-              <div className="col-md-4 mb-3">
+              {/* <div className="col-md-4 mb-3">
                 <label className="form-label">PO Status</label>
                 <select
                   className="form-select"
@@ -293,7 +293,7 @@ function AddCostEstimates() {
                   ))}
                 </select>
 
-              </div>
+              </div> */}
 
               <div className="col-md-4 mb-3">
                 <label className="form-label">Status</label>

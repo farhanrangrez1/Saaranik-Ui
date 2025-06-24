@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Modal, Form, Table, Badge, Dropdown, Button } from "react-bootstrap";
-import { BsPlusLg, BsPencil, BsTrash, BsUpload } from "react-icons/bs";
+import { BsPlusLg, BsPencil, BsTrash, BsUpload, BsClipboard } from "react-icons/bs";
 import { Link, useNavigate } from "react-router-dom";
 import { deleteCostEstimate, fetchCostEstimates } from "../../../redux/slices/costEstimatesSlice";
 import { useDispatch, useSelector } from "react-redux";
@@ -11,6 +11,7 @@ import { fetchClient } from "../../../redux/slices/ClientSlice";
 import { createReceivablePurchase, fetchReceivablePurchases } from "../../../redux/slices/receivablePurchaseSlice";
 import { jsPDF } from "jspdf";
 import autoTable from 'jspdf-autotable';
+import { FaRegCopy  } from "react-icons/fa";
 
 function CostEstimates() {
   const dispatch = useDispatch()
@@ -754,13 +755,13 @@ function CostEstimates() {
             <tr>
               <th><input type="checkbox" /></th>
               <th>CENo</th>
-              <th>Date</th>
+              <th style={{ whiteSpace: 'nowrap' }}>Project Name</th>
               <th>Client</th>
+              <th>Date</th>
               {/* <th>ProjectNo</th> */}
-              <th>ProjectName</th>
               <th>Amount</th>
-              <th>POStatus</th>
-              <th>Status</th>
+              <th>CotStatus</th>
+              {/* <th>POStatus</th> */}
               <th>Actions</th>
             </tr>
           </thead>
@@ -770,45 +771,55 @@ function CostEstimates() {
               <tr style={{ whiteSpace: "nowrap" }} key={po.poNumber}>
                 <td><input type="checkbox" /></td>
                 <td onClick={() => CreatJobs(po.projectId)}>
-                  <Link style={{ textDecoration: 'none', border: 'none' }}>
+                  <Link to={"/admin/receivable"} style={{ textDecoration: 'none', border: 'none' }}>
                     {po.estimateRef}
                   </Link>
                 </td>
-                <td>{new Date(po.estimateDate).toLocaleDateString("en-GB").slice(0, 8)}</td>
+                <td>
+                  {po.projectId?.map((project) => project.projectName || project.name).join(", ")}
+                </td>
                 <td>{po.clientId[0]?.clientName || 'N/A'}</td>
+                <td>{new Date(po.estimateDate).toLocaleDateString("en-GB").slice(0, 8)}</td>
                 {/* <td>
                   {po.projectId?.map((project, i) => `${String(i + 1).padStart(4, '0')}`).join(", ")}
                 </td> */}
                 <td>
-                  {po.projectId?.map((project) => project.projectName || project.name).join(", ")}
-                </td>
-                <td>
                   {po.lineItems?.reduce((total, item) => total + (item.amount || 0), 0).toFixed(2)}
-                </td>
-                <td>
-                  <span className={`badge ${getStatusClass(po.Status)} px-2 py-1`}>
-                    {po.POStatus}
-                  </span>
                 </td>
                 <td>
                   <span className={`badge ${getStatusClass(po.Status)} px-2 py-1`}>
                     {po.Status}
                   </span>
                 </td>
+                {/* <td>
+                  <span className={`badge ${getStatusClass(po.Status)} px-2 py-1`}>
+                    {po.Status}
+                  </span>
+                </td> */}
                 <td>
                   <div className="d-flex gap-2">
-                    <button className="btn btn-sm btn-primary" onClick={() => Duplicate(po)}>Duplicate</button>
-                    {/* <button className="btn btn-sm btn-primary" onClick={() => handleConvertToInvoice(po)}>ConvertInvoice</button> */}
-                    <button
+                      {/* <td>
+                  <span className={`badge ${getStatusClass(po.Status)} px-2 py-1`}>
+                    {po.Status}
+                  </span>
+                </td> */}
+                  <button
                       className="btn btn-sm btn-success"
                       onClick={() => {
                         setCostEstimatesId(po._id); // Store the ID
                         setShowAddPOModal(true);   // Open Modal
                       }}
                     >
-                      Add PO
+                     PO Add
+                            <td>
+                  <span className={`badge ${getStatusClass(po.Status)} px-2 py-1`}>
+                    {po.POStatus}
+                  </span>
+                </td>
                     </button>
-
+              
+                    <button className="btn btn-sm btn-primary" onClick={() => Duplicate(po)}><FaRegCopy /></button>
+                    {/* <button className="btn btn-sm btn-primary" onClick={() => handleConvertToInvoice(po)}>ConvertInvoice</button> */}
                     <button className="btn btn-sm btn-outline-primary" onClick={() => UpdateEstimate(po)}><BsPencil /></button>
                     {/* <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(po._id)}>
                           <FaTrash />

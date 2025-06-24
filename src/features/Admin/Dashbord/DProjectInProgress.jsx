@@ -9,13 +9,14 @@ import {
 } from "react-bootstrap";
 import { FaComments, FaExchangeAlt, FaEdit } from "react-icons/fa";
 import { BsPencil, BsXCircle } from "react-icons/bs";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchjobs } from "../../../redux/slices/JobsSlice";
 import { fetchProject } from "../../../redux/slices/ProjectsSlice";
 
 function  DProjectInProgress() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { job } = useSelector((state) => state.jobs);
   const { project, loading, error } = useSelector((state) => state.projects);
   const [searchQuery, setSearchQuery] = useState("");
@@ -100,10 +101,6 @@ function  DProjectInProgress() {
     }));
   };
 
-  const CreatJobs = (projectId) => {
-    console.log("Create jobs for project:", projectId);
-  };
-
   const handleUpdate = (project) => {
     console.log("Update project:", project);
   };
@@ -175,6 +172,11 @@ function  DProjectInProgress() {
     return pageNumbers;
   };
 
+
+    const CreatJobs = (id) => {
+    navigate(`/admin/ProjectOverview/${id}`, { state: { id, openTab: 'jobs' } });
+  };
+
   return (
     <div className="container bg-white p-4 mt-4 rounded shadow-sm">
       {/* Title */}
@@ -221,9 +223,9 @@ function  DProjectInProgress() {
                       onChange={() => handleCheckboxChange(project.id)}
                     />
                   </td> */}
-                  <td onClick={() => CreatJobs(project.id)}>
-                    {project.projectNo}
-                </td>
+                        <td onClick={() => CreatJobs(project.id)}>
+                               <Link style={{ textDecoration: 'none' }}>{project.projectNo}</Link>
+                             </td>
                   <td style={{ whiteSpace: 'nowrap' }}>{project.projectName}</td>
                   <td style={{ whiteSpace: 'nowrap' }}>{project.description}</td>
                   <td>

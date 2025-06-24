@@ -10,7 +10,7 @@ import { fetchClient } from "../../../redux/slices/ClientSlice";
 import { createInvoicingBilling, updateInvoicingBilling } from "../../../redux/slices/InvoicingBillingSlice";
 
 const currencies = [
-   { value: "", label: "Select Currency" }, 
+  { value: "", label: "Select Currency" },
   { label: "USD - US Dollar", value: "USD" },
   { label: "EUR - Euro", value: "EUR" },
   { label: "INR - Indian Rupee", value: "INR" },
@@ -258,43 +258,43 @@ function AddInvoice() {
 
             <div className="col-md-4 mb-3">
               <label className="form-label">Document Type</label>
-            <select
-  className="form-select"
-  name="document"
-  value={formData.document}
-  onChange={handleFormChange}
-  required
->
-  <option value="" disabled>
-    Select Document
-  </option>
-  {document.slice(1).map((doc) => (
-    <option key={doc} value={doc}>
-      {doc}
-    </option>
-  ))}
-</select>
+              <select
+                className="form-select"
+                name="document"
+                value={formData.document}
+                onChange={handleFormChange}
+                required
+              >
+                <option value="" disabled>
+                  Select Document
+                </option>
+                {document.slice(1).map((doc) => (
+                  <option key={doc} value={doc}>
+                    {doc}
+                  </option>
+                ))}
+              </select>
 
             </div>
 
             <div className="col-md-4 mb-3">
               <label className="form-label">Output Format</label>
-           <select
-  className="form-select"
-  name="output"
-  value={formData.output}
-  onChange={handleFormChange}
-  required
->
-  <option value="" disabled>
-    Select Output Format
-  </option>
-  {OutputFormat.slice(1).map((format) => (
-    <option key={format} value={format}>
-      {format}
-    </option>
-  ))}
-</select>
+              <select
+                className="form-select"
+                name="output"
+                value={formData.output}
+                onChange={handleFormChange}
+                required
+              >
+                <option value="" disabled>
+                  Select Output Format
+                </option>
+                {OutputFormat.slice(1).map((format) => (
+                  <option key={format} value={format}>
+                    {format}
+                  </option>
+                ))}
+              </select>
 
             </div>
 
@@ -389,7 +389,7 @@ function AddInvoice() {
               </button>
             </Link>
             <button type="submit" className="btn btn-dark">
-              Create Estimate
+               Generate Invoice
             </button>
           </div>
         </form>

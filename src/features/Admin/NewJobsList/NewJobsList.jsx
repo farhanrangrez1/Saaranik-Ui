@@ -19,6 +19,7 @@ import { fetchusers } from "../../../redux/slices/userSlice";
 import { createAssigns } from "../../../redux/slices/AssignSlice";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { BiCopy } from "react-icons/bi";
 
 function NewJobsList() {
   const [showRejectModal, setShowRejectModal] = useState(false);
@@ -195,7 +196,47 @@ function NewJobsList() {
     }
   };
 
-  const filteredJobs = (job?.jobs || []).filter((j) => {
+  // const filteredJobs = (job?.jobs || []).filter((j) => {
+  //   const search = searchQuery.toLowerCase().trim();
+
+  //   const matchesSearch =
+  //     (j.JobNo?.toString().toLowerCase().includes(search) || false) ||
+  //     (j.projectId?.[0]?.projectName?.toLowerCase().includes(search) || false) ||
+  //     (j.brandName?.toLowerCase().includes(search) || false) ||
+  //     (j.subBrand?.toLowerCase().includes(search) || false) ||
+  //     (j.flavour?.toLowerCase().includes(search) || false) ||
+  //     (j.packType?.toLowerCase().includes(search) || false) ||
+  //     (j.packSize?.toLowerCase().includes(search) || false) ||
+  //     (j.packCode?.toLowerCase().includes(search) || false);
+
+  //   const matchesProject =
+  //     selectedProject === "All Projects" ||
+  //     (j.projectId?.[0]?.projectName?.toLowerCase() === selectedProject.toLowerCase());
+
+  //   const matchesPriority =
+  //     selectedPriority === "All Priorities" ||
+  //     (j.priority?.toLowerCase() === selectedPriority.toLowerCase());
+
+  //   const matchesStatus =
+  //     selectedStatus === "All Status" ||
+  //     (j.Status?.toLowerCase() === selectedStatus.toLowerCase());
+
+  //   const matchesStage =
+  //     selectedStage === "All Stages" ||
+  //     (j.stage?.toLowerCase() === selectedStage.toLowerCase());
+
+  //   return (
+  //     matchesSearch &&
+  //     matchesProject &&
+  //     matchesPriority &&
+  //     matchesStatus &&
+  //     matchesStage
+  //   );
+  // });
+
+  const filteredJobs = (job?.jobs || [])
+  .filter((j) => j.assignedTo === "Not Assigned") // << Add this line first
+  .filter((j) => {
     const search = searchQuery.toLowerCase().trim();
 
     const matchesSearch =
@@ -510,8 +551,8 @@ function NewJobsList() {
                 }}
               >
                 <option value="">-- Select --</option>
-                <option value="Production">Production</option>
                 <option value="Designer">Designer</option>
+                <option value="Production">Production</option>
               </Form.Select>
             </Form.Group>
             <Form.Group className="mb-3">

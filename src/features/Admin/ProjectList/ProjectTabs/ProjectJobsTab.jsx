@@ -310,7 +310,7 @@ function ProjectJobsTab() {
             📄 Copy File Name
           </Button> */}
 
-          <label className="btn btn-success m-2">
+          {/* <label className="btn btn-success m-2">
             <i className="bi bi-upload"></i> Import CSV
             <input
               type="file"
@@ -318,7 +318,7 @@ function ProjectJobsTab() {
               onChange={handleCSVImport}
               hidden
             />
-          </label>
+          </label> */}
 
 
           <button onClick={() => AddJob()} id="All_btn" className="btn btn-primary">
@@ -461,8 +461,8 @@ function ProjectJobsTab() {
                 }}
               >
                 <option value="">-- Select --</option>
-                <option value="Production">Production</option>
                 <option value="Designer">Designer</option>
+                   <option value="Production">Production</option>
               </Form.Select>
             </Form.Group>
 

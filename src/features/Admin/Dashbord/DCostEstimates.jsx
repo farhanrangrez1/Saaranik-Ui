@@ -336,7 +336,7 @@ function DCostEstimates() {
                             <th>ProjectName</th>
                             <th>Amount</th>
                             <th>POStatus</th>
-                            <th>Status</th>
+                            <th>CotStatus</th>
                             {/* <th>Actions</th> */}
                         </tr>
                     </thead>
@@ -345,7 +345,7 @@ function DCostEstimates() {
                             <tr style={{ whiteSpace: "nowrap" }} key={po.poNumber}>
                                 {/* <td><input type="checkbox" /></td> */}
                                 <td onClick={() => CreatJobs(po.projectId)}>
-                                    <Link style={{ textDecoration: 'none', border: 'none', color: 'inherit' }}>
+                                     <Link to={"/admin/receivable"} style={{ textDecoration: 'none' }}>
                                         {po.estimateRef}
                                     </Link>
                                 </td>

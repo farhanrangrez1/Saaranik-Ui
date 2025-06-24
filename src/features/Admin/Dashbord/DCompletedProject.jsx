@@ -217,7 +217,7 @@ function DCompletedProject() {
                     />
                   </td> */}
                   <td onClick={() => CreatJobs(project.id)}>
-                 {project.projectNo}
+                <Link to={"/admin/Invoicing_Billing"} style={{ textDecoration: 'none' }}> {project.projectNo}</Link>
                 </td>
                   <td style={{ whiteSpace: 'nowrap' }}>{project.projectName}</td>
                   <td style={{ whiteSpace: 'nowrap' }}>{project.description}</td>

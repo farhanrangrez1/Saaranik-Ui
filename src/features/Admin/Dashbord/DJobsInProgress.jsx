@@ -79,39 +79,35 @@ function DJobsInProgress() {
     navigate(`/admin/AddJobTracker`, { state: { job } });
   };
 
-  const JobDetails = (job) => {
-    navigate(`/admin/OvervieJobsTracker`, { state: { job } });
-  }
-
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-const filteredProjects = useMemo(() => {
-  return (job?.jobs || []).filter((j) => {
-    const search = searchQuery.toLowerCase().trim();
+  const filteredProjects = useMemo(() => {
+    return (job?.jobs || []).filter((j) => {
+      const search = searchQuery.toLowerCase().trim();
 
-    const matchesSearch =
-      (j.JobNo?.toString().toLowerCase().includes(search) || false) ||
-      (j.projectId?.[0]?.projectName?.toLowerCase().includes(search) || false) ||
-      (j.brandName?.toLowerCase().includes(search) || false) ||
-      (j.subBrand?.toLowerCase().includes(search) || false) ||
-      (j.flavour?.toLowerCase().includes(search) || false) ||
-      (j.packType?.toLowerCase().includes(search) || false) ||
-      (j.packSize?.toLowerCase().includes(search) || false) ||
-      (j.packCode?.toLowerCase().includes(search) || false);
+      const matchesSearch =
+        (j.JobNo?.toString().toLowerCase().includes(search) || false) ||
+        (j.projectId?.[0]?.projectName?.toLowerCase().includes(search) || false) ||
+        (j.brandName?.toLowerCase().includes(search) || false) ||
+        (j.subBrand?.toLowerCase().includes(search) || false) ||
+        (j.flavour?.toLowerCase().includes(search) || false) ||
+        (j.packType?.toLowerCase().includes(search) || false) ||
+        (j.packSize?.toLowerCase().includes(search) || false) ||
+        (j.packCode?.toLowerCase().includes(search) || false);
 
-    const matchesProject =
-      selectedProject === "All Projects" ||
-      (j.projectId?.[0]?.projectName?.toLowerCase() === selectedProject.toLowerCase());
+      const matchesProject =
+        selectedProject === "All Projects" ||
+        (j.projectId?.[0]?.projectName?.toLowerCase() === selectedProject.toLowerCase());
 
-   const matchesStatus =
-  (j.Status?.toLowerCase().trim() === "in_progress");
+      const matchesStatus =
+        (j.Status?.toLowerCase().trim() === "in_progress");
 
 
-    return matchesSearch && matchesProject && matchesStatus;
-  });
-}, [job?.jobs, searchQuery, selectedProject]);
+      return matchesSearch && matchesProject && matchesStatus;
+    });
+  }, [job?.jobs, searchQuery, selectedProject]);
 
 
   const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
@@ -122,6 +118,10 @@ const filteredProjects = useMemo(() => {
       currentPage * itemsPerPage
     );
   }, [filteredProjects, currentPage, itemsPerPage]);
+
+  const JobDetails = (job) => {
+    navigate(`/admin/OvervieJobsTracker`, { state: { job } });
+  };
 
   return (
     <div className="container bg-white p-4 mt-4 rounded shadow-sm">
@@ -195,7 +195,7 @@ const filteredProjects = useMemo(() => {
                   />
                 </td> */}
                 <td onClick={() => JobDetails(job)}>
-                  {job.JobNo}
+                  <Link style={{ textDecoration: 'none' }}>{job.JobNo}</Link>
                 </td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.projectId?.[0]?.projectName || 'N/A'}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.brandName}</td>
@@ -208,8 +208,8 @@ const filteredProjects = useMemo(() => {
                   <span className={getPriorityClass(job.priority)}>{job.priority}</span>
                 </td>
                 <td>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
-                <td onClick={() => handleDesignerClick(job)} style={{ whiteSpace: 'nowrap', cursor: 'pointer', color: 'darkblue' }}>
-                  {job.assign}
+                <td style={{ whiteSpace: 'nowrap' }}>
+                  {job.assignedTo}
                 </td>
                 <td style={{ whiteSpace: 'nowrap' }}>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
                 <td>
@@ -247,7 +247,7 @@ const filteredProjects = useMemo(() => {
       {!loading && !error && (
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div className="text-muted small">
-            Showing {(currentPage - 1) * itemsPerPage + 1} to {(currentPage - 1) * itemsPerPage + paginatedProjects.length} 
+            Showing {(currentPage - 1) * itemsPerPage + 1} to {(currentPage - 1) * itemsPerPage + paginatedProjects.length}
           </div>
           <ul className="pagination pagination-sm mb-0">
             <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>

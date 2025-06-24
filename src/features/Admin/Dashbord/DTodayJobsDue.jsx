@@ -158,6 +158,8 @@ function DTodayJobsDue() {
         return "";
     }
   };
+
+
   return (
     <div className="container bg-white p-4 mt-4 rounded shadow-sm">
       <div className="d-flex justify-content-between align-items-center mb-3">
@@ -221,7 +223,7 @@ function DTodayJobsDue() {
                   />
                 </td> */}
                 <td onClick={() => JobDetails(job)}>
-                  {job.JobNo}
+                   <Link to={"/admin/newJobsList"} style={{ textDecoration: 'none' }}>{job.JobNo}</Link>
                 </td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.projectId?.[0]?.projectName || "N/A"}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.brandName}</td>
@@ -237,7 +239,9 @@ function DTodayJobsDue() {
                 <td>
                   {new Date(job.dueDate || job.createdAt).toLocaleDateString("en-GB")}
                 </td>
-                <td style={{ whiteSpace: 'nowrap' }}>{job.assign}</td>
+                  <td style={{ whiteSpace: 'nowrap' }}>
+                  {job.assignedTo}
+                </td>
                 <td>
                   {new Date(job.updatedAt).toLocaleTimeString("en-US", {
                     hour: "2-digit",
@@ -286,10 +290,7 @@ function DTodayJobsDue() {
               onClick={() => setCurrentPage(1)}
               disabled={currentPage === 1}
             />
-            <Pagination.Prev 
-              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-            />
+           
             
             {getPageNumbers().map((pageNum, index) => (
               pageNum === '...' ? (
@@ -305,10 +306,7 @@ function DTodayJobsDue() {
               )
             ))}
 
-            <Pagination.Next
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
-            />
+          
             <Pagination.Last
               onClick={() => setCurrentPage(totalPages)}
               disabled={currentPage === totalPages}
