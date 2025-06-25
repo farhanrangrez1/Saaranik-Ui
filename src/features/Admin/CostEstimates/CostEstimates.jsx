@@ -802,9 +802,12 @@ function CostEstimates() {
                     {po.Status}
                   </span>
                 </td> */}
-                  <button
+               <button
   className="btn btn-sm btn-success"
-  disabled={po.receivablePurchases?.[0]?.POStatus !== "pending"}
+  disabled={
+    po.receivablePurchases?.length > 0 &&
+    po.receivablePurchases[0]?.POStatus?.toLowerCase() !== "pending"
+  }
   onClick={() => {
     setCostEstimatesId(po._id); // Store the ID
     setShowAddPOModal(true);   // Open Modal
@@ -813,9 +816,12 @@ function CostEstimates() {
   PO Add
 </button>
 
-<span className={`badge ${getStatusClass(po.receivablePurchases?.[0]?.POStatus)} px-2 py-1`}>
+<span className={`badge ${getStatusClass(
+  po.receivablePurchases?.[0]?.POStatus?.toLowerCase() || "pending"
+)} px-2 py-1`}>
   {po.receivablePurchases?.[0]?.POStatus || 'pending'}
 </span>
+
 
 
                     <button className="btn btn-sm btn-primary" onClick={() => Duplicate(po)}><FaRegCopy /></button>

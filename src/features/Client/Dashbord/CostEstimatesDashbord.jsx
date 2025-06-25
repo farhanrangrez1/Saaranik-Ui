@@ -228,21 +228,16 @@ const paginatedEstimates = filteredEstimates
 
 
     return (
-        <div
-            className="p-4 m-3"
-            style={{ backgroundColor: "white", borderRadius: "10px" }}
-        >
+        <div className="p-4 m-3"  style={{ backgroundColor: "white", borderRadius: "10px" }} >
             <h2 className="fw-semibold mb-3">Cost Estimates</h2>
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <div className="filters d-flex flex-wrap gap-1 mb-4">
                     <div className="search-container flex-grow-1">
-                        <Form.Control
-                            type="search"
+                        <Form.Control type="search"
                             placeholder="Search by Job #, Brand Name, Sub Brand, Flavour, Pack Type, Pack Size..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="search-input"
-                        />
+                            className="search-input"/>
                     </div>
 
                     {/* <Dropdown className="filter-dropdown">

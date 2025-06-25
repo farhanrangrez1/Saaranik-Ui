@@ -2,15 +2,17 @@ import React, { useEffect, useState } from "react";
 import { Modal, Form, Table, Badge, Dropdown, Button } from "react-bootstrap";
 import { BsPlusLg, BsPencil, BsTrash, BsUpload, BsClipboard } from "react-icons/bs";
 import { Link, useNavigate } from "react-router-dom";
+
 import { useDispatch, useSelector } from "react-redux";
 import { FaDownload, FaTrash } from "react-icons/fa";
 import Swal from 'sweetalert2';
+
 import { jsPDF } from "jspdf";
 import autoTable from 'jspdf-autotable';
 import { FaRegCopy } from "react-icons/fa";
 import { fetchProject } from "../../../../redux/slices/ProjectsSlice";
 import { fetchClient } from "../../../../redux/slices/ClientSlice";
-import { fetchCostEstimates } from "../../../../redux/slices/costEstimatesSlice";
+import { deleteCostEstimate, fetchCostEstimates } from "../../../../redux/slices/costEstimatesSlice";
 import { createReceivablePurchase, fetchReceivablePurchases } from "../../../../redux/slices/receivablePurchaseSlice";
 
 function PurchaseOrder() {
@@ -802,9 +804,12 @@ function PurchaseOrder() {
                     {po.Status}
                   </span>
                 </td> */}
-                  <button
+               <button
   className="btn btn-sm btn-success"
-  disabled={po.receivablePurchases?.[0]?.POStatus !== "pending"}
+  disabled={
+    po.receivablePurchases?.length > 0 &&
+    po.receivablePurchases[0]?.POStatus?.toLowerCase() !== "pending"
+  }
   onClick={() => {
     setCostEstimatesId(po._id); // Store the ID
     setShowAddPOModal(true);   // Open Modal
@@ -813,9 +818,12 @@ function PurchaseOrder() {
   PO Add
 </button>
 
-<span className={`badge ${getStatusClass(po.receivablePurchases?.[0]?.POStatus)} px-2 py-1`}>
+<span className={`badge ${getStatusClass(
+  po.receivablePurchases?.[0]?.POStatus?.toLowerCase() || "pending"
+)} px-2 py-1`}>
   {po.receivablePurchases?.[0]?.POStatus || 'pending'}
 </span>
+
 
 
                     <button className="btn btn-sm btn-primary" onClick={() => Duplicate(po)}><FaRegCopy /></button>
