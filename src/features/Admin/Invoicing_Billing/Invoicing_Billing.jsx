@@ -7,6 +7,7 @@ import { jsPDF } from "jspdf";
 import autoTable from 'jspdf-autotable'; // Only this import should remain
 import { deleteInvoicingBilling, fetchInvoicingBilling } from '../../../redux/slices/InvoicingBillingSlice';
 import { useDispatch, useSelector } from 'react-redux';
+import axiosInstance from '../../../redux/utils/axiosInstance';
 
 function Invoicing_Billing() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -108,7 +109,7 @@ function Invoicing_Billing() {
     const margin = 40;
     let finalY = margin;
 
-    // --- START: Data from 'invoiceDataFromState' object ---
+  
     const companyDetails = {
       logoText: invoiceDataFromState.companyLogoText || 'COMPANY LOGO',
       addressDetails: invoiceDataFromState.companyAddressDetails || 'COMPANY ADDRESS DETAILS',
@@ -154,17 +155,15 @@ function Invoicing_Billing() {
         parseFloat(item.amount).toFixed(2)
       ])
       : [
-        ['1.', 'Print Samples', 6, 2, '12.00'], // Default item
+        ['1.', 'Print Samples', 6, 2, '12.00'], 
       ];
 
     const subTotal = items.reduce((sum, item) => sum + parseFloat(item[4]), 0);
-    const vatRate = invoiceDataFromState.vatRate !== undefined ? invoiceDataFromState.vatRate : 0.10; // 10% VAT from image, or from state
+    const vatRate = invoiceDataFromState.vatRate !== undefined ? invoiceDataFromState.vatRate : 0.10; 
     const vatAmount = subTotal * vatRate;
     const grandTotal = subTotal + vatAmount;
     const amountInWords = invoiceDataFromState.amountInWords || `US Dollars ${numberToWords(grandTotal)} Only`;
-    // --- END: Data from 'invoiceDataFromState' object ---
-
-    // 1. Company Logo Block (Top Left) - Assuming this part is okay from previous version
+    
     doc.setFillColor(192, 0, 0);
     doc.rect(margin, finalY, 220, 60, 'F');
     doc.setTextColor(255, 255, 255);
@@ -175,7 +174,7 @@ function Invoicing_Billing() {
     doc.setFont('helvetica', 'normal');
     doc.text(companyDetails.addressDetails, margin + 10, finalY + 45);
 
-    // 2. Company Name (Top Right) - Assuming this part is okay
+    
     const companyNameBlockY = finalY;
     doc.setFillColor(192, 0, 0);
     doc.rect(pageWidth - margin - 150, companyNameBlockY, 150, 30, 'F');
@@ -184,14 +183,13 @@ function Invoicing_Billing() {
     doc.setFont('helvetica', 'bold');
     doc.text(companyDetails.name, pageWidth - margin - 140, companyNameBlockY + 20, { align: 'left' });
 
-    // 3. Tax Invoice Title - Assuming this part is okay
+   
     let titleY = companyNameBlockY + 30 + 20;
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(18);
     doc.setFont('helvetica', 'bold');
     doc.text('Tax Invoice', pageWidth - margin, titleY, { align: 'right' });
 
-    // 4. TRN, Date, Invoice No. Table - Assuming this part is okay
     let tableDetailsY = titleY + 10;
     autoTable(doc, {
       startY: tableDetailsY,
@@ -210,7 +208,7 @@ function Invoicing_Billing() {
     });
     finalY = doc.lastAutoTable.finalY + 20;
 
-    // 5. Invoice To Section - Assuming this part is okay
+   
     const invoiceToBoxWidth = 250;
     doc.setDrawColor(0, 0, 0);
     doc.rect(margin, finalY, invoiceToBoxWidth, 100, 'S');
@@ -225,7 +223,7 @@ function Invoicing_Billing() {
       textYInvoiceTo += 12;
     });
     finalY += 100 + 10;
-    // 6. TRN, Cost Est. No., P.O. No., Project Table - Assuming this part is okay
+   
     autoTable(doc, {
       startY: finalY,
       head: [['TRN', 'Cost Est. No.', 'P.O. No.', 'Project']],
@@ -237,7 +235,7 @@ function Invoicing_Billing() {
     });
     finalY = doc.lastAutoTable.finalY + 10;
 
-    // 7. Bank Details Table - Assuming this part is okay
+    
     autoTable(doc, {
       startY: finalY,
       head: [['Bank Account Name', 'Bank Name', 'IBAN', 'Swift Code', 'Terms']],
@@ -249,7 +247,7 @@ function Invoicing_Billing() {
     });
     finalY = doc.lastAutoTable.finalY + 10;
 
-    // 8. Items Table - Assuming this part is okay
+ 
     autoTable(doc, {
       startY: finalY,
       head: [['Sr. #', 'Description', 'Qty', 'Rate', 'Amount (USD)']],
@@ -266,16 +264,16 @@ function Invoicing_Billing() {
       },
       margin: { left: margin, right: margin },
       didDrawPage: function (data) {
-        // Ensure finalY is updated correctly if table spans multiple pages
+     
         finalY = data.cursor.y;
       }
     });
     const amountInWordsY = finalY + 20;
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
-    doc.text(amountInWords, margin, amountInWordsY, { maxWidth: pageWidth - margin - 220 }); // Ensure it doesn't overlap with totals
+    doc.text(amountInWords, margin, amountInWordsY, { maxWidth: pageWidth - margin - 220 }); 
 
-    // 10. Totals Section (NEW - Subtotal, VAT, Total - Right Aligned)
+
     const totalsTableWidth = 200;
     const totalsTableX = pageWidth - margin - totalsTableWidth;
     let totalsTableY = finalY + 10;
@@ -321,7 +319,7 @@ function Invoicing_Billing() {
     doc.text('For Company Name', margin, footerStartY);
     doc.text('Accounts Department', margin, footerStartY + stampHeight - 10);
 
-    // Placeholder for Stamp Image
+    
     doc.setFillColor(200, 200, 200);
     doc.rect(stampX, footerStartY - 15, stampWidth, stampHeight, 'F');
     doc.setTextColor(0, 0, 0);
@@ -341,13 +339,13 @@ function Invoicing_Billing() {
     if (num >= 100) { words += ones[Math.floor(num / 100)] + ' Hundred '; num %= 100; }
     if (num >= 20) { words += tens[Math.floor(num / 10)] + ' '; num %= 10; }
     if (num > 0) { words += ones[num] + ' '; }
-    // Handle cents if your number includes them, e.g., by splitting num.toFixed(2)
+
     const numStr = parseFloat(num).toFixed(2);
     const parts = numStr.split('.');
     let dollars = parseInt(parts[0]);
     let cents = parseInt(parts[1]);
 
-    words = ''; // Reset words for dollar part only
+    words = ''; 
     if (dollars === 0) words = 'Zero';
     else {
       if (dollars >= 1000000000) { words += numberToWords(Math.floor(dollars / 1000000000)) + ' Billion '; dollars %= 1000000000; }
@@ -364,7 +362,28 @@ function Invoicing_Billing() {
     }
     return words.trim();
   };
-  
+//   const handleDownloadPDF = async (invoice) => {
+//   try {
+//     const response = await axiosInstance.get(
+//       `/pdf/invoice?InvoiceBillingId=${invoice._id}`,
+//       {
+//         responseType: "blob",
+//       }
+//     );
+
+//     const url = window.URL.createObjectURL(new Blob([response.data]));
+//     const link = document.createElement("a");
+//     link.href = url;
+//     link.setAttribute("download", `${invoice.invoiceNumber || "invoice"}.pdf`);
+//     document.body.appendChild(link);
+//     link.click();
+//     link.remove();
+//   } catch (error) {
+//     console.error("❌ Error downloading invoice PDF:", error);
+//     alert("Failed to download invoice PDF.");
+//   }
+// };
+
   const { invocing, loading, error } = useSelector((state) => state.InvoicingBilling);
   console.log(invocing?.InvoicingBilling);
 
@@ -375,14 +394,14 @@ function Invoicing_Billing() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
 
-  // Add filtering logic before pagination
+
   const filteredEstimates = invocing?.InvoicingBilling
     ?.slice()
     .reverse()
     .filter((invoice) => {
-      // Split searchQuery by spaces, ignore empty terms
+     
       const terms = searchQuery.toLowerCase().trim().split(/\s+/).filter(Boolean);
-      // Prepare searchable fields as strings
+  
       const invoiceNumber = (invoice.invoiceNumber || '').toLowerCase();
       const clientName = (invoice.clients?.[0]?.clientName || '').toLowerCase();
       const projectName = (invoice.projectId?.[0]?.projectName || '').toLowerCase();
@@ -395,7 +414,7 @@ function Invoicing_Billing() {
         status,
         amount
       ];
-      // Every term must be found in at least one field
+    
       const matchesSearch = terms.length === 0 || terms.every(term =>
         fields.some(field => field.includes(term))
       );
@@ -406,12 +425,12 @@ function Invoicing_Billing() {
       return matchesSearch && matchesProject && matchesDate;
     });
 
-  // Update pagination to use filtered data
   const totalItems = filteredEstimates?.length || 0;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   const paginatedEstimates = filteredEstimates
     ?.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
 
   const handleDelete = (_id) => {
     Swal.fire({
@@ -558,39 +577,41 @@ function Invoicing_Billing() {
             <th>Actions</th>
           </tr>
         </thead>
-        <tbody>
-          {paginatedEstimates?.map((invoice, index) => (
-            <tr key={invoice.invoiceNumber || index}>
-              <td style={{ whiteSpace: "nowrap" }} /* onClick={() => JobDetails(invoice._id)} */>
-                INV-{String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}
-              </td>
+          <tbody>
+            {paginatedEstimates?.map((invoice, index) => (
+              <tr key={invoice.invoiceNumber || index}>
+                <td style={{ whiteSpace: "nowrap" }} /* onClick={() => JobDetails(invoice._id)} */>
+                  INV-{String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}
+                </td>
 
-              <td style={{ whiteSpace: "nowrap" }}>{invoice.clients?.[0]?.clientName || "N/A"}</td>
-              <td style={{ whiteSpace: "nowrap" }}>{invoice.projectId?.[0]?.projectName || "N/A"}</td>
-              <td style={{ whiteSpace: "nowrap" }}>${invoice.lineItems?.[0]?.amount || "N/A"}</td>
-              <td>
-                <Badge bg={getStatusBadgeVariant(invoice.status)}>
-                  {invoice.status}
-                </Badge>
-              </td>
-              <td>{invoice.date ? new Date(invoice.date).toLocaleDateString("en-GB") : 'N/A'}</td>
-              <td>
-                <div className="d-flex gap-2">
-                  <button className="btn btn-sm btn-outline-primary" onClick={() => UpdateInvocing(invoice)}>
-                    <FaEdit />
-                  </button>
-                  {/* <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(invoice._id)}>
-                    <FaTrash />
-                  </button> */}
-                  <button  className="btn btn-sm btn-outline-primary"
-                    onClick={handleDownloadPDF} >
-                    <FaDownload />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
+                <td style={{ whiteSpace: "nowrap" }}>{invoice.clients?.[0]?.clientName || "N/A"}</td>
+                <td style={{ whiteSpace: "nowrap" }}>{invoice.projectId?.[0]?.projectName || "N/A"}</td>
+                <td style={{ whiteSpace: "nowrap" }}>${invoice.lineItems?.[0]?.amount || "N/A"}</td>
+                <td>
+                  <Badge bg={getStatusBadgeVariant(invoice.status)}>
+                    {invoice.status}
+                  </Badge>
+                </td>
+                <td>{invoice.date ? new Date(invoice.date).toLocaleDateString("en-GB") : 'N/A'}</td>
+                <td>
+                  <div className="d-flex gap-2">
+                    <button className="btn btn-sm btn-outline-primary" onClick={() => UpdateInvocing(invoice)}>
+                      <FaEdit />
+                    </button>
+                    {/* <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(invoice._id)}>
+                      <FaTrash />
+                    </button> */}
+                   <button
+  className="btn btn-sm btn-outline-primary"
+  onClick={() => handleDownloadPDF(invoice)} // Pass current invoice
+>
+  <FaDownload />
+</button>
+                  </div>
+                </td>
+              </tr>
+             ))}
+          </tbody>
       </Table>
 
       {!loading && !error && (

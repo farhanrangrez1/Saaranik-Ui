@@ -187,8 +187,7 @@ function AddInvoice() {
                 className="form-select"
                 name="projectsId"
                 value={formData.projectsId[0] || ""}
-                disabled
-              >
+                disabled>
                 {project?.data
                   ?.filter((proj) => proj._id === formData.projectsId[0])
                   .map((proj) => (
@@ -391,8 +390,7 @@ function AddInvoice() {
                 </span>
               </div>
               <div className="col-md-1 text-end">
-                <button
-                  type="button"
+                <button type="button"
                   className="btn btn-link text-danger p-0"
                   onClick={() => removeItem(index)}
                 >
@@ -402,8 +400,7 @@ function AddInvoice() {
             </div>
           ))}
 
-          <button
-            type="button"
+          <button   type="button"
             className="btn border rounded px-3 py-1 mb-4 text-dark"
             onClick={addItem}
           >
@@ -411,11 +408,7 @@ function AddInvoice() {
           </button>
 
           <div className="text-end mt-4">
-            <Link to="/CostEstimates">
-              <button type="button" className="btn btn-light me-2">
-                Cancel
-              </button>
-            </Link>
+            <button  type="button"  className="btn btn-light me-2" onClick={() => navigate(-1)}>  Cancel</button>
             <button type="submit" className="btn btn-dark">
                Generate Invoice
             </button>

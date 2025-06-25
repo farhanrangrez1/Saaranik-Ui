@@ -315,19 +315,13 @@ const SettingsPage = () => {
                   </Form.Select>
                 </Form.Group>
 
-                <Form.Check
-                  type="switch"
-                  id="auto-sync"
+                <Form.Check type="switch" id="auto-sync"
                   label={
                     <>
                       <div className="fw-semibold">Auto-sync Files</div>
-                      <div className="text-muted small">
-                        Automatically sync files between services
-                      </div>
-                    </>
-                  }
-                  defaultChecked
-                />
+                      <div className="text-muted small">  Automatically sync files between services </div>
+                    </>}
+                  defaultChecked/>
               </Col>
             </Row>
           </Tab.Pane>
@@ -347,9 +341,7 @@ const SettingsPage = () => {
                       </div>
                     </>
                   }
-                  defaultChecked
-                  className="mb-3"
-                />
+                  defaultChecked className="mb-3"/>
 
                 <Form.Group>
                   <Form.Label>Push Notifications</Form.Label>
@@ -398,12 +390,8 @@ const SettingsPage = () => {
                   id="biometric-auth"
                   label={
                     <>
-                      <div className="fw-semibold">
-                        Biometric Authentication
-                      </div>
-                      <div className="text-muted small">
-                        Use fingerprint or face recognition to login
-                      </div>
+                      <div className="fw-semibold"> Biometric Authentication </div>
+                      <div className="text-muted small">  Use fingerprint or face recognition to login </div>
                     </>
                   }
                   defaultChecked
@@ -416,14 +404,9 @@ const SettingsPage = () => {
                   label={
                     <>
                       <div className="fw-semibold">Location Services</div>
-                      <div className="text-muted small">
-                        Allow app to access device location
-                      </div>
+                      <div className="text-muted small"> Allow app to access device location</div>
                     </>
-                  }
-                  className="mb-3"
-                />
-
+                  } className="mb-3"/>
                 <Form.Group>
                   <Form.Label>Session Timeout</Form.Label>
                   <Form.Select defaultValue="15 minutes">
@@ -503,12 +486,10 @@ const SettingsPage = () => {
                   <div className="fw-semibold">Storage Usage</div>
                   <div className="text-muted small mb-1">75% of 1TB used</div>
                   <div className="progress">
-                    <div
-                    id="All_btn"
+                    <div  id="All_btn"
                       className="progress-bar"
                       role="progressbar"
-                      style={{ width: "75%" }}
-                    />
+                      style={{ width: "75%" }} />
                   </div>
                 </div>
               </Col>
@@ -679,7 +660,6 @@ const SettingsPage = () => {
                   <Col md={4}>
                     <div className="border rounded p-3 bg-light">
                       <h6 className="mb-3">Layout Options</h6>
-
                       <Form.Group className="mb-3">
                         <Form.Label>Default Currency</Form.Label>
                         <Form.Select defaultValue="USD ($)">
@@ -936,10 +916,8 @@ const SettingsPage = () => {
                       <Button variant="dark" className="w-100 mb-2">
                         Save Layout
                       </Button>
-                      <Button
-                        variant="outline-secondary"
-                        className="w-100 mb-2"
-                      >
+                      <Button variant="outline-secondary"
+                        className="w-100 mb-2">
                         Preview
                       </Button>
                       <Button variant="outline-danger" className="w-100">

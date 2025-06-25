@@ -262,7 +262,6 @@ function CostEstimates() {
   );
 
 
-
   // //////////
   const { estimates, loading, error } = useSelector((state) => state.costEstimates);
   console.log("Cost Estimates:", estimates.costEstimates);
