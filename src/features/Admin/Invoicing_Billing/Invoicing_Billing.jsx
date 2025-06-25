@@ -380,20 +380,29 @@ function Invoicing_Billing() {
     ?.slice()
     .reverse()
     .filter((invoice) => {
-      const searchLower = searchQuery.toLowerCase().trim();
-      const matchesSearch = !searchQuery || 
-        (invoice.invoiceNumber?.toLowerCase().includes(searchLower) ||
-        invoice.clients?.[0]?.clientName?.toLowerCase().includes(searchLower) ||
-        invoice.projectId?.[0]?.projectName?.toLowerCase().includes(searchLower) ||
-        invoice.status?.toLowerCase().includes(searchLower) ||
-        invoice.lineItems?.[0]?.amount?.toString().includes(searchLower));
-
+      // Split searchQuery by spaces, ignore empty terms
+      const terms = searchQuery.toLowerCase().trim().split(/\s+/).filter(Boolean);
+      // Prepare searchable fields as strings
+      const invoiceNumber = (invoice.invoiceNumber || '').toLowerCase();
+      const clientName = (invoice.clients?.[0]?.clientName || '').toLowerCase();
+      const projectName = (invoice.projectId?.[0]?.projectName || '').toLowerCase();
+      const status = (invoice.status || '').toLowerCase();
+      const amount = (invoice.lineItems?.[0]?.amount || '').toString().toLowerCase();
+      const fields = [
+        invoiceNumber,
+        clientName,
+        projectName,
+        status,
+        amount
+      ];
+      // Every term must be found in at least one field
+      const matchesSearch = terms.length === 0 || terms.every(term =>
+        fields.some(field => field.includes(term))
+      );
       const matchesProject = selectedProject === 'All Projects' || 
         invoice.projectId?.[0]?.projectName === selectedProject;
-
       const matchesDate = !selectedDate || 
         new Date(invoice.date).toLocaleDateString() === new Date(selectedDate).toLocaleDateString();
-
       return matchesSearch && matchesProject && matchesDate;
     });
 

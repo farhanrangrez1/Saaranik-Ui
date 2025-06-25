@@ -196,83 +196,71 @@ function NewJobsList() {
     }
   };
 
-  // const filteredJobs = (job?.jobs || []).filter((j) => {
-  //   const search = searchQuery.toLowerCase().trim();
-
-  //   const matchesSearch =
-  //     (j.JobNo?.toString().toLowerCase().includes(search) || false) ||
-  //     (j.projectId?.[0]?.projectName?.toLowerCase().includes(search) || false) ||
-  //     (j.brandName?.toLowerCase().includes(search) || false) ||
-  //     (j.subBrand?.toLowerCase().includes(search) || false) ||
-  //     (j.flavour?.toLowerCase().includes(search) || false) ||
-  //     (j.packType?.toLowerCase().includes(search) || false) ||
-  //     (j.packSize?.toLowerCase().includes(search) || false) ||
-  //     (j.packCode?.toLowerCase().includes(search) || false);
-
-  //   const matchesProject =
-  //     selectedProject === "All Projects" ||
-  //     (j.projectId?.[0]?.projectName?.toLowerCase() === selectedProject.toLowerCase());
-
-  //   const matchesPriority =
-  //     selectedPriority === "All Priorities" ||
-  //     (j.priority?.toLowerCase() === selectedPriority.toLowerCase());
-
-  //   const matchesStatus =
-  //     selectedStatus === "All Status" ||
-  //     (j.Status?.toLowerCase() === selectedStatus.toLowerCase());
-
-  //   const matchesStage =
-  //     selectedStage === "All Stages" ||
-  //     (j.stage?.toLowerCase() === selectedStage.toLowerCase());
-
-  //   return (
-  //     matchesSearch &&
-  //     matchesProject &&
-  //     matchesPriority &&
-  //     matchesStatus &&
-  //     matchesStage
-  //   );
-  // });
-
   const filteredJobs = (job?.jobs || [])
-  .filter((j) => j.assignedTo === "Not Assigned") // << Add this line first
-  .filter((j) => {
-    const search = searchQuery.toLowerCase().trim();
-
-    const matchesSearch =
-      (j.JobNo?.toString().toLowerCase().includes(search) || false) ||
-      (j.projectId?.[0]?.projectName?.toLowerCase().includes(search) || false) ||
-      (j.brandName?.toLowerCase().includes(search) || false) ||
-      (j.subBrand?.toLowerCase().includes(search) || false) ||
-      (j.flavour?.toLowerCase().includes(search) || false) ||
-      (j.packType?.toLowerCase().includes(search) || false) ||
-      (j.packSize?.toLowerCase().includes(search) || false) ||
-      (j.packCode?.toLowerCase().includes(search) || false);
-
-    const matchesProject =
-      selectedProject === "All Projects" ||
-      (j.projectId?.[0]?.projectName?.toLowerCase() === selectedProject.toLowerCase());
-
-    const matchesPriority =
-      selectedPriority === "All Priorities" ||
-      (j.priority?.toLowerCase() === selectedPriority.toLowerCase());
-
-    const matchesStatus =
-      selectedStatus === "All Status" ||
-      (j.Status?.toLowerCase() === selectedStatus.toLowerCase());
-
-    const matchesStage =
-      selectedStage === "All Stages" ||
-      (j.stage?.toLowerCase() === selectedStage.toLowerCase());
-
-    return (
-      matchesSearch &&
-      matchesProject &&
-      matchesPriority &&
-      matchesStatus &&
-      matchesStage
-    );
-  });
+    .filter((j) => j.assignedTo === "Not Assigned")
+    .filter((j) => {
+      // Split searchQuery by spaces, ignore empty terms
+      const terms = searchQuery.trim().split(/\s+/).filter(Boolean);
+      if (terms.length === 0) {
+        const matchesProject =
+          selectedProject === "All Projects" ||
+          (j.projectId?.[0]?.projectName?.toLowerCase() === selectedProject.toLowerCase());
+        const matchesPriority =
+          selectedPriority === "All Priorities" ||
+          (j.priority?.toLowerCase() === selectedPriority.toLowerCase());
+        const matchesStatus =
+          selectedStatus === "All Status" ||
+          (j.Status?.toLowerCase() === selectedStatus.toLowerCase());
+        const matchesStage =
+          selectedStage === "All Stages" ||
+          (j.stage?.toLowerCase() === selectedStage.toLowerCase());
+        return (
+          matchesProject &&
+          matchesPriority &&
+          matchesStatus &&
+          matchesStage
+        );
+      }
+      // Prepare searchable fields as strings
+      const fields = [
+        j.JobNo,
+        j.projectId?.[0]?.projectName,
+        j.brandName,
+        j.subBrand,
+        j.flavour,
+        j.packType,
+        j.packSize,
+        j.packCode,
+        j.updatedAt ? new Date(j.updatedAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }) : '',
+        j.createdAt ? new Date(j.createdAt).toLocaleDateString("en-GB") : '',
+        j.assignedTo,
+        j.priority,
+        j.Status
+      ].map(f => (f || '').toString().toLowerCase());
+      // Every term must be found in at least one field
+      const matchesSearch = terms.every(term =>
+        fields.some(field => field.includes(term.toLowerCase()))
+      );
+      const matchesProject =
+        selectedProject === "All Projects" ||
+        (j.projectId?.[0]?.projectName?.toLowerCase() === selectedProject.toLowerCase());
+      const matchesPriority =
+        selectedPriority === "All Priorities" ||
+        (j.priority?.toLowerCase() === selectedPriority.toLowerCase());
+      const matchesStatus =
+        selectedStatus === "All Status" ||
+        (j.Status?.toLowerCase() === selectedStatus.toLowerCase());
+      const matchesStage =
+        selectedStage === "All Stages" ||
+        (j.stage?.toLowerCase() === selectedStage.toLowerCase());
+      return (
+        matchesSearch &&
+        matchesProject &&
+        matchesPriority &&
+        matchesStatus &&
+        matchesStage
+      );
+    });
 
   const handleUpdate = (job) => {
     navigate(`/admin/AddJobTracker/${job._id}`, { state: { job } });

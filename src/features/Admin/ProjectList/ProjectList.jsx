@@ -41,12 +41,31 @@ function ProjectList() {
             (project) => project.status === 'Completed' && !project.invoiceCreated
           )
         : project.data?.filter((project) => project.status === activeTab)
-  )?.filter((project) =>
-    project.projectName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    project.projectNo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    project.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    project.client?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  )?.filter((project) => {
+    // Split searchTerm by spaces, ignore empty terms
+    const terms = searchTerm.trim().split(/\s+/).filter(Boolean);
+    // If no search terms, include all
+    if (terms.length === 0) return true;
+    // Prepare searchable fields as strings
+    const fields = [
+      project.projectName,
+      project.projectNo,
+      project.description,
+      project.client,
+      project.startDate ? new Date(project.startDate).toLocaleDateString('en-GB').replace(/\/20/, '/') : '',
+      project.endDate ? new Date(project.endDate).toLocaleDateString('en-GB').replace(/\/20/, '/') : '',
+      project.projectRequirements && project.projectRequirements.length > 0
+        ? Object.entries(project.projectRequirements[0])
+            .filter(([_, value]) => value === true)
+            .map(([key]) => key)
+            .join(', ')
+        : ''
+    ].map(f => (f || '').toString().toLowerCase());
+    // Every term must be found in at least one field
+    return terms.every(term =>
+      fields.some(field => field.includes(term.toLowerCase()))
+    );
+  });
 
   const handleCheckboxChange = (projectId) => {
     setSelectedJobs((prev) => ({

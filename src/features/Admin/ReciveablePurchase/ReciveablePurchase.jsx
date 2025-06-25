@@ -28,17 +28,27 @@ function ReciveablePurchase() {
 
   // 🔍 Filtering based on search and status
   const filteredOrders = allOrders.filter((po) => {
-    const searchLower = searchQuery.toLowerCase().trim();
-    const matchesSearch = !searchQuery ||
-      (po?.PONumber?.toLowerCase().includes(searchLower) ||
-        po?.projectId?.[0]?.projectName?.toLowerCase().includes(searchLower) ||
-        po?.ClientId?.[0]?.clientName?.toLowerCase().includes(searchLower) ||
-        po?.costEstimates?.[0]?.estimateRef?.toLowerCase().includes(searchLower) ||
-        po?.Status?.toLowerCase().includes(searchLower));
-
+    // Split searchQuery by spaces, ignore empty terms
+    const terms = searchQuery.toLowerCase().trim().split(/\s+/).filter(Boolean);
+    // Prepare searchable fields as strings
+    const poNumber = (po?.PONumber || '').toLowerCase();
+    const estimateRef = (po?.costEstimates?.[0]?.estimateRef || '').toLowerCase();
+    const projectName = (po?.projectId?.[0]?.projectName || '').toLowerCase();
+    const clientName = (po?.ClientId?.[0]?.clientName || '').toLowerCase();
+    const status = (po?.Status || '').toLowerCase();
+    const fields = [
+      poNumber,
+      estimateRef,
+      projectName,
+      clientName,
+      status
+    ];
+    // Every term must be found in at least one field
+    const matchesSearch = terms.length === 0 || terms.every(term =>
+      fields.some(field => field.includes(term))
+    );
     const matchesStatus = selectedStatus === "All Status" ||
       po?.Status?.toLowerCase() === selectedStatus.toLowerCase();
-
     return matchesSearch && matchesStatus;
   });
 
@@ -105,15 +115,23 @@ function ReciveablePurchase() {
 // };
 
 const handleToBeInvoiced = (po) => {
+const ReceivablePurchaseId = po._id;
   const client = po.ClientId?.[0];
   const project = po.projectId?.[0];
+const CostEstimatesId = po.CostEstimatesId?.[0];
+
 
   const invoice = {
+    
     clientId: client?._id,
     clientName: client?.clientName,
     projectId: project?._id,
     projectName: project?.projectName,
+    CostEstimatesId: project?._id,
+    ReceivablePurchaseId:project?._id,
   };
+  console.log("Invoice Data:", invoice);
+  
 
   navigate("/admin/AddInvoice", {
     state: { invoice }

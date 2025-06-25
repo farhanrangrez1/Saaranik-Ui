@@ -94,7 +94,8 @@ function TimeLogs() {
   const itemsPerPage = 7;
 
   const filteredTimeLogs = (timesheetWorklog.TimesheetWorklogss || []).filter((log) => {
-    const search = searchQuery.toLowerCase().trim();
+    // Split searchQuery by spaces, ignore empty terms
+    const terms = searchQuery.trim().split(/\s+/).filter(Boolean);
     const employeeName = log.employeeId?.[0] 
       ? `${log.employeeId[0].firstName} ${log.employeeId[0].lastName}`.toLowerCase()
       : '';
@@ -102,22 +103,23 @@ function TimeLogs() {
     const jobNo = (log.jobId?.[0]?.JobNo || '').toString().toLowerCase();
     const taskDescription = (log.taskDescription || '').toLowerCase();
     const status = (log.status || '').toLowerCase();
-
-    const matchesSearch =
-      employeeName.includes(search) ||
-      projectName.includes(search) ||
-      jobNo.includes(search) ||
-      taskDescription.includes(search) ||
-      status.includes(search);
-
+    const fields = [
+      employeeName,
+      projectName,
+      jobNo,
+      taskDescription,
+      status
+    ];
+    // Every term must be found in at least one field
+    const matchesSearch = terms.length === 0 || terms.every(term =>
+      fields.some(field => field.includes(term.toLowerCase()))
+    );
     const matchesDate =
       !selectedDate ||
       new Date(log.date).toLocaleDateString() === new Date(selectedDate).toLocaleDateString();
-
     const matchesProject =
       selectedProject === "All Projects" ||
       projectName === selectedProject.toLowerCase();
-
     return matchesSearch && matchesDate && matchesProject;
   });
 

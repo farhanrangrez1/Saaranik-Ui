@@ -3,9 +3,13 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { SingleUser } from '../../../redux/slices/userSlice';
 import { apiUrl } from '../../../redux/utils/config';
+import { FaUserEdit } from "react-icons/fa";
+import { useNavigate } from 'react-router-dom';
 
 function UpdateProfile() {
   const dispatch = useDispatch();
+  const navigate =useNavigate()
+
   const [form, setForm] = useState({
     _id: '',
     firstName: '',
@@ -98,7 +102,9 @@ function UpdateProfile() {
       const data = await response.json();
 
       if (response.ok) {
+        dispatch(SingleUser());
         setMessage('Profile updated successfully!');
+        navigate("/employee/Profile")
       } else {
         setError(data.message || 'Failed to update profile.');
       }
@@ -126,7 +132,7 @@ function UpdateProfile() {
                   form.profileImage instanceof File
                     ? URL.createObjectURL(form.profileImage)
                     : form.profileImage ||
-                      'https://wac-cdn.atlassian.com/dam/jcr:ba03a215-2f45-40f5-8540-b2015223c918/Max-R_Headshot%20(1).jpg?cdnVersion=2654'
+                    'https://wac-cdn.atlassian.com/dam/jcr:ba03a215-2f45-40f5-8540-b2015223c918/Max-R_Headshot%20(1).jpg?cdnVersion=2654'
                 }
                 alt="Profile"
                 className="rounded-circle border border-3 border-primary shadow-lg"
@@ -137,14 +143,15 @@ function UpdateProfile() {
                   background: '#fff',
                 }}
               />
+
               <button
                 type="button"
                 className="btn btn-light btn-sm rounded-circle position-absolute bottom-0 end-0 border shadow"
-                style={{ transform: 'translate(25%, 25%)' }}
+                style={{ transform: 'translate(25%, 25%)', color: '#0052CC' }}
                 onClick={handleImageClick}
                 title="Change profile picture"
               >
-                <i className="bi bi-pencil-fill"></i>
+                <FaUserEdit />
               </button>
               <input
                 type="file"
