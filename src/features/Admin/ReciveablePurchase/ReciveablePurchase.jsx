@@ -105,15 +105,23 @@ function ReciveablePurchase() {
 // };
 
 const handleToBeInvoiced = (po) => {
+const ReceivablePurchaseId = po._id;
   const client = po.ClientId?.[0];
   const project = po.projectId?.[0];
+const CostEstimatesId = po.CostEstimatesId?.[0];
+
 
   const invoice = {
+    
     clientId: client?._id,
     clientName: client?.clientName,
     projectId: project?._id,
     projectName: project?.projectName,
+    CostEstimatesId: project?._id,
+    ReceivablePurchaseId:project?._id,
   };
+  console.log("Invoice Data:", invoice);
+  
 
   navigate("/admin/AddInvoice", {
     state: { invoice }

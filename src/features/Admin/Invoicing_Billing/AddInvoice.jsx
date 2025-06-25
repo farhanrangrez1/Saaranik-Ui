@@ -59,35 +59,37 @@ function AddInvoice() {
   const [items, setItems] = useState([{ description: "", quantity: 0, rate: 0, amount: 0 }]);
 
   const [formData, setFormData] = useState({
-    clientId: [""],
+    clientId: "",
     projectsId: [""],
+    CostEstimatesId:"",
+    ReceivablePurchaseId:"",
     date: "",
     status: "",
     currency: "",
     document: "",
     output: "",
   });
-
-  // 
   
-  useEffect(() => {
-    if (invoice && project?.data?.length) {
-      setFormData((prev) => ({
-        ...prev,
-        clientId: invoice.clientId ? [invoice.clientId] : [""],
-        projectsId: invoice.projectId ? [invoice.projectId] : [""],
-        status: invoice.status && statuses.includes(invoice.status) ? invoice.status : "Active",
-        Notes: invoice.Notes || "",
-        currency: invoice.currency || "",
-        date: invoice.date ? invoice.date.substring(0, 10) : "",
-        validUntil: invoice.validUntil ? invoice.validUntil.substring(0, 10) : "",
-      }));
-
-      if (Array.isArray(invoice.lineItems) && invoice.lineItems.length > 0) {
-        setItems(invoice.lineItems);
-      }
+useEffect(() => {
+  if (invoice && project?.data?.length) {
+    setFormData((prev) => ({
+      ...prev,
+      clientId: invoice.clientId || "",
+      projectsId: invoice.projectId ? [invoice.projectId] : [""],
+      CostEstimatesId: invoice.CostEstimatesId || "",
+      ReceivablePurchaseId: invoice.ReceivablePurchaseId || "",
+      status: invoice.status && statuses.includes(invoice.status) ? invoice.status : "Active",
+      Notes: invoice.Notes || "",
+      currency: invoice.currency || "",
+      date: invoice.date ? invoice.date.substring(0, 10) : "",
+      validUntil: invoice.validUntil ? invoice.validUntil.substring(0, 10) : "",
+    }));
+    if (Array.isArray(invoice.lineItems) && invoice.lineItems.length > 0) {
+      setItems(invoice.lineItems);
     }
-  }, [invoice, project?.data]);
+  }
+}, [invoice, project?.data]);
+
 
 
   const [taxRate, setTaxRate] = useState(0.05);
@@ -166,11 +168,11 @@ function AddInvoice() {
               <select
                 className="form-select"
                 name="clientId"
-                value={formData.clientId[0] || ""}
+                value={formData.clientId || ""}
                 disabled
               >
                 {Clients?.data
-                  ?.filter((client) => client._id === formData.clientId[0])
+                  ?.filter((client) => client._id === formData.clientId)
                   .map((client) => (
                     <option key={client._id} value={client._id}>
                       {client.clientName}
@@ -197,7 +199,7 @@ function AddInvoice() {
               </select>
             </div>
 
- {/* Selectore dropdow opne ho raha hai ye code ok hai  */}
+{/* Selectore dropdow opne ho raha hai  */}
             {/* <div className="col-md-4 mb-3">
               <label className="form-label">Client</label>
               <select
