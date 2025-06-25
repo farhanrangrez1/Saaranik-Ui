@@ -354,29 +354,33 @@ function CostEstimates() {
     ?.slice()
     .reverse()
     .filter((estimate) => {
-      const searchLower = searchQuery.toLowerCase().trim();
-      const matchesSearch = !searchQuery ||
-        (estimate.estimateRef?.toLowerCase().includes(searchLower) ||
-          estimate.clientId[0]?.clientName?.toLowerCase().includes(searchLower) ||
-          estimate.projectId?.some(project =>
-            project.projectName?.toLowerCase().includes(searchLower) ||
-            project.name?.toLowerCase().includes(searchLower)
-          ) ||
-          estimate.Status?.toLowerCase().includes(searchLower) ||
-          estimate.POStatus?.toLowerCase().includes(searchLower));
-
+      // Split searchQuery by spaces, ignore empty terms
+      const terms = searchQuery.toLowerCase().trim().split(/\s+/).filter(Boolean);
+      // Prepare searchable fields as strings
+      const estimateRef = (estimate.estimateRef || '').toLowerCase();
+      const clientName = (estimate.clientId?.[0]?.clientName || '').toLowerCase();
+      const projectNames = (estimate.projectId || []).map(project => (project.projectName || project.name || '').toLowerCase()).join(' ');
+      const status = (estimate.Status || '').toLowerCase();
+      const poStatus = (estimate.POStatus || '').toLowerCase();
+      const fields = [
+        estimateRef,
+        clientName,
+        projectNames,
+        status,
+        poStatus
+      ];
+      // Every term must be found in at least one field
+      const matchesSearch = terms.length === 0 || terms.every(term =>
+        fields.some(field => field.includes(term))
+      );
       const matchesClient = selectedClient === "All Clients" ||
         estimate.clientId[0]?.clientName === selectedClient;
-
       const matchesPOStatus = selectedPOStatus === "All PO Status" ||
         estimate.POStatus === selectedPOStatus;
-
       const matchesStatus = selectedStatus === "All Status" ||
         estimate.Status === selectedStatus;
-
       const matchesDate = !selectedDate ||
         new Date(estimate.estimateDate).toLocaleDateString() === new Date(selectedDate).toLocaleDateString();
-
       return matchesSearch && matchesClient && matchesPOStatus && matchesStatus && matchesDate;
     });
 

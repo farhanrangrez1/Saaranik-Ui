@@ -120,10 +120,13 @@ function MyJobs() {
   const itemsPerPage = 10;
 
   const filteredProjects = (assigns?.assignments || []).filter((job) => {
-    const search = searchQuery.toLowerCase().trim();
+    // Split searchQuery by spaces, ignore empty terms
+    const terms = searchQuery.trim().split(/\s+/).filter(Boolean);
+    // Prepare searchable fields as strings
     const employeeName = job.employeeId 
       ? `${job.employeeId.firstName} ${job.employeeId.lastName}`.toLowerCase()
       : '';
+    const employeeEmail = (job.employeeId?.email || '').toLowerCase();
     const description = (job.description || '').toLowerCase();
     const brandName = (job.jobId?.[0]?.brandName || '').toLowerCase();
     const subBrand = (job.jobId?.[0]?.subBrand || '').toLowerCase();
@@ -133,27 +136,39 @@ function MyJobs() {
     const packCode = (job.jobId?.[0]?.packCode || '').toLowerCase();
     const jobNo = (job.jobId?.[0]?.JobNo || '').toString().toLowerCase();
     const designer = (job.selectDesigner || '').toLowerCase();
-
-    const matchesSearch =
-      employeeName.includes(search) ||
-      description.includes(search) ||
-      brandName.includes(search) ||
-      subBrand.includes(search) ||
-      flavour.includes(search) ||
-      packType.includes(search) ||
-      packSize.includes(search) ||
-      packCode.includes(search) ||
-      jobNo.includes(search) ||
-      designer.includes(search);
-
+    const priority = (job.jobId?.[0]?.priority || '').toLowerCase();
+    const dueDate = job.createdAt ? new Date(job.createdAt).toLocaleDateString("en-GB").toLowerCase() : '';
+    const assign = (job.selectDesigner || '').toLowerCase();
+    const timeLogged = job.updatedAt ? new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }).toLowerCase() : '';
+    const status = (job.jobId?.[0]?.Status || '').toLowerCase();
+    const fields = [
+      employeeName,
+      employeeEmail,
+      description,
+      brandName,
+      subBrand,
+      flavour,
+      packType,
+      packSize,
+      packCode,
+      priority,
+      dueDate,
+      assign,
+      timeLogged,
+      status,
+      jobNo,
+      designer
+    ];
+    // Every term must be found in at least one field
+    const matchesSearch = terms.length === 0 || terms.every(term =>
+      fields.some(field => field.includes(term.toLowerCase()))
+    );
     const matchesEmployee =
       selectedEmployee === "All Employees" ||
       employeeName === selectedEmployee.toLowerCase();
-
     const matchesStatus =
       selectedStatus === "All Status" ||
       (job.jobId?.[0]?.Status?.toLowerCase() === selectedStatus.toLowerCase());
-
     return matchesSearch && matchesEmployee && matchesStatus;
   });
 

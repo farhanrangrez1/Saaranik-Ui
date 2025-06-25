@@ -63,29 +63,32 @@ function Job_History() {
   };
 
   const filteredJobs = (job?.jobs || []).filter((j) => {
-    const search = searchQuery.toLowerCase().trim();
-
-    const matchesSearch =
-      (j.JobNo || "").toLowerCase().includes(search) ||
-      (j.projectId?.[0]?.projectName || "").toLowerCase().includes(search) ||
-      (j.brandName || "").toLowerCase().includes(search) ||
-      (j.subBrand || "").toLowerCase().includes(search) ||
-      (j.flavour || "").toLowerCase().includes(search) ||
-      (j.packType || "").toLowerCase().includes(search) ||
-      (j.packSize || "").toLowerCase().includes(search);
-
+    // Split searchQuery by spaces, ignore empty terms
+    const terms = searchQuery.toLowerCase().trim().split(/\s+/).filter(Boolean);
+    // Prepare searchable fields as strings
+    const fields = [
+      (j.JobNo || '').toLowerCase(),
+      (j.projectId?.[0]?.projectName || '').toLowerCase(),
+      (j.brandName || '').toLowerCase(),
+      (j.subBrand || '').toLowerCase(),
+      (j.flavour || '').toLowerCase(),
+      (j.packType || '').toLowerCase(),
+      (j.packSize || '').toLowerCase(),
+      (j.packCode || '').toLowerCase()
+    ];
+    // Every term must be found in at least one field
+    const matchesSearch = terms.length === 0 || terms.every(term =>
+      fields.some(field => field.includes(term))
+    );
     const matchesProject =
       selectedProject === "All Projects" ||
       (j.projectId?.[0]?.projectName || "").toLowerCase() === selectedProject.toLowerCase();
-
     const matchesPriority =
       selectedPriority === "All Priorities" ||
       (j.priority || "").toLowerCase() === selectedPriority.toLowerCase();
-
     const matchesStatus =
       selectedStatus === "All Status" ||
       (j.Status || "").toLowerCase().trim() === selectedStatus.toLowerCase().trim();
-
     return (
       matchesSearch &&
       matchesProject &&

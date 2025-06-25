@@ -36,20 +36,29 @@ function ClientManagement() {
 
   // Enhanced filtering logic
   const filteredClients = (Clients?.data || []).filter(client => {
-    const searchLower = searchTerm.toLowerCase().trim();
-    const matchesSearch = !searchTerm || 
-      (client.clientName || '').toLowerCase().includes(searchLower) ||
-      (client.contactPersons?.[0]?.contactName || '').toLowerCase().includes(searchLower) ||
-      (client.contactPersons?.[0]?.email || '').toLowerCase().includes(searchLower) ||
-      (client.contactPersons?.[0]?.phone || '').toLowerCase().includes(searchLower) ||
-      (client.industry || '').toLowerCase().includes(searchLower);
-
+    // Split searchTerm by spaces, ignore empty terms
+    const terms = searchTerm.toLowerCase().trim().split(/\s+/).filter(Boolean);
+    // Prepare searchable fields as strings
+    const clientName = (client.clientName || '').toLowerCase();
+    const contactPerson = (client.contactPersons?.[0]?.contactName || '').toLowerCase();
+    const email = (client.contactPersons?.[0]?.email || '').toLowerCase();
+    const phone = (client.contactPersons?.[0]?.phone || '').toLowerCase();
+    const industry = (client.industry || '').toLowerCase();
+    const fields = [
+      clientName,
+      contactPerson,
+      email,
+      phone,
+      industry
+    ];
+    // Every term must be found in at least one field
+    const matchesSearch = terms.length === 0 || terms.every(term =>
+      fields.some(field => field.includes(term))
+    );
     const matchesStatus = statusFilter === 'All' || 
       (client.Status || '').toLowerCase() === statusFilter.toLowerCase();
-
     const matchesIndustry = formData.industry === 'Client' || 
       (client.industry || '').toLowerCase() === formData.industry.toLowerCase();
-
     return matchesSearch && matchesStatus && matchesIndustry;
   });
 

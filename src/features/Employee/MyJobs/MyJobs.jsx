@@ -72,17 +72,22 @@ function MyJobs() {
     let jobsToFilter = MynewJobsdata || [];
 
     if (searchTerm) {
+      // Split searchTerm by spaces, ignore empty terms
+      const terms = searchTerm.toLowerCase().split(/\s+/).filter(Boolean);
       jobsToFilter = jobsToFilter.filter((job) => {
-        const searchTermLower = searchTerm.toLowerCase();
-        return (
-          job.JobNo?.toString().toLowerCase().includes(searchTermLower) ||
-          job.projectId?.[0]?.projectName?.toLowerCase().includes(searchTermLower) ||
-          job.brandName?.toLowerCase().includes(searchTermLower) ||
-          job.subBrand?.toLowerCase().includes(searchTermLower) ||
-          job.flavour?.toLowerCase().includes(searchTermLower) ||
-          job.packType?.toLowerCase().includes(searchTermLower) ||
-          job.packSize?.toLowerCase().includes(searchTermLower) ||
-          job.packCode?.toLowerCase().includes(searchTermLower)
+        const fields = [
+          job.JobNo?.toString().toLowerCase() || '',
+          job.projectId?.[0]?.projectName?.toLowerCase() || '',
+          job.brandName?.toLowerCase() || '',
+          job.subBrand?.toLowerCase() || '',
+          job.flavour?.toLowerCase() || '',
+          job.packType?.toLowerCase() || '',
+          job.packSize?.toLowerCase() || '',
+          job.packCode?.toLowerCase() || ''
+        ];
+        // Every term must be found in at least one field
+        return terms.every(term =>
+          fields.some(field => field.includes(term))
         );
       });
     }

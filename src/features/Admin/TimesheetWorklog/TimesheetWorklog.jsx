@@ -34,20 +34,29 @@ function TimesheetWorklog() {
   // Add filtering logic before pagination
   const filteredTimeLogs = timesheetWorklog.TimesheetWorklogss
     ?.filter((log) => {
-      const searchLower = searchQuery.toLowerCase().trim();
-      const matchesSearch = !searchQuery ||
-        (log.jobId?.[0]?.JobNo?.toString().toLowerCase().includes(searchLower) ||
-          log.projectId?.[0]?.projectName?.toLowerCase().includes(searchLower) ||
-          `${log.employeeId?.[0]?.firstName} ${log.employeeId?.[0]?.lastName}`.toLowerCase().includes(searchLower) ||
-          log.taskDescription?.toLowerCase().includes(searchLower) ||
-          log.status?.toLowerCase().includes(searchLower));
-
+      // Split searchQuery by spaces, ignore empty terms
+      const terms = searchQuery.toLowerCase().trim().split(/\s+/).filter(Boolean);
+      // Prepare searchable fields as strings
+      const jobNo = (log.jobId?.[0]?.JobNo || '').toString().toLowerCase();
+      const projectName = (log.projectId?.[0]?.projectName || '').toLowerCase();
+      const employeeName = `${log.employeeId?.[0]?.firstName || ''} ${log.employeeId?.[0]?.lastName || ''}`.toLowerCase();
+      const taskDescription = (log.taskDescription || '').toLowerCase();
+      const status = (log.status || '').toLowerCase();
+      const fields = [
+        jobNo,
+        projectName,
+        employeeName,
+        taskDescription,
+        status
+      ];
+      // Every term must be found in at least one field
+      const matchesSearch = terms.length === 0 || terms.every(term =>
+        fields.some(field => field.includes(term))
+      );
       const matchesProject = selectedProject === 'All timesheet' ||
         log.projectId?.[0]?.projectName === selectedProject;
-
       const matchesDate = !selectedDate ||
         new Date(log.date).toLocaleDateString() === new Date(selectedDate).toLocaleDateString();
-
       return matchesSearch && matchesProject && matchesDate;
     });
 

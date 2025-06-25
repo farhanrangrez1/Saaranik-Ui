@@ -70,29 +70,42 @@ function JobTracker() {
   };
 
   const filteredJobs = (job?.jobs || []).filter((j) => {
-    const search = searchQuery.toLowerCase().trim();
-
-    const matchesSearch =
-      (j.JobNo || "").toLowerCase().includes(search) ||
-      (j.projectId?.[0]?.projectName || "").toLowerCase().includes(search) ||
-      (j.brandName || "").toLowerCase().includes(search) ||
-      (j.subBrand || "").toLowerCase().includes(search) ||
-      (j.flavour || "").toLowerCase().includes(search) ||
-      (j.packType || "").toLowerCase().includes(search) ||
-      (j.packSize || "").toLowerCase().includes(search);
-
+    // Split searchQuery by spaces, ignore empty terms
+    const terms = searchQuery.trim().split(/\s+/).filter(Boolean);
+    if (terms.length === 0) return (
+      (selectedProject === "All Projects" || (j.projectId?.[0]?.projectName || "").toLowerCase() === selectedProject.toLowerCase()) &&
+      (selectedPriority === "All Priorities" || (j.priority || "").toLowerCase() === selectedPriority.toLowerCase()) &&
+      (selectedStatus === "All Status" || (j.Status || "").toLowerCase().trim() === selectedStatus.toLowerCase().trim())
+    );
+    // Prepare searchable fields as strings
+    const fields = [
+      j.JobNo,
+      j.projectId?.[0]?.projectName,
+      j.brandName,
+      j.subBrand,
+      j.flavour,
+      j.packType,
+      j.packSize,
+      j.packCode,
+      j.priority,
+      j.createdAt ? new Date(j.createdAt).toLocaleDateString("en-GB") : '',
+      j.assignedTo,
+      j.updatedAt ? new Date(j.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '',
+      j.Status
+    ].map(f => (f || '').toString().toLowerCase());
+    // Every term must be found in at least one field
+    const matchesSearch = terms.every(term =>
+      fields.some(field => field.includes(term.toLowerCase()))
+    );
     const matchesProject =
       selectedProject === "All Projects" ||
       (j.projectId?.[0]?.projectName || "").toLowerCase() === selectedProject.toLowerCase();
-
     const matchesPriority =
       selectedPriority === "All Priorities" ||
       (j.priority || "").toLowerCase() === selectedPriority.toLowerCase();
-
     const matchesStatus =
       selectedStatus === "All Status" ||
       (j.Status || "").toLowerCase().trim() === selectedStatus.toLowerCase().trim();
-
     return (
       matchesSearch &&
       matchesProject &&

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { SingleUser } from '../../../redux/slices/userSlice';
+import { Link } from 'react-router-dom';
 
 // Example user data (replace with props or redux in real app)
 const userData = {
@@ -164,6 +165,7 @@ function Profile() {
           <div className="col-lg-4 mb-4">
             <div className="card border-0 shadow-lg " style={{ background: 'linear-gradient(135deg, #f8fafc 60%, #e0e7ff 100%)', borderRadius: '1.5rem' }}>
               <div className="card-body text-center p-4 d-flex flex-column align-items-center justify-content-between h-100">
+                     <Link to={"/admin/UpdateProfile"}>
                 <div className="position-relative d-inline-block mb-3">
                   <img
                     src={UserSingle?.profileImage && UserSingle?.profileImage.length > 0 ? UserSingle?.profileImage[0] : '/default-profile.png'}
@@ -171,22 +173,19 @@ function Profile() {
                     className="rounded-circle border border-3 border-primary shadow"
                     style={{ width: '140px', height: '140px', objectFit: 'cover', background: '#fff', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}
                   />
-                   <div className="profile-avatar">
-                {/* <img src="https://wac-cdn.atlassian.com/dam/jcr:ba03a215-2f45-40f5-8540-b2015223c918/Max-R_Headshot%20(1).jpg?cdnVersion=2654" alt="profile" /> */}
-              </div>
-                </div>
-                <h4 className="fw-bold mb-1 mt-2">{UserSingle.firstName} {UserSingle.lastName}</h4>
+                </div></Link>
+                <h4 className="fw-bold mb-1 mt-2">{UserSingle?.firstName} {UserSingle?.lastName}</h4>
                 <div className="mb-2">
                   <i className="bi bi-envelope-at me-1"></i>
-                  <span className="fw-semibold">{UserSingle.email}</span>
+                  <span className="fw-semibold">{UserSingle?.email}</span>
                 </div>
                 <div className="mb-2">
                   <i className="bi bi-telephone me-1"></i>
-                  <span className="fw-semibold">{UserSingle.phone}</span>
+                  <span className="fw-semibold">{UserSingle?.phone}</span>
                 </div>
                 <div className="d-flex flex-wrap gap-2 justify-content-center mt-3">
                   <span className="small text-secondary"><i className="bi bi-clock-history me-1"></i>Last Updated: {updatedDate}</span>
-                  <span className="small text-secondary"><i className="bi bi-hash me-1"></i>User ID: {UserSingle._id}</span>
+                  <span className="small text-secondary"><i className="bi bi-hash me-1"></i>User ID: {UserSingle?._id}</span>
                 </div>
               </div>
             </div>
@@ -209,11 +208,11 @@ function Profile() {
                       </div>
                       <div className="d-flex align-items-center mb-2">
                         <i className="bi bi-geo-alt me-2 text-primary"></i>
-                        <span className="fw-semibold">Country : {UserSingle.country}</span>
+                        <span className="fw-semibold">Country : {UserSingle?.country}</span>
                       </div>
                       <div className="mb-2">
                         <span className="fw-semibold">role : </span>
-                        {Data.role && <span className="badge bg-info text-dark me-1 text-capitalize">{UserSingle.role}</span>}
+                        {Data.role && <span className="badge bg-info text-dark me-1 text-capitalize">{UserSingle?.role}</span>}
                       </div>
                     </div>
                   </div>
@@ -222,12 +221,12 @@ function Profile() {
                       <div className="d-flex align-items-center mb-2">
                         <i className="bi bi-google me-2 text-primary"></i>
                         <span className="fw-semibold">Google Sign In:</span>
-                        <span className={`badge ms-2 ${UserSingle.googleSignIn ? 'bg-success' : 'bg-secondary'}`}>{UserSingle.googleSignIn ? 'Yes' : 'No'}</span>
+                        <span className={`badge ms-2 ${UserSingle?.googleSignIn ? 'bg-success' : 'bg-secondary'}`}>{UserSingle?.googleSignIn ? 'Yes' : 'No'}</span>
                       </div>
                       <div className="d-flex align-items-center mb-2">
                         <i className="bi bi-diagram-3-fill me-2 text-primary"></i>
                         <span className="fw-semibold">Department:</span>
-                        <span className="text-muted ms-1">{UserSingle.assign}</span>
+                        <span className="text-muted ms-1">{UserSingle?.assign}</span>
                       </div>
                       <div className="d-flex align-items-center mb-2">
                         <i className="bi bi-check-circle-fill me-2 text-primary"></i>

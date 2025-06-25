@@ -174,18 +174,18 @@ function Profile() {
                     style={{ width: '140px', height: '140px', objectFit: 'cover', background: '#fff', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}
                   />
                 </div></Link>
-                <h4 className="fw-bold mb-1 mt-2">{UserSingle.firstName} {UserSingle.lastName}</h4>
+                <h4 className="fw-bold mb-1 mt-2">{UserSingle?.firstName} {UserSingle?.lastName}</h4>
                 <div className="mb-2">
                   <i className="bi bi-envelope-at me-1"></i>
-                  <span className="fw-semibold">{UserSingle.email}</span>
+                  <span className="fw-semibold">{UserSingle?.email}</span>
                 </div>
                 <div className="mb-2">
                   <i className="bi bi-telephone me-1"></i>
-                  <span className="fw-semibold">{UserSingle.phone}</span>
+                  <span className="fw-semibold">{UserSingle?.phone}</span>
                 </div>
                 <div className="d-flex flex-wrap gap-2 justify-content-center mt-3">
                   <span className="small text-secondary"><i className="bi bi-clock-history me-1"></i>Last Updated: {updatedDate}</span>
-                  <span className="small text-secondary"><i className="bi bi-hash me-1"></i>User ID: {UserSingle._id}</span>
+                  <span className="small text-secondary"><i className="bi bi-hash me-1"></i>User ID: {UserSingle?._id}</span>
                 </div>
               </div>
             </div>
@@ -208,11 +208,11 @@ function Profile() {
                       </div>
                       <div className="d-flex align-items-center mb-2">
                         <i className="bi bi-geo-alt me-2 text-primary"></i>
-                        <span className="fw-semibold">Country : {UserSingle.country}</span>
+                        <span className="fw-semibold">Country : {UserSingle?.country}</span>
                       </div>
                       <div className="mb-2">
                         <span className="fw-semibold">role : </span>
-                        {Data.role && <span className="badge bg-info text-dark me-1 text-capitalize">{UserSingle.role}</span>}
+                        {Data.role && <span className="badge bg-info text-dark me-1 text-capitalize">{UserSingle?.role}</span>}
                       </div>
                     </div>
                   </div>
@@ -221,12 +221,12 @@ function Profile() {
                       <div className="d-flex align-items-center mb-2">
                         <i className="bi bi-google me-2 text-primary"></i>
                         <span className="fw-semibold">Google Sign In:</span>
-                        <span className={`badge ms-2 ${UserSingle.googleSignIn ? 'bg-success' : 'bg-secondary'}`}>{UserSingle.googleSignIn ? 'Yes' : 'No'}</span>
+                        <span className={`badge ms-2 ${UserSingle?.googleSignIn ? 'bg-success' : 'bg-secondary'}`}>{UserSingle?.googleSignIn ? 'Yes' : 'No'}</span>
                       </div>
                       <div className="d-flex align-items-center mb-2">
                         <i className="bi bi-diagram-3-fill me-2 text-primary"></i>
                         <span className="fw-semibold">Department:</span>
-                        <span className="text-muted ms-1">{UserSingle.assign}</span>
+                        <span className="text-muted ms-1">{UserSingle?.assign}</span>
                       </div>
                       <div className="d-flex align-items-center mb-2">
                         <i className="bi bi-check-circle-fill me-2 text-primary"></i>
