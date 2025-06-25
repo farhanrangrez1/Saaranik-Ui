@@ -171,7 +171,7 @@ function Job_History() {
         <Table hover className="align-middle sticky-header">
           <thead className="bg-light">
             <tr>
-              <th><input type="checkbox" /></th>
+              <th><input type="checkbox"/></th>
               <th>JobNo</th>
               <th>ProjectName</th>
               <th>Brand</th>

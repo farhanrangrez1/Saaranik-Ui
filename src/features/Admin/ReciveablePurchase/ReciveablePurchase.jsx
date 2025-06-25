@@ -92,8 +92,7 @@ function ReciveablePurchase() {
   };
 
   return (
-    <div
-      className="p-4 m-2"
+    <div  className="p-4 m-2"
       style={{ backgroundColor: "white", borderRadius: "10px" }}
     >
       <h2 className="mb-4">Receivable Purchase Orders</h2>
