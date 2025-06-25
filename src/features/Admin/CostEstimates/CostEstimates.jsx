@@ -33,7 +33,7 @@ function CostEstimates() {
   const [costEstimatesId, setCostEstimatesId] = useState("");
 
   const [poDate, setPODate] = useState("");
-  const [status, setStatus] = useState("");
+  const [POStatus, setPOStatus] = useState("");
   const [amount, setAmount] = useState("");
   const [poDocument, setPODocument] = useState(null);
 
@@ -73,7 +73,7 @@ function CostEstimates() {
 
 
   const handleSavePO = async () => {
-    if (!selectedProjectId || !selectedClientId || !poDate || !status || !amount) {
+    if (!selectedProjectId || !selectedClientId || !poDate || !POStatus || !amount) {
       Swal.fire({
         icon: 'error',
         title: 'Required Fields Missing',
@@ -86,7 +86,7 @@ function CostEstimates() {
     formData.append('projectsId', JSON.stringify([selectedProjectId]));
     formData.append('ClientId', selectedClientId);
     formData.append('ReceivedDate', poDate);
-    formData.append('Status', status);
+    formData.append('POStatus', POStatus);
     formData.append('Amount', amount);
     formData.append('CostEstimatesId', JSON.stringify([costEstimatesId]));
 
@@ -110,7 +110,7 @@ function CostEstimates() {
         setSelectedClientId("");
         setCostEstimatesId("");
         setPODate("");
-        setStatus("");
+        setPOStatus("");
         setAmount("");
         setPODocument(null);
         setShowAddPOModal(false);
@@ -205,13 +205,13 @@ function CostEstimates() {
               <div className="col-md-6">
                 <Form.Label className="d-block ">PO Status</Form.Label>
                 <Form.Select
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value)}
+                  value={POStatus}
+                  onChange={(e) => setPOStatus(e.target.value)}
                   className="form-control"
                   required
                 >
                   <option value="">-- Select Status --</option>
-                  {statuses.map((s) => (
+                  {statuses.map((s) =>(
                     <option key={s} value={s}>{s}</option>
                   ))}
                 </Form.Select>

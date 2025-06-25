@@ -441,13 +441,13 @@ function Invoicing_Billing() {
       <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap">
         <h2>Invoicing & Billing</h2>
         {/* Desktop generate button only */}
-        <div className="d-none d-md-block">
+        {/* <div className="d-none d-md-block">
           <Link to={"/admin/AddInvoice"}>
             <button id="All_btn" className="btn btn-dark">
               Generate New Invoice
             </button>
           </Link>
-        </div>
+        </div> */}
       </div>
 
       <div
