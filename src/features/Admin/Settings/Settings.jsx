@@ -1,16 +1,5 @@
 import React, { useState } from "react";
-import {
-  Container,
-  Row,
-  Col,
-  Form,
-  Button,
-  Nav,
-  Tab,
-  Tabs,
-  Card,
-  Table,
-} from "react-bootstrap";
+import { Container, Row, Col, Form, Button, Nav, Tab, Tabs, Card, Table,} from "react-bootstrap";
 
 const SettingsPage = () => {
   const [darkMode, setDarkMode] = useState(false);
@@ -25,7 +14,7 @@ const SettingsPage = () => {
           <Nav.Item>
             <Nav.Link eventKey="general">General Preferences</Nav.Link>
           </Nav.Item>
-          <Nav.Item>
+          {/* <Nav.Item>
             <Nav.Item>
               <Nav.Link eventKey="email">Email Notifications</Nav.Link>
             </Nav.Item>
@@ -49,7 +38,7 @@ const SettingsPage = () => {
             <Nav.Item>
               <Nav.Link eventKey="document-layout">Document</Nav.Link>
             </Nav.Item>
-          </Nav.Item>
+          </Nav.Item> */}
         </Nav>
 
         <Tab.Content>
@@ -57,18 +46,11 @@ const SettingsPage = () => {
             <Row className="mb-4">
               <Col md={6}>
                 <h5>Interface Settings</h5>
-                <Form.Check
-                  type="switch"
-                  label="Enable Dark Mode"
-                  checked={darkMode}
+                <Form.Check type="switch" label="Enable Dark Mode" checked={darkMode}
                   onChange={() => setDarkMode(!darkMode)}
                 />
-                <Form.Check
-                  type="switch"
-                  label="Compact View"
-                  checked={compactView}
-                  onChange={() => setCompactView(!compactView)}
-                />
+                <Form.Check type="switch" label="Compact View" checked={compactView}
+                  onChange={() => setCompactView(!compactView)}/>
               </Col>
             </Row>
 
@@ -113,12 +95,9 @@ const SettingsPage = () => {
             <Row className="mb-4">
               <Col md={6}>
                 <h5>Session Settings</h5>
-                <Form.Check
-                  type="switch"
-                  label="Auto-save Changes"
+                <Form.Check  type="switch" label="Auto-save Changes"
                   checked={autoSave}
-                  onChange={() => setAutoSave(!autoSave)}
-                />
+                  onChange={() => setAutoSave(!autoSave)}/>
                 <Form.Group className="mt-2">
                   <Form.Label>Session Timeout</Form.Label>
                   <Form.Select>

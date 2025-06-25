@@ -12,6 +12,8 @@ import { createReceivablePurchase, fetchReceivablePurchases } from "../../../red
 import { jsPDF } from "jspdf";
 import autoTable from 'jspdf-autotable';
 import { FaRegCopy } from "react-icons/fa";
+import axios from "axios";
+import axiosInstance from "../../../redux/utils/axiosInstance";
 
 function CostEstimates() {
   const dispatch = useDispatch()
@@ -87,6 +89,7 @@ function CostEstimates() {
     formData.append('ClientId', selectedClientId);
     formData.append('ReceivedDate', poDate);
     formData.append('POStatus', POStatus);
+
     formData.append('Amount', amount);
     formData.append('CostEstimatesId', JSON.stringify([costEstimatesId]));
 
@@ -159,8 +162,7 @@ function CostEstimates() {
                   value={selectedProjectId}
                   onChange={(e) => setSelectedProjectId(e.target.value)}
                   className="form-control"
-                  required
-                >
+                  required>
                   <option value="">-- Select Project --</option>
                   {project?.data?.map((proj) => (
                     <option key={proj._id} value={proj._id}>
@@ -175,8 +177,7 @@ function CostEstimates() {
                   value={selectedClientId}
                   onChange={(e) => setSelectedClientId(e.target.value)}
                   className="form-control"
-                  required
-                >
+                  required>
                   <option value="">-- Select Client --</option>
                   {Clients?.data?.map((client) => (
                     <option key={client._id} value={client._id}>
@@ -192,7 +193,7 @@ function CostEstimates() {
           <Form.Group className="mb-3">
             <div className="row justify-content-center">
               <div className="col-md-6">
-                <Form.Label className="d-block ">PO Date</Form.Label>
+                <Form.Label className="d-block">PO Date</Form.Label>
                 <Form.Control
                   type="date"
                   value={poDate}
@@ -203,13 +204,12 @@ function CostEstimates() {
               </div>
 
               <div className="col-md-6">
-                <Form.Label className="d-block ">PO Status</Form.Label>
+                <Form.Label className="d-block">PO Status</Form.Label>
                 <Form.Select
                   value={POStatus}
                   onChange={(e) => setPOStatus(e.target.value)}
                   className="form-control"
-                  required
-                >
+                  required>
                   <option value="">-- Select Status --</option>
                   {statuses.map((s) =>(
                     <option key={s} value={s}>{s}</option>
@@ -236,17 +236,16 @@ function CostEstimates() {
 
               {/* File Upload Field */}
               <div className="col-md-6">
-                <Form.Label className="d-block ">Upload Document</Form.Label>
+                <Form.Label className="d-block">Upload Document</Form.Label>
                 <div className="file-upload">
                   <Form.Control
                     type="file"
                     accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                     onChange={handleFileUpload}
-                    className="form-control"
-                  />
+                    className="form-control"/>
 
                   <small className="text-muted d-flex align-items-center mt-1">
-                    <BsUpload className="me-2" /> Upload a file (PDF, DOC up to 10MB)
+                    <BsUpload className="me-2"/> Upload a file (PDF, DOC up to 10MB)
                   </small>
                 </div>
               </div>
@@ -388,119 +387,94 @@ function CostEstimates() {
   const paginatedEstimates = filteredEstimates
     ?.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
+ const handleDownloadPDF = async (po) => {
+  try {
+    const response = await axiosInstance.post(
+      `/pdf?CostEstimatesId=${po._id}`,
+      {
+        projectId: po.projectId?.map(p => p._id),
+        clientId: po.clientId?.map(c => c._id),
+      }
+    );
 
-  // ... handleDownloadPDF ...
-  const handleDownloadPDF = () => {
+    const estimate = response.data?.data?.[0];
+    if (!estimate) throw new Error("No estimate data found");
+
+    const client = estimate.clientId?.[0] || {};
+    const project = estimate.projectId?.[0] || {};
+    const lineItems = estimate.lineItems || [];
+
     const doc = new jsPDF('p', 'pt', 'a4');
     const pageWidth = doc.internal.pageSize.width;
 
-    // Define an array with the data for the estimate
-    const estimateData = [
-      {
-        companyLogo: 'COMPANY LOGO',
-        companyAddress: 'COMPANY ADDRESS DETAILS',
-        costEstimateNo: '0000',
-        date: '14.04.2025',
-        reqRef: '--',
-        clientName: 'Client Name',
-        clientCompany: 'Client Company Name',
-        clientAddress1: 'Address Line 1',
-        clientAddress2: 'Address Line 2',
-        clientPhone: '1234567890',
-        vatRate: 18,
-        items: [
-          {
-            itemNo: 1,
-            description: 'Daawat Rice Packaging',
-            qty: 1,
-            unitPrice: 1545,
-          }
-        ],
-        companyName: 'Your Company Name'
-      }
-    ];
-
-    const data = estimateData[0];  // Accessing the first object in the array
-
-    // Calculate totals
-    const subTotal = data.items.reduce((sum, item) => sum + (item.qty * item.unitPrice), 0);
-    const vat = (subTotal * data.vatRate) / 100;
-    const total = subTotal + vat;
-
-    // Header Section - Company Logo (Left) and Estimate Info (Right)
-    doc.setFillColor(229, 62, 62); // Red color (#e53e3e)
+    // === HEADER ===
+    doc.setFillColor(229, 62, 62); // Red banner
     doc.rect(40, 40, 200, 50, 'F');
-
-    // Company Logo and Address - WHITE TEXT for red background
-    doc.setTextColor(255, 255, 255); // White text
+    doc.setTextColor(255, 255, 255);
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.text(data.companyLogo, 50, 60);
+    doc.text("COMPANY LOGO", 50, 60);
     doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
-    doc.text(data.companyAddress, 50, 75);
+    doc.text("COMPANY ADDRESS DETAILS", 50, 75);
+    doc.setTextColor(0, 0, 0); // Reset text color
 
-    // Reset text color to black for the rest of the document
-    doc.setTextColor(0, 0, 0);
-
-    // Estimate Details (Right aligned)
+    // === Estimate Info (Right) ===
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    doc.text(`Cost Estimate No. ${data.costEstimateNo}`, 350, 50);
+    doc.text(`Cost Estimate No. ${estimate.estimateRef || '---'}`, 350, 50);
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Date: ${data.date}`, 350, 65);
-    doc.text(`Req. Ref.: ${data.reqRef}`, 350, 80);
+    doc.text(`Date: ${new Date(estimate.estimateDate).toLocaleDateString("en-GB")}`, 350, 65);
+    doc.text(`Req. Ref.: --`, 350, 80);
 
-    // Client Information
+    // === Client Info ===
     let currentY = 120;
     doc.setFontSize(10);
     doc.text('To,', 40, currentY);
     currentY += 15;
-    doc.text(data.clientName, 40, currentY);
+    doc.text(client?.clientName || "Client Name", 40, currentY);
     currentY += 12;
-    doc.text(data.clientCompany, 40, currentY);
+    doc.text(project?.projectName || "Client Company Name", 40, currentY);
     currentY += 12;
-    doc.text(data.clientAddress1, 40, currentY);
+    doc.text(client?.clientAddress?.split(',')[0] || "Address Line 1", 40, currentY);
     currentY += 12;
-    doc.text(data.clientAddress2, 40, currentY);
+    doc.text(client?.clientAddress?.split(',')[1] || "Address Line 2", 40, currentY);
     currentY += 12;
-    doc.text(data.clientPhone, 40, currentY);
+    doc.text(client?.contactPersons?.[0]?.phone || "1234567890", 40, currentY);
     currentY += 25;
 
-    // Prepare table data with proper spacing (WITHOUT TOTALS)
-    const tableData = data.items.map(item => [
-      item.itemNo.toString(),
-      item.description,
-      item.qty.toString(),
-      item.unitPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 }),
-      (item.qty * item.unitPrice).toLocaleString('en-IN', { minimumFractionDigits: 2 })
+    // === Table Data ===
+    const tableData = lineItems.map((item, index) => [
+      (index + 1).toString(),
+      item.description || '',
+      (item.quantity || 0).toString(),
+      (item.rate || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 }),
+      ((item.quantity || 0) * (item.rate || 0)).toLocaleString('en-IN', { minimumFractionDigits: 2 })
     ]);
 
-    // Add many empty rows for spacing like in the reference PDF
-    for (let i = 0; i < 15; i++) {
-      tableData.push(['', '', '', '', '']);
-    }
+    // Add blank rows
+    for (let i = 0; i < 15; i++) tableData.push(['', '', '', '', '']);
 
-    // Create the table WITHOUT totals
     let finalY;
     autoTable(doc, {
       startY: currentY,
-      head: [['ITEM #', 'Brand & Design / Description ', 'QTY', 'Unit Price (INR)', 'Amount (INR)']],
+      head: [['ITEM #', 'Brand & Design / Description', 'QTY', 'Unit Price (INR)', 'Amount (INR)']],
       body: tableData,
       styles: {
         fontSize: 9,
         cellPadding: 4,
         lineColor: [0, 0, 0],
         lineWidth: 0.3,
-        halign: 'center'
+        halign: 'center',
+        valign: 'middle'
       },
       headStyles: {
-        fillColor: [240, 240, 240],
+        fillColor: [230, 230, 230], // Light gray like screenshot
         textColor: [0, 0, 0],
         fontStyle: 'bold',
-        halign: 'center',
-        fontSize: 9
+        fontSize: 9,
+        halign: 'center'
       },
       columnStyles: {
         0: { halign: 'center', cellWidth: 50 },
@@ -510,75 +484,45 @@ function CostEstimates() {
         4: { halign: 'right', cellWidth: 90 }
       },
       theme: 'grid',
-      didDrawPage: function (data) {
-        finalY = data.cursor.y;
-      }
+      didDrawPage: data => { finalY = data.cursor.y; }
     });
 
-    // === TOTALS SECTION ===
-    let totalsY = finalY + 20;
-    const totalsBoxWidth = 120;
-    const totalsBoxX = pageWidth - totalsBoxWidth - 40;
+    // === Totals Section ===
+    const subTotal = lineItems.reduce((sum, item) => sum + ((item.quantity || 0) * (item.rate || 0)), 0);
+    const vat = (subTotal * (estimate.VATRate || 0)) / 100;
+    const total = subTotal + vat;
 
-    // Totals Box (right side)
-    doc.setDrawColor(0, 0, 0);
-    doc.setLineWidth(0.3);
-    doc.rect(totalsBoxX, totalsY, totalsBoxWidth, 45);
-
+    const totalsBoxX = pageWidth - 160;
+    const totalsBoxY = finalY + 20;
+    doc.rect(totalsBoxX, totalsBoxY, 120, 45);
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-
-    // Sub-Total
-    doc.text('Sub-Total', totalsBoxX + 5, totalsY + 12);
-    doc.text(subTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 }), totalsBoxX + totalsBoxWidth - 5, totalsY + 12, { align: 'right' });
-
-    // VAT
-    doc.text(`VAT (${data.vatRate}%)`, totalsBoxX + 5, totalsY + 25);
-    doc.text(vat.toLocaleString('en-IN', { minimumFractionDigits: 2 }), totalsBoxX + totalsBoxWidth - 5, totalsY + 25, { align: 'right' });
-
-    // Total (Bold)
+    doc.text('Sub-Total', totalsBoxX + 5, totalsBoxY + 12);
+    doc.text(subTotal.toFixed(2), totalsBoxX + 115, totalsBoxY + 12, { align: 'right' });
+    doc.text(`VAT (${estimate.VATRate || 0}%)`, totalsBoxX + 5, totalsBoxY + 25);
+    doc.text(vat.toFixed(2), totalsBoxX + 115, totalsBoxY + 25, { align: 'right' });
     doc.setFont('helvetica', 'bold');
-    doc.text('TOTAL', totalsBoxX + 5, totalsY + 38);
-    doc.text(total.toLocaleString('en-IN', { minimumFractionDigits: 2 }), totalsBoxX + totalsBoxWidth - 5, totalsY + 38, { align: 'right' });
+    doc.text('TOTAL', totalsBoxX + 5, totalsBoxY + 38);
+    doc.text(total.toFixed(2), totalsBoxX + 115, totalsBoxY + 38, { align: 'right' });
 
-    // === AMOUNT IN WORDS SECTION (left side) ===
-    const totalInteger = Math.floor(total);
-    const totalDecimal = Math.round((total - totalInteger) * 100);
-    // let amountInWords = `Rupees ${numberToWords(totalInteger)}`;
-    if (totalDecimal > 0) {
-      // amountInWords += ` and ${numberToWords(totalDecimal)} Paise`;
-    }
-    // amountInWords += ' only';
-
-    doc.setFontSize(10);
-    doc.setTextColor(0, 153, 204); // Blue tone
-    doc.setFont('helvetica', 'normal');
-    // doc.text(amountInWords, 40, totalsY + 15);
-
-    // === FOOTER SECTION (Two-column layout) ===
-    // === FOOTER TEXT ===
-    doc.setFontSize(9);
-    doc.setTextColor(0, 0, 0);
-    doc.setFont('helvetica', 'normal');
-
-    // Bullet 1
-    doc.text('• Cost based on One-off prices.', 40, totalsY + 60);
-    // Bullet 2
-    doc.text('• The above prices valid for 2 weeks and thereafter subject to our reconfirmation.', 40, totalsY + 72);
-
-    // FOR COMPANY NAME (bold line)
-    const footerY = totalsY + 95;
-    doc.setFont('helvetica', 'bold');
-    doc.text(`For ${data.companyName}`, 40, footerY);
-
-    // System generated note (moved below)
+    // === Footer Notes ===
+    const footerY = totalsBoxY + 65;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
-    doc.text('(This is system generated document, hence not signed.)', 40, footerY + 12);
+    doc.text('• Cost based on One-off prices.', 40, footerY);
+    doc.text('• The above prices valid for 2 weeks and thereafter subject to our reconfirmation.', 40, footerY + 12);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`For Your Company Name`, 40, footerY + 40);
+    doc.setFont('helvetica', 'normal');
+    doc.text('(This is system generated document, hence not signed.)', 40, footerY + 55);
 
-    // Save PDF
-    doc.save(`Cost_Estimate_${data.costEstimateNo}.pdf`);
-  };
+    // === Save PDF ===
+    doc.save(`Cost_Estimate_${estimate.estimateRef || 'Estimate'}.pdf`);
+  } catch (error) {
+    console.error("❌ Error generating PDF:", error);
+    alert("Failed to generate PDF.");
+  }
+};
 
   // ... existing code ...
 
@@ -699,9 +643,7 @@ function CostEstimates() {
                 </td>
                 <td>{po.clients?.[0]?.clientName || 'N/A'}</td>
                 <td>{new Date(po.estimateDate).toLocaleDateString("en-GB").slice(0, 8)}</td>
-                {/* <td>
-                  {po.projectId?.map((project, i) => `${String(i + 1).padStart(4, '0')}`).join(", ")}
-                </td> */}
+              
                 <td>
                   {po.lineItems?.reduce((total, item) => total + (item.amount || 0), 0).toFixed(2)}
                 </td>
@@ -710,20 +652,10 @@ function CostEstimates() {
                     {po.Status}
                   </span>
                 </td>
-                {/* <td>
-                  <span className={`badge ${getStatusClass(po.Status)} px-2 py-1`}>
-                    {po.Status}
-                  </span>
-                </td> */}
+               
                 <td>
                   <div className="d-flex gap-2">
-                    {/* <td>
-                  <span className={`badge ${getStatusClass(po.Status)} px-2 py-1`}>
-                    {po.Status}
-                  </span>
-                </td> */}
-               <button
-  className="btn btn-sm btn-success"
+               <button className="btn btn-sm btn-success"
   disabled={
     po.receivablePurchases?.length > 0 &&
     po.receivablePurchases[0]?.POStatus?.toLowerCase() !== "pending"
@@ -743,19 +675,19 @@ function CostEstimates() {
 </span>
 
 
-
                     <button className="btn btn-sm btn-primary" onClick={() => Duplicate(po)}><FaRegCopy /></button>
                     {/* <button className="btn btn-sm btn-primary" onClick={() => handleConvertToInvoice(po)}>ConvertInvoice</button> */}
                     <button className="btn btn-sm btn-outline-primary" onClick={() => UpdateEstimate(po)}><BsPencil /></button>
                     {/* <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(po._id))}>
                           <FaTrash />
                         </button> */}
-                    <button
-                      className="btn btn-sm btn-outline-primary"
-                      onClick={handleDownloadPDF}
-                    >
-                      <FaDownload />
-                    </button>
+                  <button
+  className="btn btn-sm btn-outline-primary"
+  onClick={() => handleDownloadPDF(po)}
+>
+  <FaDownload />
+</button>
+
                   </div>
                 </td>
               </tr>
