@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Form, Table, Badge, InputGroup, Button, Collapse, Dropdown } from "react-bootstrap";
 import { FaSearch, FaFilter, FaSort } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { fetchReceivablePurchases } from "../../../redux/slices/receivablePurchaseSlice";
 
 function ReciveablePurchase() {
@@ -13,6 +13,7 @@ function ReciveablePurchase() {
   const [currentPage, setCurrentPage] = useState(1);
   const [showFilters, setShowFilters] = useState(false);
   const dispatch = useDispatch();
+  const navigate=useNavigate()
 
   const { purchases, loading, error } = useSelector(
     (state) => state.receivablePurchases
@@ -90,6 +91,34 @@ function ReciveablePurchase() {
         return "secondary";
     }
   };
+
+
+// const handleToBeInvoiced = (clientName, projectName) => {
+//   const invoice = {
+//     clientName,
+//     projectName
+//   };
+
+//   navigate("/admin/AddInvoice", {
+//     state: { invoice }
+//   });
+// };
+
+const handleToBeInvoiced = (po) => {
+  const client = po.ClientId?.[0];
+  const project = po.projectId?.[0];
+
+  const invoice = {
+    clientId: client?._id,
+    clientName: client?.clientName,
+    projectId: project?._id,
+    projectName: project?.projectName,
+  };
+
+  navigate("/admin/AddInvoice", {
+    state: { invoice }
+  });
+};
 
   return (
     <div  className="p-4 m-2"
@@ -268,11 +297,11 @@ function ReciveablePurchase() {
                   <Badge bg={getStatusBadgeVariant(po.Status)}>{po.POStatus}</Badge>
                 </td>
                 <div>
-                  <Link to={"/admin/AddInvoice"}>
+                 
                     <Button
                       variant="outline-primary"
                       size="sm"
-                      onClick={() => handleToBeInvoiced(project)}
+                      onClick={() => handleToBeInvoiced(po)}
                       className="px-3 py-1 fw-semibold border-2"
                       style={{
                         transition: 'all 0.3s ease',
@@ -283,7 +312,7 @@ function ReciveablePurchase() {
                       }}
                     >
                       To be invoiced
-                    </Button></Link>
+                    </Button>
                 </div>
               </tr>
             ))}

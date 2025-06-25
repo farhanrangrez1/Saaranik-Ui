@@ -28,7 +28,8 @@ function AddInvoice() {
   const location = useLocation();
   const invoice = location.state?.invoice;
   const id = invoice?._id;
-
+  console.log("hhel",invoice);
+  
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -67,29 +68,15 @@ function AddInvoice() {
     output: "",
   });
 
+  // 
+  
   useEffect(() => {
     if (invoice && project?.data?.length) {
-      let projectId = "";
-      if (Array.isArray(invoice.projectId) && invoice.projectId.length > 0) {
-        projectId = invoice.projectId[0]._id;
-      } else if (Array.isArray(invoice.projects) && invoice.projects.length > 0) {
-        projectId =
-          typeof invoice.projects[0] === "object" ? invoice.projects[0]._id : invoice.projects[0];
-      }
-
-      let clientId = "";
-      if (invoice.clientId && typeof invoice.clientId === "object") {
-        clientId = invoice.clientId._id;
-      } else if (Array.isArray(invoice.clients) && invoice.clients.length > 0) {
-        clientId = invoice.clients[0]?.clientId || "";
-      }
-
       setFormData((prev) => ({
         ...prev,
-        ...invoice,
+        clientId: invoice.clientId ? [invoice.clientId] : [""],
+        projectsId: invoice.projectId ? [invoice.projectId] : [""],
         status: invoice.status && statuses.includes(invoice.status) ? invoice.status : "Active",
-        projectsId: projectId ? [projectId] : [""],
-        clientId: clientId ? [clientId] : [""],
         Notes: invoice.Notes || "",
         currency: invoice.currency || "",
         date: invoice.date ? invoice.date.substring(0, 10) : "",
@@ -101,6 +88,7 @@ function AddInvoice() {
       }
     }
   }, [invoice, project?.data]);
+
 
   const [taxRate, setTaxRate] = useState(0.05);
 
@@ -179,6 +167,43 @@ function AddInvoice() {
                 className="form-select"
                 name="clientId"
                 value={formData.clientId[0] || ""}
+                disabled
+              >
+                {Clients?.data
+                  ?.filter((client) => client._id === formData.clientId[0])
+                  .map((client) => (
+                    <option key={client._id} value={client._id}>
+                      {client.clientName}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            <div className="col-md-4 mb-3">
+              <label className="form-label">Project</label>
+              <select
+                className="form-select"
+                name="projectsId"
+                value={formData.projectsId[0] || ""}
+                disabled
+              >
+                {project?.data
+                  ?.filter((proj) => proj._id === formData.projectsId[0])
+                  .map((proj) => (
+                    <option key={proj._id} value={proj._id}>
+                      {proj.projectName}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+ {/* Selectore dropdow opne ho raha hai ye code ok hai  */}
+            {/* <div className="col-md-4 mb-3">
+              <label className="form-label">Client</label>
+              <select
+                className="form-select"
+                name="clientId"
+                value={formData.clientId[0] || ""}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
@@ -220,7 +245,8 @@ function AddInvoice() {
                   </option>
                 ))}
               </select>
-            </div>
+            </div> */}
+
 
             <div className="col-md-4 mb-3">
               <label className="form-label">Due Date</label>
