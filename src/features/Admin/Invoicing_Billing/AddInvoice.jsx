@@ -70,26 +70,26 @@ function AddInvoice() {
     output: "",
   });
   
-useEffect(() => {
-  if (invoice && project?.data?.length) {
-    setFormData((prev) => ({
-      ...prev,
-      clientId: invoice.clientId || "",
-      projectsId: invoice.projectId ? [invoice.projectId] : [""],
-      CostEstimatesId: invoice.CostEstimatesId || "",
-      ReceivablePurchaseId: invoice.ReceivablePurchaseId || "",
-      status: invoice.status && statuses.includes(invoice.status) ? invoice.status : "Active",
-      Notes: invoice.Notes || "",
-      currency: invoice.currency || "",
-      date: invoice.date ? invoice.date.substring(0, 10) : "",
-      validUntil: invoice.validUntil ? invoice.validUntil.substring(0, 10) : "",
-    }));
-    if (Array.isArray(invoice.lineItems) && invoice.lineItems.length > 0) {
-      setItems(invoice.lineItems);
-    }
-  }
-}, [invoice, project?.data]);
+  useEffect(() => {
+    if (invoice && project?.data?.length) {
+      setFormData((prev) => ({
+        ...prev,
+        clientId: invoice.clientId  || "",
+        CostEstimatesId: invoice.CostEstimatesId  || "",
+        ReceivablePurchaseId: invoice.ReceivablePurchaseId  || "",
+        projectsId: invoice.projectId ? [invoice.projectId] : [""],
+        status: invoice.status && statuses.includes(invoice.status) ? invoice.status : "Active",
+        Notes: invoice.Notes || "",
+        currency: invoice.currency || "",
+        date: invoice.date ? invoice.date.substring(0, 10) : "",
+        validUntil: invoice.validUntil ? invoice.validUntil.substring(0, 10) : "",
+      }));
 
+      if (Array.isArray(invoice.lineItems) && invoice.lineItems.length > 0) {
+        setItems(invoice.lineItems);
+      }
+    }
+  }, [invoice, project?.data]);
 
 
   const [taxRate, setTaxRate] = useState(0.05);

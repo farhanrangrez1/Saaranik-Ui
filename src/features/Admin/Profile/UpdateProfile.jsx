@@ -3,7 +3,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { SingleUser } from '../../../redux/slices/userSlice';
 import { apiUrl } from '../../../redux/utils/config';
-import { FaUserEdit } from "react-icons/fa";
+import { FaPlus  } from "react-icons/fa";
 import { useNavigate } from 'react-router-dom';
 
 
@@ -150,7 +150,7 @@ function UpdateProfile() {
                 onClick={handleImageClick}
                 title="Change profile picture"
               >
-               <FaUserEdit />
+               <FaPlus  />
               </button>
               <input
                 type="file"

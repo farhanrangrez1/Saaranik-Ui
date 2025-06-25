@@ -3,6 +3,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { SingleUser } from '../../../redux/slices/userSlice';
 import { Link } from 'react-router-dom';
+import { FaUserEdit } from "react-icons/fa";
 
 // Example user data (replace with props or redux in real app)
 const userData = {
@@ -173,6 +174,14 @@ function Profile() {
                     className="rounded-circle border border-3 border-primary shadow"
                     style={{ width: '140px', height: '140px', objectFit: 'cover', background: '#fff', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}
                   />
+                       <button
+                                  type="button"
+                                  className="btn btn-light btn-sm rounded-circle position-absolute bottom-0 end-0 border shadow"
+                                  style={{ transform: 'translate(25%, 25%)' ,color: '#0052CC'}}
+                                  title="Change profile picture"
+                                >
+                                 <FaUserEdit />
+                                </button>
                 </div></Link>
                 <h4 className="fw-bold mb-1 mt-2">{UserSingle?.firstName} {UserSingle?.lastName}</h4>
                 <div className="mb-2">
