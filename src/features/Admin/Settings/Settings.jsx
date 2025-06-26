@@ -1,581 +1,282 @@
 import React, { useState } from "react";
-import { Container, Row, Col, Form, Button, Nav, Tab, Tabs, Card, Table,} from "react-bootstrap";
+import {
+  Container,
+  Row,
+  Col,
+  Form,
+  Button,
+  Nav,
+  Tab,
+  Card,
+  Badge,
+  Alert,
+  Tabs,
+  Table
+} from "react-bootstrap";
+
+const TAX_CATEGORIES = [
+  { label: "Standard Rate", rate: 18 },
+  { label: "Reduced Rate", rate: 5 },
+  { label: "Zero Rate", rate: 0 },
+];
+
+const COMPANY_INFO = {
+  name: "Saaranik Pvt Ltd",
+  address: "123 Main Street, Mumbai, India",
+  industry: "Design & Construction",
+  trn: "100000000000002",
+  email: "info@saaranik.com",
+  phone: "+91-9876543210",
+};
 
 const SettingsPage = () => {
+  // General
   const [darkMode, setDarkMode] = useState(false);
   const [compactView, setCompactView] = useState(false);
   const [autoSave, setAutoSave] = useState(true);
+  // Company
+  const [company, setCompany] = useState(COMPANY_INFO);
+  // Notifications
+  const [notifProject, setNotifProject] = useState(true);
+  const [notifTask, setNotifTask] = useState(true);
+  const [notifDue, setNotifDue] = useState(true);
+  const [notifDesktop, setNotifDesktop] = useState(true);
+  const [notifMobile, setNotifMobile] = useState(true);
+
+  // Feedback states
+  const [generalSaved, setGeneralSaved] = useState(false);
+  const [notifSaved, setNotifSaved] = useState(false);
+  const [companySaved, setCompanySaved] = useState(false);
+
+  const handleCompanyChange = (e) => {
+    setCompany({ ...company, [e.target.name]: e.target.value });
+  };
 
   return (
-    <Container fluid className="p-4">
+    <Container fluid className="p-4" >
       <h4 className="mb-4 fw-bold">Settings</h4>
-      <Tab.Container defaultActiveKey="general">
+      <Tab.Container defaultActiveKey="notifications" >
         <Nav variant="tabs" className="mb-3">
-          <Nav.Item>
-            <Nav.Link eventKey="general">General Preferences</Nav.Link>
-          </Nav.Item>
           {/* <Nav.Item>
-            <Nav.Item>
-              <Nav.Link eventKey="email">Email Notifications</Nav.Link>
-            </Nav.Item>
-          </Nav.Item>
-          <Nav.Item>
-            <Nav.Item>
-              <Nav.Link eventKey="cloud">Cloud Storage</Nav.Link>
-            </Nav.Item>
-          </Nav.Item>
-          <Nav.Item>
-            <Nav.Item>
-              <Nav.Link eventKey="mobile">Mobile Access</Nav.Link>
-            </Nav.Item>
-          </Nav.Item>
-          <Nav.Item>
-            <Nav.Item>
-              <Nav.Link eventKey="system">System</Nav.Link>
-            </Nav.Item>
-          </Nav.Item>
-          <Nav.Item>
-            <Nav.Item>
-              <Nav.Link eventKey="document-layout">Document</Nav.Link>
-            </Nav.Item>
+            <Nav.Link eventKey="general">General Preferences</Nav.Link>
           </Nav.Item> */}
+          <Nav.Item>
+            <Nav.Link eventKey="notifications">Notifications</Nav.Link>
+          </Nav.Item>
+          <Nav.Item>
+            <Nav.Link eventKey="company">Company Info</Nav.Link>
+          </Nav.Item>
+          <Nav.Item>
+            <Nav.Link eventKey="document-layout">Document Layout</Nav.Link>
+          </Nav.Item>
         </Nav>
-
         <Tab.Content>
-          <Tab.Pane eventKey="general">
-            <Row className="mb-4">
-              <Col md={6}>
-                <h5>Interface Settings</h5>
-                <Form.Check type="switch" label="Enable Dark Mode" checked={darkMode}
-                  onChange={() => setDarkMode(!darkMode)}
-                />
-                <Form.Check type="switch" label="Compact View" checked={compactView}
-                  onChange={() => setCompactView(!compactView)}/>
-              </Col>
-            </Row>
-
-            <Row className="mb-4">
-              <Col md={6}>
-                <h5>Language & Region</h5>
-                <Form.Group className="mb-2">
-                  <Form.Label>Language</Form.Label>
-                  <Form.Select>
-                    <option>English (US)</option>
-                  </Form.Select>
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group className="mb-2 mt-4 pt-2">
-                  <Form.Label>Time Zone</Form.Label>
-                  <Form.Select>
-                    <option>UTC-08:00 Pacific Time</option>
-                  </Form.Select>
-                </Form.Group>
-              </Col>
-            </Row>
-
-            <Row className="mb-4">
-              <Col md={6}>
-                <h5>Default Settings</h5>
-                <Form.Group className="mb-2">
-                  <Form.Label>Default Project View</Form.Label>
-                  <Form.Select>
-                    <option>List View</option>
-                  </Form.Select>
-                </Form.Group>
-                <Form.Group className="mb-2">
-                  <Form.Label>Default Dashboard</Form.Label>
-                  <Form.Select>
-                    <option>Project Overview</option>
-                  </Form.Select>
-                </Form.Group>
-              </Col>
-            </Row>
-
-            <Row className="mb-4">
-              <Col md={6}>
-                <h5>Session Settings</h5>
-                <Form.Check  type="switch" label="Auto-save Changes"
-                  checked={autoSave}
-                  onChange={() => setAutoSave(!autoSave)}/>
-                <Form.Group className="mt-2">
-                  <Form.Label>Session Timeout</Form.Label>
-                  <Form.Select>
-                    <option>30 minutes</option>
-                  </Form.Select>
-                </Form.Group>
-              </Col>
-            </Row>
-
-            <div className="d-flex gap-2">
-              <Button variant="secondary">Reset to Default</Button>
-              <Button id="All_btn" variant="dark">Save Changes</Button>
-            </div>
-          </Tab.Pane>
-
-          <Tab.Pane eventKey="email">
-            <Row className="mb-4">
-              <Col md={6}>
-                <h5>Notification Types</h5>
-                <Form.Check
-                  type="switch"
-                  label={
-                    <>
-                      <div className="fw-semibold">Project Updates</div>
-                      <div className="text-muted small">
-                        Receive updates about project status changes and
-                        milestones
-                      </div>
-                    </>
-                  }
-                  className="mb-3"
-                  defaultChecked
-                />
-                <Form.Check
-                  type="switch"
-                  label={
-                    <>
-                      <div className="fw-semibold">Task Assignments</div>
-                      <div className="text-muted small">
-                        Get notified when you are assigned to new tasks
-                      </div>
-                    </>
-                  }
-                  className="mb-3"
-                  defaultChecked
-                />
-                <Form.Check
-                  type="switch"
-                  label={
-                    <>
-                      <div className="fw-semibold">Due Date Reminders</div>
-                      <div className="text-muted small">
-                        Receive reminders before task due dates
-                      </div>
-                    </>
-                  }
-                  className="mb-3"
-                  defaultChecked
-                />
-              </Col>
-            </Row>
-
-            <Row className="mb-4">
-              <Col md={6}>
-                <h5>Email Frequency</h5>
-                <Form.Group className="mb-3">
-                  <Form.Label>Daily Digest</Form.Label>
-                  <Form.Select defaultValue="Send at 9:00 AM">
-                    <option>Send at 9:00 AM</option>
-                    <option>Send at 12:00 PM</option>
-                    <option>Send at 6:00 PM</option>
-                  </Form.Select>
-                </Form.Group>
-
-                <Form.Group>
-                  <Form.Label>Weekly Summary</Form.Label>
-                  <Form.Select defaultValue="Send on Monday">
-                    <option>Send on Monday</option>
-                    <option>Send on Friday</option>
-                    <option>Send on Sunday</option>
-                  </Form.Select>
-                </Form.Group>
-              </Col>
-            </Row>
-
-            <Row className="mb-4">
-              <Col md={6}>
-                <h5>Notification Preferences</h5>
-                <Form.Check
-                  type="switch"
-                  label={
-                    <>
-                      <div className="fw-semibold">Desktop Notifications</div>
-                      <div className="text-muted small">
-                        Show notifications on your desktop
-                      </div>
-                    </>
-                  }
-                  className="mb-3"
-                  defaultChecked
-                />
-                <Form.Check
-                  type="switch"
-                  label={
-                    <>
-                      <div className="fw-semibold">
-                        Mobile Push Notifications
-                      </div>
-                      <div className="text-muted small">
-                        Receive notifications on your mobile device
-                      </div>
-                    </>
-                  }
-                  defaultChecked
-                />
-              </Col>
-            </Row>
-
-            <div className="d-flex gap-2">
-              <Button variant="secondary">Reset to Default</Button>
-              <Button id="All_btn" variant="dark">Save Changes</Button>
-            </div>
-          </Tab.Pane>
-
-          <Tab.Pane eventKey="cloud">
-            <Row className="mb-4">
-              <Col md={8}>
-                <h5>Connected Storage Services</h5>
-
-                <div className="border rounded p-3 mb-3 d-flex justify-content-between align-items-center bg-light">
-                  <div>
-                    <div className="fw-semibold">Google Drive</div>
-                    <div className="text-muted small">
-                      Connected · 15 GB used of 100 GB
-                    </div>
-                  </div>
-                  <Button variant="link" className="text-danger p-0">
-                    Disconnect
-                  </Button>
-                </div>
-
-                <div className="border rounded p-3 mb-4 d-flex justify-content-between align-items-center bg-light">
-                  <div>
-                    <div className="fw-semibold">Dropbox</div>
-                    <div className="text-muted small">
-                      Connected · 8 GB used of 50 GB
-                    </div>
-                  </div>
-                  <Button variant="link" className="text-danger p-0">
-                    Disconnect
-                  </Button>
-                </div>
-              </Col>
-            </Row>
-
-            <Row className="mb-4">
-              <Col>
-                <h5>Add New Storage</h5>
-                <div className="d-flex flex-wrap gap-3">
-                  <Card
-                    style={{
-                      width: "10rem",
-                      textAlign: "center",
-                      cursor: "pointer",
-                    }}
-                    className="p-3"
-                  >
-                    <div className="text-muted">Image</div>
-                    <div className="fw-semibold mt-2">Connect OneDrive</div>
-                  </Card>
-                  <Card
-                    style={{
-                      width: "10rem",
-                      textAlign: "center",
-                      cursor: "pointer",
-                    }}
-                    className="p-3"
-                  >
-                    <div className="text-muted">Image</div>
-                    <div className="fw-semibold mt-2">Connect Box</div>
-                  </Card>
-                  <Card
-                    style={{
-                      width: "10rem",
-                      textAlign: "center",
-                      cursor: "pointer",
-                    }}
-                    className="p-3"
-                  >
-                    <div className="text-muted">Image</div>
-                    <div className="fw-semibold mt-2">Connect AWS S3</div>
-                  </Card>
-                </div>
-              </Col>
-            </Row>
-
-            <Row className="mb-4">
-              <Col md={6}>
-                <h5>Storage Settings</h5>
-                <Form.Group className="mb-3">
-                  <Form.Label>Default Upload Location</Form.Label>
-                  <Form.Select defaultValue="Google Drive">
-                    <option>Google Drive</option>
-                    <option>Dropbox</option>
-                    <option>OneDrive</option>
-                  </Form.Select>
-                </Form.Group>
-
-                <Form.Group className="mb-3">
-                  <Form.Label>File Sync Frequency</Form.Label>
-                  <Form.Select defaultValue="Real-time">
-                    <option>Real-time</option>
-                    <option>Every 15 minutes</option>
-                    <option>Every hour</option>
-                  </Form.Select>
-                </Form.Group>
-
-                <Form.Check type="switch" id="auto-sync"
-                  label={
-                    <>
-                      <div className="fw-semibold">Auto-sync Files</div>
-                      <div className="text-muted small">  Automatically sync files between services </div>
-                    </>}
-                  defaultChecked/>
-              </Col>
-            </Row>
-          </Tab.Pane>
-
-          <Tab.Pane eventKey="mobile">
-            <Row className="mb-4">
-              <Col md={6}>
-                <h5>Mobile App Settings</h5>
-                <Form.Check
-                  type="switch"
-                  id="enable-mobile-access"
-                  label={
-                    <>
-                      <div className="fw-semibold">Enable Mobile Access</div>
-                      <div className="text-muted small">
-                        Allow access to the system through mobile devices
-                      </div>
-                    </>
-                  }
-                  defaultChecked className="mb-3"/>
-
-                <Form.Group>
-                  <Form.Label>Push Notifications</Form.Label>
-                  <Form.Select defaultValue="All notifications">
-                    <option>All notifications</option>
-                    <option>Only important</option>
-                    <option>None</option>
-                  </Form.Select>
-                </Form.Group>
-              </Col>
-            </Row>
-
-            <Row className="mb-4">
-              <Col md={6}>
-                <h5>Connected Devices</h5>
-                <div className="border rounded p-3 mb-3 d-flex justify-content-between align-items-center bg-light">
-                  <div>
-                    <div className="fw-semibold">iPhone 13 Pro</div>
-                    <div className="text-muted small">
-                      Last active: 2 minutes ago
-                    </div>
-                  </div>
-                  <Button variant="link" className="text-danger p-0">
-                    Remove
-                  </Button>
-                </div>
-                <div className="border rounded p-3 d-flex justify-content-between align-items-center bg-light">
-                  <div>
-                    <div className="fw-semibold">iPad Pro</div>
-                    <div className="text-muted small">
-                      Last active: 2 hours ago
-                    </div>
-                  </div>
-                  <Button variant="link" className="text-danger p-0">
-                    Remove
-                  </Button>
-                </div>
-              </Col>
-            </Row>
-
-            <Row className="mb-4">
-              <Col md={6}>
-                <h5>Security Settings</h5>
-                <Form.Check
-                  type="switch"
-                  id="biometric-auth"
-                  label={
-                    <>
-                      <div className="fw-semibold"> Biometric Authentication </div>
-                      <div className="text-muted small">  Use fingerprint or face recognition to login </div>
-                    </>
-                  }
-                  defaultChecked
-                  className="mb-3"
-                />
-
-                <Form.Check
-                  type="switch"
-                  id="location-services"
-                  label={
-                    <>
-                      <div className="fw-semibold">Location Services</div>
-                      <div className="text-muted small"> Allow app to access device location</div>
-                    </>
-                  } className="mb-3"/>
-                <Form.Group>
-                  <Form.Label>Session Timeout</Form.Label>
-                  <Form.Select defaultValue="15 minutes">
-                    <option>5 minutes</option>
-                    <option>15 minutes</option>
-                    <option>30 minutes</option>
-                    <option>1 hour</option>
-                  </Form.Select>
-                </Form.Group>
-              </Col>
-            </Row>
-
-            <Row className="mb-4">
-              <Col md={6}>
-                <h5>Data Usage</h5>
-                <Form.Check
-                  type="switch"
-                  id="offline-access"
-                  label={
-                    <>
-                      <div className="fw-semibold">Offline Access</div>
-                      <div className="text-muted small">
-                        Cache data for offline use
-                      </div>
-                    </>
-                  }
-                  defaultChecked
-                  className="mb-3"
-                />
-
-                <Form.Group>
-                  <Form.Label>Download Quality</Form.Label>
-                  <Form.Select defaultValue="Auto (Network dependent)">
-                    <option>Auto (Network dependent)</option>
-                    <option>High</option>
-                    <option>Medium</option>
-                    <option>Low</option>
-                  </Form.Select>
-                </Form.Group>
-              </Col>
-            </Row>
-          </Tab.Pane>
-
-          <Tab.Pane eventKey="system">
-            <Row className="mb-4">
-              <Col md={6}>
-                <h5>System Information</h5>
-                <div className="border rounded p-3 bg-light">
-                  <div className="d-flex justify-content-between">
-                    <div>
-                      <div className="text-muted small">Version</div>
-                      <div className="fw-semibold">2.1.0</div>
-                    </div>
-                    <div>
-                      <div className="text-muted small">Last Updated</div>
-                      <div className="fw-semibold">March 15, 2024</div>
-                    </div>
-                  </div>
-                </div>
-              </Col>
-            </Row>
-
-            <Row className="mb-4">
-              <Col md={6}>
-                <h5>Database Management</h5>
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <div>
-                    <div className="fw-semibold">Database Backup</div>
-                    <div className="text-muted small">
-                      Last backup: 2 hours ago
-                    </div>
-                  </div>
-                  <Button id="All_btn" variant="dark">Backup Now</Button>
-                </div>
-
-                <div className="mb-3">
-                  <div className="fw-semibold">Storage Usage</div>
-                  <div className="text-muted small mb-1">75% of 1TB used</div>
-                  <div className="progress">
-                    <div  id="All_btn"
-                      className="progress-bar"
-                      role="progressbar"
-                      style={{ width: "75%" }} />
-                  </div>
-                </div>
-              </Col>
-            </Row>
-
-            <Row className="mb-4">
-              <Col md={6}>
-                <h5>System Maintenance</h5>
-                <Form.Check
-                  type="switch"
-                  id="auto-updates"
-                  label={
-                    <>
-                      <div className="fw-semibold">Automatic Updates</div>
-                      <div className="text-muted small">
-                        Install updates automatically
-                      </div>
-                    </>
-                  }
-                  defaultChecked
-                  className="mb-3"
-                />
-
-                <Form.Group>
-                  <Form.Label>Maintenance Window</Form.Label>
-                  <Form.Select defaultValue="12:00 AM - 4:00 AM">
-                    <option>12:00 AM - 4:00 AM</option>
-                    <option>2:00 AM - 6:00 AM</option>
-                    <option>1:00 AM - 3:00 AM</option>
-                  </Form.Select>
-                </Form.Group>
-              </Col>
-            </Row>
-
-            <Row className="mb-4">
-              <Col md={8}>
-                <h5>System Logs</h5>
-                <Table striped bordered hover responsive>
-                  <thead>
-                    <tr>
-                      <th>Event</th>
-                      <th>Time</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>System Backup</td>
-                      <td>2 hours ago</td>
-                      <td>
-                        <span className="badge bg-success">Success</span>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>Security Update</td>
-                      <td>1 day ago</td>
-                      <td>
-                        <span className="badge bg-success">Success</span>
-                      </td>
-                    </tr>
-                  </tbody>
-                </Table>
-              </Col>
-            </Row>
-          </Tab.Pane>
-
-          {/* <Tab.Pane eventKey="document-layout">
-            <Row className="mb-4">
-              <Col>
-                <Nav variant="tabs" defaultActiveKey="estimates">
-                  <Nav.Item>
-                    <Nav.Link eventKey="estimates">Estimates</Nav.Link>
-                  </Nav.Item>
-                  <Nav.Item>
-                    <Nav.Link eventKey="invoices">Invoices</Nav.Link>
-                  </Nav.Item>
-                  <Nav.Item>
-                    <Nav.Link eventKey="purchase-orders">
-                      Purchase Orders
-                    </Nav.Link>
-                  </Nav.Item>
-                </Nav>
-              </Col>
-            </Row>
+          {/* General Preferences */}
+          {/* <Tab.Pane eventKey="general">
+            <Form
+              onSubmit={e => {
+                e.preventDefault();
+                setGeneralSaved(true);
+                setTimeout(() => setGeneralSaved(false), 2000);
+              }}
+            >
+              <Row className="mb-4">
+                <Col md={6}>
+                  <h5>Interface Settings</h5>
+                  <Form.Check
+                    type="switch"
+                    label="Compact View"
+                    checked={compactView}
+                    onChange={() => setCompactView(!compactView)}
+                  />
+                </Col>
+                <Col md={6}>
+                  <h5>Language & Region</h5>
+                  <Form.Group className="mb-2">
+                    <Form.Label>Language</Form.Label>
+                    <Form.Select>
+                      <option>English (US)</option>
+                      <option>Hindi (IN)</option>
+                      <option>Marathi (IN)</option>
+                    </Form.Select>
+                  </Form.Group>
+                  <Form.Group className="mb-2">
+                    <Form.Label>Time Zone</Form.Label>
+                    <Form.Select>
+                      <option>Asia/Kolkata (IST)</option>
+                      <option>UTC</option>
+                      <option>Asia/Dubai (GST)</option>
+                    </Form.Select>
+                  </Form.Group>
+                </Col>
+              </Row>
+              <Row className="mb-4">
+                <Col md={6}>
+                  <h5>Default Settings</h5>
+                  <Form.Group className="mb-2">
+                    <Form.Label>Default Project View</Form.Label>
+                    <Form.Select>
+                      <option>List View</option>
+                      <option>Board View</option>
+                      <option>Calendar View</option>
+                    </Form.Select>
+                  </Form.Group>
+                  <Form.Group className="mb-2">
+                    <Form.Label>Default Dashboard</Form.Label>
+                    <Form.Select>
+                      <option>Project Overview</option>
+                      <option>Job Tracker</option>
+                      <option>Cost Estimates</option>
+                    </Form.Select>
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <h5>Session Settings</h5>
+                  <Form.Check
+                    type="switch"
+                    label="Auto-save Changes"
+                    checked={autoSave}
+                    onChange={() => setAutoSave(!autoSave)}
+                  />
+                  <Form.Group className="mt-2">
+                    <Form.Label>Session Timeout</Form.Label>
+                    <Form.Select>
+                      <option>30 minutes</option>
+                      <option>1 hour</option>
+                      <option>2 hours</option>
+                    </Form.Select>
+                  </Form.Group>
+                </Col>
+              </Row>
+              <div className="d-flex gap-2">
+                <Button variant="dark" type="submit">Save Changes</Button>
+                <Button variant="secondary" type="reset">Reset to Default</Button>
+              </div>
+              {generalSaved && <Alert variant="success" className="mt-3">General settings saved!</Alert>}
+            </Form>
           </Tab.Pane> */}
 
+          {/* Notifications */}
+          <Tab.Pane eventKey="notifications">
+            <Form
+              onSubmit={e => {
+                e.preventDefault();
+                setNotifSaved(true);
+                setTimeout(() => setNotifSaved(false), 2000);
+              }}
+            >
+              <Row className="mb-4">
+                <Col md={6}>
+                  <h5>Notification Types</h5>
+                  <Form.Check
+                    type="switch"
+                    label={<><div className="fw-semibold">Project Updates</div><div className="text-muted small">Receive updates about project status changes and milestones</div></>}
+                    className="mb-3"
+                    checked={notifProject}
+                    onChange={() => setNotifProject(!notifProject)}
+                  />
+                  <Form.Check
+                    type="switch"
+                    label={<><div className="fw-semibold">Task Assignments</div><div className="text-muted small">Get notified when you are assigned to new tasks</div></>}
+                    className="mb-3"
+                    checked={notifTask}
+                    onChange={() => setNotifTask(!notifTask)}
+                  />
+                  <Form.Check
+                    type="switch"
+                    label={<><div className="fw-semibold">Due Date Reminders</div><div className="text-muted small">Receive reminders before task due dates</div></>}
+                    className="mb-3"
+                    checked={notifDue}
+                    onChange={() => setNotifDue(!notifDue)}
+                  />
+                </Col>
+                <Col md={6}>
+                  <h5>Notification Preferences</h5>
+                  <Form.Check
+                    type="switch"
+                    label={<><div className="fw-semibold">Desktop Notifications</div><div className="text-muted small">Show notifications on your desktop</div></>}
+                    className="mb-3"
+                    checked={notifDesktop}
+                    onChange={() => setNotifDesktop(!notifDesktop)}
+                  />
+                  <Form.Check
+                    type="switch"
+                    label={<><div className="fw-semibold">Mobile Push Notifications</div><div className="text-muted small">Receive notifications on your mobile device</div></>}
+                    checked={notifMobile}
+                    onChange={() => setNotifMobile(!notifMobile)}
+                  />
+                </Col>
+              </Row>
+              <div className="d-flex gap-2">
+                <Button variant="dark" type="submit">Save Changes</Button>
+                <Button variant="secondary" type="reset">Reset to Default</Button>
+              </div>
+              {notifSaved && <Alert variant="success" className="mt-3">Notification settings saved!</Alert>}
+            </Form>
+          </Tab.Pane>
+
+          {/* Company Info (with Tax Category) */}
+          <Tab.Pane eventKey="company">
+            <Form
+              onSubmit={e => {
+                e.preventDefault();
+                setCompanySaved(true);
+                setTimeout(() => setCompanySaved(false), 2000);
+              }}
+            >
+              <Row className="justify-content-center">
+                <Col md={7}>
+                  <Card className="shadow-sm">
+                    <Card.Body>
+                      <h5 className="mb-3 fw-bold">Company Information</h5>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Company Name</Form.Label>
+                        <Form.Control name="name" value={company.name} onChange={handleCompanyChange} />
+                      </Form.Group>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Address</Form.Label>
+                        <Form.Control name="address" value={company.address} onChange={handleCompanyChange} />
+                      </Form.Group>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Industry</Form.Label>
+                        <Form.Control name="industry" value={company.industry} onChange={handleCompanyChange} />
+                      </Form.Group>
+                      <Form.Group className="mb-3">
+                        <Form.Label>TRN</Form.Label>
+                        <Form.Control name="trn" value={company.trn} onChange={handleCompanyChange} />
+                      </Form.Group>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Email</Form.Label>
+                        <Form.Control name="email" value={company.email} onChange={handleCompanyChange} />
+                      </Form.Group>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Phone</Form.Label>
+                        <Form.Control name="phone" value={company.phone} onChange={handleCompanyChange} />
+                      </Form.Group>
+                      <hr className="my-4" />
+                      <h5 className="mb-3 fw-bold">Tax Categories</h5>
+                      <div className="mb-3">
+                        {TAX_CATEGORIES.map((cat, idx) => (
+                          <div key={cat.label} className="d-flex align-items-center mb-2">
+                            <span className="me-3 fw-semibold">{cat.label}</span>
+                            <Badge bg={cat.rate === 0 ? "success" : cat.rate < 10 ? "warning" : "primary"}>
+                              {cat.rate}%
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                      <Button variant="primary" className="mt-2 w-100" type="submit">
+                        Save Company Info
+                      </Button>
+                      {companySaved && <Alert variant="success" className="mt-3">Company info saved!</Alert>}
+                    </Card.Body>
+                  </Card>
+                </Col>
+              </Row>
+            </Form>
+          </Tab.Pane>
+
+          {/* Document Layout Tab */}
           <Tab.Pane eventKey="document-layout">
             <Tabs defaultActiveKey="estimates" className="mb-4">
               <Tab eventKey="estimates" title="Estimates">
@@ -660,6 +361,7 @@ const SettingsPage = () => {
                   <Col md={4}>
                     <div className="border rounded p-3 bg-light">
                       <h6 className="mb-3">Layout Options</h6>
+
                       <Form.Group className="mb-3">
                         <Form.Label>Default Currency</Form.Label>
                         <Form.Select defaultValue="USD ($)">
@@ -916,8 +618,10 @@ const SettingsPage = () => {
                       <Button variant="dark" className="w-100 mb-2">
                         Save Layout
                       </Button>
-                      <Button variant="outline-secondary"
-                        className="w-100 mb-2">
+                      <Button
+                        variant="outline-secondary"
+                        className="w-100 mb-2"
+                      >
                         Preview
                       </Button>
                       <Button variant="outline-danger" className="w-100">

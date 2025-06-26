@@ -25003,6 +25003,668 @@ export default CostEstimates;
 
 
 
+import React, { useEffect, useState } from 'react';
+import { Form, Table, Badge, InputGroup, Button,Dropdown  } from 'react-bootstrap';
+import { FaSearch, FaSort, FaEdit, FaTrash, FaDownload, FaFilter } from 'react-icons/fa';
+import { Link, useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
+import { jsPDF } from "jspdf";
+import autoTable from 'jspdf-autotable'; // Only this import should remain
+import { deleteInvoicingBilling, fetchInvoicingBilling } from '../../../redux/slices/InvoicingBillingSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import axiosInstance from '../../../redux/utils/axiosInstance';
+
+function Invoicing_Billing() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedProject, setSelectedProject] = useState('All Projects');
+  const [sortField, setSortField] = useState(null);
+  const [sortDirection, setSortDirection] = useState('asc');
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const initialInvoices = [
+    {
+      invoiceNumber: 'INV-12345',
+      client: 'Acme Corp',
+      project: 'Holiday Package Design',
+      amount: 2500.00,
+      status: 'Paid',
+      dueDate: '2024-01-15'
+    },
+    {
+      invoiceNumber: 'INV-12345',
+      client: 'Tech Solutions',
+      project: 'Product Catalog',
+      amount: 3750.00,
+      status: 'Pending',
+      dueDate: '2024-01-30'
+    },
+    {
+      invoiceNumber: 'INV-12345',
+      client: 'Global Inc',
+      project: 'Brand Guidelines',
+      amount: 5000.00,
+      status: 'Overdue',
+      dueDate: '2024-01-10'
+    }
+  ];
+
+  const [invoices, setInvoices] = useState(initialInvoices);
+
+  const getStatusBadgeVariant = (status) => {
+    switch (status.toLowerCase()) {
+      case 'paid': 
+        return 'success';
+      case 'pending': 
+        return 'warning';
+      case 'overdue': 
+        return 'danger';
+      case 'Inactive': 
+        return 'secondary';
+      case 'completed': 
+        return 'primary';
+      case 'active': 
+        return 'success';
+      default: 
+        return 'secondary';
+    }
+  };
+  
+
+  const handleSearch = (e) => {
+    const query = e.target.value.toLowerCase();
+    setSearchQuery(query);
+
+    const filtered = initialInvoices.filter(invoice =>
+      invoice.invoiceNumber.toLowerCase().includes(query) ||
+      invoice.client.toLowerCase().includes(query) ||
+      invoice.project.toLowerCase().includes(query)
+    );
+    setInvoices(filtered);
+  };
+
+  const handleSort = (field) => {
+    const isAsc = sortField === field && sortDirection === 'asc';
+    setSortDirection(isAsc ? 'desc' : 'asc');
+    setSortField(field);
+
+    const sorted = [...invoices].sort((a, b) => {
+      if (field === 'amount') {
+        return isAsc ? b[field] - a[field] : a[field] - b[field];
+      }
+      return isAsc
+        ? b[field].localeCompare(a[field])
+        : a[field].localeCompare(b[field]);
+    });
+    setInvoices(sorted);
+  };
+
+ // ... handleDownloadPDF ...
+  // const handleDownloadPDF = (invoiceDataFromState) => {
+  //   if (!invoiceDataFromState) {
+  //     console.error("No data provided to handleDownloadPDF");
+  //     Swal.fire("Error", "No data available to generate PDF.", "error");
+  //     return;
+  //   }
+
+  //   const doc = new jsPDF('p', 'pt', 'a4');
+  //   const pageWidth = doc.internal.pageSize.width;
+  //   const pageHeight = doc.internal.pageSize.height;
+  //   const margin = 40;
+  //   let finalY = margin;
+
+  
+  //   const companyDetails = {
+  //     logoText: invoiceDataFromState.companyLogoText || 'COMPANY LOGO',
+  //     addressDetails: invoiceDataFromState.companyAddressDetails || 'COMPANY ADDRESS DETAILS',
+  //     name: invoiceDataFromState.companyNameHeader || 'Company name',
+  //     trn: invoiceDataFromState.companyTRN || '100000000000002',
+  //   };
+
+  //   const invoiceMeta = {
+  //     date: invoiceDataFromState.date || '22.03.2025',
+  //     invoiceNo: invoiceDataFromState.invoiceNo || '5822',
+  //   };
+
+  //   const clientDetails = {
+  //     name: invoiceDataFromState.clientName || 'Client Company Name',
+  //     address1: invoiceDataFromState.clientAddress1 || 'Client Address Line 1',
+  //     address2: invoiceDataFromState.clientAddress2 || 'Client Address Line 2, Country',
+  //     tel: invoiceDataFromState.clientTel || '00000000000',
+  //     contactPerson: invoiceDataFromState.clientContactPerson || 'Client Contact Person',
+  //     email: invoiceDataFromState.clientEmail || 'client.email@example.com',
+  //     trn: invoiceDataFromState.clientTRN || "Client's TRN No.",
+  //   };
+
+  //   const projectInfo = {
+  //     costEstNo: invoiceDataFromState.costEstNo || 'CE No.',
+  //     poNo: invoiceDataFromState.purchaseOrderNo || 'PO Number',
+  //     projectNo: invoiceDataFromState.projectNo || 'Project No.',
+  //   };
+
+  //   const bankDetails = {
+  //     accountName: invoiceDataFromState.bankAccountName || 'Company Name',
+  //     bankName: invoiceDataFromState.bankName || "Company's Bank Name",
+  //     iban: invoiceDataFromState.iban || 'XX000000000000000000001',
+  //     swiftCode: invoiceDataFromState.swiftCode || 'XXXAAACC',
+  //     terms: invoiceDataFromState.paymentTerms || 'Net 30',
+  //   };
+
+  //   const items = invoiceDataFromState.items && invoiceDataFromState.items.length > 0
+  //     ? invoiceDataFromState.items.map((item, index) => [
+  //       (index + 1).toString() + '.',
+  //       item.description,
+  //       item.qty,
+  //       item.rate,
+  //       parseFloat(item.amount).toFixed(2)
+  //     ])
+  //     : [
+  //       ['1.', 'Print Samples', 6, 2, '12.00'], 
+  //     ];
+
+  //   const subTotal = items.reduce((sum, item) => sum + parseFloat(item[4]), 0);
+  //   const vatRate = invoiceDataFromState.vatRate !== undefined ? invoiceDataFromState.vatRate : 0.10; 
+  //   const vatAmount = subTotal * vatRate;
+  //   const grandTotal = subTotal + vatAmount;
+  //   const amountInWords = invoiceDataFromState.amountInWords || `US Dollars ${numberToWords(grandTotal)} Only`;
+    
+  //   doc.setFillColor(192, 0, 0);
+  //   doc.rect(margin, finalY, 220, 60, 'F');
+  //   doc.setTextColor(255, 255, 255);
+  //   doc.setFontSize(14);
+  //   doc.setFont('helvetica', 'bold');
+  //   doc.text(companyDetails.logoText, margin + 10, finalY + 25);
+  //   doc.setFontSize(8);
+  //   doc.setFont('helvetica', 'normal');
+  //   doc.text(companyDetails.addressDetails, margin + 10, finalY + 45);
+
+    
+  //   const companyNameBlockY = finalY;
+  //   doc.setFillColor(192, 0, 0);
+  //   doc.rect(pageWidth - margin - 150, companyNameBlockY, 150, 30, 'F');
+  //   doc.setTextColor(255, 255, 255);
+  //   doc.setFontSize(12);
+  //   doc.setFont('helvetica', 'bold');
+  //   doc.text(companyDetails.name, pageWidth - margin - 140, companyNameBlockY + 20, { align: 'left' });
+
+   
+  //   let titleY = companyNameBlockY + 30 + 20;
+  //   doc.setTextColor(0, 0, 0);
+  //   doc.setFontSize(18);
+  //   doc.setFont('helvetica', 'bold');
+  //   doc.text('Tax Invoice', pageWidth - margin, titleY, { align: 'right' });
+
+  //   let tableDetailsY = titleY + 10;
+  //   autoTable(doc, {
+  //     startY: tableDetailsY,
+  //     head: [['TRN:', 'Date', 'Invoice No.']],
+  //     body: [[companyDetails.trn, invoiceMeta.date, invoiceMeta.invoiceNo]],
+  //     theme: 'grid',
+  //     styles: { fontSize: 9, cellPadding: 5, lineWidth: 0.5, lineColor: [0, 0, 0] },
+  //     headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontStyle: 'bold' },
+  //     columnStyles: {
+  //       0: { cellWidth: 150, halign: 'left' },
+  //       1: { cellWidth: 80, halign: 'left' },
+  //       2: { cellWidth: 80, halign: 'left' },
+  //     },
+  //     margin: { right: margin, left: pageWidth - margin - (150 + 80 + 80) - 10 },
+  //     tableWidth: 'wrap',
+  //   });
+  //   finalY = doc.lastAutoTable.finalY + 20;
+
+   
+  //   const invoiceToBoxWidth = 250;
+  //   doc.setDrawColor(0, 0, 0);
+  //   doc.rect(margin, finalY, invoiceToBoxWidth, 100, 'S');
+  //   doc.setFontSize(10);
+  //   doc.setFont('helvetica', 'bold');
+  //   doc.text('Invoice To', margin + 5, finalY + 15);
+  //   doc.setFontSize(9);
+  //   doc.setFont('helvetica', 'normal');
+  //   let textYInvoiceTo = finalY + 30;
+  //   [clientDetails.name, clientDetails.address1, clientDetails.address2, `Tel: ${clientDetails.tel}`, `Contact: ${clientDetails.contactPerson}`, `Email: ${clientDetails.email}`].forEach(line => {
+  //     doc.text(line, margin + 5, textYInvoiceTo);
+  //     textYInvoiceTo += 12;
+  //   });
+  //   finalY += 100 + 10;
+   
+  //   autoTable(doc, {
+  //     startY: finalY,
+  //     head: [['TRN', 'Cost Est. No.', 'P.O. No.', 'Project']],
+  //     body: [[clientDetails.trn, projectInfo.costEstNo, projectInfo.poNo, projectInfo.projectNo]],
+  //     theme: 'grid',
+  //     styles: { fontSize: 9, cellPadding: 5, lineWidth: 0.5, lineColor: [0, 0, 0] },
+  //     headStyles: { fillColor: [220, 220, 220], textColor: [0, 0, 0], fontStyle: 'bold' },
+  //     margin: { left: margin, right: margin },
+  //   });
+  //   finalY = doc.lastAutoTable.finalY + 10;
+
+    
+  //   autoTable(doc, {
+  //     startY: finalY,
+  //     head: [['Bank Account Name', 'Bank Name', 'IBAN', 'Swift Code', 'Terms']],
+  //     body: [[bankDetails.accountName, bankDetails.bankName, bankDetails.iban, bankDetails.swiftCode, bankDetails.terms]],
+  //     theme: 'grid',
+  //     styles: { fontSize: 9, cellPadding: 5, lineWidth: 0.5, lineColor: [0, 0, 0] },
+  //     headStyles: { fillColor: [200, 200, 200], textColor: [0, 0, 0], fontStyle: 'bold' },
+  //     margin: { left: margin, right: margin },
+  //   });
+  //   finalY = doc.lastAutoTable.finalY + 10;
+
+ 
+  //   autoTable(doc, {
+  //     startY: finalY,
+  //     head: [['Sr. #', 'Description', 'Qty', 'Rate', 'Amount (USD)']],
+  //     body: items,
+  //     theme: 'grid',
+  //     styles: { fontSize: 9, cellPadding: 5, lineWidth: 0.5, lineColor: [0, 0, 0] },
+  //     headStyles: { fillColor: [220, 220, 220], textColor: [0, 0, 0], fontStyle: 'bold' },
+  //     columnStyles: {
+  //       0: { cellWidth: 40, halign: 'center' },
+  //       1: { cellWidth: 'auto' },
+  //       2: { cellWidth: 40, halign: 'right' },
+  //       3: { cellWidth: 50, halign: 'right' },
+  //       4: { cellWidth: 70, halign: 'right' },
+  //     },
+  //     margin: { left: margin, right: margin },
+  //     didDrawPage: function (data) {
+     
+  //       finalY = data.cursor.y;
+  //     }
+  //   });
+  //   const amountInWordsY = finalY + 20;
+  //   doc.setFontSize(9);
+  //   doc.setFont('helvetica', 'normal');
+  //   doc.text(amountInWords, margin, amountInWordsY, { maxWidth: pageWidth - margin - 220 }); 
+
+
+  //   const totalsTableWidth = 200;
+  //   const totalsTableX = pageWidth - margin - totalsTableWidth;
+  //   let totalsTableY = finalY + 10;
+
+  //   autoTable(doc, {
+  //     startY: totalsTableY,
+  //     body: [
+  //       ['Subtotal', `USD ${subTotal.toFixed(2)}`],
+  //       [`VAT (${(vatRate * 100).toFixed(0)}%)`, `USD ${vatAmount.toFixed(2)}`],
+  //       ['Total', `USD ${grandTotal.toFixed(2)}`]
+  //     ],
+  //     theme: 'grid',
+  //     styles: {
+  //       fontSize: 9,
+  //       cellPadding: 5,
+  //       lineWidth: 0.5,
+  //       lineColor: [0, 0, 0]
+  //     },
+  //     headStyles: {
+  //       fillColor: [255, 255, 255],
+  //       textColor: [0, 0, 0],
+  //     },
+  //     columnStyles: {
+  //       0: { halign: 'left', fontStyle: 'bold', cellWidth: totalsTableWidth * 0.6 },
+  //       1: { halign: 'right', cellWidth: totalsTableWidth * 0.4 }
+  //     },
+  //     margin: { left: totalsTableX },
+  //     tableWidth: totalsTableWidth,
+  //     didDrawPage: function (data) {
+  //       totalsTableY = data.cursor.y;
+  //     }
+  //   });
+
+  //   finalY = Math.max(amountInWordsY + 10, totalsTableY + 10);
+
+  //   const footerStartY = finalY + 30;
+  //   const stampWidth = 100;
+  //   const stampHeight = 70;
+  //   const stampX = margin + 150;
+
+  //   doc.setFontSize(9);
+  //   doc.setFont('helvetica', 'normal');
+  //   doc.text('For Company Name', margin, footerStartY);
+  //   doc.text('Accounts Department', margin, footerStartY + stampHeight - 10);
+
+    
+  //   doc.setFillColor(200, 200, 200);
+  //   doc.rect(stampX, footerStartY - 15, stampWidth, stampHeight, 'F');
+  //   doc.setTextColor(0, 0, 0);
+  //   doc.setFontSize(8);
+  //   doc.text('Insert Stamp Image', stampX + stampWidth / 2, footerStartY - 15 + stampHeight / 2, { align: 'center' });
+
+  //   doc.save(`Tax_Invoice_${invoiceMeta.invoiceNo}.pdf`);
+  // };
+  // const numberToWords = (num) => {
+  //   const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+  //   const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+  //   if (num === 0) return 'Zero';
+  //   let words = '';
+  //   if (num >= 1000000000) { words += numberToWords(Math.floor(num / 1000000000)) + ' Billion '; num %= 1000000000; }
+  //   if (num >= 1000000) { words += numberToWords(Math.floor(num / 1000000)) + ' Million '; num %= 1000000; }
+  //   if (num >= 1000) { words += numberToWords(Math.floor(num / 1000)) + ' Thousand '; num %= 1000; }
+  //   if (num >= 100) { words += ones[Math.floor(num / 100)] + ' Hundred '; num %= 100; }
+  //   if (num >= 20) { words += tens[Math.floor(num / 10)] + ' '; num %= 10; }
+  //   if (num > 0) { words += ones[num] + ' '; }
+
+  //   const numStr = parseFloat(num).toFixed(2);
+  //   const parts = numStr.split('.');
+  //   let dollars = parseInt(parts[0]);
+  //   let cents = parseInt(parts[1]);
+
+  //   words = ''; 
+  //   if (dollars === 0) words = 'Zero';
+  //   else {
+  //     if (dollars >= 1000000000) { words += numberToWords(Math.floor(dollars / 1000000000)) + ' Billion '; dollars %= 1000000000; }
+  //     if (dollars >= 1000000) { words += numberToWords(Math.floor(dollars / 1000000)) + ' Million '; dollars %= 1000000; }
+  //     if (dollars >= 1000) { words += numberToWords(Math.floor(dollars / 1000)) + ' Thousand '; dollars %= 1000; }
+  //     if (dollars >= 100) { words += ones[Math.floor(dollars / 100)] + ' Hundred '; dollars %= 100; }
+  //     if (dollars >= 20) { words += tens[Math.floor(dollars / 10)] + (dollars % 10 !== 0 ? ' ' : ''); dollars %= 10; }
+  //     if (dollars > 0) { words += ones[dollars] + ' '; }
+  //   }
+  //   words = words.trim();
+
+  //   if (cents > 0) {
+  //     words += ` and ${cents.toString()}/100`;
+  //   }
+  //   return words.trim();
+  // };
+
+  const handleDownloadPDF = async (invoice) => {
+  try {
+    const response = await axiosInstance.get(
+      `/pdf/invoice?InvoiceBillingId=${invoice._id}`,
+      {
+        responseType: "blob",
+      }
+    );
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `${invoice.invoiceNumber || "invoice"}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  } catch (error) {
+    console.error("❌ Error downloading invoice PDF:", error);
+    alert("Failed to download invoice PDF.");
+  }
+
+  
+};
+
+  const { invocing, loading, error } = useSelector((state) => state.InvoicingBilling);
+  console.log(invocing?.InvoicingBilling);
+
+  useEffect(() => {
+    dispatch(fetchInvoicingBilling());
+  }, [dispatch]);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 7;
+
+
+  const filteredEstimates = invocing?.InvoicingBilling
+    ?.slice()
+    .reverse()
+    .filter((invoice) => {
+     
+      const terms = searchQuery.toLowerCase().trim().split(/\s+/).filter(Boolean);
+  
+      const invoiceNumber = (invoice.invoiceNumber || '').toLowerCase();
+      const clientName = (invoice.clients?.[0]?.clientName || '').toLowerCase();
+      const projectName = (invoice.projectId?.[0]?.projectName || '').toLowerCase();
+      const status = (invoice.status || '').toLowerCase();
+      const amount = (invoice.lineItems?.[0]?.amount || '').toString().toLowerCase();
+      const fields = [
+        invoiceNumber,
+        clientName,
+        projectName,
+        status,
+        amount
+      ];
+    
+      const matchesSearch = terms.length === 0 || terms.every(term =>
+        fields.some(field => field.includes(term))
+      );
+      const matchesProject = selectedProject === 'All Projects' || 
+        invoice.projectId?.[0]?.projectName === selectedProject;
+      const matchesDate = !selectedDate || 
+        new Date(invoice.date).toLocaleDateString() === new Date(selectedDate).toLocaleDateString();
+      return matchesSearch && matchesProject && matchesDate;
+    });
+
+  const totalItems = filteredEstimates?.length || 0;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+  const paginatedEstimates = filteredEstimates
+    ?.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+
+  const handleDelete = (_id) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You want to mark this job as Cancelled?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, mark as Cancelled!",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        dispatch(deleteInvoicingBilling(_id))
+          .unwrap()
+          .then(() => {
+            Swal.fire("Updated!", "The job has been marked as Cancelled.", "success");
+            dispatch(fetchInvoicingBilling());
+          })
+          .catch(() => {
+            Swal.fire("Error!", "Something went wrong while updating.", "error");
+          });
+      }
+    });
+  };
+
+  const UpdateInvocing = (invoice) => {
+    navigate(`/admin/AddInvoice`, {
+      state: { invoice }
+    });
+  };
+
+  const [showFilters, setShowFilters] = useState(false);
+  return (
+    <div className="p-4 m-3" style={{ backgroundColor: "white", borderRadius: "10px" }}>
+      {/* Header */}
+      <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+        <h2>Invoicing & Billing</h2>
+        {/* Desktop generate button only */}
+        {/* <div className="d-none d-md-block">
+          <Link to={"/admin/AddInvoice"}>
+            <button id="All_btn" className="btn btn-dark">
+              Generate New Invoice
+            </button>
+          </Link>
+        </div> */}
+      </div>
+
+      <div
+        className={`row g-3 mb-4 
+          ${showFilters ? 'd-block' : 'd-none d-md-flex'}
+        `}
+      >
+        <div className="col-md-4">
+          <div className="input-group">
+            <span className="input-group-text bg-white border-end-0">
+              <FaSearch className="text-muted" />
+            </span>
+            <input
+              type="text"
+              className="form-control border-start-0"
+              placeholder="Search invoices..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
+        <div className="col-md-4">
+          <div className="input-group">
+            <span className="input-group-text bg-white border-end-0">
+              {/* <FaCalendarAlt className="text-muted" /> */}
+            </span>
+            <input
+              type="date"
+              className="form-control border-start-0"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+            />
+          </div>
+        </div>
+        <div className="col-md-4">
+          <Dropdown>
+            <Dropdown.Toggle variant="light" id="project-dropdown" className="w-100">
+              {selectedProject}
+            </Dropdown.Toggle>
+            <Dropdown.Menu>
+              <Dropdown.Item onClick={() => setSelectedProject("All Projects")}>
+                All Projects
+              </Dropdown.Item>
+              {[...new Set((invocing?.InvoicingBilling || []).map((invoice) => 
+                invoice.projectId?.[0]?.projectName || "N/A"
+              ))].filter(name => name !== "N/A").map((projectName, index) => (
+                <Dropdown.Item key={index} onClick={() => setSelectedProject(projectName)}>
+                  {projectName}
+                </Dropdown.Item>
+              ))}
+            </Dropdown.Menu>
+          </Dropdown>
+        </div>
+      </div>
+
+      {/* Mobile filter dropdown panel */}
+      {showFilters && (
+        <div id="mobile-filters"
+          className="d-md-none mb-3 p-3 border rounded"
+          style={{ backgroundColor: '#f8f9fa' }}>
+          {/* Search inside mobile filters */}
+          <InputGroup className="mb-3">
+            <InputGroup.Text>
+              <FaSearch />
+            </InputGroup.Text>
+            <Form.Control
+              placeholder="Search invoices..." value={searchQuery}   onChange={handleSearch} />
+          </InputGroup>
+
+          {/* <Form.Select className="mb-2">
+            <option>All Clients</option>
+          </Form.Select> */}
+          <Form.Select className="mb-2">
+            <option>All Status</option>
+          </Form.Select>
+          <Button className="w-100 mb-3" variant="outline-secondary">
+            <FaSort /> Sort
+          </Button>
+
+          {/* Generate New Invoice inside filter panel on mobile */}
+          <Link to={"/admin/AddInvoice"}>
+            <Button variant="dark" className="w-100">
+              Generate New Invoice
+            </Button>
+          </Link>
+        </div>
+      )}
+
+      {/* Table */}
+      <Table hover responsive>
+        <thead>
+          <tr>
+            <th onClick={() => handleSort('invoiceNumber')} style={{ whiteSpace: "nowrap" }}>Invoice #</th>
+            <th onClick={() => handleSort('client')} style={{ cursor: 'pointer' }}>Client</th>
+            <th onClick={() => handleSort('project')} style={{ cursor: 'pointer' }}>Project</th>
+            <th onClick={() => handleSort('amount')} style={{ cursor: 'pointer' }}>Amount</th>
+            <th onClick={() => handleSort('status')} style={{ cursor: 'pointer' }}>Status</th>
+            <th onClick={() => handleSort('dueDate')} style={{ cursor: 'pointer' }}>Due Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+          <tbody>
+            {paginatedEstimates?.map((invoice, index) => (
+              <tr key={invoice.invoiceNumber || index}>
+                <td style={{ whiteSpace: "nowrap" }} /* onClick={() => JobDetails(invoice._id)} */>
+                  INV-{String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}
+                </td>
+
+                <td style={{ whiteSpace: "nowrap" }}>{invoice.clients?.[0]?.clientName || "N/A"}</td>
+                <td style={{ whiteSpace: "nowrap" }}>{invoice.projectId?.[0]?.projectName || "N/A"}</td>
+                <td style={{ whiteSpace: "nowrap" }}>${invoice.lineItems?.[0]?.amount || "N/A"}</td>
+                <td>
+                  <Badge bg={getStatusBadgeVariant(invoice.status)}>
+                    {invoice.status}
+                  </Badge>
+                </td>
+                <td>{invoice.date ? new Date(invoice.date).toLocaleDateString("en-GB") : 'N/A'}</td>
+                <td>
+                  <div className="d-flex gap-2">
+                    <button className="btn btn-sm btn-outline-primary" onClick={() => UpdateInvocing(invoice)}>
+                      <FaEdit />
+                    </button>
+                    {/* <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(invoice._id)}>
+                      <FaTrash />
+                    </button> */}
+                   <button
+  className="btn btn-sm btn-outline-primary"
+  onClick={() => handleDownloadPDF(invoice)} // Pass current invoice
+>
+  <FaDownload />
+</button>
+                  </div>
+                </td>
+              </tr>
+             ))}
+          </tbody>
+      </Table>
+
+      {!loading && !error && (
+        <div className="d-flex justify-content-between align-items-center mt-3 flex-wrap">
+          <div className="text-muted small mb-2 mb-md-0">
+            Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} entries
+          </div>
+          <ul className="pagination pagination-sm mb-0">
+            <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
+                <span aria-hidden="true">&laquo;</span>
+              </button>
+            </li>
+            {Array.from({ length: totalPages }, (_, i) => (
+              <li key={i + 1} className={`page-item ${currentPage === i + 1 ? 'active' : ''}`}>
+                <button className="page-link" onClick={() => setCurrentPage(i + 1)}>
+                  {i + 1}
+                </button>
+              </li>
+            ))}
+            <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
+                <span aria-hidden="true">&raquo;</span>
+              </button>
+            </li>
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default Invoicing_Billing;
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -25632,3 +26294,1796 @@ function AddClientManagement() {
 
 export default AddClientManagement;
 
+
+
+
+
+
+
+
+import React, { useState } from "react";
+import { Container, Row, Col, Form, Button, Nav, Tab, Tabs, Card, Table,} from "react-bootstrap";
+
+const SettingsPage = () => {
+  const [darkMode, setDarkMode] = useState(false);
+  const [compactView, setCompactView] = useState(false);
+  const [autoSave, setAutoSave] = useState(true);
+
+  return (
+    <Container fluid className="p-4">
+      <h4 className="mb-4 fw-bold">Settings</h4>
+      <Tab.Container defaultActiveKey="general">
+        <Nav variant="tabs" className="mb-3">
+          <Nav.Item>
+            <Nav.Link eventKey="general">General Preferences</Nav.Link>
+          </Nav.Item>
+          {/* <Nav.Item>
+            <Nav.Item>
+              <Nav.Link eventKey="email">Email Notifications</Nav.Link>
+            </Nav.Item>
+          </Nav.Item>
+          <Nav.Item>
+            <Nav.Item>
+              <Nav.Link eventKey="cloud">Cloud Storage</Nav.Link>
+            </Nav.Item>
+          </Nav.Item>
+          <Nav.Item>
+            <Nav.Item>
+              <Nav.Link eventKey="mobile">Mobile Access</Nav.Link>
+            </Nav.Item>
+          </Nav.Item>
+          <Nav.Item>
+            <Nav.Item>
+              <Nav.Link eventKey="system">System</Nav.Link>
+            </Nav.Item>
+          </Nav.Item>
+          <Nav.Item>
+            <Nav.Item>
+              <Nav.Link eventKey="document-layout">Document</Nav.Link>
+            </Nav.Item>
+          </Nav.Item> */}
+        </Nav>
+
+        <Tab.Content>
+          <Tab.Pane eventKey="general">
+            <Row className="mb-4">
+              <Col md={6}>
+                <h5>Interface Settings</h5>
+                <Form.Check type="switch" label="Enable Dark Mode" checked={darkMode}
+                  onChange={() => setDarkMode(!darkMode)}
+                />
+                <Form.Check type="switch" label="Compact View" checked={compactView}
+                  onChange={() => setCompactView(!compactView)}/>
+              </Col>
+            </Row>
+
+            <Row className="mb-4">
+              <Col md={6}>
+                <h5>Language & Region</h5>
+                <Form.Group className="mb-2">
+                  <Form.Label>Language</Form.Label>
+                  <Form.Select>
+                    <option>English (US)</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-2 mt-4 pt-2">
+                  <Form.Label>Time Zone</Form.Label>
+                  <Form.Select>
+                    <option>UTC-08:00 Pacific Time</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Row className="mb-4">
+              <Col md={6}>
+                <h5>Default Settings</h5>
+                <Form.Group className="mb-2">
+                  <Form.Label>Default Project View</Form.Label>
+                  <Form.Select>
+                    <option>List View</option>
+                  </Form.Select>
+                </Form.Group>
+                <Form.Group className="mb-2">
+                  <Form.Label>Default Dashboard</Form.Label>
+                  <Form.Select>
+                    <option>Project Overview</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Row className="mb-4">
+              <Col md={6}>
+                <h5>Session Settings</h5>
+                <Form.Check  type="switch" label="Auto-save Changes"
+                  checked={autoSave}
+                  onChange={() => setAutoSave(!autoSave)}/>
+                <Form.Group className="mt-2">
+                  <Form.Label>Session Timeout</Form.Label>
+                  <Form.Select>
+                    <option>30 minutes</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <div className="d-flex gap-2">
+              <Button variant="secondary">Reset to Default</Button>
+              <Button id="All_btn" variant="dark">Save Changes</Button>
+            </div>
+          </Tab.Pane>
+
+          <Tab.Pane eventKey="email">
+            <Row className="mb-4">
+              <Col md={6}>
+                <h5>Notification Types</h5>
+                <Form.Check
+                  type="switch"
+                  label={
+                    <>
+                      <div className="fw-semibold">Project Updates</div>
+                      <div className="text-muted small">
+                        Receive updates about project status changes and
+                        milestones
+                      </div>
+                    </>
+                  }
+                  className="mb-3"
+                  defaultChecked
+                />
+                <Form.Check
+                  type="switch"
+                  label={
+                    <>
+                      <div className="fw-semibold">Task Assignments</div>
+                      <div className="text-muted small">
+                        Get notified when you are assigned to new tasks
+                      </div>
+                    </>
+                  }
+                  className="mb-3"
+                  defaultChecked
+                />
+                <Form.Check
+                  type="switch"
+                  label={
+                    <>
+                      <div className="fw-semibold">Due Date Reminders</div>
+                      <div className="text-muted small">
+                        Receive reminders before task due dates
+                      </div>
+                    </>
+                  }
+                  className="mb-3"
+                  defaultChecked
+                />
+              </Col>
+            </Row>
+
+            <Row className="mb-4">
+              <Col md={6}>
+                <h5>Email Frequency</h5>
+                <Form.Group className="mb-3">
+                  <Form.Label>Daily Digest</Form.Label>
+                  <Form.Select defaultValue="Send at 9:00 AM">
+                    <option>Send at 9:00 AM</option>
+                    <option>Send at 12:00 PM</option>
+                    <option>Send at 6:00 PM</option>
+                  </Form.Select>
+                </Form.Group>
+
+                <Form.Group>
+                  <Form.Label>Weekly Summary</Form.Label>
+                  <Form.Select defaultValue="Send on Monday">
+                    <option>Send on Monday</option>
+                    <option>Send on Friday</option>
+                    <option>Send on Sunday</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Row className="mb-4">
+              <Col md={6}>
+                <h5>Notification Preferences</h5>
+                <Form.Check
+                  type="switch"
+                  label={
+                    <>
+                      <div className="fw-semibold">Desktop Notifications</div>
+                      <div className="text-muted small">
+                        Show notifications on your desktop
+                      </div>
+                    </>
+                  }
+                  className="mb-3"
+                  defaultChecked
+                />
+                <Form.Check
+                  type="switch"
+                  label={
+                    <>
+                      <div className="fw-semibold">
+                        Mobile Push Notifications
+                      </div>
+                      <div className="text-muted small">
+                        Receive notifications on your mobile device
+                      </div>
+                    </>
+                  }
+                  defaultChecked
+                />
+              </Col>
+            </Row>
+
+            <div className="d-flex gap-2">
+              <Button variant="secondary">Reset to Default</Button>
+              <Button id="All_btn" variant="dark">Save Changes</Button>
+            </div>
+          </Tab.Pane>
+
+          <Tab.Pane eventKey="cloud">
+            <Row className="mb-4">
+              <Col md={8}>
+                <h5>Connected Storage Services</h5>
+
+                <div className="border rounded p-3 mb-3 d-flex justify-content-between align-items-center bg-light">
+                  <div>
+                    <div className="fw-semibold">Google Drive</div>
+                    <div className="text-muted small">
+                      Connected · 15 GB used of 100 GB
+                    </div>
+                  </div>
+                  <Button variant="link" className="text-danger p-0">
+                    Disconnect
+                  </Button>
+                </div>
+
+                <div className="border rounded p-3 mb-4 d-flex justify-content-between align-items-center bg-light">
+                  <div>
+                    <div className="fw-semibold">Dropbox</div>
+                    <div className="text-muted small">
+                      Connected · 8 GB used of 50 GB
+                    </div>
+                  </div>
+                  <Button variant="link" className="text-danger p-0">
+                    Disconnect
+                  </Button>
+                </div>
+              </Col>
+            </Row>
+
+            <Row className="mb-4">
+              <Col>
+                <h5>Add New Storage</h5>
+                <div className="d-flex flex-wrap gap-3">
+                  <Card
+                    style={{
+                      width: "10rem",
+                      textAlign: "center",
+                      cursor: "pointer",
+                    }}
+                    className="p-3"
+                  >
+                    <div className="text-muted">Image</div>
+                    <div className="fw-semibold mt-2">Connect OneDrive</div>
+                  </Card>
+                  <Card
+                    style={{
+                      width: "10rem",
+                      textAlign: "center",
+                      cursor: "pointer",
+                    }}
+                    className="p-3"
+                  >
+                    <div className="text-muted">Image</div>
+                    <div className="fw-semibold mt-2">Connect Box</div>
+                  </Card>
+                  <Card
+                    style={{
+                      width: "10rem",
+                      textAlign: "center",
+                      cursor: "pointer",
+                    }}
+                    className="p-3"
+                  >
+                    <div className="text-muted">Image</div>
+                    <div className="fw-semibold mt-2">Connect AWS S3</div>
+                  </Card>
+                </div>
+              </Col>
+            </Row>
+
+            <Row className="mb-4">
+              <Col md={6}>
+                <h5>Storage Settings</h5>
+                <Form.Group className="mb-3">
+                  <Form.Label>Default Upload Location</Form.Label>
+                  <Form.Select defaultValue="Google Drive">
+                    <option>Google Drive</option>
+                    <option>Dropbox</option>
+                    <option>OneDrive</option>
+                  </Form.Select>
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>File Sync Frequency</Form.Label>
+                  <Form.Select defaultValue="Real-time">
+                    <option>Real-time</option>
+                    <option>Every 15 minutes</option>
+                    <option>Every hour</option>
+                  </Form.Select>
+                </Form.Group>
+
+                <Form.Check type="switch" id="auto-sync"
+                  label={
+                    <>
+                      <div className="fw-semibold">Auto-sync Files</div>
+                      <div className="text-muted small">  Automatically sync files between services </div>
+                    </>}
+                  defaultChecked/>
+              </Col>
+            </Row>
+          </Tab.Pane>
+
+          <Tab.Pane eventKey="mobile">
+            <Row className="mb-4">
+              <Col md={6}>
+                <h5>Mobile App Settings</h5>
+                <Form.Check
+                  type="switch"
+                  id="enable-mobile-access"
+                  label={
+                    <>
+                      <div className="fw-semibold">Enable Mobile Access</div>
+                      <div className="text-muted small">
+                        Allow access to the system through mobile devices
+                      </div>
+                    </>
+                  }
+                  defaultChecked className="mb-3"/>
+
+                <Form.Group>
+                  <Form.Label>Push Notifications</Form.Label>
+                  <Form.Select defaultValue="All notifications">
+                    <option>All notifications</option>
+                    <option>Only important</option>
+                    <option>None</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Row className="mb-4">
+              <Col md={6}>
+                <h5>Connected Devices</h5>
+                <div className="border rounded p-3 mb-3 d-flex justify-content-between align-items-center bg-light">
+                  <div>
+                    <div className="fw-semibold">iPhone 13 Pro</div>
+                    <div className="text-muted small">
+                      Last active: 2 minutes ago
+                    </div>
+                  </div>
+                  <Button variant="link" className="text-danger p-0">
+                    Remove
+                  </Button>
+                </div>
+                <div className="border rounded p-3 d-flex justify-content-between align-items-center bg-light">
+                  <div>
+                    <div className="fw-semibold">iPad Pro</div>
+                    <div className="text-muted small">
+                      Last active: 2 hours ago
+                    </div>
+                  </div>
+                  <Button variant="link" className="text-danger p-0">
+                    Remove
+                  </Button>
+                </div>
+              </Col>
+            </Row>
+
+            <Row className="mb-4">
+              <Col md={6}>
+                <h5>Security Settings</h5>
+                <Form.Check
+                  type="switch"
+                  id="biometric-auth"
+                  label={
+                    <>
+                      <div className="fw-semibold"> Biometric Authentication </div>
+                      <div className="text-muted small">  Use fingerprint or face recognition to login </div>
+                    </>
+                  }
+                  defaultChecked
+                  className="mb-3"
+                />
+
+                <Form.Check
+                  type="switch"
+                  id="location-services"
+                  label={
+                    <>
+                      <div className="fw-semibold">Location Services</div>
+                      <div className="text-muted small"> Allow app to access device location</div>
+                    </>
+                  } className="mb-3"/>
+                <Form.Group>
+                  <Form.Label>Session Timeout</Form.Label>
+                  <Form.Select defaultValue="15 minutes">
+                    <option>5 minutes</option>
+                    <option>15 minutes</option>
+                    <option>30 minutes</option>
+                    <option>1 hour</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Row className="mb-4">
+              <Col md={6}>
+                <h5>Data Usage</h5>
+                <Form.Check
+                  type="switch"
+                  id="offline-access"
+                  label={
+                    <>
+                      <div className="fw-semibold">Offline Access</div>
+                      <div className="text-muted small">
+                        Cache data for offline use
+                      </div>
+                    </>
+                  }
+                  defaultChecked
+                  className="mb-3"
+                />
+
+                <Form.Group>
+                  <Form.Label>Download Quality</Form.Label>
+                  <Form.Select defaultValue="Auto (Network dependent)">
+                    <option>Auto (Network dependent)</option>
+                    <option>High</option>
+                    <option>Medium</option>
+                    <option>Low</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+            </Row>
+          </Tab.Pane>
+
+          <Tab.Pane eventKey="system">
+            <Row className="mb-4">
+              <Col md={6}>
+                <h5>System Information</h5>
+                <div className="border rounded p-3 bg-light">
+                  <div className="d-flex justify-content-between">
+                    <div>
+                      <div className="text-muted small">Version</div>
+                      <div className="fw-semibold">2.1.0</div>
+                    </div>
+                    <div>
+                      <div className="text-muted small">Last Updated</div>
+                      <div className="fw-semibold">March 15, 2024</div>
+                    </div>
+                  </div>
+                </div>
+              </Col>
+            </Row>
+
+            <Row className="mb-4">
+              <Col md={6}>
+                <h5>Database Management</h5>
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <div>
+                    <div className="fw-semibold">Database Backup</div>
+                    <div className="text-muted small">
+                      Last backup: 2 hours ago
+                    </div>
+                  </div>
+                  <Button id="All_btn" variant="dark">Backup Now</Button>
+                </div>
+
+                <div className="mb-3">
+                  <div className="fw-semibold">Storage Usage</div>
+                  <div className="text-muted small mb-1">75% of 1TB used</div>
+                  <div className="progress">
+                    <div  id="All_btn"
+                      className="progress-bar"
+                      role="progressbar"
+                      style={{ width: "75%" }} />
+                  </div>
+                </div>
+              </Col>
+            </Row>
+
+            <Row className="mb-4">
+              <Col md={6}>
+                <h5>System Maintenance</h5>
+                <Form.Check
+                  type="switch"
+                  id="auto-updates"
+                  label={
+                    <>
+                      <div className="fw-semibold">Automatic Updates</div>
+                      <div className="text-muted small">
+                        Install updates automatically
+                      </div>
+                    </>
+                  }
+                  defaultChecked
+                  className="mb-3"
+                />
+
+                <Form.Group>
+                  <Form.Label>Maintenance Window</Form.Label>
+                  <Form.Select defaultValue="12:00 AM - 4:00 AM">
+                    <option>12:00 AM - 4:00 AM</option>
+                    <option>2:00 AM - 6:00 AM</option>
+                    <option>1:00 AM - 3:00 AM</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Row className="mb-4">
+              <Col md={8}>
+                <h5>System Logs</h5>
+                <Table striped bordered hover responsive>
+                  <thead>
+                    <tr>
+                      <th>Event</th>
+                      <th>Time</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>System Backup</td>
+                      <td>2 hours ago</td>
+                      <td>
+                        <span className="badge bg-success">Success</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Security Update</td>
+                      <td>1 day ago</td>
+                      <td>
+                        <span className="badge bg-success">Success</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </Table>
+              </Col>
+            </Row>
+          </Tab.Pane>
+
+          {/* <Tab.Pane eventKey="document-layout">
+            <Row className="mb-4">
+              <Col>
+                <Nav variant="tabs" defaultActiveKey="estimates">
+                  <Nav.Item>
+                    <Nav.Link eventKey="estimates">Estimates</Nav.Link>
+                  </Nav.Item>
+                  <Nav.Item>
+                    <Nav.Link eventKey="invoices">Invoices</Nav.Link>
+                  </Nav.Item>
+                  <Nav.Item>
+                    <Nav.Link eventKey="purchase-orders">
+                      Purchase Orders
+                    </Nav.Link>
+                  </Nav.Item>
+                </Nav>
+              </Col>
+            </Row>
+          </Tab.Pane> */}
+
+          <Tab.Pane eventKey="document-layout">
+            <Tabs defaultActiveKey="estimates" className="mb-4">
+              <Tab eventKey="estimates" title="Estimates">
+                {/* Yaha Estimates layout ka content ayega */}
+                <Row>
+                  <Col md={8}>
+                    <div className="border rounded p-4 bg-white">
+                      <h5 className="mb-3">ESTIMATE</h5>
+                      <div className="text-muted small mb-2">
+                        #EST-2024-001 • Date: Jan 15, 2024
+                      </div>
+
+                      <div className="mb-3">
+                        <strong>Bill To:</strong>
+                        <br />
+                        Client Name
+                        <br />
+                        Client Company
+                        <br />
+                        Address Line 1<br />
+                        City, State, ZIP
+                      </div>
+
+                      <div className="mb-3">
+                        <strong>Ship To:</strong>
+                        <br />
+                        Same as billing address
+                      </div>
+
+                      <Table bordered className="mt-3">
+                        <thead className="table-light">
+                          <tr>
+                            <th>Item Description</th>
+                            <th>Quantity</th>
+                            <th>Rate</th>
+                            <th>Amount</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>Web Design Services</td>
+                            <td>1</td>
+                            <td>$1,500.00</td>
+                            <td>$1,500.00</td>
+                          </tr>
+                          <tr>
+                            <td colSpan="3" className="text-end fw-bold">
+                              Total:
+                            </td>
+                            <td className="fw-bold">$1,500.00</td>
+                          </tr>
+                        </tbody>
+                      </Table>
+
+                      <div className="mt-4">
+                        <strong>Terms and Conditions:</strong>
+                        <ul className="small ps-3">
+                          <li>
+                            All items must meet specified quality standards
+                          </li>
+                          <li>Delivery must be made by the specified date</li>
+                          <li>Payment terms: Net 30</li>
+                          <li>
+                            Please include PO number on all correspondence
+                          </li>
+                        </ul>
+                      </div>
+
+                      <div className="d-flex justify-content-between mt-4">
+                        <div>
+                          <div className="fw-semibold">Authorized by:</div>
+                          <div>Procurement Manager</div>
+                        </div>
+                        <div>
+                          <div className="fw-semibold">Date:</div>
+                          <div>______________________</div>
+                        </div>
+                      </div>
+                    </div>
+                  </Col>
+
+                  <Col md={4}>
+                    <div className="border rounded p-3 bg-light">
+                      <h6 className="mb-3">Layout Options</h6>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Default Currency</Form.Label>
+                        <Form.Select defaultValue="USD ($)">
+                          <option>USD ($)</option>
+                          <option>EUR (€)</option>
+                          <option>INR (₹)</option>
+                        </Form.Select>
+                      </Form.Group>
+
+                      <Form.Group className="mb-3">
+                        <Form.Label>Logo Position</Form.Label>
+                        <Form.Select defaultValue="Left">
+                          <option>Left</option>
+                          <option>Center</option>
+                          <option>Right</option>
+                        </Form.Select>
+                      </Form.Group>
+
+                      <Form.Group className="mb-3">
+                        <Form.Label>Color Scheme</Form.Label>
+                        <br />
+                        {[
+                          "#000000",
+                          "#1D4ED8",
+                          "#10B981",
+                          "#F59E0B",
+                          "#8B5CF6",
+                          "#EF4444",
+                        ].map((color) => (
+                          <Button
+                            key={color}
+                            style={{ backgroundColor: color }}
+                            className="me-1 mb-2"
+                            variant="outline-light"
+                            size="sm"
+                            rounded
+                          />
+                        ))}
+                      </Form.Group>
+
+                      <Form.Group className="mb-3">
+                        <Form.Label>Font Style</Form.Label>
+                        <Form.Select defaultValue="Inter">
+                          <option>Inter</option>
+                          <option>Roboto</option>
+                          <option>Poppins</option>
+                        </Form.Select>
+                      </Form.Group>
+
+                      <Form.Group className="mb-3">
+                        <Form.Label>Font Size</Form.Label>
+                        <Form.Select defaultValue="Small">
+                          <option>Small</option>
+                          <option>Medium</option>
+                          <option>Large</option>
+                        </Form.Select>
+                      </Form.Group>
+
+                      <Form.Group className="mb-3">
+                        <Form.Label>Section Order</Form.Label>
+                        <ul className="list-group">
+                          <li className="list-group-item">
+                            Company Information
+                          </li>
+                          <li className="list-group-item">Customer Details</li>
+                          <li className="list-group-item">Items Table</li>
+                          <li className="list-group-item">
+                            Terms & Conditions
+                          </li>
+                        </ul>
+                      </Form.Group>
+
+                      <Button id="All_btn" className="w-100 mb-2">
+                        Save Layout
+                      </Button>
+                      <Button
+                        variant="outline-secondary"
+                        className="w-100 mb-2"
+                      >
+                        Preview
+                      </Button>
+                      <Button variant="outline-danger" className="w-100">
+                        Reset to Default
+                      </Button>
+                    </div>
+                  </Col>
+                </Row>
+              </Tab>
+              <Tab eventKey="invoices" title="Invoices">
+                {/* Yaha Invoices layout ka content ayega */}
+                <Row>
+                  <Col md={8}>
+                    <div className="border rounded p-4 bg-white">
+                      <h5 className="mb-3">INVOICE</h5>
+                      <div className="text-muted small mb-2">
+                        #INV-2024-001 • Date: Jan 15, 2024
+                      </div>
+
+                      <div className="mb-3">
+                        <strong>Bill To:</strong>
+                        <br />
+                        Client Name
+                        <br />
+                        Client Company
+                        <br />
+                        Address Line 1<br />
+                        City, State, ZIP
+                      </div>
+
+                      <Form.Group className="mb-3">
+                        <Form.Label>
+                          <strong>Currency Settings:</strong>
+                        </Form.Label>
+                        <Form.Select defaultValue="USD ($)">
+                          <option>USD ($)</option>
+                          <option>EUR (€)</option>
+                          <option>INR (₹)</option>
+                        </Form.Select>
+                      </Form.Group>
+
+                      <div className="mb-3">
+                        <strong>Ship To:</strong>
+                        <br />
+                        Same as billing address
+                      </div>
+
+                      <Table bordered className="mt-3">
+                        <thead className="table-light">
+                          <tr>
+                            <th>Item Description</th>
+                            <th>Quantity</th>
+                            <th>Rate</th>
+                            <th>Amount</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>Web Design Services</td>
+                            <td>1</td>
+                            <td>$1,500.00</td>
+                            <td>$1,500.00</td>
+                          </tr>
+                          <tr>
+                            <td colSpan="3" className="text-end fw-bold">
+                              Total:
+                            </td>
+                            <td className="fw-bold">$1,500.00</td>
+                          </tr>
+                        </tbody>
+                      </Table>
+
+                      <div className="mt-4">
+                        <strong>Terms and Conditions:</strong>
+                        <ul className="small ps-3">
+                          <li>
+                            All items must meet specified quality standards
+                          </li>
+                          <li>Delivery must be made by the specified date</li>
+                          <li>Payment terms: Net 30</li>
+                          <li>
+                            Please include PO number on all correspondence
+                          </li>
+                        </ul>
+                      </div>
+
+                      <div className="d-flex justify-content-between mt-4">
+                        <div>
+                          <div className="fw-semibold">Authorized by:</div>
+                          <div>Procurement Manager</div>
+                        </div>
+                        <div>
+                          <div className="fw-semibold">Date:</div>
+                          <div>______________________</div>
+                        </div>
+                      </div>
+                    </div>
+                  </Col>
+
+                  <Col md={4}>
+                    <div className="border rounded p-3 bg-light">
+                      <h6 className="mb-3">Layout Options</h6>
+
+                      <Form.Group className="mb-3">
+                        <Form.Label>Default Currency</Form.Label>
+                        <Form.Select defaultValue="USD ($)">
+                          <option>USD ($)</option>
+                          <option>EUR (€)</option>
+                          <option>INR (₹)</option>
+                        </Form.Select>
+                      </Form.Group>
+
+                      <Form.Group className="mb-3">
+                        <Form.Label>Logo Position</Form.Label>
+                        <Form.Select defaultValue="Left">
+                          <option>Left</option>
+                          <option>Center</option>
+                          <option>Right</option>
+                        </Form.Select>
+                      </Form.Group>
+
+                      <Form.Group className="mb-3">
+                        <Form.Label>Color Scheme</Form.Label>
+                        <br />
+                        {[
+                          "#000000",
+                          "#1D4ED8",
+                          "#10B981",
+                          "#F59E0B",
+                          "#8B5CF6",
+                          "#EF4444",
+                        ].map((color) => (
+                          <Button
+                            key={color}
+                            style={{ backgroundColor: color }}
+                            className="me-1 mb-2"
+                            variant="outline-light"
+                            size="sm"
+                          />
+                        ))}
+                      </Form.Group>
+
+                      <Form.Group className="mb-3">
+                        <Form.Label>Font Style</Form.Label>
+                        <Form.Select defaultValue="Inter">
+                          <option>Inter</option>
+                          <option>Roboto</option>
+                          <option>Poppins</option>
+                        </Form.Select>
+                      </Form.Group>
+
+                      <Form.Group className="mb-3">
+                        <Form.Label>Font Size</Form.Label>
+                        <Form.Select defaultValue="Small">
+                          <option>Small</option>
+                          <option>Medium</option>
+                          <option>Large</option>
+                        </Form.Select>
+                      </Form.Group>
+
+                      <Form.Group className="mb-3">
+                        <Form.Label>Section Order</Form.Label>
+                        <ul className="list-group">
+                          <li className="list-group-item">
+                            Company Information
+                          </li>
+                          <li className="list-group-item">Customer Details</li>
+                          <li className="list-group-item">Items Table</li>
+                          <li className="list-group-item">
+                            Terms & Conditions
+                          </li>
+                        </ul>
+                      </Form.Group>
+
+                      <Button variant="dark" className="w-100 mb-2">
+                        Save Layout
+                      </Button>
+                      <Button variant="outline-secondary"
+                        className="w-100 mb-2">
+                        Preview
+                      </Button>
+                      <Button variant="outline-danger" className="w-100">
+                        Reset to Default
+                      </Button>
+                    </div>
+                  </Col>
+                </Row>
+              </Tab>
+              <Tab eventKey="purchase-orders" title="Purchase Orders">
+                {/* Yaha Purchase Orders layout ka content ayega */}
+                <Row>
+                  <Col md={8}>
+                    <div className="border rounded p-4 bg-white">
+                      <h5 className="mb-3">Purchase Orders </h5>
+                      <div className="text-muted small mb-2">
+                        #EST-2024-001 • Date: Jan 15, 2024
+                      </div>
+
+                      <div className="mb-3">
+                        <strong>Bill To:</strong>
+                        <br />
+                        Client Name
+                        <br />
+                        Client Company
+                        <br />
+                        Address Line 1<br />
+                        City, State, ZIP
+                      </div>
+
+                      <div className="mb-3">
+                        <strong>Ship To:</strong>
+                        <br />
+                        Same as billing address
+                      </div>
+
+                      <Table bordered className="mt-3">
+                        <thead className="table-light">
+                          <tr>
+                            <th>Item Description</th>
+                            <th>Quantity</th>
+                            <th>Rate</th>
+                            <th>Amount</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>Web Design Services</td>
+                            <td>1</td>
+                            <td>$1,500.00</td>
+                            <td>$1,500.00</td>
+                          </tr>
+                          <tr>
+                            <td colSpan="3" className="text-end fw-bold">
+                              Total:
+                            </td>
+                            <td className="fw-bold">$1,500.00</td>
+                          </tr>
+                        </tbody>
+                      </Table>
+
+                      <div className="mt-4">
+                        <strong>Terms and Conditions:</strong>
+                        <ul className="small ps-3">
+                          <li>
+                            All items must meet specified quality standards
+                          </li>
+                          <li>Delivery must be made by the specified date</li>
+                          <li>Payment terms: Net 30</li>
+                          <li>
+                            Please include PO number on all correspondence
+                          </li>
+                        </ul>
+                      </div>
+
+                      <div className="d-flex justify-content-between mt-4">
+                        <div>
+                          <div className="fw-semibold">Authorized by:</div>
+                          <div>Procurement Manager</div>
+                        </div>
+                        <div>
+                          <div className="fw-semibold">Date:</div>
+                          <div>______________________</div>
+                        </div>
+                      </div>
+                    </div>
+                  </Col>
+
+                  <Col md={4}>
+                    <div className="border rounded p-3 bg-light">
+                      <h6 className="mb-3">Layout Options</h6>
+
+                      <Form.Group className="mb-3">
+                        <Form.Label>Default Currency</Form.Label>
+                        <Form.Select defaultValue="USD ($)">
+                          <option>USD ($)</option>
+                          <option>EUR (€)</option>
+                          <option>INR (₹)</option>
+                        </Form.Select>
+                      </Form.Group>
+
+                      <Form.Group className="mb-3">
+                        <Form.Label>Logo Position</Form.Label>
+                        <Form.Select defaultValue="Left">
+                          <option>Left</option>
+                          <option>Center</option>
+                          <option>Right</option>
+                        </Form.Select>
+                      </Form.Group>
+
+                      <Form.Group className="mb-3">
+                        <Form.Label>Color Scheme</Form.Label>
+                        <br />
+                        {[
+                          "#000000",
+                          "#1D4ED8",
+                          "#10B981",
+                          "#F59E0B",
+                          "#8B5CF6",
+                          "#EF4444",
+                        ].map((color) => (
+                          <Button
+                            key={color}
+                            style={{ backgroundColor: color }}
+                            className="me-1 mb-2"
+                            variant="outline-light"
+                            size="sm"
+                            rounded
+                          />
+                        ))}
+                      </Form.Group>
+
+                      <Form.Group className="mb-3">
+                        <Form.Label>Font Style</Form.Label>
+                        <Form.Select defaultValue="Inter">
+                          <option>Inter</option>
+                          <option>Roboto</option>
+                          <option>Poppins</option>
+                        </Form.Select>
+                      </Form.Group>
+
+                      <Form.Group className="mb-3">
+                        <Form.Label>Font Size</Form.Label>
+                        <Form.Select defaultValue="Small">
+                          <option>Small</option>
+                          <option>Medium</option>
+                          <option>Large</option>
+                        </Form.Select>
+                      </Form.Group>
+
+                      <Form.Group className="mb-3">
+                        <Form.Label>Section Order</Form.Label>
+                        <ul className="list-group">
+                          <li className="list-group-item">
+                            Company Information
+                          </li>
+                          <li className="list-group-item">Customer Details</li>
+                          <li className="list-group-item">Items Table</li>
+                          <li className="list-group-item">
+                            Terms & Conditions
+                          </li>
+                        </ul>
+                      </Form.Group>
+
+                      <Button variant="dark" className="w-100 mb-2">
+                        Save Layout
+                      </Button>
+                      <Button
+                        variant="outline-secondary"
+                        className="w-100 mb-2"
+                      >
+                        Preview
+                      </Button>
+                      <Button variant="outline-danger" className="w-100">
+                        Reset to Default
+                      </Button>
+                    </div>
+                  </Col>
+                </Row>
+              </Tab>
+            </Tabs>
+          </Tab.Pane>
+        </Tab.Content>
+      </Tab.Container>
+    </Container>
+  );
+};
+
+export default SettingsPage;
+
+
+
+
+
+
+
+
+
+
+
+import React, { useEffect, useState } from 'react';
+import { Form, Table, Badge, InputGroup, Button, Dropdown } from 'react-bootstrap';
+import { FaSearch, FaSort, FaEdit, FaTrash, FaDownload, FaFilter } from 'react-icons/fa';
+import { Link, useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
+import { jsPDF } from "jspdf";
+import autoTable from 'jspdf-autotable'; // Only this import should remain
+import { deleteInvoicingBilling, fetchInvoicingBilling } from '../../../redux/slices/InvoicingBillingSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import axiosInstance from '../../../redux/utils/axiosInstance';
+
+function Invoicing_Billing() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedProject, setSelectedProject] = useState('All Projects');
+  const [sortField, setSortField] = useState(null);
+  const [sortDirection, setSortDirection] = useState('asc');
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const initialInvoices = [
+    {
+      invoiceNumber: 'INV-12345',
+      client: 'Acme Corp',
+      project: 'Holiday Package Design',
+      amount: 2500.00,
+      status: 'Paid',
+      dueDate: '2024-01-15'
+    },
+    {
+      invoiceNumber: 'INV-12345',
+      client: 'Tech Solutions',
+      project: 'Product Catalog',
+      amount: 3750.00,
+      status: 'Pending',
+      dueDate: '2024-01-30'
+    },
+    {
+      invoiceNumber: 'INV-12345',
+      client: 'Global Inc',
+      project: 'Brand Guidelines',
+      amount: 5000.00,
+      status: 'Overdue',
+      dueDate: '2024-01-10'
+    }
+  ];
+
+  const [invoices, setInvoices] = useState(initialInvoices);
+
+  const getStatusBadgeVariant = (status) => {
+    switch (status.toLowerCase()) {
+      case 'paid':
+        return 'success';
+      case 'pending':
+        return 'warning';
+      case 'overdue':
+        return 'danger';
+      case 'Inactive':
+        return 'secondary';
+      case 'completed':
+        return 'primary';
+      case 'active':
+        return 'success';
+      default:
+        return 'secondary';
+    }
+  };
+
+
+  const handleSearch = (e) => {
+    const query = e.target.value.toLowerCase();
+    setSearchQuery(query);
+
+    const filtered = initialInvoices.filter(invoice =>
+      invoice.invoiceNumber.toLowerCase().includes(query) ||
+      invoice.client.toLowerCase().includes(query) ||
+      invoice.project.toLowerCase().includes(query)
+    );
+    setInvoices(filtered);
+  };
+
+  const handleSort = (field) => {
+    const isAsc = sortField === field && sortDirection === 'asc';
+    setSortDirection(isAsc ? 'desc' : 'asc');
+    setSortField(field);
+
+    const sorted = [...invoices].sort((a, b) => {
+      if (field === 'amount') {
+        return isAsc ? b[field] - a[field] : a[field] - b[field];
+      }
+      return isAsc
+        ? b[field].localeCompare(a[field])
+        : a[field].localeCompare(b[field]);
+    });
+    setInvoices(sorted);
+  };
+
+  // ... handleDownloadPDF ...
+  const handleDownloadPDF = async (invoiceDataFromState) => {
+    if (!invoiceDataFromState) {
+      console.error("No data provided to handleDownloadPDF");
+      Swal.fire("Error", "No data available to generate PDF.", "error");
+      return;
+    }
+
+    try {
+      const response = await axiosInstance.get(
+        `/pdf/invoice?InvoiceBillingId=${invoiceDataFromState._id}`,
+        {
+          responseType: "blob",
+        }
+      );
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `${invoiceDataFromState.invoiceNumber || "invoice"}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("❌ Error downloading invoice PDF:", error);
+      alert("Failed to download invoice PDF.");
+    }
+
+    const doc = new jsPDF('p', 'pt', 'a4');
+    const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
+    const margin = 40;
+    let finalY = margin;
+
+
+    const companyDetails = {
+      logoText: invoiceDataFromState.companyLogoText || 'COMPANY LOGO',
+      addressDetails: invoiceDataFromState.companyAddressDetails || 'COMPANY ADDRESS DETAILS',
+      name: invoiceDataFromState.companyNameHeader || 'Company name',
+      trn: invoiceDataFromState.companyTRN || '100000000000002',
+    };
+
+    const invoiceMeta = {
+      date: invoiceDataFromState.date || '22.03.2025',
+      invoiceNo: invoiceDataFromState.invoiceNo || '5822',
+    };
+
+    const clientDetails = {
+      name: invoiceDataFromState.clientName || 'Client Company Name',
+      address1: invoiceDataFromState.clientAddress1 || 'Client Address Line 1',
+      address2: invoiceDataFromState.clientAddress2 || 'Client Address Line 2, Country',
+      tel: invoiceDataFromState.clientTel || '00000000000',
+      contactPerson: invoiceDataFromState.clientContactPerson || 'Client Contact Person',
+      email: invoiceDataFromState.clientEmail || 'client.email@example.com',
+      trn: invoiceDataFromState.clientTRN || "Client's TRN No.",
+    };
+
+    const projectInfo = {
+      costEstNo: invoiceDataFromState.costEstNo || 'CE No.',
+      poNo: invoiceDataFromState.purchaseOrderNo || 'PO Number',
+      projectNo: invoiceDataFromState.projectNo || 'Project No.',
+    };
+
+    const bankDetails = {
+      accountName: invoiceDataFromState.bankAccountName || 'Company Name',
+      bankName: invoiceDataFromState.bankName || "Company's Bank Name",
+      iban: invoiceDataFromState.iban || 'XX000000000000000000001',
+      swiftCode: invoiceDataFromState.swiftCode || 'XXXAAACC',
+      terms: invoiceDataFromState.paymentTerms || 'Net 30',
+    };
+
+    const items = invoiceDataFromState.items && invoiceDataFromState.items.length > 0
+      ? invoiceDataFromState.items.map((item, index) => [
+        (index + 1).toString() + '.',
+        item.description,
+        item.qty,
+        item.rate,
+        parseFloat(item.amount).toFixed(2)
+      ])
+      : [
+        ['1.', 'Print Samples', 6, 2, '12.00'],
+      ];
+
+    const subTotal = items.reduce((sum, item) => sum + parseFloat(item[4]), 0);
+    const vatRate = invoiceDataFromState.vatRate !== undefined ? invoiceDataFromState.vatRate : 0.10;
+    const vatAmount = subTotal * vatRate;
+    const grandTotal = subTotal + vatAmount;
+    const amountInWords = invoiceDataFromState.amountInWords || `US Dollars ${numberToWords(grandTotal)} Only`;
+
+    doc.setFillColor(192, 0, 0);
+    doc.rect(margin, finalY, 220, 60, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text(companyDetails.logoText, margin + 10, finalY + 25);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.text(companyDetails.addressDetails, margin + 10, finalY + 45);
+
+
+    const companyNameBlockY = finalY;
+    doc.setFillColor(192, 0, 0);
+    doc.rect(pageWidth - margin - 150, companyNameBlockY, 150, 30, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text(companyDetails.name, pageWidth - margin - 140, companyNameBlockY + 20, { align: 'left' });
+
+
+    let titleY = companyNameBlockY + 30 + 20;
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Tax Invoice', pageWidth - margin, titleY, { align: 'right' });
+
+    let tableDetailsY = titleY + 10;
+    autoTable(doc, {
+      startY: tableDetailsY,
+      head: [['TRN:', 'Date', 'Invoice No.']],
+      body: [[companyDetails.trn, invoiceMeta.date, invoiceMeta.invoiceNo]],
+      theme: 'grid',
+      styles: { fontSize: 9, cellPadding: 5, lineWidth: 0.5, lineColor: [0, 0, 0] },
+      headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontStyle: 'bold' },
+      columnStyles: {
+        0: { cellWidth: 150, halign: 'left' },
+        1: { cellWidth: 80, halign: 'left' },
+        2: { cellWidth: 80, halign: 'left' },
+      },
+      margin: { right: margin, left: pageWidth - margin - (150 + 80 + 80) - 10 },
+      tableWidth: 'wrap',
+    });
+    finalY = doc.lastAutoTable.finalY + 20;
+
+
+    const invoiceToBoxWidth = 250;
+    doc.setDrawColor(0, 0, 0);
+    doc.rect(margin, finalY, invoiceToBoxWidth, 100, 'S');
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Invoice To', margin + 5, finalY + 15);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    let textYInvoiceTo = finalY + 30;
+    [clientDetails.name, clientDetails.address1, clientDetails.address2, `Tel: ${clientDetails.tel}`, `Contact: ${clientDetails.contactPerson}`, `Email: ${clientDetails.email}`].forEach(line => {
+      doc.text(line, margin + 5, textYInvoiceTo);
+      textYInvoiceTo += 12;
+    });
+    finalY += 100 + 10;
+
+    autoTable(doc, {
+      startY: finalY,
+      head: [['TRN', 'Cost Est. No.', 'P.O. No.', 'Project']],
+      body: [[clientDetails.trn, projectInfo.costEstNo, projectInfo.poNo, projectInfo.projectNo]],
+      theme: 'grid',
+      styles: { fontSize: 9, cellPadding: 5, lineWidth: 0.5, lineColor: [0, 0, 0] },
+      headStyles: { fillColor: [220, 220, 220], textColor: [0, 0, 0], fontStyle: 'bold' },
+      margin: { left: margin, right: margin },
+    });
+    finalY = doc.lastAutoTable.finalY + 10;
+
+
+    autoTable(doc, {
+      startY: finalY,
+      head: [['Bank Account Name', 'Bank Name', 'IBAN', 'Swift Code', 'Terms']],
+      body: [[bankDetails.accountName, bankDetails.bankName, bankDetails.iban, bankDetails.swiftCode, bankDetails.terms]],
+      theme: 'grid',
+      styles: { fontSize: 9, cellPadding: 5, lineWidth: 0.5, lineColor: [0, 0, 0] },
+      headStyles: { fillColor: [200, 200, 200], textColor: [0, 0, 0], fontStyle: 'bold' },
+      margin: { left: margin, right: margin },
+    });
+    finalY = doc.lastAutoTable.finalY + 10;
+
+
+    autoTable(doc, {
+      startY: finalY,
+      head: [['Sr. #', 'Description', 'Qty', 'Rate', 'Amount (USD)']],
+      body: items,
+      theme: 'grid',
+      styles: { fontSize: 9, cellPadding: 5, lineWidth: 0.5, lineColor: [0, 0, 0] },
+      headStyles: { fillColor: [220, 220, 220], textColor: [0, 0, 0], fontStyle: 'bold' },
+      columnStyles: {
+        0: { cellWidth: 40, halign: 'center' },
+        1: { cellWidth: 'auto' },
+        2: { cellWidth: 40, halign: 'right' },
+        3: { cellWidth: 50, halign: 'right' },
+        4: { cellWidth: 70, halign: 'right' },
+      },
+      margin: { left: margin, right: margin },
+      didDrawPage: function (data) {
+
+        finalY = data.cursor.y;
+      }
+    });
+    const amountInWordsY = finalY + 20;
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text(amountInWords, margin, amountInWordsY, { maxWidth: pageWidth - margin - 220 });
+
+
+    const totalsTableWidth = 200;
+    const totalsTableX = pageWidth - margin - totalsTableWidth;
+    let totalsTableY = finalY + 10;
+
+    autoTable(doc, {
+      startY: totalsTableY,
+      body: [
+        ['Subtotal', `USD ${subTotal.toFixed(2)}`],
+        [`VAT (${(vatRate * 100).toFixed(0)}%)`, `USD ${vatAmount.toFixed(2)}`],
+        ['Total', `USD ${grandTotal.toFixed(2)}`]
+      ],
+      theme: 'grid',
+      styles: {
+        fontSize: 9,
+        cellPadding: 5,
+        lineWidth: 0.5,
+        lineColor: [0, 0, 0]
+      },
+      headStyles: {
+        fillColor: [255, 255, 255],
+        textColor: [0, 0, 0],
+      },
+      columnStyles: {
+        0: { halign: 'left', fontStyle: 'bold', cellWidth: totalsTableWidth * 0.6 },
+        1: { halign: 'right', cellWidth: totalsTableWidth * 0.4 }
+      },
+      margin: { left: totalsTableX },
+      tableWidth: totalsTableWidth,
+      didDrawPage: function (data) {
+        totalsTableY = data.cursor.y;
+      }
+    });
+
+    finalY = Math.max(amountInWordsY + 10, totalsTableY + 10);
+
+    const footerStartY = finalY + 30;
+    const stampWidth = 100;
+    const stampHeight = 70;
+    const stampX = margin + 150;
+
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text('For Company Name', margin, footerStartY);
+    doc.text('Accounts Department', margin, footerStartY + stampHeight - 10);
+
+
+    doc.setFillColor(200, 200, 200);
+    doc.rect(stampX, footerStartY - 15, stampWidth, stampHeight, 'F');
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(8);
+    doc.text('Insert Stamp Image', stampX + stampWidth / 2, footerStartY - 15 + stampHeight / 2, { align: 'center' });
+
+    doc.save(`Tax_Invoice_${invoiceMeta.invoiceNo}.pdf`);
+  };
+  const numberToWords = (num) => {
+    const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+    const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+    if (num === 0) return 'Zero';
+    let words = '';
+    if (num >= 1000000000) { words += numberToWords(Math.floor(num / 1000000000)) + ' Billion '; num %= 1000000000; }
+    if (num >= 1000000) { words += numberToWords(Math.floor(num / 1000000)) + ' Million '; num %= 1000000; }
+    if (num >= 1000) { words += numberToWords(Math.floor(num / 1000)) + ' Thousand '; num %= 1000; }
+    if (num >= 100) { words += ones[Math.floor(num / 100)] + ' Hundred '; num %= 100; }
+    if (num >= 20) { words += tens[Math.floor(num / 10)] + ' '; num %= 10; }
+    if (num > 0) { words += ones[num] + ' '; }
+
+    const numStr = parseFloat(num).toFixed(2);
+    const parts = numStr.split('.');
+    let dollars = parseInt(parts[0]);
+    let cents = parseInt(parts[1]);
+
+    words = '';
+    if (dollars === 0) words = 'Zero';
+    else {
+      if (dollars >= 1000000000) { words += numberToWords(Math.floor(dollars / 1000000000)) + ' Billion '; dollars %= 1000000000; }
+      if (dollars >= 1000000) { words += numberToWords(Math.floor(dollars / 1000000)) + ' Million '; dollars %= 1000000; }
+      if (dollars >= 1000) { words += numberToWords(Math.floor(dollars / 1000)) + ' Thousand '; dollars %= 1000; }
+      if (dollars >= 100) { words += ones[Math.floor(dollars / 100)] + ' Hundred '; dollars %= 100; }
+      if (dollars >= 20) { words += tens[Math.floor(dollars / 10)] + (dollars % 10 !== 0 ? ' ' : ''); dollars %= 10; }
+      if (dollars > 0) { words += ones[dollars] + ' '; }
+    }
+    words = words.trim();
+
+    if (cents > 0) {
+      words += ` and ${cents.toString()}/100`;
+    }
+    return words.trim();
+  };
+
+  //   const handleDownloadPDF = async (invoice) => {
+  //   try {
+  //     const response = await axiosInstance.get(
+  //       `/pdf/invoice?InvoiceBillingId=${invoice._id}`,
+  //       {
+  //         responseType: "blob",
+  //       }
+  //     );
+  //     const url = window.URL.createObjectURL(new Blob([response.data]));
+  //     const link = document.createElement("a");
+  //     link.href = url;
+  //     link.setAttribute("download", `${invoice.invoiceNumber || "invoice"}.pdf`);
+  //     document.body.appendChild(link);
+  //     link.click();
+  //     link.remove();
+  //   } catch (error) {
+  //     console.error("❌ Error downloading invoice PDF:", error);
+  //     alert("Failed to download invoice PDF.");
+  //   } 
+  // };
+
+  const { invocing, loading, error } = useSelector((state) => state.InvoicingBilling);
+  console.log(invocing?.InvoicingBilling);
+
+  useEffect(() => {
+    dispatch(fetchInvoicingBilling());
+  }, [dispatch]);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 7;
+
+
+  const filteredEstimates = invocing?.InvoicingBilling
+    ?.slice()
+    .reverse()
+    .filter((invoice) => {
+
+      const terms = searchQuery.toLowerCase().trim().split(/\s+/).filter(Boolean);
+
+      const invoiceNumber = (invoice.invoiceNumber || '').toLowerCase();
+      const clientName = (invoice.clients?.[0]?.clientName || '').toLowerCase();
+      const projectName = (invoice.projectId?.[0]?.projectName || '').toLowerCase();
+      const status = (invoice.status || '').toLowerCase();
+      const amount = (invoice.lineItems?.[0]?.amount || '').toString().toLowerCase();
+      const fields = [
+        invoiceNumber,
+        clientName,
+        projectName,
+        status,
+        amount
+      ];
+
+      const matchesSearch = terms.length === 0 || terms.every(term =>
+        fields.some(field => field.includes(term))
+      );
+      const matchesProject = selectedProject === 'All Projects' ||
+        invoice.projectId?.[0]?.projectName === selectedProject;
+      const matchesDate = !selectedDate ||
+        new Date(invoice.date).toLocaleDateString() === new Date(selectedDate).toLocaleDateString();
+      return matchesSearch && matchesProject && matchesDate;
+    });
+
+  const totalItems = filteredEstimates?.length || 0;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+  const paginatedEstimates = filteredEstimates
+    ?.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+
+  const handleDelete = (_id) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You want to mark this job as Cancelled?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, mark as Cancelled!",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        dispatch(deleteInvoicingBilling(_id))
+          .unwrap()
+          .then(() => {
+            Swal.fire("Updated!", "The job has been marked as Cancelled.", "success");
+            dispatch(fetchInvoicingBilling());
+          })
+          .catch(() => {
+            Swal.fire("Error!", "Something went wrong while updating.", "error");
+          });
+      }
+    });
+  };
+
+  const UpdateInvocing = (invoice) => {
+    navigate(`/admin/AddInvoice`, {
+      state: { invoice }
+    });
+  };
+
+  const [showFilters, setShowFilters] = useState(false);
+  return (
+    <div className="p-4 m-3" style={{ backgroundColor: "white", borderRadius: "10px" }}>
+      {/* Header */}
+      <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+        <h2>Invoicing & Billing</h2>
+        {/* Desktop generate button only */}
+        {/* <div className="d-none d-md-block">
+          <Link to={"/admin/AddInvoice"}>
+            <button id="All_btn" className="btn btn-dark">
+              Generate New Invoice
+            </button>
+          </Link>
+        </div> */}
+      </div>
+
+      <div
+        className={`row g-3 mb-4 
+          ${showFilters ? 'd-block' : 'd-none d-md-flex'}
+        `}
+      >
+        <div className="col-md-4">
+          <div className="input-group">
+            <span className="input-group-text bg-white border-end-0">
+              <FaSearch className="text-muted" />
+            </span>
+            <input
+              type="text"
+              className="form-control border-start-0"
+              placeholder="Search invoices..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
+        <div className="col-md-4">
+          <div className="input-group">
+            <span className="input-group-text bg-white border-end-0">
+              {/* <FaCalendarAlt className="text-muted" /> */}
+            </span>
+            <input
+              type="date"
+              className="form-control border-start-0"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+            />
+          </div>
+        </div>
+        <div className="col-md-4">
+          <Dropdown>
+            <Dropdown.Toggle variant="light" id="project-dropdown" className="w-100">
+              {selectedProject}
+            </Dropdown.Toggle>
+            <Dropdown.Menu>
+              <Dropdown.Item onClick={() => setSelectedProject("All Projects")}>
+                All Projects
+              </Dropdown.Item>
+              {[...new Set((invocing?.InvoicingBilling || []).map((invoice) =>
+                invoice.projectId?.[0]?.projectName || "N/A"
+              ))].filter(name => name !== "N/A").map((projectName, index) => (
+                <Dropdown.Item key={index} onClick={() => setSelectedProject(projectName)}>
+                  {projectName}
+                </Dropdown.Item>
+              ))}
+            </Dropdown.Menu>
+          </Dropdown>
+        </div>
+      </div>
+
+      {/* Mobile filter dropdown panel */}
+      {showFilters && (
+        <div id="mobile-filters"
+          className="d-md-none mb-3 p-3 border rounded"
+          style={{ backgroundColor: '#f8f9fa' }}>
+          {/* Search inside mobile filters */}
+          <InputGroup className="mb-3">
+            <InputGroup.Text>
+              <FaSearch />
+            </InputGroup.Text>
+            <Form.Control
+              placeholder="Search invoices..." value={searchQuery} onChange={handleSearch} />
+          </InputGroup>
+
+          {/* <Form.Select className="mb-2">
+            <option>All Clients</option>
+          </Form.Select> */}
+          <Form.Select className="mb-2">
+            <option>All Status</option>
+          </Form.Select>
+          <Button className="w-100 mb-3" variant="outline-secondary">
+            <FaSort /> Sort
+          </Button>
+
+          {/* Generate New Invoice inside filter panel on mobile */}
+          <Link to={"/admin/AddInvoice"}>
+            <Button variant="dark" className="w-100">
+              Generate New Invoice
+            </Button>
+          </Link>
+        </div>
+      )}
+
+      {/* Table */}
+      <Table hover responsive>
+        <thead>
+          <tr>
+            <th onClick={() => handleSort('invoiceNumber')} style={{ whiteSpace: "nowrap" }}>Invoice #</th>
+            <th onClick={() => handleSort('client')} style={{ cursor: 'pointer' }}>Client</th>
+            <th onClick={() => handleSort('project')} style={{ cursor: 'pointer' }}>Project</th>
+            <th onClick={() => handleSort('amount')} style={{ cursor: 'pointer' }}>Amount</th>
+            <th onClick={() => handleSort('status')} style={{ cursor: 'pointer' }}>Status</th>
+            <th onClick={() => handleSort('dueDate')} style={{ cursor: 'pointer' }}>Due Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {paginatedEstimates?.map((invoice, index) => (
+            <tr key={invoice.invoiceNumber || index}>
+              <td style={{ whiteSpace: "nowrap" }} /* onClick={() => JobDetails(invoice._id)} */>
+                INV-{String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}
+              </td>
+
+              <td style={{ whiteSpace: "nowrap" }}>{invoice.clients?.[0]?.clientName || "N/A"}</td>
+              <td style={{ whiteSpace: "nowrap" }}>{invoice.projectId?.[0]?.projectName || "N/A"}</td>
+              <td style={{ whiteSpace: "nowrap" }}>${invoice.lineItems?.[0]?.amount || "N/A"}</td>
+              <td>
+                <Badge bg={getStatusBadgeVariant(invoice.status)}>
+                  {invoice.status}
+                </Badge>
+              </td>
+              <td>{invoice.date ? new Date(invoice.date).toLocaleDateString("en-GB") : 'N/A'}</td>
+              <td>
+                <div className="d-flex gap-2">
+                  <button className="btn btn-sm btn-outline-primary" onClick={() => UpdateInvocing(invoice)}>
+                    <FaEdit />
+                  </button>
+                  {/* <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(invoice._id)}>
+                      <FaTrash />
+                    </button> */}
+                  <button
+                    className="btn btn-sm btn-outline-primary"
+                    onClick={() => handleDownloadPDF(invoice)} // Pass current invoice
+                  >
+                    <FaDownload />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
+
+      {!loading && !error && (
+        <div className="d-flex justify-content-between align-items-center mt-3 flex-wrap">
+          <div className="text-muted small mb-2 mb-md-0">
+            Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} entries
+          </div>
+          <ul className="pagination pagination-sm mb-0">
+            <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
+                <span aria-hidden="true">&laquo;</span>
+              </button>
+            </li>
+            {Array.from({ length: totalPages }, (_, i) => (
+              <li key={i + 1} className={`page-item ${currentPage === i + 1 ? 'active' : ''}`}>
+                <button className="page-link" onClick={() => setCurrentPage(i + 1)}>
+                  {i + 1}
+                </button>
+              </li>
+            ))}
+            <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
+                <span aria-hidden="true">&raquo;</span>
+              </button>
+            </li>
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default Invoicing_Billing;

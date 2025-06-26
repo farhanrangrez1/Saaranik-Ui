@@ -120,7 +120,8 @@ function AddJobTracker() {
         .then(() => {
           toast.success("Job updated successfully!");
           const selectedProjectId = formData.projectsId;
-          navigate(`/admin/ProjectOverview/${selectedProjectId}`, { state: { openTab: 'jobs' } });
+          // navigate(`/admin/ProjectOverview/${selectedProjectId}`, { state: { openTab: 'jobs' } });
+          navigate(-1);
           dispatch(Project_job_Id(selectedProjectId));
         })
         .catch(() => {
@@ -132,7 +133,8 @@ function AddJobTracker() {
         .then(() => {
           toast.success("Job created successfully!");
           const selectedProjectId = formData.projectsId;
-          navigate(`/admin/ProjectOverview/${selectedProjectId}`, { state: { openTab: 'jobs' } });
+          // navigate(`/admin/ProjectOverview/${selectedProjectId}`, { state: { openTab: 'jobs' } });
+          navigate(-1);
           dispatch(Project_job_Id(selectedProjectId));
         })
         .catch(() => {
@@ -399,6 +401,7 @@ function AddJobTracker() {
                   <option value="Cancelled">Cancelled</option>
                   <option value="in_progress">In Progress</option>
                   <option value="completed">Completed</option>
+                  <option value="active">Active</option>
                 </select>
               </div>
 

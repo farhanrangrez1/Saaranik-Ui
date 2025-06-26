@@ -5,7 +5,7 @@ import { fetchjobs } from '../../../redux/slices/JobsSlice';
 import { createTimesheetWorklog, updateTimesheetWorklog } from '../../../redux/slices/TimesheetWorklogSlice'; // Make sure this exists
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { fetchusers } from '../../../redux/slices/userSlice';
+import { fetchusers, SingleUser } from '../../../redux/slices/userSlice';
 import { fetchMyJobs } from '../../../redux/slices/Employee/MyJobsSlice';
 
 function AddTimeLog() {
@@ -16,10 +16,13 @@ function AddTimeLog() {
   const { entry } = location.state || {};
   const _id = entry?._id;
 
-  // Delete code hai ye abhi is m,e function lity lagi hai is liye ye abhi rahja ne diya hai api chal rahi hai 
-  const { project } = useSelector(state => state.projects);
-  const { job } = useSelector(state => state.jobs);
-  const { userAll, loading, error } = useSelector((state) => state.user);
+  const { UserSingle, loading, error } = useSelector((state) => state.user);
+
+  useEffect(() => {
+    dispatch(SingleUser());
+  }, [dispatch]);
+  const empid = UserSingle?._id;
+
 
   const getTodayDate = () => {
     const today = new Date();
@@ -29,7 +32,7 @@ function AddTimeLog() {
   const [formData, setFormData] = useState({
     projectId: '',
     jobId: '',
-    employeeId: '',
+    employeeId: empid,
     date: getTodayDate(),
     status: '',
     startTime: '',
@@ -153,26 +156,20 @@ function AddTimeLog() {
   // Project Jobs Employee ye pora data araha hai 
   const { myjobs } = useSelector((state) => state.MyJobs);
   const MynewJobsdata = myjobs && myjobs.assignments && myjobs.assignments.length > 0 ? myjobs.assignments[0].jobId : [];
+  console.log("Hhhhhhhhhhhhhhhhhhhh", MynewJobsdata);
 
   useEffect(() => {
     dispatch(fetchMyJobs());
   }, [dispatch]);
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
   const filteredProjects = MynewJobsdata || [];
-  const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
+  const reversedProjectList = Array.isArray(MynewJobsdata)
+    ? MynewJobsdata.flatMap(job => job.projectId).reverse()
+    : [];
 
-  const paginatedProjects = filteredProjects.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  const reversedProjectList = project?.data?.slice().reverse() || [];
-  const reversedJobList = job?.jobs?.slice().reverse() || [];
-  const reversedEmployeeList = (userAll?.data?.users || []).filter(user => user.role === "employee").reverse();
-
-console.log("hhhh",reversedProjectList);
+  const reversedJobList =Array.isArray(MynewJobsdata)
+    ? MynewJobsdata.flatMap(job => job.JobNo).reverse()
+    : [];
 
   return (
     <div className="container py-4">
@@ -193,7 +190,7 @@ console.log("hhhh",reversedProjectList);
                       value={formData.projectId}
                       onChange={(e) => {
                         const selectedId = e.target.value;
-                        const selectedProject = project?.data?.find(p => p._id === selectedId);
+                        const selectedProject = reversedProjectList.find(p => p._id === selectedId);
                         setFormData(prev => ({
                           ...prev,
                           projectId: selectedId,
@@ -210,6 +207,7 @@ console.log("hhhh",reversedProjectList);
                       ))}
                     </select>
                   </div>
+
                   {/* Jobs Dropdown */}
                   <div className="col-md-6">
                     <label className="form-label">Jobs</label>
@@ -219,11 +217,11 @@ console.log("hhhh",reversedProjectList);
                       value={formData.jobId}
                       onChange={(e) => {
                         const selectedId = e.target.value;
-                        const selectedJob = reversedJobList.find(j => j._id === selectedId);
+                        const reversedJobList = filteredProjects.find(j => j._id === selectedId);
                         setFormData({
                           ...formData,
                           jobId: selectedId,
-                          jobName: selectedJob?.jobName || "",
+                          jobName: reversedJobList?.jobName || reversedJobList?.JobNo || (reversedJobList?.brandName + " " + reversedJobList?.subBrand) || "",
                         });
                       }}
                       required
@@ -231,64 +229,9 @@ console.log("hhhh",reversedProjectList);
                       <option value="">Select a job</option>
                       {filteredProjects.map((j) => (
                         <option key={j._id} value={j._id}>
-                          {j.JobNo || (j.brandName + " " + j.subBrand)}
+                          {j.JobNo || `${j.brandName} ${j.subBrand}`}
                         </option>
                       ))}
-                    </select>
-                  </div>
-
-                  <div className="col-md-6">
-                    <label className="form-label">Employee</label>
-                    <select
-                      className="form-select"
-                      name="employeeId"
-                      value={formData.employeeId}
-                      onChange={(e) => {
-                        const selectedId = e.target.value;
-
-                        const selectedEmployee = reversedEmployeeList.find(
-                          (emp) => String(emp._id) === String(selectedId) // type-safe compare
-                        );
-
-                        console.log("Selected ID:", selectedId);
-                        console.log("Selected Employee:", selectedEmployee);
-
-                        setFormData((prev) => ({
-                          ...prev,
-                          employeeId: selectedId,
-                          // Optional: Add employeeName if needed
-                          // employeeName: selectedEmployee?.name || ""
-                        }));
-                      }}
-                      required
-                    >
-                      <option value="">Select an employee</option>
-
-                      {Array.isArray(myjobs?.assignments) && myjobs.assignments.map((assignment, index) => (
-                        <option key={assignment?.employeeId?._id || index} value={assignment?.employeeId?._id}>
-                          {assignment?.employeeId?.firstName} {assignment?.employeeId?.lastName}
-                        </option>
-                      ))}
-
-                    </select>
-                  </div>
-
-
-
-                  <div className="col-md-6">
-                    <label className="form-label">Status</label>
-                    <select
-                      className="form-select"
-                      name="status"
-                      value={formData.status}
-                      onChange={handleInputChange}
-                      required
-                    >
-                      <option value="">Select Status</option>
-                      <option value="Approved">Approved</option>
-                      <option value="Pending">Pending</option>
-                      <option value="In Progress">In Progress</option>
-                      <option value="Completed">Completed</option>
                     </select>
                   </div>
 
@@ -316,6 +259,22 @@ console.log("hhhh",reversedProjectList);
                     />
                   </div>
 
+                  <div className="col-md-6">
+                    <label className="form-label">Status</label>
+                    <select
+                      className="form-select"
+                      name="status"
+                      value={formData.status}
+                      onChange={handleInputChange}
+                      required
+                    >
+                      <option value="">Select Status</option>
+                      <option value="Approved">Approved</option>
+                      <option value="Pending">Pending</option>
+                      <option value="In Progress">In Progress</option>
+                      <option value="Completed">Completed</option>
+                    </select>
+                  </div>
 
                   <div className="col-md-6">
                     <label className="form-label">Date</label>
@@ -339,18 +298,6 @@ console.log("hhhh",reversedProjectList);
                       onChange={handleInputChange}
                       required
                     ></textarea>
-                  </div>
-
-                  <div className="col-12">
-                    <label className="form-label">Tags</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      name="tags"
-                      value={formData.tags}
-                      onChange={handleInputChange}
-                      placeholder="Add tags separated by commas"
-                    />
                   </div>
                 </div>
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Form, Table, Badge, InputGroup, Button,Dropdown  } from 'react-bootstrap';
+import { Form, Table, Badge, InputGroup, Button, Dropdown } from 'react-bootstrap';
 import { FaSearch, FaSort, FaEdit, FaTrash, FaDownload, FaFilter } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
@@ -49,23 +49,23 @@ function Invoicing_Billing() {
 
   const getStatusBadgeVariant = (status) => {
     switch (status.toLowerCase()) {
-      case 'paid': 
+      case 'paid':
         return 'success';
-      case 'pending': 
+      case 'pending':
         return 'warning';
-      case 'overdue': 
+      case 'overdue':
         return 'danger';
-      case 'Inactive': 
+      case 'Inactive':
         return 'secondary';
-      case 'completed': 
+      case 'completed':
         return 'primary';
-      case 'active': 
+      case 'active':
         return 'success';
-      default: 
+      default:
         return 'secondary';
     }
   };
-  
+
 
   const handleSearch = (e) => {
     const query = e.target.value.toLowerCase();
@@ -95,13 +95,88 @@ function Invoicing_Billing() {
     setInvoices(sorted);
   };
 
- // ... handleDownloadPDF ...
-  const handleDownloadPDF = (invoiceDataFromState) => {
+  const handleDownloadPDF = async (invoiceDataFromState) => {
     if (!invoiceDataFromState) {
       console.error("No data provided to handleDownloadPDF");
       Swal.fire("Error", "No data available to generate PDF.", "error");
       return;
     }
+    try {
+      const response = await axiosInstance.get(
+        `/pdf/invoice?InvoiceBillingId=${invoiceDataFromState._id}`,
+        {
+          responseType: "blob",
+        }
+      );
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `${invoiceDataFromState.invoiceNumber || "invoice"}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("❌ Error downloading invoice PDF:", error);
+      alert("Failed to download invoice PDF.");
+    }
+
+    const invoiceData = invoiceDataFromState;
+
+    const companyDetails = {
+      logoText: 'COMPANY LOGO',
+      addressDetails: 'COMPANY ADDRESS DETAILS',
+      name: 'Company name',
+      trn: '100000000000002',
+    };
+
+    const invoiceMeta = {
+      date: invoiceData.date ? new Date(invoiceData.date).toLocaleDateString("en-GB") : 'N/A',
+      invoiceNo: invoiceData._id || 'N/A',
+    };
+
+    const clientDetails = {
+      name: invoiceData.clientId?.clientName || 'N/A',
+      address1: invoiceData.clientId?.clientAddress || 'N/A',
+      address2: invoiceData.clientId?.shippingInformation?.[0]?.shippingAddress || 'N/A',
+      tel: invoiceData.clientId?.contactPersons?.[0]?.phone || 'N/A',
+      contactPerson: invoiceData.clientId?.contactPersons?.[0]?.contactName || 'N/A',
+      email: invoiceData.clientId?.contactPersons?.[0]?.email || 'N/A',
+      trn: invoiceData.clientId?.TaxID_VATNumber || 'N/A',
+    };
+
+    const projectInfo = {
+      costEstNo: invoiceData?.CostEstimatesId || 'N/A',
+      poNo: invoiceData?.ReceivablePurchaseId || 'N/A',
+      projectNo: invoiceData?.projectId?.[0]?.projectNo || 'N/A',
+      projectName: invoiceData?.projectId?.[0]?.projectName || 'N/A',
+
+    };
+
+    const bankDetails = {
+      accountName: invoiceData.clientId?.financialInformation?.[0]?.bankName || 'Company Name',
+      bankName: invoiceData.clientId?.financialInformation?.[0]?.bankName || 'Company Bank Name',
+      iban: invoiceData.clientId?.financialInformation?.[0]?.accountNumber || 'XX000000000000000000001',
+      swiftCode: 'XXXAAACC',
+      terms: invoiceData.clientId?.additionalInformation?.paymentTerms || 'Net 30',
+    };
+
+    const items = invoiceData.lineItems && invoiceData.lineItems.length > 0
+      ? invoiceData.lineItems.map((item, index) => [
+          (index + 1).toString() + '.',
+          item.description,
+          item.quantity,
+          item.rate,
+          parseFloat(item.amount).toFixed(2)
+        ])
+      : [
+          ['1.', 'No items', 0, 0, '0.00'],
+        ];
+
+    const subTotal = items.reduce((sum, item) => sum + parseFloat(item[4]), 0);
+    const vatRate = 0.10;
+    const vatAmount = subTotal * vatRate;
+    const grandTotal = subTotal + vatAmount;
+    const amountInWords = `US Dollars ${numberToWords(grandTotal)} Only`;
 
     const doc = new jsPDF('p', 'pt', 'a4');
     const pageWidth = doc.internal.pageSize.width;
@@ -109,61 +184,6 @@ function Invoicing_Billing() {
     const margin = 40;
     let finalY = margin;
 
-  
-    const companyDetails = {
-      logoText: invoiceDataFromState.companyLogoText || 'COMPANY LOGO',
-      addressDetails: invoiceDataFromState.companyAddressDetails || 'COMPANY ADDRESS DETAILS',
-      name: invoiceDataFromState.companyNameHeader || 'Company name',
-      trn: invoiceDataFromState.companyTRN || '100000000000002',
-    };
-
-    const invoiceMeta = {
-      date: invoiceDataFromState.date || '22.03.2025',
-      invoiceNo: invoiceDataFromState.invoiceNo || '5822',
-    };
-
-    const clientDetails = {
-      name: invoiceDataFromState.clientName || 'Client Company Name',
-      address1: invoiceDataFromState.clientAddress1 || 'Client Address Line 1',
-      address2: invoiceDataFromState.clientAddress2 || 'Client Address Line 2, Country',
-      tel: invoiceDataFromState.clientTel || '00000000000',
-      contactPerson: invoiceDataFromState.clientContactPerson || 'Client Contact Person',
-      email: invoiceDataFromState.clientEmail || 'client.email@example.com',
-      trn: invoiceDataFromState.clientTRN || "Client's TRN No.",
-    };
-
-    const projectInfo = {
-      costEstNo: invoiceDataFromState.costEstNo || 'CE No.',
-      poNo: invoiceDataFromState.purchaseOrderNo || 'PO Number',
-      projectNo: invoiceDataFromState.projectNo || 'Project No.',
-    };
-
-    const bankDetails = {
-      accountName: invoiceDataFromState.bankAccountName || 'Company Name',
-      bankName: invoiceDataFromState.bankName || "Company's Bank Name",
-      iban: invoiceDataFromState.iban || 'XX000000000000000000001',
-      swiftCode: invoiceDataFromState.swiftCode || 'XXXAAACC',
-      terms: invoiceDataFromState.paymentTerms || 'Net 30',
-    };
-
-    const items = invoiceDataFromState.items && invoiceDataFromState.items.length > 0
-      ? invoiceDataFromState.items.map((item, index) => [
-        (index + 1).toString() + '.',
-        item.description,
-        item.qty,
-        item.rate,
-        parseFloat(item.amount).toFixed(2)
-      ])
-      : [
-        ['1.', 'Print Samples', 6, 2, '12.00'], 
-      ];
-
-    const subTotal = items.reduce((sum, item) => sum + parseFloat(item[4]), 0);
-    const vatRate = invoiceDataFromState.vatRate !== undefined ? invoiceDataFromState.vatRate : 0.10; 
-    const vatAmount = subTotal * vatRate;
-    const grandTotal = subTotal + vatAmount;
-    const amountInWords = invoiceDataFromState.amountInWords || `US Dollars ${numberToWords(grandTotal)} Only`;
-    
     doc.setFillColor(192, 0, 0);
     doc.rect(margin, finalY, 220, 60, 'F');
     doc.setTextColor(255, 255, 255);
@@ -174,7 +194,6 @@ function Invoicing_Billing() {
     doc.setFont('helvetica', 'normal');
     doc.text(companyDetails.addressDetails, margin + 10, finalY + 45);
 
-    
     const companyNameBlockY = finalY;
     doc.setFillColor(192, 0, 0);
     doc.rect(pageWidth - margin - 150, companyNameBlockY, 150, 30, 'F');
@@ -183,7 +202,6 @@ function Invoicing_Billing() {
     doc.setFont('helvetica', 'bold');
     doc.text(companyDetails.name, pageWidth - margin - 140, companyNameBlockY + 20, { align: 'left' });
 
-   
     let titleY = companyNameBlockY + 30 + 20;
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(18);
@@ -208,7 +226,6 @@ function Invoicing_Billing() {
     });
     finalY = doc.lastAutoTable.finalY + 20;
 
-   
     const invoiceToBoxWidth = 250;
     doc.setDrawColor(0, 0, 0);
     doc.rect(margin, finalY, invoiceToBoxWidth, 100, 'S');
@@ -218,15 +235,22 @@ function Invoicing_Billing() {
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
     let textYInvoiceTo = finalY + 30;
-    [clientDetails.name, clientDetails.address1, clientDetails.address2, `Tel: ${clientDetails.tel}`, `Contact: ${clientDetails.contactPerson}`, `Email: ${clientDetails.email}`].forEach(line => {
+    [
+      `Client Company: ${clientDetails?.name}`,
+      `Client Address: ${clientDetails?.address1}`,
+      `Client Address2: ${clientDetails?.address2}`,
+      `Tel: ${clientDetails?.tel}`,
+      `Contact: ${clientDetails.contactPerson}`,
+      `Email: ${clientDetails.email}`
+    ].forEach(line => {
       doc.text(line, margin + 5, textYInvoiceTo);
       textYInvoiceTo += 12;
     });
     finalY += 100 + 10;
-   
+
     autoTable(doc, {
       startY: finalY,
-      head: [['TRN', 'Cost Est. No.', 'P.O. No.', 'Project']],
+      head: [['TRN', 'Cost Est. No.', 'P.O. No.', 'Project No.']],
       body: [[clientDetails.trn, projectInfo.costEstNo, projectInfo.poNo, projectInfo.projectNo]],
       theme: 'grid',
       styles: { fontSize: 9, cellPadding: 5, lineWidth: 0.5, lineColor: [0, 0, 0] },
@@ -235,7 +259,6 @@ function Invoicing_Billing() {
     });
     finalY = doc.lastAutoTable.finalY + 10;
 
-    
     autoTable(doc, {
       startY: finalY,
       head: [['Bank Account Name', 'Bank Name', 'IBAN', 'Swift Code', 'Terms']],
@@ -247,7 +270,6 @@ function Invoicing_Billing() {
     });
     finalY = doc.lastAutoTable.finalY + 10;
 
- 
     autoTable(doc, {
       startY: finalY,
       head: [['Sr. #', 'Description', 'Qty', 'Rate', 'Amount (USD)']],
@@ -264,15 +286,13 @@ function Invoicing_Billing() {
       },
       margin: { left: margin, right: margin },
       didDrawPage: function (data) {
-     
         finalY = data.cursor.y;
       }
     });
     const amountInWordsY = finalY + 20;
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
-    doc.text(amountInWords, margin, amountInWordsY, { maxWidth: pageWidth - margin - 220 }); 
-
+    doc.text(amountInWords, margin, amountInWordsY, { maxWidth: pageWidth - margin - 220 });
 
     const totalsTableWidth = 200;
     const totalsTableX = pageWidth - margin - totalsTableWidth;
@@ -319,7 +339,6 @@ function Invoicing_Billing() {
     doc.text('For Company Name', margin, footerStartY);
     doc.text('Accounts Department', margin, footerStartY + stampHeight - 10);
 
-    
     doc.setFillColor(200, 200, 200);
     doc.rect(stampX, footerStartY - 15, stampWidth, stampHeight, 'F');
     doc.setTextColor(0, 0, 0);
@@ -328,6 +347,7 @@ function Invoicing_Billing() {
 
     doc.save(`Tax_Invoice_${invoiceMeta.invoiceNo}.pdf`);
   };
+  
   const numberToWords = (num) => {
     const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
     const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
@@ -345,7 +365,7 @@ function Invoicing_Billing() {
     let dollars = parseInt(parts[0]);
     let cents = parseInt(parts[1]);
 
-    words = ''; 
+    words = '';
     if (dollars === 0) words = 'Zero';
     else {
       if (dollars >= 1000000000) { words += numberToWords(Math.floor(dollars / 1000000000)) + ' Billion '; dollars %= 1000000000; }
@@ -362,27 +382,6 @@ function Invoicing_Billing() {
     }
     return words.trim();
   };
-//   const handleDownloadPDF = async (invoice) => {
-//   try {
-//     const response = await axiosInstance.get(
-//       `/pdf/invoice?InvoiceBillingId=${invoice._id}`,
-//       {
-//         responseType: "blob",
-//       }
-//     );
-
-//     const url = window.URL.createObjectURL(new Blob([response.data]));
-//     const link = document.createElement("a");
-//     link.href = url;
-//     link.setAttribute("download", `${invoice.invoiceNumber || "invoice"}.pdf`);
-//     document.body.appendChild(link);
-//     link.click();
-//     link.remove();
-//   } catch (error) {
-//     console.error("❌ Error downloading invoice PDF:", error);
-//     alert("Failed to download invoice PDF.");
-//   }
-// };
 
   const { invocing, loading, error } = useSelector((state) => state.InvoicingBilling);
   console.log(invocing?.InvoicingBilling);
@@ -399,9 +398,9 @@ function Invoicing_Billing() {
     ?.slice()
     .reverse()
     .filter((invoice) => {
-     
+
       const terms = searchQuery.toLowerCase().trim().split(/\s+/).filter(Boolean);
-  
+
       const invoiceNumber = (invoice.invoiceNumber || '').toLowerCase();
       const clientName = (invoice.clients?.[0]?.clientName || '').toLowerCase();
       const projectName = (invoice.projectId?.[0]?.projectName || '').toLowerCase();
@@ -414,13 +413,13 @@ function Invoicing_Billing() {
         status,
         amount
       ];
-    
+
       const matchesSearch = terms.length === 0 || terms.every(term =>
         fields.some(field => field.includes(term))
       );
-      const matchesProject = selectedProject === 'All Projects' || 
+      const matchesProject = selectedProject === 'All Projects' ||
         invoice.projectId?.[0]?.projectName === selectedProject;
-      const matchesDate = !selectedDate || 
+      const matchesDate = !selectedDate ||
         new Date(invoice.date).toLocaleDateString() === new Date(selectedDate).toLocaleDateString();
       return matchesSearch && matchesProject && matchesDate;
     });
@@ -519,7 +518,7 @@ function Invoicing_Billing() {
               <Dropdown.Item onClick={() => setSelectedProject("All Projects")}>
                 All Projects
               </Dropdown.Item>
-              {[...new Set((invocing?.InvoicingBilling || []).map((invoice) => 
+              {[...new Set((invocing?.InvoicingBilling || []).map((invoice) =>
                 invoice.projectId?.[0]?.projectName || "N/A"
               ))].filter(name => name !== "N/A").map((projectName, index) => (
                 <Dropdown.Item key={index} onClick={() => setSelectedProject(projectName)}>
@@ -542,7 +541,7 @@ function Invoicing_Billing() {
               <FaSearch />
             </InputGroup.Text>
             <Form.Control
-              placeholder="Search invoices..." value={searchQuery}   onChange={handleSearch} />
+              placeholder="Search invoices..." value={searchQuery} onChange={handleSearch} />
           </InputGroup>
 
           {/* <Form.Select className="mb-2">
@@ -577,41 +576,41 @@ function Invoicing_Billing() {
             <th>Actions</th>
           </tr>
         </thead>
-          <tbody>
-            {paginatedEstimates?.map((invoice, index) => (
-              <tr key={invoice.invoiceNumber || index}>
-                <td style={{ whiteSpace: "nowrap" }} /* onClick={() => JobDetails(invoice._id)} */>
-                  INV-{String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}
-                </td>
+        <tbody>
+          {paginatedEstimates?.map((invoice, index) => (
+            <tr key={invoice.invoiceNumber || index}>
+              <td style={{ whiteSpace: "nowrap" }} /* onClick={() => JobDetails(invoice._id)} */>
+                INV-{String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}
+              </td>
 
-                <td style={{ whiteSpace: "nowrap" }}>{invoice.clients?.[0]?.clientName || "N/A"}</td>
-                <td style={{ whiteSpace: "nowrap" }}>{invoice.projectId?.[0]?.projectName || "N/A"}</td>
-                <td style={{ whiteSpace: "nowrap" }}>${invoice.lineItems?.[0]?.amount || "N/A"}</td>
-                <td>
-                  <Badge bg={getStatusBadgeVariant(invoice.status)}>
-                    {invoice.status}
-                  </Badge>
-                </td>
-                <td>{invoice.date ? new Date(invoice.date).toLocaleDateString("en-GB") : 'N/A'}</td>
-                <td>
-                  <div className="d-flex gap-2">
-                    <button className="btn btn-sm btn-outline-primary" onClick={() => UpdateInvocing(invoice)}>
-                      <FaEdit />
-                    </button>
-                    {/* <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(invoice._id)}>
+              <td style={{ whiteSpace: "nowrap" }}>{invoice.clients?.[0]?.clientName || "N/A"}</td>
+              <td style={{ whiteSpace: "nowrap" }}>{invoice.projectId?.[0]?.projectName || "N/A"}</td>
+              <td style={{ whiteSpace: "nowrap" }}>${invoice.lineItems?.[0]?.amount || "N/A"}</td>
+              <td>
+                <Badge bg={getStatusBadgeVariant(invoice.status)}>
+                  {invoice.status}
+                </Badge>
+              </td>
+              <td>{invoice.date ? new Date(invoice.date).toLocaleDateString("en-GB") : 'N/A'}</td>
+              <td>
+                <div className="d-flex gap-2">
+                  <button className="btn btn-sm btn-outline-primary" onClick={() => UpdateInvocing(invoice)}>
+                    <FaEdit />
+                  </button>
+                  {/* <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(invoice._id)}>
                       <FaTrash />
                     </button> */}
-                   <button
-  className="btn btn-sm btn-outline-primary"
-  onClick={() => handleDownloadPDF(invoice)} // Pass current invoice
->
-  <FaDownload />
-</button>
-                  </div>
-                </td>
-              </tr>
-             ))}
-          </tbody>
+                  <button
+                    className="btn btn-sm btn-outline-primary"
+                    onClick={() => handleDownloadPDF(invoice)} // Pass current invoice
+                  >
+                    <FaDownload />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
       </Table>
 
       {!loading && !error && (

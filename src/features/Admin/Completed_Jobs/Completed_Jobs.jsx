@@ -123,9 +123,9 @@ function Completed_Jobs() {
   );
 
   return (
-    <div className="container-fluid mt-4">
+    <div className="container-fluid mt-2">
       <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap">
-        <h4>Completed Jobs</h4>
+        {/* <h4>Completed Jobs</h4> */}
         <div className="d-flex gap-2 mt-2 mt-md-0">
           {/* <button className="btn btn-outline-primary">Back to Designer</button> */}
           {/* <button className="btn btn-primary" onClick={handleReturnClick}>
@@ -137,6 +137,9 @@ function Completed_Jobs() {
       {error && <div className="alert alert-danger">{error}</div>}
 
       <div className="card p-3">
+              <div className="d-flex justify-content-between align-items-center mb-4">
+        <h2 className="job-title mb-0">Completed Jobs</h2>
+      </div>
         {/* Responsive Toggle Button */}
         <div className="d-md-none mb-3">
           <button className="btn btn-outline-secondary w-100" onClick={() => setShowFilters(!showFilters)}>

@@ -8,6 +8,7 @@ import { FaFilter } from "react-icons/fa";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { FaRegClock } from "react-icons/fa";
 
 function MyJobs() {
   const [showTimesheetModal, setShowTimesheetModal] = useState(false);
@@ -121,43 +122,43 @@ function MyJobs() {
   const [rejectionReason, setRejectionReason] = useState("");
 
   const handleRejectJobs = () => {
-const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
+    const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
 
-if (selectedJobIds.length === 0) {
-  setErrorMessage("Please select at least 1 job to reject.");
-  setTimeout(() => setErrorMessage(""), 3000);
-  return;
-}
+    if (selectedJobIds.length === 0) {
+      setErrorMessage("Please select at least 1 job to reject.");
+      setTimeout(() => setErrorMessage(""), 3000);
+      return;
+    }
     setShowRejectModal(true);
-const payload = {
-  jobId: selectedJobIds
-};
-console.log("Payload to send:", payload);
-};
+    const payload = {
+      jobId: selectedJobIds
+    };
+    console.log("Payload to send:", payload);
+  };
 
-const handleSubmitRejection = () => {
-  const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
+  const handleSubmitRejection = () => {
+    const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
 
-  if (!rejectionReason.trim()) {
-    setErrorMessage("Please enter a reason for rejection.");
-    setTimeout(() => setErrorMessage(""), 3000);
-    return;
-  }
+    if (!rejectionReason.trim()) {
+      setErrorMessage("Please enter a reason for rejection.");
+      setTimeout(() => setErrorMessage(""), 3000);
+      return;
+    }
 
-  dispatch(ReturnJob({ jobId: selectedJobIds }))
-    .unwrap()
-    .then(() => {
-      setSuccessMessage("Jobs rejected successfully.");
-      setTimeout(() => setSuccessMessage(""), 3000);
-      dispatch(fetchMyJobs());
-      setSelectedJobs({});
-      setRejectionReason("");
-      setShowRejectModal(false);
-    })
-    .catch((error) => {
-      setErrorMessage("Failed to reject jobs: " + error);
-    });
-};
+    dispatch(ReturnJob({ jobId: selectedJobIds }))
+      .unwrap()
+      .then(() => {
+        setSuccessMessage("Jobs rejected successfully.");
+        setTimeout(() => setSuccessMessage(""), 3000);
+        dispatch(fetchMyJobs());
+        setSelectedJobs({});
+        setRejectionReason("");
+        setShowRejectModal(false);
+      })
+      .catch((error) => {
+        setErrorMessage("Failed to reject jobs: " + error);
+      });
+  };
 
   const getStatusClass = (status) => {
     switch ((status || "").toLowerCase().trim()) {
@@ -290,7 +291,7 @@ const handleSubmitRejection = () => {
                 <td>{job.JobNo}</td>
                 <td>{job.projectId?.[0]?.projectName || "—"}</td>
                 <td>{job.brandName}</td>
-                <td>{job.subBrand}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{job.subBrand}</td>
                 <td>{job.packType || "N/A"}</td>
                 <td>{job.packSize || "N/A"}</td>
                 <td>{job.packCode || "N/A"}</td>
@@ -300,9 +301,20 @@ const handleSubmitRejection = () => {
                   </span>
                 </td>
                 <td>
-                <Link to={"/employee/AddTimeLog"}><Button id="All_btn" size="sm" variant="dark" onClick={() => handleLogTime(job._id)}>
+                  {/* <Link to={"/employee/AddTimeLog"}><Button id="All_btn" size="sm" variant="dark" onClick={() => handleLogTime(job._id)}>
                     LogTime
-                  </Button></Link>
+                  </Button></Link> */}
+                  <Link to={"/employee/AddTimeLog"}>
+                    <Button
+                      id="All_btn"
+                      size="sm"
+                      variant="dark"
+                      onClick={() => handleLogTime(job._id)}
+                    >
+                      <FaRegClock/> {/* Time icon with margin */}
+                    </Button>
+                  </Link>
+
                 </td>
               </tr>
             ))}
