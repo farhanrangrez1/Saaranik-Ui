@@ -28087,3 +28087,598 @@ function Invoicing_Billing() {
 }
 
 export default Invoicing_Billing;
+
+
+
+
+
+
+
+
+  const handleDownloadPDF = async (invoiceDataFromState) => {
+    // if (!invoiceDataFromState) {
+    //   console.error("No data provided to handleDownloadPDF");
+    //   Swal.fire("Error", "No data available to generate PDF.", "error");
+    //   return;
+    // }
+    // try {
+    //   const response = await axiosInstance.get(
+    //     `/pdf/invoice?InvoiceBillingId=${invoiceDataFromState._id}`,
+    //     {
+    //       responseType: "blob",
+    //     }
+    //   );
+    //   const url = window.URL.createObjectURL(new Blob([response.data]));
+    //   const link = document.createElement("a");
+    //   link.href = url;
+    //   link.setAttribute("download", `${invoiceDataFromState.invoiceNumber || "invoice"}.pdf`);
+    //   document.body.appendChild(link);
+    //   link.click();
+    //   link.remove();
+    // } catch (error) {
+    //   console.error("❌ Error downloading invoice PDF:", error);
+    //   alert("Failed to download invoice PDF.");
+    // }
+
+
+    if (!invoiceDataFromState) {
+      console.error("No data provided to handleDownloadPDF");
+      Swal.fire("Error", "No data available to generate PDF.", "error");
+      return;
+    }
+    
+    try {
+      const response = await axiosInstance.get(
+        `/pdf/invoice?InvoiceBillingId=${invoiceDataFromState._id}`,
+        {
+          responseType: "blob",
+        }
+      );
+       consol.log(response,"ggg")
+      // Log the Blob data as base64
+      const reader = new FileReader();
+      reader.onloadend = function () {
+        console.log("API Response Data (Base64):", reader.result);  // Logs base64-encoded data
+      };
+      reader.readAsDataURL(response.data); // Convert blob to base64
+    
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `${invoiceDataFromState.invoiceNumber || "invoice"}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("❌ Error downloading invoice PDF:", error);
+      alert("Failed to download invoice PDF.");
+    }
+
+    const invoiceData = invoiceDataFromState;
+
+    const companyDetails = {
+      logoText: 'COMPANY LOGO',
+      addressDetails: 'COMPANY ADDRESS DETAILS',
+      name: 'Company name',
+      trn: '100000000000002',
+    };
+
+    const invoiceMeta = {
+      date: invoiceData.date ? new Date(invoiceData.date).toLocaleDateString("en-GB") : 'N/A',
+      invoiceNo: invoiceData._id || 'N/A',
+    };
+
+    const clientDetails = {
+      name: invoiceData.clientId?.clientName || 'N/A',
+      address1: invoiceData?.clients.clientAddress || 'N/A',
+      
+      address2: invoiceData.clientId?.shippingInformation?.[0]?.shippingAddress || 'N/A',
+      tel: invoiceData.clientId?.contactPersons?.[0]?.phone || 'N/A',
+      contactPerson: invoiceData.clientId?.contactPersons?.[0]?.contactName || 'N/A',
+      email: invoiceData.clientId?.contactPersons?.[0]?.email || 'N/A',
+      trn: invoiceData.clientId?.TaxID_VATNumber || 'N/A',
+    };
+    console.log(invoiceData ,"wwwww");
+    const projectInfo = {
+      costEstNo: invoiceData?.CostEstimatesId || 'N/A',
+      poNo: invoiceData?.ReceivablePurchaseId || 'N/A',
+      projectNo: invoiceData?.projectId?.[0]?.projectNo || 'N/A',
+      projectName: invoiceData?.projectId?.[0]?.projectName || 'N/A',
+
+    };
+
+    const bankDetails = {
+      accountName: invoiceData.clientId?.financialInformation?.[0]?.bankName || 'Company Name',
+      bankName: invoiceData.clientId?.financialInformation?.[0]?.bankName || 'Company Bank Name',
+      iban: invoiceData.clientId?.financialInformation?.[0]?.accountNumber || 'XX000000000000000000001',
+      swiftCode: 'XXXAAACC',
+      terms: invoiceData.clientId?.additionalInformation?.paymentTerms || 'Net 30',
+    };
+
+    const items = invoiceData.lineItems && invoiceData.lineItems.length > 0
+      ? invoiceData.lineItems.map((item, index) => [
+          (index + 1).toString() + '.',
+          item.description,
+          item.quantity,
+          item.rate,
+          parseFloat(item.amount).toFixed(2)
+        ])
+      : [
+          ['1.', 'No items', 0, 0, '0.00'],
+        ];
+
+    const subTotal = items.reduce((sum, item) => sum + parseFloat(item[4]), 0);
+    const vatRate = 0.10;
+    const vatAmount = subTotal * vatRate;
+    const grandTotal = subTotal + vatAmount;
+    const amountInWords = `US Dollars ${numberToWords(grandTotal)} Only`;
+
+    const doc = new jsPDF('p', 'pt', 'a4');
+    const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
+    const margin = 40;
+    let finalY = margin;
+
+    doc.setFillColor(192, 0, 0);
+    doc.rect(margin, finalY, 220, 60, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text(companyDetails.logoText, margin + 10, finalY + 25);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.text(companyDetails.addressDetails, margin + 10, finalY + 45);
+
+    const companyNameBlockY = finalY;
+    doc.setFillColor(192, 0, 0);
+    doc.rect(pageWidth - margin - 150, companyNameBlockY, 150, 30, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text(companyDetails.name, pageWidth - margin - 140, companyNameBlockY + 20, { align: 'left' });
+
+    let titleY = companyNameBlockY + 30 + 20;
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Tax Invoice', pageWidth - margin, titleY, { align: 'right' });
+
+    let tableDetailsY = titleY + 10;
+    autoTable(doc, {
+      startY: tableDetailsY,
+      head: [['TRN:', 'Date', 'Invoice No.']],
+      body: [[companyDetails.trn, invoiceMeta.date, invoiceMeta.invoiceNo]],
+      theme: 'grid',
+      styles: { fontSize: 9, cellPadding: 5, lineWidth: 0.5, lineColor: [0, 0, 0] },
+      headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontStyle: 'bold' },
+      columnStyles: {
+        0: { cellWidth: 150, halign: 'left' },
+        1: { cellWidth: 80, halign: 'left' },
+        2: { cellWidth: 80, halign: 'left' },
+      },
+      margin: { right: margin, left: pageWidth - margin - (150 + 80 + 80) - 10 },
+      tableWidth: 'wrap',
+    });
+    finalY = doc.lastAutoTable.finalY + 20;
+
+    const invoiceToBoxWidth = 250;
+    doc.setDrawColor(0, 0, 0);
+    doc.rect(margin, finalY, invoiceToBoxWidth, 100, 'S');
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Invoice To', margin + 5, finalY + 15);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    let textYInvoiceTo = finalY + 30;
+    [
+      `Client Company: ${clientDetails?.name}`,
+      `Client Address: ${clientDetails?.address1}`,
+      `Client Address2: ${clientDetails?.address2}`,
+      `Tel: ${clientDetails?.tel}`,
+      `Contact: ${clientDetails.contactPerson}`,
+      `Email: ${clientDetails.email}`
+    ].forEach(line => {
+      doc.text(line, margin + 5, textYInvoiceTo);
+      textYInvoiceTo += 12;
+    });
+    finalY += 100 + 10;
+
+    autoTable(doc, {
+      startY: finalY,
+      head: [['TRN', 'Cost Est. No.', 'P.O. No.', 'Project No.']],
+      body: [[clientDetails.trn, projectInfo.costEstNo, projectInfo.poNo, projectInfo.projectNo]],
+      theme: 'grid',
+      styles: { fontSize: 9, cellPadding: 5, lineWidth: 0.5, lineColor: [0, 0, 0] },
+      headStyles: { fillColor: [220, 220, 220], textColor: [0, 0, 0], fontStyle: 'bold' },
+      margin: { left: margin, right: margin },
+    });
+    finalY = doc.lastAutoTable.finalY + 10;
+
+    autoTable(doc, {
+      startY: finalY,
+      head: [['Bank Account Name', 'Bank Name', 'IBAN', 'Swift Code', 'Terms']],
+      body: [[bankDetails.accountName, bankDetails.bankName, bankDetails.iban, bankDetails.swiftCode, bankDetails.terms]],
+      theme: 'grid',
+      styles: { fontSize: 9, cellPadding: 5, lineWidth: 0.5, lineColor: [0, 0, 0] },
+      headStyles: { fillColor: [200, 200, 200], textColor: [0, 0, 0], fontStyle: 'bold' },
+      margin: { left: margin, right: margin },
+    });
+    finalY = doc.lastAutoTable.finalY + 10;
+
+    autoTable(doc, {
+      startY: finalY,
+      head: [['Sr. #', 'Description', 'Qty', 'Rate', 'Amount (USD)']],
+      body: items,
+      theme: 'grid',
+      styles: { fontSize: 9, cellPadding: 5, lineWidth: 0.5, lineColor: [0, 0, 0] },
+      headStyles: { fillColor: [220, 220, 220], textColor: [0, 0, 0], fontStyle: 'bold' },
+      columnStyles: {
+        0: { cellWidth: 40, halign: 'center' },
+        1: { cellWidth: 'auto' },
+        2: { cellWidth: 40, halign: 'right' },
+        3: { cellWidth: 50, halign: 'right' },
+        4: { cellWidth: 70, halign: 'right' },
+      },
+      margin: { left: margin, right: margin },
+      didDrawPage: function (data) {
+        finalY = data.cursor.y;
+      }
+    });
+    const amountInWordsY = finalY + 20;
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text(amountInWords, margin, amountInWordsY, { maxWidth: pageWidth - margin - 220 });
+
+    const totalsTableWidth = 200;
+    const totalsTableX = pageWidth - margin - totalsTableWidth;
+    let totalsTableY = finalY + 10;
+
+    autoTable(doc, {
+      startY: totalsTableY,
+      body: [
+        ['Subtotal', `USD ${subTotal.toFixed(2)}`],
+        [`VAT (${(vatRate * 100).toFixed(0)}%)`, `USD ${vatAmount.toFixed(2)}`],
+        ['Total', `USD ${grandTotal.toFixed(2)}`]
+      ],
+      theme: 'grid',
+      styles: {
+        fontSize: 9,
+        cellPadding: 5,
+        lineWidth: 0.5,
+        lineColor: [0, 0, 0]
+      },
+      headStyles: {
+        fillColor: [255, 255, 255],
+        textColor: [0, 0, 0],
+      },
+      columnStyles: {
+        0: { halign: 'left', fontStyle: 'bold', cellWidth: totalsTableWidth * 0.6 },
+        1: { halign: 'right', cellWidth: totalsTableWidth * 0.4 }
+      },
+      margin: { left: totalsTableX },
+      tableWidth: totalsTableWidth,
+      didDrawPage: function (data) {
+        totalsTableY = data.cursor.y;
+      }
+    });
+
+    finalY = Math.max(amountInWordsY + 10, totalsTableY + 10);
+
+    const footerStartY = finalY + 30;
+    const stampWidth = 100;
+    const stampHeight = 70;
+    const stampX = margin + 150;
+
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text('For Company Name', margin, footerStartY);
+    doc.text('Accounts Department', margin, footerStartY + stampHeight - 10);
+
+    doc.setFillColor(200, 200, 200);
+    doc.rect(stampX, footerStartY - 15, stampWidth, stampHeight, 'F');
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(8);
+    doc.text('Insert Stamp Image', stampX + stampWidth / 2, footerStartY - 15 + stampHeight / 2, { align: 'center' });
+
+    doc.save(`Tax_Invoice_${invoiceMeta.invoiceNo}.pdf`);
+  };
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    const handleDownloadPDF = async (invoiceDataFromState) => {
+      if (!invoiceDataFromState) {
+        console.error("No data provided to handleDownloadPDF");
+        Swal.fire("Error", "No data available to generate PDF.", "error");
+        return;
+      }
+      try {
+        const response = await axiosInstance.get(
+          `/pdf/invoice?InvoiceBillingId=${invoiceDataFromState._id}`,
+          {
+            responseType: "blob",
+          }
+        );
+        // Check if the response is JSON instead of PDF
+        if (response.data.type === "application/json") {
+          const reader = new FileReader();
+          reader.onload = function() {
+            try {
+              const json = JSON.parse(reader.result);
+              console.log('PDF API response as JSON:', json);
+            } catch (e) {
+              console.log('PDF API response as text:', reader.result);
+            }
+          };
+          reader.readAsText(response.data);
+          return; // Stop further PDF logic if not a PDF
+        }
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", `${invoiceDataFromState.invoiceNumber || "invoice"}.pdf`);
+  
+        
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      } catch (error) {
+        console.error("❌ Error downloading invoice PDF:", error);
+        alert("Failed to download invoice PDF.");
+      }
+  
+      const doc = new jsPDF('p', 'pt', 'a4');
+      const pageWidth = doc.internal.pageSize.width;
+      const pageHeight = doc.internal.pageSize.height;
+      const margin = 40;
+      let finalY = margin;
+  
+      const companyDetails = {
+        logoText: invoiceDataFromState.companyLogoText || 'COMPANY LOGO',
+        addressDetails: invoiceDataFromState.companyAddressDetails || 'COMPANY ADDRESS DETAILS',
+        name: invoiceDataFromState.companyNameHeader || 'Company name',
+        trn: invoiceDataFromState.companyTRN || '100000000000002',
+      };
+  
+      const invoiceMeta = {
+        date: invoiceDataFromState.date || '22.03.2025',
+        invoiceNo: invoiceDataFromState.invoiceNo || '5822',
+      };
+  
+      const clientDetails = {
+        name: invoiceDataFromState.clientId?.clientName || 'Client Company Name',
+        address1: invoiceDataFromState.clientId?.clientAddress || 'Client Address Line 1',
+        address2: invoiceDataFromState.clientId?.shippingInformation?.[0]?.shippingAddress || 'Client Address Line 2, Country',
+        tel: invoiceDataFromState.clientId?.contactPersons?.[0]?.phone || '00000000000',
+        contactPerson: invoiceDataFromState.clientId?.contactPersons?.[0]?.contactName || 'Client Contact Person',
+        email: invoiceDataFromState.clientId?.contactPersons?.[0]?.email || 'client.email@example.com',
+        trn: invoiceDataFromState.clientId?.TaxID_VATNumber || "Client's TRN No.",
+      };
+  
+      // Project No. is set from API response below:
+      const projectInfo = {
+        costEstNo: invoiceDataFromState.CostEstimatesId || 'CE No.',
+        poNo: invoiceDataFromState.ReceivablePurchaseId || 'PO Number',
+        // Project No. from API response
+        projectNo: invoiceDataFromState.projectId?.[0]?.projectNo || 'Project No.',
+      };
+  
+      const bankDetails = {
+        accountName: invoiceDataFromState.bankAccountName || 'Company Name',
+        bankName: invoiceDataFromState.bankName || "Company's Bank Name",
+        iban: invoiceDataFromState.iban || 'XX000000000000000000001',
+        swiftCode: invoiceDataFromState.swiftCode || 'XXXAAACC',
+        terms: invoiceDataFromState.paymentTerms || 'Net 30',
+      };
+  
+      // Updated items mapping from API response
+      const items = invoiceDataFromState.lineItems && invoiceDataFromState.lineItems.length > 0
+        ? invoiceDataFromState.lineItems.map((item, index) => [
+            (index + 1).toString() + '.',
+            item.description,
+            item.quantity,
+            item.rate,
+            parseFloat(item.amount).toFixed(2)
+          ])
+        : [
+            ['1.', 'Print Samples', 6, 2, '12.00'],
+          ];
+  
+      const subTotal = items.reduce((sum, item) => sum + parseFloat(item[4]), 0);
+      const vatRate = invoiceDataFromState.vatRate !== undefined ? invoiceDataFromState.vatRate : 0.10;
+      const vatAmount = subTotal * vatRate;
+      const grandTotal = subTotal + vatAmount;
+      const amountInWords = invoiceDataFromState.amountInWords || `US Dollars ${numberToWords(grandTotal)} Only`;
+  
+      doc.setFillColor(192, 0, 0);
+      doc.rect(margin, finalY, 220, 60, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text(companyDetails.logoText, margin + 10, finalY + 25);
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.text(companyDetails.addressDetails, margin + 10, finalY + 45);
+  
+  
+      const companyNameBlockY = finalY;
+      doc.setFillColor(192, 0, 0);
+      doc.rect(pageWidth - margin - 150, companyNameBlockY, 150, 30, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text(companyDetails.name, pageWidth - margin - 140, companyNameBlockY + 20, { align: 'left' });
+  
+  
+      let titleY = companyNameBlockY + 30 + 20;
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Tax Invoice', pageWidth - margin, titleY, { align: 'right' });
+  
+      let tableDetailsY = titleY + 10;
+      autoTable(doc, {
+        startY: tableDetailsY,
+        head: [['TRN:', 'Date', 'Invoice No.']],
+        body: [[companyDetails.trn, invoiceMeta.date, invoiceMeta.invoiceNo]],
+        theme: 'grid',
+        styles: { fontSize: 9, cellPadding: 5, lineWidth: 0.5, lineColor: [0, 0, 0] },
+        headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontStyle: 'bold' },
+        columnStyles: {
+          0: { cellWidth: 150, halign: 'left' },
+          1: { cellWidth: 80, halign: 'left' },
+          2: { cellWidth: 80, halign: 'left' },
+        },
+        margin: { right: margin, left: pageWidth - margin - (150 + 80 + 80) - 10 },
+        tableWidth: 'wrap',
+      });
+      finalY = doc.lastAutoTable.finalY + 20;
+  
+  
+      const invoiceToBoxWidth = 250;
+      doc.setDrawColor(0, 0, 0);
+      doc.rect(margin, finalY, invoiceToBoxWidth, 100, 'S');
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Invoice To', margin + 5, finalY + 15);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      let textYInvoiceTo = finalY + 30;
+      [
+        `Client Company: ${clientDetails.name}`,
+        `Client Address: ${clientDetails.address1}`,
+        `Client Address2: ${clientDetails.address2}`,
+        `Tel: ${clientDetails.tel}`,
+        `Contact: ${clientDetails.contactPerson}`,
+        `Email: ${clientDetails.email}`
+      ].forEach(line => {
+        doc.text(line, margin + 5, textYInvoiceTo);
+        textYInvoiceTo += 12;
+      });
+      finalY += 100 + 10;
+  
+      autoTable(doc, {
+        startY: finalY,
+        head: [['TRN', 'Cost Est. No.', 'P.O. No.', 'Project No.']],
+        // Project No. from API response is used here
+        body: [[clientDetails.trn, projectInfo.costEstNo, projectInfo.poNo, projectInfo.projectNo]],
+        theme: 'grid',
+        styles: { fontSize: 9, cellPadding: 5, lineWidth: 0.5, lineColor: [0, 0, 0] },
+        headStyles: { fillColor: [220, 220, 220], textColor: [0, 0, 0], fontStyle: 'bold' },
+        margin: { left: margin, right: margin },
+      });
+      finalY = doc.lastAutoTable.finalY + 10;
+  
+  
+      autoTable(doc, {
+        startY: finalY,
+        head: [['Bank Account Name', 'Bank Name', 'IBAN', 'Swift Code', 'Terms']],
+        body: [[bankDetails.accountName, bankDetails.bankName, bankDetails.iban, bankDetails.swiftCode, bankDetails.terms]],
+        theme: 'grid',
+        styles: { fontSize: 9, cellPadding: 5, lineWidth: 0.5, lineColor: [0, 0, 0] },
+        headStyles: { fillColor: [200, 200, 200], textColor: [0, 0, 0], fontStyle: 'bold' },
+        margin: { left: margin, right: margin },
+      });
+      finalY = doc.lastAutoTable.finalY + 10;
+  
+  
+      autoTable(doc, {
+        startY: finalY,
+        head: [['Sr. #', 'Description', 'Qty', 'Rate', 'Amount (USD)']],
+        body: items,
+        theme: 'grid',
+        styles: { fontSize: 9, cellPadding: 5, lineWidth: 0.5, lineColor: [0, 0, 0] },
+        headStyles: { fillColor: [220, 220, 220], textColor: [0, 0, 0], fontStyle: 'bold' },
+        columnStyles: {
+          0: { cellWidth: 40, halign: 'center' },
+          1: { cellWidth: 'auto' },
+          2: { cellWidth: 40, halign: 'right' },
+          3: { cellWidth: 50, halign: 'right' },
+          4: { cellWidth: 70, halign: 'right' },
+        },
+        margin: { left: margin, right: margin },
+        didDrawPage: function (data) {
+  
+          finalY = data.cursor.y;
+        }
+      });
+      const amountInWordsY = finalY + 20;
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.text(amountInWords, margin, amountInWordsY, { maxWidth: pageWidth - margin - 220 });
+  
+  
+      const totalsTableWidth = 200;
+      const totalsTableX = pageWidth - margin - totalsTableWidth;
+      let totalsTableY = finalY + 10;
+  
+      autoTable(doc, {
+        startY: totalsTableY,
+        body: [
+          ['Subtotal', `USD ${subTotal.toFixed(2)}`],
+          [`VAT (${(vatRate * 100).toFixed(0)}%)`, `USD ${vatAmount.toFixed(2)}`],
+          ['Total', `USD ${grandTotal.toFixed(2)}`]
+        ],
+        theme: 'grid',
+        styles: {
+          fontSize: 9,
+          cellPadding: 5,
+          lineWidth: 0.5,
+          lineColor: [0, 0, 0]
+        },
+        headStyles: {
+          fillColor: [255, 255, 255],
+          textColor: [0, 0, 0],
+        },
+        columnStyles: {
+          0: { halign: 'left', fontStyle: 'bold', cellWidth: totalsTableWidth * 0.6 },
+          1: { halign: 'right', cellWidth: totalsTableWidth * 0.4 }
+        },
+        margin: { left: totalsTableX },
+        tableWidth: totalsTableWidth,
+        didDrawPage: function (data) {
+          totalsTableY = data.cursor.y;
+        }
+      });
+  
+      finalY = Math.max(amountInWordsY + 10, totalsTableY + 10);
+  
+      const footerStartY = finalY + 30;
+      const stampWidth = 100;
+      const stampHeight = 70;
+      const stampX = margin + 150;
+  
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.text('For Company Name', margin, footerStartY);
+      doc.text('Accounts Department', margin, footerStartY + stampHeight - 10);
+  
+  
+      doc.setFillColor(200, 200, 200);
+      doc.rect(stampX, footerStartY - 15, stampWidth, stampHeight, 'F');
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(8);
+      doc.text('Insert Stamp Image', stampX + stampWidth / 2, footerStartY - 15 + stampHeight / 2, { align: 'center' });
+  
+      doc.save(`Tax_Invoice_${invoiceMeta.invoiceNo}.pdf`);
+    };

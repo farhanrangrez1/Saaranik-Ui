@@ -95,12 +95,41 @@ function Invoicing_Billing() {
     setInvoices(sorted);
   };
 
+  // ... handleDownloadPDF ...
+
+
   const handleDownloadPDF = async (invoiceDataFromState) => {
+    // if (!invoiceDataFromState) {
+    //   console.error("No data provided to handleDownloadPDF");
+    //   Swal.fire("Error", "No data available to generate PDF.", "error");
+    //   return;
+    // }
+    // try {
+    //   const response = await axiosInstance.get(
+    //     `/pdf/invoice?InvoiceBillingId=${invoiceDataFromState._id}`,
+    //     {
+    //       responseType: "blob",
+    //     }
+    //   );
+    //   const url = window.URL.createObjectURL(new Blob([response.data]));
+    //   const link = document.createElement("a");
+    //   link.href = url;
+    //   link.setAttribute("download", `${invoiceDataFromState.invoiceNumber || "invoice"}.pdf`);
+    //   document.body.appendChild(link);
+    //   link.click();
+    //   link.remove();
+    // } catch (error) {
+    //   console.error("❌ Error downloading invoice PDF:", error);
+    //   alert("Failed to download invoice PDF.");
+    // }
+
+
     if (!invoiceDataFromState) {
       console.error("No data provided to handleDownloadPDF");
       Swal.fire("Error", "No data available to generate PDF.", "error");
       return;
     }
+    
     try {
       const response = await axiosInstance.get(
         `/pdf/invoice?InvoiceBillingId=${invoiceDataFromState._id}`,
@@ -108,6 +137,14 @@ function Invoicing_Billing() {
           responseType: "blob",
         }
       );
+       consol.log(response,"ggg")
+      // Log the Blob data as base64
+      const reader = new FileReader();
+      reader.onloadend = function () {
+        console.log("API Response Data (Base64):", reader.result);  // Logs base64-encoded data
+      };
+      reader.readAsDataURL(response.data); // Convert blob to base64
+    
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
@@ -136,14 +173,15 @@ function Invoicing_Billing() {
 
     const clientDetails = {
       name: invoiceData.clientId?.clientName || 'N/A',
-      address1: invoiceData.clientId?.clientAddress || 'N/A',
+      address1: invoiceData?.clients.clientAddress || 'N/A',
+      
       address2: invoiceData.clientId?.shippingInformation?.[0]?.shippingAddress || 'N/A',
       tel: invoiceData.clientId?.contactPersons?.[0]?.phone || 'N/A',
       contactPerson: invoiceData.clientId?.contactPersons?.[0]?.contactName || 'N/A',
       email: invoiceData.clientId?.contactPersons?.[0]?.email || 'N/A',
       trn: invoiceData.clientId?.TaxID_VATNumber || 'N/A',
     };
-
+    console.log(invoiceData ,"wwwww");
     const projectInfo = {
       costEstNo: invoiceData?.CostEstimatesId || 'N/A',
       poNo: invoiceData?.ReceivablePurchaseId || 'N/A',
@@ -348,6 +386,8 @@ function Invoicing_Billing() {
     doc.save(`Tax_Invoice_${invoiceMeta.invoiceNo}.pdf`);
   };
   
+
+  
   const numberToWords = (num) => {
     const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
     const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
@@ -382,6 +422,27 @@ function Invoicing_Billing() {
     }
     return words.trim();
   };
+
+  //   const handleDownloadPDF = async (invoice) => {
+  //   try {
+  //     const response = await axiosInstance.get(
+  //       `/pdf/invoice?InvoiceBillingId=${invoice._id}`,
+  //       {
+  //         responseType: "blob",
+  //       }
+  //     );
+  //     const url = window.URL.createObjectURL(new Blob([response.data]));
+  //     const link = document.createElement("a");
+  //     link.href = url;
+  //     link.setAttribute("download", `${invoice.invoiceNumber || "invoice"}.pdf`);
+  //     document.body.appendChild(link);
+  //     link.click();
+  //     link.remove();
+  //   } catch (error) {
+  //     console.error("❌ Error downloading invoice PDF:", error);
+  //     alert("Failed to download invoice PDF.");
+  //   } 
+  // };
 
   const { invocing, loading, error } = useSelector((state) => state.InvoicingBilling);
   console.log(invocing?.InvoicingBilling);

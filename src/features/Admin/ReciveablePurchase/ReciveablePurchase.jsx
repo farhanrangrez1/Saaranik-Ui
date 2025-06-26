@@ -115,18 +115,19 @@ function ReciveablePurchase() {
 // };
 
 const handleToBeInvoiced = (po) => {
+  console.log("po",po._id)
 const ReceivablePurchaseId = po._id;
   const client = po.ClientId?.[0];
   const project = po.projectId?.[0];
 const CostEstimatesId = po.CostEstimatesId?.[0];
-
+// console.log("pocost",po.CostEstimatesId[0]._id)
   const invoice = {
     clientId: client?._id,
     clientName: client?.clientName,
     projectId: project?._id,
     projectName: project?.projectName,
-    CostEstimatesId: project?._id,
-    ReceivablePurchaseId:project?._id,
+    CostEstimatesId: po.CostEstimatesId[0]._id,
+    ReceivablePurchaseId:po?._id,
   };
   console.log("Invoice Data:", invoice);
   
@@ -135,7 +136,6 @@ const CostEstimatesId = po.CostEstimatesId?.[0];
     state: { invoice }
   });
 };
-
   return (
     <div  className="p-4 m-2"
       style={{ backgroundColor: "white", borderRadius: "10px" }}
