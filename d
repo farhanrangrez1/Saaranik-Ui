@@ -28682,3 +28682,82 @@ export default Invoicing_Billing;
   
       doc.save(`Tax_Invoice_${invoiceMeta.invoiceNo}.pdf`);
     };
+
+
+
+
+
+    // if (!invoiceDataFromState) {
+        //   console.error("No data provided to handleDownloadPDF");
+        //   Swal.fire("Error", "No data available to generate PDF.", "error");
+        //   return;
+        // }
+        // try {
+        //   const response = await axiosInstance.get(
+        //     `/pdf/invoice?InvoiceBillingId=${invoiceDataFromState._id}`,
+        //     {
+        //       responseType: "blob",
+        //     }
+        //   );
+        //   const url = window.URL.createObjectURL(new Blob([response.data]));
+        //   const link = document.createElement("a");
+        //   link.href = url;
+        //   link.setAttribute("download", `${invoiceDataFromState.invoiceNumber || "invoice"}.pdf`);
+        //   document.body.appendChild(link);
+        //   link.click();
+        //   link.remove();
+        // } catch (error) {
+        //   console.error("❌ Error downloading invoice PDF:", error);
+        //   alert("Failed to download invoice PDF.");
+        // }
+    
+        // if (!invoiceDataFromState) {
+        //   console.error("No data provided to handleDownloadPDF");
+        //   Swal.fire("Error", "No data available to generate PDF.", "error");
+        //   return;
+        // }
+       
+         // try {
+        //   const response = await axiosInstance.get(
+        //     `/pdf/invoice?InvoiceBillingId=${invoiceDataFromState._id}`,
+        //     {
+        //       responseType: "blob",
+        //     }
+        //   );
+        //   const url = window.URL.createObjectURL(new Blob([response.data]));
+        //   const link = document.createElement("a");
+        //   link.href = url;
+        //   link.setAttribute("download", `${invoiceDataFromState.invoiceNumber || "invoice"}.pdf`);
+        //   document.body.appendChild(link);
+        //   link.click();
+        //   link.remove();
+        // } catch (error) {
+        //   console.error("❌ Error downloading invoice PDF:", error);
+        //   alert("Failed to download invoice PDF.");
+        // }
+        // try {
+        //   const response = await axiosInstance.get(
+        //     `/pdf/invoice?InvoiceBillingId=${invoiceDataFromState._id}`,
+        //     {
+        //       responseType: "blob",
+        //     }
+        //   );
+        //    consol.log(response,"ggg")
+        //   // Log the Blob data as base64
+        //   const reader = new FileReader();
+        //   reader.onloadend = function () {
+        //     console.log("API Response Data (Base64):", reader.result);  // Logs base64-encoded data
+        //   };
+        //   reader.readAsDataURL(response.data); // Convert blob to base64
+        
+        //   const url = window.URL.createObjectURL(new Blob([response.data]));
+        //   const link = document.createElement("a");
+        //   link.href = url;
+        //   link.setAttribute("download", `${invoiceDataFromState.invoiceNumber || "invoice"}.pdf`);
+        //   document.body.appendChild(link);
+        //   link.click();
+        //   link.remove();
+        // } catch (error) {
+        //   console.error("❌ Error downloading invoice PDF:", error);
+        //   alert("Failed to download invoice PDF.");
+        // }

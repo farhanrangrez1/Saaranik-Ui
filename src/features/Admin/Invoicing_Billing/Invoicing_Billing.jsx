@@ -95,41 +95,12 @@ function Invoicing_Billing() {
     setInvoices(sorted);
   };
 
-  // ... handleDownloadPDF ...
-
-
   const handleDownloadPDF = async (invoiceDataFromState) => {
-    // if (!invoiceDataFromState) {
-    //   console.error("No data provided to handleDownloadPDF");
-    //   Swal.fire("Error", "No data available to generate PDF.", "error");
-    //   return;
-    // }
-    // try {
-    //   const response = await axiosInstance.get(
-    //     `/pdf/invoice?InvoiceBillingId=${invoiceDataFromState._id}`,
-    //     {
-    //       responseType: "blob",
-    //     }
-    //   );
-    //   const url = window.URL.createObjectURL(new Blob([response.data]));
-    //   const link = document.createElement("a");
-    //   link.href = url;
-    //   link.setAttribute("download", `${invoiceDataFromState.invoiceNumber || "invoice"}.pdf`);
-    //   document.body.appendChild(link);
-    //   link.click();
-    //   link.remove();
-    // } catch (error) {
-    //   console.error("❌ Error downloading invoice PDF:", error);
-    //   alert("Failed to download invoice PDF.");
-    // }
-
-
     if (!invoiceDataFromState) {
       console.error("No data provided to handleDownloadPDF");
       Swal.fire("Error", "No data available to generate PDF.", "error");
       return;
     }
-    
     try {
       const response = await axiosInstance.get(
         `/pdf/invoice?InvoiceBillingId=${invoiceDataFromState._id}`,
@@ -137,14 +108,29 @@ function Invoicing_Billing() {
           responseType: "blob",
         }
       );
-       consol.log(response,"ggg")
-      // Log the Blob data as base64
-      const reader = new FileReader();
-      reader.onloadend = function () {
-        console.log("API Response Data (Base64):", reader.result);  // Logs base64-encoded data
-      };
-      reader.readAsDataURL(response.data); // Convert blob to base64
-    
+      // Try to detect if the response is JSON (not a PDF)
+      const isJson = response.data.type === "application/json";
+      if (isJson) {
+        const reader = new FileReader();
+        reader.onload = function () {
+          let json;
+          try {
+            json = JSON.parse(reader.result);
+            console.log('PDF API response as JSON:', json);
+          } catch (e) {
+            console.log('PDF API response as text:', reader.result);
+            Swal.fire("Error", "Invalid JSON data received.", "error");
+            return;
+          }
+          // Use the JSON data to generate the PDF
+          const data = json.data && Array.isArray(json.data) ? json.data[0] : json;
+          // Use the same PDF generation code, but with 'data' instead of invoiceDataFromState
+          generatePDFfromData(data);
+        };
+        reader.readAsText(response.data);
+        return; // Stop further PDF logic if not a PDF
+      }
+      // If it's a PDF blob, download as before
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
@@ -156,72 +142,71 @@ function Invoicing_Billing() {
       console.error("❌ Error downloading invoice PDF:", error);
       alert("Failed to download invoice PDF.");
     }
+  };
 
-    const invoiceData = invoiceDataFromState;
-
+  // Helper function to generate PDF from API JSON data
+  const generatePDFfromData = (invoiceData) => {
     const companyDetails = {
       logoText: 'COMPANY LOGO',
       addressDetails: 'COMPANY ADDRESS DETAILS',
       name: 'Company name',
-      trn: '100000000000002',
+      trn: invoiceData.clientId?.TaxID_VATNumber || 'N/A',
     };
-
     const invoiceMeta = {
       date: invoiceData.date ? new Date(invoiceData.date).toLocaleDateString("en-GB") : 'N/A',
       invoiceNo: invoiceData._id || 'N/A',
     };
-
+    // Try to get client details from the API JSON structure
+    const client = invoiceData.clientId && typeof invoiceData.clientId === 'object' && !Array.isArray(invoiceData.clientId)
+      ? invoiceData.clientId
+      : (invoiceData.clients && typeof invoiceData.clients === 'object' ? invoiceData.clients : {});
     const clientDetails = {
-      name: invoiceData.clientId?.clientName || 'N/A',
-      address1: invoiceData?.clients.clientAddress || 'N/A',
-      
-      address2: invoiceData.clientId?.shippingInformation?.[0]?.shippingAddress || 'N/A',
-      tel: invoiceData.clientId?.contactPersons?.[0]?.phone || 'N/A',
-      contactPerson: invoiceData.clientId?.contactPersons?.[0]?.contactName || 'N/A',
-      email: invoiceData.clientId?.contactPersons?.[0]?.email || 'N/A',
+      name: client?.clientName || 'N/A',
+      address1: client?.clientAddress || 'N/A',
+      address2: client?.shippingInformation?.[0]?.shippingAddress || 'N/A',
+      tel: client?.contactPersons?.[0]?.phone || 'N/A',
+      contactPerson: client?.contactPersons?.[0]?.contactName || 'N/A',
+      email: client?.contactPersons?.[0]?.email || 'N/A',
       trn: invoiceData.clientId?.TaxID_VATNumber || 'N/A',
     };
-    console.log(invoiceData ,"wwwww");
+    const project = invoiceData.projectId && Array.isArray(invoiceData.projectId) && invoiceData.projectId[0]
+      ? invoiceData.projectId[0]
+      : {};
     const projectInfo = {
-      costEstNo: invoiceData?.CostEstimatesId || 'N/A',
-      poNo: invoiceData?.ReceivablePurchaseId || 'N/A',
-      projectNo: invoiceData?.projectId?.[0]?.projectNo || 'N/A',
-      projectName: invoiceData?.projectId?.[0]?.projectName || 'N/A',
-
+      costEstNo: invoiceData.CostEstimatesId?.estimateRef || 'N/A',
+      poNo: invoiceData?.ReceivablePurchaseId?.PONumber || 'N/A',
+      projectNo: project?.projectNo || 'N/A',
+      projectName: project?.projectName || 'N/A',
     };
-
+    
     const bankDetails = {
-      accountName: invoiceData.clientId?.financialInformation?.[0]?.bankName || 'Company Name',
-      bankName: invoiceData.clientId?.financialInformation?.[0]?.bankName || 'Company Bank Name',
-      iban: invoiceData.clientId?.financialInformation?.[0]?.accountNumber || 'XX000000000000000000001',
+      accountName: client?.financialInformation?.[0]?.bankName || 'Company Name',
+      bankName: client?.financialInformation?.[0]?.bankName || 'Company Bank Name',
+      iban: client?.financialInformation?.[0]?.accountNumber || 'XX000000000000000000001',
       swiftCode: 'XXXAAACC',
-      terms: invoiceData.clientId?.additionalInformation?.paymentTerms || 'Net 30',
+      terms: client?.additionalInformation?.paymentTerms || 'Net 30',
     };
-
     const items = invoiceData.lineItems && invoiceData.lineItems.length > 0
       ? invoiceData.lineItems.map((item, index) => [
-          (index + 1).toString() + '.',
-          item.description,
-          item.quantity,
-          item.rate,
-          parseFloat(item.amount).toFixed(2)
-        ])
+        (index + 1).toString() + '.',
+        item.description,
+        item.quantity,
+        item.rate,
+        parseFloat(item.amount).toFixed(2)
+      ])
       : [
-          ['1.', 'No items', 0, 0, '0.00'],
-        ];
-
+        ['1.', 'No items', 0, 0, '0.00'],
+      ];
     const subTotal = items.reduce((sum, item) => sum + parseFloat(item[4]), 0);
-    const vatRate = 0.10;
+    // Use VAT from API if available, else default to 10%
+    const vatRate = (typeof invoiceData.VATRate === 'number' ? invoiceData.VATRate : 10) / 100;
     const vatAmount = subTotal * vatRate;
     const grandTotal = subTotal + vatAmount;
     const amountInWords = `US Dollars ${numberToWords(grandTotal)} Only`;
-
     const doc = new jsPDF('p', 'pt', 'a4');
     const pageWidth = doc.internal.pageSize.width;
-    const pageHeight = doc.internal.pageSize.height;
     const margin = 40;
     let finalY = margin;
-
     doc.setFillColor(192, 0, 0);
     doc.rect(margin, finalY, 220, 60, 'F');
     doc.setTextColor(255, 255, 255);
@@ -231,7 +216,6 @@ function Invoicing_Billing() {
     doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
     doc.text(companyDetails.addressDetails, margin + 10, finalY + 45);
-
     const companyNameBlockY = finalY;
     doc.setFillColor(192, 0, 0);
     doc.rect(pageWidth - margin - 150, companyNameBlockY, 150, 30, 'F');
@@ -239,13 +223,11 @@ function Invoicing_Billing() {
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
     doc.text(companyDetails.name, pageWidth - margin - 140, companyNameBlockY + 20, { align: 'left' });
-
     let titleY = companyNameBlockY + 30 + 20;
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(18);
     doc.setFont('helvetica', 'bold');
     doc.text('Tax Invoice', pageWidth - margin, titleY, { align: 'right' });
-
     let tableDetailsY = titleY + 10;
     autoTable(doc, {
       startY: tableDetailsY,
@@ -263,7 +245,6 @@ function Invoicing_Billing() {
       tableWidth: 'wrap',
     });
     finalY = doc.lastAutoTable.finalY + 20;
-
     const invoiceToBoxWidth = 250;
     doc.setDrawColor(0, 0, 0);
     doc.rect(margin, finalY, invoiceToBoxWidth, 100, 'S');
@@ -285,7 +266,6 @@ function Invoicing_Billing() {
       textYInvoiceTo += 12;
     });
     finalY += 100 + 10;
-
     autoTable(doc, {
       startY: finalY,
       head: [['TRN', 'Cost Est. No.', 'P.O. No.', 'Project No.']],
@@ -296,7 +276,6 @@ function Invoicing_Billing() {
       margin: { left: margin, right: margin },
     });
     finalY = doc.lastAutoTable.finalY + 10;
-
     autoTable(doc, {
       startY: finalY,
       head: [['Bank Account Name', 'Bank Name', 'IBAN', 'Swift Code', 'Terms']],
@@ -307,7 +286,6 @@ function Invoicing_Billing() {
       margin: { left: margin, right: margin },
     });
     finalY = doc.lastAutoTable.finalY + 10;
-
     autoTable(doc, {
       startY: finalY,
       head: [['Sr. #', 'Description', 'Qty', 'Rate', 'Amount (USD)']],
@@ -331,11 +309,9 @@ function Invoicing_Billing() {
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
     doc.text(amountInWords, margin, amountInWordsY, { maxWidth: pageWidth - margin - 220 });
-
     const totalsTableWidth = 200;
     const totalsTableX = pageWidth - margin - totalsTableWidth;
     let totalsTableY = finalY + 10;
-
     autoTable(doc, {
       startY: totalsTableY,
       body: [
@@ -364,30 +340,25 @@ function Invoicing_Billing() {
         totalsTableY = data.cursor.y;
       }
     });
-
     finalY = Math.max(amountInWordsY + 10, totalsTableY + 10);
-
     const footerStartY = finalY + 30;
     const stampWidth = 100;
     const stampHeight = 70;
     const stampX = margin + 150;
-
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
     doc.text('For Company Name', margin, footerStartY);
     doc.text('Accounts Department', margin, footerStartY + stampHeight - 10);
-
     doc.setFillColor(200, 200, 200);
     doc.rect(stampX, footerStartY - 15, stampWidth, stampHeight, 'F');
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(8);
     doc.text('Insert Stamp Image', stampX + stampWidth / 2, footerStartY - 15 + stampHeight / 2, { align: 'center' });
-
     doc.save(`Tax_Invoice_${invoiceMeta.invoiceNo}.pdf`);
   };
-  
 
-  
+
+
   const numberToWords = (num) => {
     const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
     const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
@@ -461,7 +432,6 @@ function Invoicing_Billing() {
     .filter((invoice) => {
 
       const terms = searchQuery.toLowerCase().trim().split(/\s+/).filter(Boolean);
-
       const invoiceNumber = (invoice.invoiceNumber || '').toLowerCase();
       const clientName = (invoice.clients?.[0]?.clientName || '').toLowerCase();
       const projectName = (invoice.projectId?.[0]?.projectName || '').toLowerCase();
