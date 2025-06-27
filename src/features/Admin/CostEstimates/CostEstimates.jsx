@@ -436,17 +436,19 @@ function CostEstimates() {
       doc.setFontSize(10);
       doc.text('To,', 40, currentY);
       currentY += 15;
-      doc.text(client?.clientName || "Client Name", 40, currentY);
-      currentY += 12;
-      doc.text(project?.projectName || "Client Company Name", 40, currentY);
-      currentY += 12;
-      doc.text(client?.clientAddress?.split(',')[0] || "Address Line 1", 40, currentY);
-      currentY += 12;
-      doc.text(client?.clientAddress?.split(',')[1] || "Address Line 2", 40, currentY);
-      currentY += 12;
-      doc.text(client?.contactPersons?.[0]?.phone || "Phone", 40, currentY);
+      doc.text(`Client Name: ${client?.clientName || "Client Name"}`, 40, currentY);
+      currentY += 14;
+      doc.text(`Client Company Name: ${project?.projectName || "Client Company Name"}`, 40, currentY);
+      currentY += 14;
+      doc.text(`Address: ${client?.clientAddress?.split(',')[0] || "Address Line 1"}`, 40, currentY);
+      currentY += 14;
+      doc.text(`shipping Address: ${client?.shippingInformation[0].shippingAddress || "Address Line 2"}`, 40, currentY);
+      currentY += 14;
+      doc.text(`Email: ${client?.contactPersons[0].email || "email"}`, 40, currentY);
+      currentY += 14;
+      doc.text(`Phone: ${client?.contactPersons[0].phone || "Phone"}`, 40, currentY);
       currentY += 25;
-
+      
       // === Table Data ===
       const tableData = lineItems.map((item, index) => [
         (index + 1).toString(),
