@@ -211,7 +211,7 @@ function CostEstimates() {
                   className="form-control"
                   required>
                   <option value="">-- Select Status --</option>
-                  {statuses.map((s) =>(
+                  {statuses.map((s) => (
                     <option key={s} value={s}>{s}</option>
                   ))}
                 </Form.Select>
@@ -242,10 +242,10 @@ function CostEstimates() {
                     type="file"
                     accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                     onChange={handleFileUpload}
-                    className="form-control"/>
+                    className="form-control" />
 
                   <small className="text-muted d-flex align-items-center mt-1">
-                    <BsUpload className="me-2"/> Upload a file (PDF, DOC up to 10MB)
+                    <BsUpload className="me-2" /> Upload a file (PDF, DOC up to 10MB)
                   </small>
                 </div>
               </div>
@@ -390,145 +390,143 @@ function CostEstimates() {
   const paginatedEstimates = filteredEstimates
     ?.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
- const handleDownloadPDF = async (po) => {
-  try {
-    const response = await axiosInstance.post(
-      `/pdf?CostEstimatesId=${po._id}`,
-      {
-        projectId: po.projectId?.map(p => p._id),
-        clientId: po.clientId?.map(c => c._id),
-      }
-    );
+  const handleDownloadPDF = async (po) => {
+    try {
+      const response = await axiosInstance.post(
+        `/pdf?CostEstimatesId=${po._id}`,
+        {
+          projectId: po.projectId?.map(p => p._id),
+          clientId: po.clientId?.map(c => c._id),
+        }
+      );
 
-    const estimate = response.data?.data?.[0];
-    if (!estimate) throw new Error("No estimate data found");
+      const estimate = response.data?.data?.[0];
+      if (!estimate) throw new Error("No estimate data found");
 
-    const client = estimate.clientId?.[0] || {};
-    const project = estimate.projectId?.[0] || {};
-    const lineItems = estimate.lineItems || [];
+      const client = estimate.clientId?.[0] || {};
+      const project = estimate.projectId?.[0] || {};
+      const lineItems = estimate.lineItems || [];
 
-    const doc = new jsPDF('p', 'pt', 'a4');
-    const pageWidth = doc.internal.pageSize.width;
+      const doc = new jsPDF('p', 'pt', 'a4');
+      const pageWidth = doc.internal.pageSize.width;
 
-    // === HEADER ===
-    doc.setFillColor(229, 62, 62); // Red banner
-    doc.rect(40, 40, 200, 50, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text("COMPANY LOGO", 50, 60);
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'normal');
-    doc.text("COMPANY ADDRESS DETAILS", 50, 75);
-    doc.setTextColor(0, 0, 0); // Reset text color
+      // === HEADER ===
+      doc.setFillColor(229, 62, 62); // Red banner
+      doc.rect(40, 40, 200, 50, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text("COMPANY LOGO", 50, 60);
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.text("COMPANY ADDRESS DETAILS", 50, 75);
+      doc.setTextColor(0, 0, 0); // Reset text color
 
-    // === Estimate Info (Right) ===
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.text(`Cost Estimate No. ${estimate.estimateRef || '---'}`, 350, 50);
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Date: ${new Date(estimate.estimateDate).toLocaleDateString("en-GB")}`, 350, 65);
-    doc.text(`Req. Ref.: --`, 350, 80);
+      // === Estimate Info (Right) ===
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Cost Estimate No. ${estimate.estimateRef || '---'}`, 350, 50);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Date: ${new Date(estimate.estimateDate).toLocaleDateString("en-GB")}`, 350, 65);
+      doc.text(`Req. Ref.: --`, 350, 80);
 
-    // === Client Info ===
-    let currentY = 120;
-    doc.setFontSize(10);
-    doc.text('To,', 40, currentY);
-    currentY += 15;
-    doc.text(client?.clientName || "Client Name", 40, currentY);
-    currentY += 12;
-    doc.text(project?.projectName || "Client Company Name", 40, currentY);
-    currentY += 12;
-    doc.text(client?.clientAddress?.split(',')[0] || "Address Line 1", 40, currentY);
-    currentY += 12;
-    doc.text(client?.clientAddress?.split(',')[1] || "Address Line 2", 40, currentY);
-    currentY += 12;
-    doc.text(client?.contactPersons?.[0]?.phone || "1234567890", 40, currentY);
-    currentY += 25;
+      // === Client Info ===
+      let currentY = 120;
+      doc.setFontSize(10);
+      doc.text('To,', 40, currentY);
+      currentY += 15;
+      doc.text(client?.clientName || "Client Name", 40, currentY);
+      currentY += 12;
+      doc.text(project?.projectName || "Client Company Name", 40, currentY);
+      currentY += 12;
+      doc.text(client?.clientAddress?.split(',')[0] || "Address Line 1", 40, currentY);
+      currentY += 12;
+      doc.text(client?.clientAddress?.split(',')[1] || "Address Line 2", 40, currentY);
+      currentY += 12;
+      doc.text(client?.contactPersons?.[0]?.phone || "Phone", 40, currentY);
+      currentY += 25;
 
-    // === Table Data ===
-    const tableData = lineItems.map((item, index) => [
-      (index + 1).toString(),
-      item.description || '',
-      (item.quantity || 0).toString(),
-      (item.rate || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 }),
-      ((item.quantity || 0) * (item.rate || 0)).toLocaleString('en-IN', { minimumFractionDigits: 2 })
-    ]);
+      // === Table Data ===
+      const tableData = lineItems.map((item, index) => [
+        (index + 1).toString(),
+        item.description || '',
+        (item.quantity || 0).toString(),
+        (item.rate || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 }),
+        ((item.quantity || 0) * (item.rate || 0)).toLocaleString('en-IN', { minimumFractionDigits: 2 })
+      ]);
 
-    // Add blank rows
-    for (let i = 0; i < 15; i++) tableData.push(['', '', '', '', '']);
+      // Add blank rows
+      for (let i = 0; i < 15; i++) tableData.push(['', '', '', '', '']);
 
-    let finalY;
-    autoTable(doc, {
-      startY: currentY,
-      head: [['ITEM #', 'Brand & Design / Description', 'QTY', 'Unit Price (INR)', 'Amount (INR)']],
-      body: tableData,
-      styles: {
-        fontSize: 9,
-        cellPadding: 4,
-        lineColor: [0, 0, 0],
-        lineWidth: 0.3,
-        halign: 'center',
-        valign: 'middle'
-      },
-      headStyles: {
-        fillColor: [230, 230, 230], // Light gray like screenshot
-        textColor: [0, 0, 0],
-        fontStyle: 'bold',
-        fontSize: 9,
-        halign: 'center'
-      },
-      columnStyles: {
-        0: { halign: 'center', cellWidth: 50 },
-        1: { halign: 'left', cellWidth: 250 },
-        2: { halign: 'center', cellWidth: 40 },
-        3: { halign: 'right', cellWidth: 80 },
-        4: { halign: 'right', cellWidth: 90 }
-      },
-      theme: 'grid',
-      didDrawPage: data => { finalY = data.cursor.y; }
-    });
+      let finalY;
+      autoTable(doc, {
+        startY: currentY,
+        head: [['ITEM #', 'Brand & Design / Description', 'QTY', 'Unit Price (INR)', 'Amount (INR)']],
+        body: tableData,
+        styles: {
+          fontSize: 9,
+          cellPadding: 4,
+          lineColor: [0, 0, 0],
+          lineWidth: 0.3,
+          halign: 'center',
+          valign: 'middle'
+        },
+        headStyles: {
+          fillColor: [230, 230, 230], // Light gray like screenshot
+          textColor: [0, 0, 0],
+          fontStyle: 'bold',
+          fontSize: 9,
+          halign: 'center'
+        },
+        columnStyles: {
+          0: { halign: 'center', cellWidth: 50 },
+          1: { halign: 'left', cellWidth: 250 },
+          2: { halign: 'center', cellWidth: 40 },
+          3: { halign: 'right', cellWidth: 80 },
+          4: { halign: 'right', cellWidth: 90 }
+        },
+        theme: 'grid',
+        didDrawPage: data => { finalY = data.cursor.y; }
+      });
 
-    // === Totals Section ===
-    const subTotal = lineItems.reduce((sum, item) => sum + ((item.quantity || 0) * (item.rate || 0)), 0);
-    const vat = (subTotal * (estimate.VATRate || 0)) / 100;
-    const total = subTotal + vat;
+      // === Totals Section ===
+      const subTotal = lineItems.reduce((sum, item) => sum + ((item.quantity || 0) * (item.rate || 0)), 0);
+      const vat = (subTotal * (estimate.VATRate || 0)) / 100;
+      const total = subTotal + vat;
 
-    const totalsBoxX = pageWidth - 160;
-    const totalsBoxY = finalY + 20;
-    doc.rect(totalsBoxX, totalsBoxY, 120, 45);
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Sub-Total', totalsBoxX + 5, totalsBoxY + 12);
-    doc.text(subTotal.toFixed(2), totalsBoxX + 115, totalsBoxY + 12, { align: 'right' });
-    doc.text(`VAT (${estimate.VATRate || 0}%)`, totalsBoxX + 5, totalsBoxY + 25);
-    doc.text(vat.toFixed(2), totalsBoxX + 115, totalsBoxY + 25, { align: 'right' });
-    doc.setFont('helvetica', 'bold');
-    doc.text('TOTAL', totalsBoxX + 5, totalsBoxY + 38);
-    doc.text(total.toFixed(2), totalsBoxX + 115, totalsBoxY + 38, { align: 'right' });
+      const totalsBoxX = pageWidth - 160;
+      const totalsBoxY = finalY + 20;
+      doc.rect(totalsBoxX, totalsBoxY, 120, 45);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Sub-Total', totalsBoxX + 5, totalsBoxY + 12);
+      doc.text(subTotal.toFixed(2), totalsBoxX + 115, totalsBoxY + 12, { align: 'right' });
+      doc.text(`VAT (${estimate.VATRate || 0}%)`, totalsBoxX + 5, totalsBoxY + 25);
+      doc.text(vat.toFixed(2), totalsBoxX + 115, totalsBoxY + 25, { align: 'right' });
+      doc.setFont('helvetica', 'bold');
+      doc.text('TOTAL', totalsBoxX + 5, totalsBoxY + 38);
+      doc.text(total.toFixed(2), totalsBoxX + 115, totalsBoxY + 38, { align: 'right' });
 
-    // === Footer Notes ===
-    const footerY = totalsBoxY + 65;
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    doc.text('• Cost based on One-off prices.', 40, footerY);
-    doc.text('• The above prices valid for 2 weeks and thereafter subject to our reconfirmation.', 40, footerY + 12);
-    doc.setFont('helvetica', 'bold');
-    doc.text(`For Your Company Name`, 40, footerY + 40);
-    doc.setFont('helvetica', 'normal');
-    doc.text('(This is system generated document, hence not signed.)', 40, footerY + 55);
+      // === Footer Notes ===
+      const footerY = totalsBoxY + 65;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.text('• Cost based on One-off prices.', 40, footerY);
+      doc.text('• The above prices valid for 2 weeks and thereafter subject to our reconfirmation.', 40, footerY + 12);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`For Your Company Name`, 40, footerY + 40);
+      doc.setFont('helvetica', 'normal');
+      doc.text('(This is system generated document, hence not signed.)', 40, footerY + 55);
 
-    // === Save PDF ===
-    doc.save(`Cost_Estimate_${estimate.estimateRef || 'Estimate'}.pdf`);
-  } catch (error) {
-    console.error("❌ Error generating PDF:", error);
-    alert("Failed to generate PDF.");
-  }
-};
-
+      // === Save PDF ===
+      doc.save(`Cost_Estimate_${estimate.estimateRef || 'Estimate'}.pdf`);
+    } catch (error) {
+      console.error("❌ Error generating PDF:", error);
+      alert("Failed to generate PDF.");
+    }
+  };
   // ... existing code ...
-
   return (
     <div
       className="p-4 m-2"
@@ -623,7 +621,8 @@ function CostEstimates() {
               <th><input type="checkbox" /></th>
               <th>CENo</th>
               <th style={{ whiteSpace: 'nowrap' }}>Project Name</th>
-              <th>Client</th>
+              <th style={{ whiteSpace: 'nowrap' }}>Client Name</th>
+              <th style={{ whiteSpace: 'nowrap' }}>Client Email</th>
               <th>Date</th>
               {/* <th>ProjectNo</th> */}
               <th>Amount</th>
@@ -645,8 +644,8 @@ function CostEstimates() {
                   {po.projects?.map((project) => project.projectName).join(", ")}
                 </td>
                 <td>{po.clients?.[0]?.clientName || 'N/A'}</td>
+                <td>{po.clients?.[0]?.clientEmail || 'N/A'}</td>
                 <td>{new Date(po.estimateDate).toLocaleDateString("en-GB").slice(0, 8)}</td>
-              
                 <td>
                   {po.lineItems?.reduce((total, item) => total + (item.amount || 0), 0).toFixed(2)}
                 </td>
@@ -655,27 +654,27 @@ function CostEstimates() {
                     {po.Status}
                   </span>
                 </td>
-               
+
                 <td>
                   <div className="d-flex gap-2">
-               <button className="btn btn-sm btn-success"
-  disabled={
-    po.receivablePurchases?.length > 0 &&
-    po.receivablePurchases[0]?.POStatus?.toLowerCase() !== "pending"
-  }
-  onClick={() => {
-    setCostEstimatesId(po._id); // Store the ID
-    setShowAddPOModal(true);   // Open Modal
-  }}
->
-  PO Add
-</button>
+                    <button className="btn btn-sm btn-success"
+                      disabled={
+                        po.receivablePurchases?.length > 0 &&
+                        po.receivablePurchases[0]?.POStatus?.toLowerCase() !== "pending"
+                      }
+                      onClick={() => {
+                        setCostEstimatesId(po._id); // Store the ID
+                        setShowAddPOModal(true);   // Open Modal
+                      }}
+                    >
+                      PO Add
+                    </button>
 
-<span className={`badge ${getStatusClass(
-  po.receivablePurchases?.[0]?.POStatus?.toLowerCase() || "pending"
-)} px-2 py-1`}>
-  {po.receivablePurchases?.[0]?.POStatus || 'pending'}
-</span>
+                    <span className={`badge ${getStatusClass(
+                      po.receivablePurchases?.[0]?.POStatus?.toLowerCase() || "pending"
+                    )} px-2 py-1`}>
+                      {po.receivablePurchases?.[0]?.POStatus || 'pending'}
+                    </span>
 
 
                     <button className="btn btn-sm btn-primary" onClick={() => Duplicate(po)}><FaRegCopy /></button>
@@ -684,12 +683,12 @@ function CostEstimates() {
                     {/* <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(po._id))}>
                           <FaTrash />
                         </button> */}
-                  <button
-  className="btn btn-sm btn-outline-primary"
-  onClick={() => handleDownloadPDF(po)}
->
-  <FaDownload />
-</button>
+                    <button
+                      className="btn btn-sm btn-outline-primary"
+                      onClick={() => handleDownloadPDF(po)}
+                    >
+                      <FaDownload />
+                    </button>
 
                   </div>
                 </td>

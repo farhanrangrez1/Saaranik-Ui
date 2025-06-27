@@ -8,6 +8,7 @@ import autoTable from 'jspdf-autotable'; // Only this import should remain
 import { deleteInvoicingBilling, fetchInvoicingBilling } from '../../../redux/slices/InvoicingBillingSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import axiosInstance from '../../../redux/utils/axiosInstance';
+import stamp from "../../../assets/stamp.png"
 
 function Invoicing_Billing() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -112,7 +113,7 @@ function Invoicing_Billing() {
       const isJson = response.data.type === "application/json";
       if (isJson) {
         const reader = new FileReader();
-        reader.onload = function () {
+        reader.onload = async function () {
           let json;
           try {
             json = JSON.parse(reader.result);
@@ -124,8 +125,7 @@ function Invoicing_Billing() {
           }
           // Use the JSON data to generate the PDF
           const data = json.data && Array.isArray(json.data) ? json.data[0] : json;
-          // Use the same PDF generation code, but with 'data' instead of invoiceDataFromState
-          generatePDFfromData(data);
+          await generatePDFfromData(data);
         };
         reader.readAsText(response.data);
         return; // Stop further PDF logic if not a PDF
@@ -144,8 +144,28 @@ function Invoicing_Billing() {
     }
   };
 
+  // Helper to convert image URL to base64
+  function getImageBase64FromUrl(url) {
+    return new Promise((resolve, reject) => {
+      const img = new window.Image();
+      img.setAttribute('crossOrigin', 'anonymous');
+      img.onload = function () {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL('image/png'));
+      };
+      img.onerror = function (err) {
+        reject(err);
+      };
+      img.src = url;
+    });
+  }
+
   // Helper function to generate PDF from API JSON data
-  const generatePDFfromData = (invoiceData) => {
+  const generatePDFfromData = async (invoiceData) => {
     const companyDetails = {
       logoText: 'COMPANY LOGO',
       addressDetails: 'COMPANY ADDRESS DETAILS',
@@ -342,7 +362,7 @@ function Invoicing_Billing() {
     });
     finalY = Math.max(amountInWordsY + 10, totalsTableY + 10);
     const footerStartY = finalY + 30;
-    const stampWidth = 100;
+    const stampWidth = 50;
     const stampHeight = 70;
     const stampX = margin + 150;
     doc.setFontSize(9);
@@ -353,11 +373,20 @@ function Invoicing_Billing() {
     doc.rect(stampX, footerStartY - 15, stampWidth, stampHeight, 'F');
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(8);
-    doc.text('Insert Stamp Image', stampX + stampWidth / 2, footerStartY - 15 + stampHeight / 2, { align: 'center' });
+    // Insert the stamp image instead of text
+    try {
+      const imgData = await getImageBase64FromUrl(stamp);
+      // Center the image in the stamp box and make it smaller for a better fit
+      const stampImgWidth = 80; // Adjust width as needed
+      const stampImgHeight = 80; // Adjust height as needed
+      const stampImgX = stampX + (stampWidth - stampImgWidth) / 2;
+      const stampImgY = footerStartY - 15 + (stampHeight - stampImgHeight) / 2;
+      doc.addImage(imgData, 'PNG', stampImgX, stampImgY, stampImgWidth, stampImgHeight);
+    } catch (e) {
+      doc.text('Stamp Image Not Found', stampX + stampWidth / 2, footerStartY - 15 + stampHeight / 2, { align: 'center' });
+    }
     doc.save(`Tax_Invoice_${invoiceMeta.invoiceNo}.pdf`);
   };
-
-
 
   const numberToWords = (num) => {
     const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
