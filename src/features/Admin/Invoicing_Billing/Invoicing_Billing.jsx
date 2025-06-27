@@ -48,24 +48,25 @@ function Invoicing_Billing() {
 
   const [invoices, setInvoices] = useState(initialInvoices);
 
-  const getStatusBadgeVariant = (status) => {
-    switch (status.toLowerCase()) {
-      case 'paid':
-        return 'success';
-      case 'pending':
-        return 'warning';
-      case 'overdue':
-        return 'danger';
-      case 'Inactive':
-        return 'secondary';
-      case 'completed':
-        return 'primary';
-      case 'active':
-        return 'success';
-      default:
-        return 'secondary';
-    }
-  };
+const getStatusClass = (status) => {
+  switch (status.toLowerCase().trim()) {
+    case "status select":
+      return "bg-light text-dark";       // Default/neutral
+    case "active":
+      return "bg-primary text-white";    // Blue
+    case "inactive":
+      return "bg-secondary text-white";  // Grey
+    case "completed":
+      return "bg-success text-white";    // Green
+    case "pending":
+      return "bg-warning text-dark";     // Yellow
+    case "overdue":
+      return "bg-danger text-white";     // Red
+    default:
+      return "bg-light text-dark";       // Fallback style
+  }
+};
+
 
 
   const handleSearch = (e) => {
@@ -277,7 +278,7 @@ function Invoicing_Billing() {
     [
       `Client Company: ${clientDetails?.name}`,
       `Client Address: ${clientDetails?.address1}`,
-      `Client Address2: ${clientDetails?.address2}`,
+      `Shipping Address: ${clientDetails?.address2}`,
       `Tel: ${clientDetails?.tel}`,
       `Contact: ${clientDetails.contactPerson}`,
       `Email: ${clientDetails.email}`
@@ -649,16 +650,16 @@ function Invoicing_Billing() {
               <td style={{ whiteSpace: "nowrap" }}>{invoice.clientId?.contactPersons[0].email || "N/A"}</td>
               <td style={{ whiteSpace: "nowrap" }}>${invoice.lineItems?.[0]?.amount || "N/A"}</td>
               <td>
-                <Badge bg={getStatusBadgeVariant(invoice.status)}>
-                  {invoice.status}
-                </Badge>
+                  <span className={`badge ${getStatusClass(invoice.status)} px-2 py-1`}>
+                    {invoice.status}
+                  </span>
               </td>
               <td>{invoice.date ? new Date(invoice.date).toLocaleDateString("en-GB") : 'N/A'}</td>
               <td>
                 <div className="d-flex gap-2">
-                  <button className="btn btn-sm btn-outline-primary" onClick={() => UpdateInvocing(invoice)}>
+                  {/* <button className="btn btn-sm btn-outline-primary" onClick={() => UpdateInvocing(invoice)}>
                     <FaEdit />
-                  </button>
+                  </button> */}
                   {/* <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(invoice._id)}>
                       <FaTrash />
                     </button> */}

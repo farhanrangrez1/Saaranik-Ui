@@ -13,7 +13,7 @@ function ReciveablePurchase() {
   const [currentPage, setCurrentPage] = useState(1);
   const [showFilters, setShowFilters] = useState(false);
   const dispatch = useDispatch();
-  const navigate=useNavigate()
+  const navigate = useNavigate()
 
   const { purchases, loading, error } = useSelector(
     (state) => state.receivablePurchases
@@ -74,7 +74,7 @@ function ReciveablePurchase() {
   );
 
   const pendingPOs = filteredOrders.filter(
-    (po) => po.Status?.toLowerCase() === "pending"
+    (po) => po.POStatus?.toLowerCase() === "pending"
   ).length;
 
   const handleSort = (field) => {
@@ -83,61 +83,72 @@ function ReciveablePurchase() {
     setSortField(field);
   };
 
-  const getStatusBadgeVariant = (status) => {
-    switch (status?.toLowerCase()) {
-      case "pending":
-        return "warning";
-      case "received":
-        return "info";
-      case "cancelled":
-        return "dark";
-      case "completed":
-        return "success";
-      case "open":
-        return "primary";
-      case "invoiced":
-        return "danger";
-      default:
-        return "secondary";
-    }
-  };
-
-
-// const handleToBeInvoiced = (clientName, projectName) => {
-//   const invoice = {
-//     clientName,
-//     projectName
-//   };
-
-//   navigate("/admin/AddInvoice", {
-//     state: { invoice }
-//   });
-// };
-
-const handleToBeInvoiced = (po) => {
-  console.log("po",po._id)
-const ReceivablePurchaseId = po._id;
-  const client = po.ClientId?.[0];
-  const project = po.projectId?.[0];
-const CostEstimatesId = po.CostEstimatesId?.[0];
-// console.log("pocost",po.CostEstimatesId[0]._id)
-  const invoice = {
-    clientId: client?._id,
-    clientName: client?.clientName,
-    projectId: project?._id,
-    projectName: project?.projectName,
-    CostEstimatesId: po.CostEstimatesId[0]._id,
-    ReceivablePurchaseId:po?._id,
-  };
-  console.log("Invoice Data:", invoice);
-  
-
-  navigate("/admin/AddInvoice", {
-    state: { invoice }
-  });
+const getStatusClass = (status) => {
+  switch (status.toLowerCase().trim()) {
+    case "pending":
+      return "bg-warning text-dark";     // Yellow
+    case "received":
+      return "bg-info text-dark";        // Light Blue
+    case "cancelled":
+      return "bg-danger text-white";     // Red
+    case "completed":
+      return "bg-success text-white";    // Green
+    case "open":
+      return "bg-primary text-white";    // Blue
+    case "invoiced":
+      return "bg-dark text-white";       // Dark (You can change it as needed)
+    case "in progress":
+    case "in_progress":
+      return "bg-warning text-dark";
+    case "active":
+      return "bg-primary text-white";
+    case "reject":
+      return "bg-danger text-white";
+    case "review":
+      return "bg-info text-dark";
+    case "not started":
+      return "bg-secondary text-white";
+    default:
+      return "bg-light text-dark";       // Default light background
+  }
 };
+
+
+  // const handleToBeInvoiced = (clientName, projectName) => {
+  //   const invoice = {
+  //     clientName,
+  //     projectName
+  //   };
+
+  //   navigate("/admin/AddInvoice", {
+  //     state: { invoice }
+  //   });
+  // };
+
+  const handleToBeInvoiced = (po) => {
+    console.log("po", po._id)
+    const ReceivablePurchaseId = po._id;
+    const client = po.ClientId?.[0];
+    const project = po.projectId?.[0];
+    const CostEstimatesId = po.CostEstimatesId?.[0];
+    // console.log("pocost",po.CostEstimatesId[0]._id)
+    const invoice = {
+      clientId: client?._id,
+      clientName: client?.clientName,
+      projectId: project?._id,
+      projectName: project?.projectName,
+      CostEstimatesId: po.CostEstimatesId[0]._id,
+      ReceivablePurchaseId: po?._id,
+    };
+    console.log("Invoice Data:", invoice);
+
+
+    navigate("/admin/AddInvoice", {
+      state: { invoice }
+    });
+  };
   return (
-    <div  className="p-4 m-2"
+    <div className="p-4 m-2"
       style={{ backgroundColor: "white", borderRadius: "10px" }}
     >
       <h2 className="mb-4">Receivable Purchase Orders</h2>
@@ -272,7 +283,7 @@ const CostEstimatesId = po.CostEstimatesId?.[0];
               >
                 Amount
               </th>
-                   <th
+              <th
                 onClick={() => handleSort("Status")}
                 style={{ cursor: "pointer" }}
               >
@@ -310,25 +321,26 @@ const CostEstimatesId = po.CostEstimatesId?.[0];
                 <td>{new Date(po.ReceivedDate).toLocaleDateString()}</td>
                 <td>${po.Amount?.toFixed(2)}</td>
                 <td>
-                  <Badge bg={getStatusBadgeVariant(po.Status)}>{po.POStatus}</Badge>
+                <span className={`badge ${getStatusClass(po.POStatus)} px-2 py-1`}>
+                  {po.POStatus}
+                </span>
                 </td>
                 <div>
-                 
-                    <Button
-                      variant="outline-primary"
-                      size="sm"
-                      onClick={() => handleToBeInvoiced(po)}
-                      className="px-3 py-1 fw-semibold border-2"
-                      style={{
-                        transition: 'all 0.3s ease',
-                        borderRadius: '6px',
-                        fontSize: '12px',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.5px'
-                      }}
-                    >
-                      To be invoiced
-                    </Button>
+                  <Button
+                    variant="outline-primary"
+                    size="sm"
+                    onClick={() => handleToBeInvoiced(po)}
+                    className="px-3 py-1 fw-semibold border-2"
+                    style={{
+                      transition: 'all 0.3s ease',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px'
+                    }}
+                  >
+                    To be invoiced
+                  </Button>
                 </div>
               </tr>
             ))}

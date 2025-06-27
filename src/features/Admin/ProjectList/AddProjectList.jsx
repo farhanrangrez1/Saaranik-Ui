@@ -2,19 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { Form, Button, Container, Row, Col } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { createProject, updateProject } from '../../../redux/slices/ProjectsSlice';
+import { createProject, updateProject, fetchProjectById } from '../../../redux/slices/ProjectsSlice';
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { fetchClient } from '../../../redux/slices/ClientSlice';
-import { fetchProjectById } from '../../../redux/slices/ProjectsSlice'; // Make sure this is correctly imported
 
 function AddProjectList() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { id: paramId } = useParams(); // from URL
+  const { id: paramId } = useParams(); 
   const location = useLocation();
   const { project } = location.state || {};
-  const id = paramId || project?._id; // ✅ Final ID to use for update
+  const id = paramId || project?._id;
 
   const [formData, setFormData] = useState({
     projectName: '',
@@ -38,11 +37,12 @@ function AddProjectList() {
     totalTime: ''
   });
 
-  // Populate form in edit mode
+  // ✅ Populate form in edit mode
   useEffect(() => {
     if (project) {
       setFormData({
         ...project,
+        clientId: project.clientId?._id || '', // 🔧 Fix here
         projectRequirements: project.projectRequirements?.[0] || {}
       });
     } else if (paramId) {
@@ -51,6 +51,7 @@ function AddProjectList() {
         if (fetchedProject) {
           setFormData({
             ...fetchedProject,
+            clientId: fetchedProject.clientId?._id || '', // 🔧 Fix here
             projectRequirements: fetchedProject.projectRequirements?.[0] || {}
           });
         }
@@ -86,7 +87,6 @@ function AddProjectList() {
     };
 
     if (id) {
-      // ✅ Update Project
       dispatch(updateProject({ id, payload }))
         .unwrap()
         .then(() => {
@@ -97,7 +97,6 @@ function AddProjectList() {
           toast.error("Failed to update project!");
         });
     } else {
-      // ✅ Create Project
       dispatch(createProject(payload))
         .unwrap()
         .then(() => {
@@ -114,7 +113,6 @@ function AddProjectList() {
     navigate("/admin/projectList");
   };
 
-  // Fetch clients
   const { Clients } = useSelector((state) => state.client);
   useEffect(() => {
     dispatch(fetchClient());
@@ -160,21 +158,7 @@ function AddProjectList() {
           </Row>
 
           <Row className="mb-3">
-            {/* <Col md={6}>
-              <Form.Group>
-                <Form.Label className="text-muted mb-1">Project Manager</Form.Label>
-                <Form.Select
-                  name="managerId"
-                  value={formData.managerId}
-                  onChange={handleInputChange}
-                  required
-                >
-                  <option value="">Select Manager</option>
-                  <option value="662fb9a2a77b2e0012345678">Manager 1</option>
-                </Form.Select>
-              </Form.Group>
-            </Col> */}
-              <Col md={6}>
+            <Col md={6}>
               <Form.Group>
                 <Form.Label className="text-muted mb-1">Expected Completion Date</Form.Label>
                 <Form.Control
@@ -186,7 +170,6 @@ function AddProjectList() {
                 />
               </Form.Group>
             </Col>
-
             <Col md={6}>
               <Form.Group>
                 <Form.Label className="text-muted mb-1">Start Date</Form.Label>
@@ -218,8 +201,7 @@ function AddProjectList() {
                 </Form.Select>
               </Form.Group>
             </Col>
-
-             <Col md={6}>
+            <Col md={6}>
               <Form.Group>
                 <Form.Label className="text-muted mb-1">Project Status</Form.Label>
                 <Form.Select
@@ -308,8 +290,8 @@ function AddProjectList() {
 
           <div className="d-flex justify-content-end gap-2 mt-4">
             <Button variant="secondary" className="px-4" onClick={handleCancel}>Cancel</Button>
-            <Button variant="dark" type="submit" className="px-4">
-              {id ? "Save" : "Create Project"}
+            <Button id='All_btn' type="submit" className="px-4">
+              {id ? "Update Project" : "Create Project"}
             </Button>
           </div>
         </Form>

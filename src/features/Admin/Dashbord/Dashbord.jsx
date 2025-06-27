@@ -52,8 +52,8 @@ function Dashbord() {
   );
   const inProgressProjectsCount = inProgressProjects.length;
 
- const inProgressJobs = (job?.jobs || []).filter(
-  (j) => j.Status?.toLowerCase() === "in_progress"
+const inProgressJobs = (job?.jobs || []).filter(
+  (j) => j.Status?.toLowerCase() === "in progress"
 );
  const ProjectCompleted = (project?.data || []).filter(
     (j) => j.status?.toLowerCase() === "completed"
@@ -82,7 +82,7 @@ const projects = project?.data || [];
 
 // Count for each status
 const activeProjectsCount = projects.filter(
-  (j) => j.status?.toLowerCase() === "active"
+  (j) => j.status?.toLowerCase() === "active project"
 ).length;
 
 const completedProjectsCount = projects.filter(

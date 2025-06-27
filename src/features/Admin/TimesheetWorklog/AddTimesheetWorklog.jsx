@@ -32,7 +32,6 @@ function AddTimesheetWorklog() {
     startTime: '',
     endTime: '',
     taskDescription: '',
-    tags: '',
     projectName: '',
     jobName: ''
   });
@@ -52,7 +51,6 @@ function AddTimesheetWorklog() {
         startTime: entry.startTime || '',
         endTime: entry.endTime || '',
         taskDescription: entry.taskDescription || '',
-        tags: entry.tags || '',
         projectName: Array.isArray(entry.projectId) ? entry.projectId[0].projectName : '',
         jobName: Array.isArray(entry.jobId) ? entry.jobId[0].jobName || '' : ''
       });
@@ -115,7 +113,6 @@ function AddTimesheetWorklog() {
       endTime: convertTo12HourFormat(formData.endTime),
       taskDescription: formData.taskDescription,
       status: formData.status,
-      tags: formData.tags,
       projectName: formData.projectName,
       jobName: formData.jobName
     };
@@ -209,7 +206,7 @@ function AddTimesheetWorklog() {
                       <option value="">Select a job</option>
                       {reversedJobList.map((j) => (
                         <option key={j._id} value={j._id}>
-                          {j?.jobName || `${j.brandName} ${j.subBrand}`}
+                          {j?.jobName || `${j.JobNo} `}
                         </option>
                       ))}
                     </select>
@@ -312,19 +309,6 @@ function AddTimesheetWorklog() {
                       onChange={handleInputChange}
                       required
                     ></textarea>
-                  </div>
-
-                  <div className="col-12">
-                    <label className="form-label">Tags</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      name="tags"
-                      value={formData.tags}
-                      onChange={handleInputChange}
-                      placeholder="Add tags separated by commas"
-                      required
-                    />
                   </div>
                 </div>
 

@@ -399,9 +399,9 @@ function AddJobTracker() {
                 >
                   <option value="">Select</option>
                   <option value="Cancelled">Cancelled</option>
-                  <option value="in_progress">In Progress</option>
-                  <option value="completed">Completed</option>
-                  <option value="active">Active</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Active">Active</option>
                 </select>
               </div>
 

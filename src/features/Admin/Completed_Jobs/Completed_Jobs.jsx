@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { LuDownload, LuEye, LuRotateCcw } from "react-icons/lu";
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { fetchjobs, filterStatus } from '../../../redux/slices/JobsSlice';
+import { filterStatus } from '../../../redux/slices/JobsSlice';
 import { Button, Form, Table, ProgressBar, Pagination, Modal, Dropdown, Collapse } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { FaComments, FaDownload, FaEye } from "react-icons/fa";
@@ -27,7 +27,7 @@ function Completed_Jobs() {
   };
 
   const { job, loading, } = useSelector((state) => state.jobs);
-  const [Status, setStatus] = useState("completed");
+  const [Status, setStatus] = useState("Completed");
 
   useEffect(() => {
     dispatch(filterStatus(Status));
@@ -53,14 +53,29 @@ function Completed_Jobs() {
   };
 
   const getStatusClass = (status) => {
-    switch ((status || "").toLowerCase().trim()) {
-      case "review": return "bg-info text-dark";
-      case "not started": return "bg-secondary text-white";
-      case "completed": return "bg-success text-white";
-      case "open": return "bg-primary text-white";
-      default: return "bg-light text-dark";
+    switch (status.toLowerCase().trim()) {
+      case "in progress":
+      case "in_progress":
+        return "bg-warning text-dark";
+      case "completed":
+        return "bg-success text-white";
+      case "cancelled":
+        return "bg-danger text-white";
+      case "active":
+        return "bg-primary text-white";
+      case "reject":
+        return "bg-danger text-white";
+      case "review":
+        return "bg-info text-dark";
+      case "not started":
+        return "bg-secondary text-white";
+      case "open":
+        return "bg-primary text-white";
+      default:
+        return "bg-light text-dark";
     }
   };
+
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProject, setSelectedProject] = useState("All Projects");
@@ -137,9 +152,9 @@ function Completed_Jobs() {
       {error && <div className="alert alert-danger">{error}</div>}
 
       <div className="card p-3">
-              <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="job-title mb-0">Completed Jobs</h2>
-      </div>
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <h2 className="job-title mb-0">Completed Jobs</h2>
+        </div>
         {/* Responsive Toggle Button */}
         <div className="d-md-none mb-3">
           <button className="btn btn-outline-secondary w-100" onClick={() => setShowFilters(!showFilters)}>
@@ -201,47 +216,43 @@ function Completed_Jobs() {
               </tr>
             </thead>
             <tbody>
-              {paginatedProjects.length > 0 ? (
-                paginatedProjects.slice().reverse().map((job, index) => (
-                  <tr key={job._id}>
-                    <td>
-                      <input
-                        type="checkbox"
-                        checked={selectedJobs[job._id] || false}
-                        onChange={() => handleCheckboxChange(job._id)}
-                      />
-                    </td>
-                    <td onClick={() => JobDetails(job)}>
-                      <Link style={{ textDecoration: 'none' }}>{job.JobNo}</Link>
-                    </td>
-                    <td style={{ whiteSpace: "nowrap" }}>{job.projectId?.[0]?.projectName || 'N/A'}</td>
-                    <td>{job.brandName}</td>
-                    <td style={{ whiteSpace: "nowrap" }}>{job.subBrand}</td>
-                    <td>{job.flavour}</td>
-                    <td>{job.packType}</td>
-                    <td>{job.packSize}</td>
-                    <td>{job.packCode}</td>
-                    <td><span className={getPriorityClass(job.priority)}>{job.priority}</span></td>
-                    <td>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
-                    <td style={{ whiteSpace: 'nowrap' }}>
-                      {job.assignedTo}
-                    </td>
-                    <td>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
-                    <td>2h 15m</td>
-                    <td>3h 30m</td>
-                    <td>
-                      <span className={`badge ${getStatusClass(job.Status)} px-2 py-1`}>
-                        {job.Status}
-                      </span>
-                    </td>
-                    {/* <td>
-                      <div className="d-flex gap-2">
-                        <Button id="icone_btn" size="sm"><FaEye /></Button>
-                        <Button id="icone_btn" size="sm"><FaDownload /></Button>
-                      </div>
-                    </td> */}
-                  </tr>
-                ))
+              {paginatedProjects.some(job => job.Status?.toLowerCase() === "completed") ? (
+                paginatedProjects
+                  .slice()
+                  .reverse()
+                  .filter(job => job.Status?.toLowerCase() === "completed")
+                  .map((job, index) => (
+                    <tr key={job._id}>
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={selectedJobs[job._id] || false}
+                          onChange={() => handleCheckboxChange(job._id)}
+                        />
+                      </td>
+                      <td onClick={() => JobDetails(job)}>
+                        <Link style={{ textDecoration: 'none' }}>{job.JobNo}</Link>
+                      </td>
+                      <td style={{ whiteSpace: "nowrap" }}>{job.projectId?.[0]?.projectName || 'N/A'}</td>
+                      <td>{job.brandName}</td>
+                      <td style={{ whiteSpace: "nowrap" }}>{job.subBrand}</td>
+                      <td>{job.flavour}</td>
+                      <td>{job.packType}</td>
+                      <td>{job.packSize}</td>
+                      <td>{job.packCode}</td>
+                      <td><span className={getPriorityClass(job.priority)}>{job.priority}</span></td>
+                      <td>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
+                      <td style={{ whiteSpace: 'nowrap' }}>{job.assignedTo}</td>
+                      <td>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
+                      <td>2h 15m</td>
+                      <td>3h 30m</td>
+                      <td>
+                        <span className={`badge ${getStatusClass(job.Status)} px-2 py-1`}>
+                          {job.Status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
               ) : (
                 <tr>
                   <td colSpan="17" className="text-center text-muted py-4">
@@ -250,6 +261,7 @@ function Completed_Jobs() {
                 </tr>
               )}
             </tbody>
+
 
           </Table>
         </div>

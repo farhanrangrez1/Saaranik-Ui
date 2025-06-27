@@ -28,8 +28,8 @@ function AddInvoice() {
   const location = useLocation();
   const invoice = location.state?.invoice;
   const id = invoice?._id;
-  console.log("hhel",invoice);
-  
+  console.log("hhel", invoice);
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -61,22 +61,22 @@ function AddInvoice() {
   const [formData, setFormData] = useState({
     clientId: "",
     projectsId: [""],
-    CostEstimatesId:"",
-    ReceivablePurchaseId:"",
+    CostEstimatesId: "",
+    ReceivablePurchaseId: "",
     date: "",
     status: "",
     currency: "",
     document: "",
     output: "",
   });
-  
+
   useEffect(() => {
     if (invoice && project?.data?.length) {
       setFormData((prev) => ({
         ...prev,
-        clientId: invoice.clientId  || "",
-        CostEstimatesId: invoice.CostEstimatesId  || "",
-        ReceivablePurchaseId: invoice.ReceivablePurchaseId  || "",
+        clientId: invoice.clientId || "",
+        CostEstimatesId: invoice.CostEstimatesId || "",
+        ReceivablePurchaseId: invoice.ReceivablePurchaseId || "",
         projectsId: invoice.projectId ? [invoice.projectId] : [""],
         status: invoice.status && statuses.includes(invoice.status) ? invoice.status : "Active",
         Notes: invoice.Notes || "",
@@ -198,7 +198,7 @@ function AddInvoice() {
               </select>
             </div>
 
-{/* Selectore dropdow opne ho raha hai  */}
+            {/* Selectore dropdow opne ho raha hai  */}
             {/* <div className="col-md-4 mb-3">
               <label className="form-label">Client</label>
               <select
@@ -400,7 +400,7 @@ function AddInvoice() {
             </div>
           ))}
 
-          <button   type="button"
+          <button type="button"
             className="btn border rounded px-3 py-1 mb-4 text-dark"
             onClick={addItem}
           >
@@ -408,9 +408,9 @@ function AddInvoice() {
           </button>
 
           <div className="text-end mt-4">
-            <button  type="button"  className="btn btn-light me-2" onClick={() => navigate(-1)}>  Cancel</button>
+            <button type="button" className="btn btn-light me-2" onClick={() => navigate(-1)}>  Cancel</button>
             <button type="submit" className="btn btn-dark">
-               Generate Invoice
+              Generate Invoice
             </button>
           </div>
         </form>

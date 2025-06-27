@@ -25,6 +25,8 @@ function AddCostEstimates() {
   const location = useLocation();
   const po = location.state?.po;
   const id = po?._id;
+  console.log("po", po);
+  
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -41,7 +43,7 @@ function AddCostEstimates() {
       if (foundProject) {
         setFormData(prev => ({
           ...prev,
-          projectsId: foundProject._id,
+          projectId: foundProject._id,
         }));
       }
     }
@@ -57,7 +59,7 @@ function AddCostEstimates() {
 
   const [formData, setFormData] = useState({
     clientId: [""],
-    projectsId: [""],
+    projectId: [""],
     estimateDate: "",
     validUntil: "",
     Notes: "",
@@ -68,14 +70,12 @@ function AddCostEstimates() {
 
   useEffect(() => {
     if (po && project?.data?.length) {
-      let projectId = '';
-      if (Array.isArray(po.projectId) && po.projectId.length > 0) {
-        projectId = po.projectId[0]._id;
-      } else if (Array.isArray(po.projects) && po.projects.length > 0) {
-        projectId = typeof po.projects[0] === 'object'
-          ? po.projects[0]._id
-          : po.projects[0];
-      }
+let projectId = '';
+if (Array.isArray(po.projectId) && po.projectId.length > 0) {
+  projectId = po.projectId[0]._id;
+} else if (Array.isArray(po.projects) && po.projects.length > 0) {
+  projectId = po.projects[0]?.projectId || po.projects[0]?._id || "";
+}
 
       let clientId = "";
       let clientName = "";
@@ -91,7 +91,7 @@ function AddCostEstimates() {
       setFormData((prev) => ({
         ...prev,
         ...po,
-        projectsId: projectId ? [projectId] : [""],
+        projectId: projectId ? [projectId] : [""],
         clientId: clientId ? [clientId] : [""],
         clientName: clientName,
         Notes: po.Notes || "",
@@ -212,14 +212,14 @@ const handleSubmit = async (e) => {
                 <label className="form-label">Project</label>
                 <select
                   className="form-select"
-                  name="projectsId"
-                  value={formData.projectsId[0] || ""}
+                  name="projectId"
+                  value={formData.projectId[0] || ""}
                   onChange={(e) => {
                     const selectedId = e.target.value;
                     const selectedProject = project?.data?.find(p => p._id === selectedId);
                     setFormData({
                       ...formData,
-                      projectsId: [selectedId],
+                      projectId: [selectedId],
                       projectName: selectedProject?.projectName || "",
                     });
                   }}

@@ -15,7 +15,6 @@ function DJobsInProgress() {
   const [showDesignerModal, setShowDesignerModal] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
   const [selectedJobs, setSelectedJobs] = useState({});
-  const [selectedStatus, setSelectedStatus] = useState("In Progress");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProject, setSelectedProject] = useState("All Projects");
 
@@ -29,7 +28,7 @@ function DJobsInProgress() {
 
   const { job, loading, error } = useSelector((state) => state.jobs);
 
-  const [Status, setStatus] = useState("in_progress");
+  const [Status, setStatus] = useState("In Progress");
 
   useEffect(() => {
     dispatch(filterStatus(Status));
@@ -70,15 +69,15 @@ function DJobsInProgress() {
   const getStatusClass = (status) => {
     switch ((status || "").toLowerCase().trim()) {
       case "in progress":
-      case "in_progress":
         return "bg-warning text-dark";
+      default:
+        return "bg-secondary text-light";
     }
   };
 
   const handleUpdate = (job) => {
     navigate(`/admin/AddJobTracker`, { state: { job } });
   };
-
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -102,13 +101,11 @@ function DJobsInProgress() {
         (j.projectId?.[0]?.projectName?.toLowerCase() === selectedProject.toLowerCase());
 
       const matchesStatus =
-        (j.Status?.toLowerCase().trim() === "in_progress");
-
+        j.Status?.toLowerCase().trim() === "in progress";
 
       return matchesSearch && matchesProject && matchesStatus;
     });
   }, [job?.jobs, searchQuery, selectedProject]);
-
 
   const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
 
@@ -125,49 +122,24 @@ function DJobsInProgress() {
 
   return (
     <div className="container bg-white p-4 mt-4 rounded shadow-sm">
-      {/* Title */}
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h4 className="fw-bold m-0">Jobs In Progress</h4>
-        {/* <Button id="All_btn" variant="dark" onClick={() => setShowDesignerModal(true)}>Change Designer</Button> */}
       </div>
 
-      {/* Filters */}
       <div className="d-flex flex-wrap gap-2 mb-3 align-items-center">
-        <div className="d-flex flex-wrap gap-2 mb-3 align-items-center">
-          <Form.Control
-            type="text"
-            placeholder="Search jobs..."
-            className="w-auto"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        {/*    
-        <Dropdown>
-          <Dropdown.Toggle variant="light" id="project-dropdown">
-            {selectedProject}
-          </Dropdown.Toggle>
-          <Dropdown.Menu>
-            <Dropdown.Item onClick={() => setSelectedProject("All Projects")}>
-              All Projects
-            </Dropdown.Item>
-            {[...new Set((job?.jobs || []).map((j) => j.projectId?.[0]?.projectName || "N/A"))].map(
-              (projectName, index) => (
-                <Dropdown.Item key={index} onClick={() => setSelectedProject(projectName)}>
-                  {projectName}
-                </Dropdown.Item>
-            )
-            )}
-          </Dropdown.Menu>
-        </Dropdown> */}
+        <Form.Control
+          type="text"
+          placeholder="Search jobs..."
+          className="w-auto"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
       </div>
 
-      {/* Table */}
       <div className="table-responsive">
         <Table hover className="align-middle sticky-header">
           <thead className="bg-light">
             <tr>
-              {/* <th><input type="checkbox" /></th> */}
               <th>JobNo</th>
               <th>ProjectName</th>
               <th>Brand</th>
@@ -177,7 +149,7 @@ function DJobsInProgress() {
               <th>PackSize</th>
               <th>PackCode</th>
               <th>Priority</th>
-              <th>Due Date</th>
+              <th style={{ whiteSpace: "nowrap" }}>Due Date</th>
               <th>Assign</th>
               <th>TimeLogged</th>
               <th>Status</th>
@@ -185,47 +157,36 @@ function DJobsInProgress() {
             </tr>
           </thead>
           <tbody>
-            {paginatedProjects.slice().reverse().map((job, index) => (
+            {paginatedProjects.slice().reverse().map((job) => (
               <tr key={job._id}>
-                {/* <td>
-                  <input
-                    type="checkbox"
-                    checked={selectedJobs[job._id] || false}
-                    onChange={() => handleCheckboxChange(job._id)}
-                  />
-                </td> */}
                 <td onClick={() => JobDetails(job)}>
                   <Link style={{ textDecoration: 'none' }}>{job.JobNo}</Link>
                 </td>
-                <td style={{ whiteSpace: 'nowrap' }}>{job.projectId?.[0]?.projectName || 'N/A'}</td>
-                <td style={{ whiteSpace: 'nowrap' }}>{job.brandName}</td>
-                <td style={{ whiteSpace: 'nowrap' }}>{job.subBrand}</td>
-                <td style={{ whiteSpace: 'nowrap' }}>{job.flavour}</td>
-                <td style={{ whiteSpace: 'nowrap' }}>{job.packType}</td>
-                <td style={{ whiteSpace: 'nowrap' }}>{job.packSize}</td>
-                <td style={{ whiteSpace: 'nowrap' }}>{job?.packCode}</td>
+                <td>{job.projectId?.[0]?.projectName || 'N/A'}</td>
+                <td style={{ whiteSpace: "nowrap" }}>{job.brandName}</td>
+                <td style={{ whiteSpace: "nowrap" }}>{job.subBrand}</td>
+                <td style={{ whiteSpace: "nowrap" }}>{job.flavour}</td>
+                <td style={{ whiteSpace: "nowrap" }}>{job.packType}</td>
+                <td style={{ whiteSpace: "nowrap" }}>{job.packSize}</td>
+                <td style={{ whiteSpace: "nowrap" }}>{job.packCode}</td>
                 <td>
                   <span className={getPriorityClass(job.priority)}>{job.priority}</span>
                 </td>
                 <td>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
-                <td style={{ whiteSpace: 'nowrap' }}>
-                  {job.assignedTo}
-                </td>
-                <td style={{ whiteSpace: 'nowrap' }}>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
+                <td style={{ whiteSpace: "nowrap" }}>{job.assignedTo}</td>
+                <td>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
                 <td>
                   <span className={`badge ${getStatusClass(job.Status)} px-2 py-1`}>
                     {job.Status}
                   </span>
                 </td>
-                <td>
-                </td>
+                <td></td>
               </tr>
             ))}
           </tbody>
         </Table>
       </div>
 
-      {/* Change Designer Modal */}
       <Modal show={showDesignerModal} onHide={() => setShowDesignerModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Change Designer</Modal.Title>
@@ -243,7 +204,6 @@ function DJobsInProgress() {
         </Modal.Body>
       </Modal>
 
-      {/* Pagination */}
       {!loading && !error && (
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div className="text-muted small">
@@ -264,7 +224,7 @@ function DJobsInProgress() {
               </li>
             ))}
             <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-              <button className="page-link " onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
+              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
                 <span aria-hidden="true">&raquo;</span>
               </button>
             </li>

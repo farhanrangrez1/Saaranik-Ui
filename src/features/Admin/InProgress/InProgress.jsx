@@ -29,8 +29,8 @@ function InProgress() {
 
   const { job, loading, error } = useSelector((state) => state.jobs);
   console.log("erjhgkjwerfgkelgbwer",job);
-  
-   const [Status, setStatus] = useState("in_progress");
+
+   const [Status, setStatus] = useState("In Progress");
 
   useEffect(() => {
     dispatch(filterStatus(Status)); // use variable here
@@ -68,13 +68,30 @@ function InProgress() {
     }
   };
 
-  const getStatusClass = (status) => {
-    switch ((status || "").toLowerCase().trim()) {
-      case "in progress":
-      case "in_progress":
-        return "bg-warning text-dark";
-    }
-  };
+const getStatusClass = (status) => {
+  switch (status.toLowerCase().trim()) {
+    case "in progress":
+    case "in_progress":
+      return "bg-warning text-dark";     // Yellow
+    case "completed":
+      return "bg-success text-white";    // Green
+    case "cancelled":
+      return "bg-danger text-white";     // Red
+    case "active":
+      return "bg-primary text-white";    // Blue
+    case "reject":
+      return "bg-danger text-white";
+    case "review":
+      return "bg-info text-dark";
+    case "not started":
+      return "bg-secondary text-white";
+    case "open":
+      return "bg-primary text-white";
+    default:
+      return "bg-light text-dark";
+  }
+};
+
 
   const handleUpdate = (job) => {
     navigate(`/admin/AddJobTracker`, { state: { job } });
@@ -189,44 +206,54 @@ const paginatedProjects = filteredProjects.slice(
               <th></th>
             </tr>
           </thead>
-          <tbody>
-            {paginatedProjects.slice().reverse().map((job, index) => (
-              <tr key={job._id}>
-                <td>
-                  <input
-                    type="checkbox"
-                    checked={selectedJobs[job._id] || false}
-                    onChange={() => handleCheckboxChange(job._id)}
-                  />
-                </td>
-                <td onClick={() => JobDetails(job)}>
-                  <Link style={{ textDecoration: 'none' }}>{job.JobNo}</Link>
-                </td>
-                <td style={{ whiteSpace: 'nowrap' }}>{job.projectId?.[0]?.projectName || 'N/A'}</td>
-                <td style={{ whiteSpace: 'nowrap' }}>{job.brandName}</td>
-                <td style={{ whiteSpace: 'nowrap' }}>{job.subBrand}</td>
-                <td style={{ whiteSpace: 'nowrap' }}>{job.flavour}</td>
-                <td style={{ whiteSpace: 'nowrap' }}>{job.packType}</td>
-                <td style={{ whiteSpace: 'nowrap' }}>{job.packSize}</td>
-                <td style={{ whiteSpace: 'nowrap' }}>{job?.packCode}</td>
-                <td>
-                  <span className={getPriorityClass(job.priority)}>{job.priority}</span>
-                </td>
-                <td>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
-                <td style={{ whiteSpace: 'nowrap' }}>
-                  {job.assignedTo}
-                </td>
-                <td style={{ whiteSpace: 'nowrap' }}>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
-                <td>
-                  <span className={`badge ${getStatusClass(job.Status)} px-2 py-1`}>
-                    {job.Status}
-                  </span>
-                </td>
-                <td>
-                </td>
-              </tr>
-            ))}
-          </tbody>
+     <tbody>
+  {paginatedProjects.some(job => job.Status?.toLowerCase() === "in progress") ? (
+    paginatedProjects
+      .slice()
+      .reverse()
+      .filter(job => job.Status?.toLowerCase() === "in progress")
+      .map((job, index) => (
+        <tr key={job._id}>
+          <td>
+            <input
+              type="checkbox"
+              checked={selectedJobs[job._id] || false}
+              onChange={() => handleCheckboxChange(job._id)}
+            />
+          </td>
+          <td onClick={() => JobDetails(job)}>
+            <Link style={{ textDecoration: 'none' }}>{job.JobNo}</Link>
+          </td>
+          <td style={{ whiteSpace: 'nowrap' }}>{job.projectId?.[0]?.projectName || 'N/A'}</td>
+          <td style={{ whiteSpace: 'nowrap' }}>{job.brandName}</td>
+          <td style={{ whiteSpace: 'nowrap' }}>{job.subBrand}</td>
+          <td style={{ whiteSpace: 'nowrap' }}>{job.flavour}</td>
+          <td style={{ whiteSpace: 'nowrap' }}>{job.packType}</td>
+          <td style={{ whiteSpace: 'nowrap' }}>{job.packSize}</td>
+          <td style={{ whiteSpace: 'nowrap' }}>{job?.packCode}</td>
+          <td>
+            <span className={getPriorityClass(job.priority)}>{job.priority}</span>
+          </td>
+          <td>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
+          <td style={{ whiteSpace: 'nowrap' }}>{job.assignedTo}</td>
+          <td style={{ whiteSpace: 'nowrap' }}>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
+          <td>
+            <span className={`badge ${getStatusClass(job.Status)} px-2 py-1`}>
+              {job.Status}
+            </span>
+          </td>
+          <td></td>
+        </tr>
+      ))
+  ) : (
+    <tr>
+      <td colSpan="15" className="text-center text-muted py-4">
+        No In Progress jobs found.
+      </td>
+    </tr>
+  )}
+</tbody>
+
         </Table>
       </div>
 
