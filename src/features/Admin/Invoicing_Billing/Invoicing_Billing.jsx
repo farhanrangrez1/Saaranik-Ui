@@ -175,7 +175,7 @@ const getStatusClass = (status) => {
     };
     const invoiceMeta = {
       date: invoiceData.date ? new Date(invoiceData.date).toLocaleDateString("en-GB") : 'N/A',
-      invoiceNo: invoiceData._id || 'N/A',
+      invoiceNo: invoiceData.InvoiceNo || 'N/A',
     };
     // Try to get client details from the API JSON structure
     const client = invoiceData.clientId && typeof invoiceData.clientId === 'object' && !Array.isArray(invoiceData.clientId)

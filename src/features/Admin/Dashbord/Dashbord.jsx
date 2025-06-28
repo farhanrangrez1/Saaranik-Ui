@@ -63,7 +63,8 @@ const inProgressJobs = (job?.jobs || []).filter(
   
 const inProgressCount = inProgressJobs.length;
 const Costestimates = (estimates?.costEstimates || []).filter(
-  (j) => (j.POStatus || "").toLowerCase().replace(/\s|_/g, "") === "pending"
+  // (j) => (j.POStatus || "").toLowerCase().replace(/\s|_/g, "") === "pending"
+(j) => (j.Status || "").toLowerCase().replace(/\s|_/g, "") === "pending"
 );
 const CostestimatesCount = Costestimates.length;
 
@@ -74,9 +75,6 @@ const todaysJobs = (job?.jobs || []).filter((j) => {
 });
 const todaysJobsCount = todaysJobs.length;
 
-
-
-// 
  // Sample filtered data
 const projects = project?.data || [];
 

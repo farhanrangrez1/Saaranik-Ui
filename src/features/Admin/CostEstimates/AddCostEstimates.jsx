@@ -19,7 +19,7 @@ const currencies = [
 ];
 
 // const poStatuses = ["PO Status", "Approved", "pending", "Rejected"];
-const statuses = ["Status Select", "Active", "Inactive", "Completed"];
+const statuses = ["Status Select", "Active", "Inactive", "Completed","pending"];
 
 function AddCostEstimates() {
   const location = useLocation();
