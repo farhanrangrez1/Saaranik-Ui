@@ -642,9 +642,8 @@ const getStatusClass = (status) => {
           {paginatedEstimates?.map((invoice, index) => (
             <tr key={invoice.invoiceNumber || index}>
               <td style={{ whiteSpace: "nowrap" }} /* onClick={() => JobDetails(invoice._id)} */>
-                INV-{String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}
+                {invoice.InvoiceNo || "N/A"}
               </td>
-
               <td style={{ whiteSpace: "nowrap" }}>{invoice.projectId?.[0]?.projectName || "N/A"}</td>
               <td style={{ whiteSpace: "nowrap" }}>{invoice.clients?.[0]?.clientName || "N/A"}</td>
               <td style={{ whiteSpace: "nowrap" }}>{invoice.clientId?.contactPersons[0].email || "N/A"}</td>

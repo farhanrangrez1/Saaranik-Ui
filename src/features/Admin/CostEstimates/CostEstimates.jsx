@@ -146,6 +146,16 @@ function CostEstimates() {
   };
 
 
+  const Ponamehandle = (po) => {
+    console.log(po.clients[0].clientName, po.projects[0].projectName, "ddd");
+    console.log(po);
+  
+    setSelectedClientId(po.clients[0]?.clientId || "");
+    setSelectedProjectId(po.projects[0]?.projectId || "");
+    setSelectedPO(po); // ✅ Save the whole PO object for later use
+    setShowAddPOModal(true); // ✅ Open the modal here
+  };
+
   // Add PO Modal
   const renderAddPOModal = () => (
     <Modal show={showAddPOModal} onHide={() => setShowAddPOModal(false)} size="lg">
@@ -156,7 +166,7 @@ function CostEstimates() {
         <Form>
           <Form.Group className="mb-2">
             <div className="row justify-content-center">
-              <div className="col-md-6">
+              {/* <div className="col-md-6">
                 <Form.Label className="d-block ">Project</Form.Label>
                 <Form.Select
                   value={selectedProjectId}
@@ -185,7 +195,35 @@ function CostEstimates() {
                     </option>
                   ))}
                 </Form.Select>
-              </div>
+              </div> */}
+              <div className="row justify-content-center">
+  <div className="col-md-6">
+    <Form.Label className="d-block">Project</Form.Label>
+    <Form.Select
+      value={selectedProjectId}
+      disabled
+      className="form-control"
+    >
+      <option value="">
+        {selectedPO?.projects?.find(p => p.projectId === selectedProjectId)?.projectName || "-- No Project --"}
+      </option>
+    </Form.Select>
+  </div>
+
+  <div className="col-md-6">
+    <Form.Label className="d-block">Client</Form.Label>
+    <Form.Select
+      value={selectedClientId}
+      disabled
+      className="form-control"
+    >
+      <option value="">
+        {selectedPO?.clients?.find(c => c.clientId === selectedClientId)?.clientName || "-- No Client --"}
+      </option>
+    </Form.Select>
+  </div>
+</div>
+
             </div>
           </Form.Group>
 
@@ -689,6 +727,7 @@ function CostEstimates() {
                       }
                       onClick={() => {
                         setCostEstimatesId(po._id); // Store the ID
+                        Ponamehandle(po)
                         setShowAddPOModal(true);   // Open Modal
                       }}
                     >
