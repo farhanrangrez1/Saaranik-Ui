@@ -21,12 +21,7 @@ export const createCostEstimate = createAsyncThunk(
     try {
       const response = await axiosInstance.post(
         `${apiUrl}/costEstimates`,
-        submissionData,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
+        submissionData
       );
       return response.data;
     } catch (error) {
@@ -58,19 +53,13 @@ export const updateCostEstimate = createAsyncThunk(
   'costEstimates/updateCostEstimate',
   async ({ id, data }, { rejectWithValue }) => {
     try {
-      const response = await fetch(`${apiUrl}/costEstimates/${id}`, {
-        method: "PATCH", // PATCH should be uppercase
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        return rejectWithValue(errorData.message || "Failed to update cost estimate");
-      }
-      const result = await response.json();
-      return result;
+      const response = await axiosInstance.patch(
+        `${apiUrl}/costEstimates/${id}`,
+        data
+      );
+      return response.data;
     } catch (error) {
-      return rejectWithValue(error.message || "Something went wrong");
+      return rejectWithValue(error.response?.data || error.message);
     }
   }
 );

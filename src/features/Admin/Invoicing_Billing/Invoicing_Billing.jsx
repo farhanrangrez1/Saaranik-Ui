@@ -168,11 +168,12 @@ const getStatusClass = (status) => {
   // Helper function to generate PDF from API JSON data
   const generatePDFfromData = async (invoiceData) => {
     const companyDetails = {
-      logoText: 'COMPANY LOGO',
+      logoText: '',
       addressDetails: 'COMPANY ADDRESS DETAILS',
-      name: 'Company name',
+      name: 'Company name Saaranik',
       trn: invoiceData.clientId?.TaxID_VATNumber || 'N/A',
     };
+
     const invoiceMeta = {
       date: invoiceData.date ? new Date(invoiceData.date).toLocaleDateString("en-GB") : 'N/A',
       invoiceNo: invoiceData.InvoiceNo || 'N/A',
@@ -226,24 +227,33 @@ const getStatusClass = (status) => {
     const amountInWords = `US Dollars ${numberToWords(grandTotal)} Only`;
     const doc = new jsPDF('p', 'pt', 'a4');
     const pageWidth = doc.internal.pageSize.width;
-    const margin = 40;
+    const margin = 20;
     let finalY = margin;
     doc.setFillColor(192, 0, 0);
     doc.rect(margin, finalY, 220, 60, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
+    // Add the provided image above the COMPANY LOGO text
+    const customLogoY = finalY + 5; // 5px from the top of the red box
+    const customLogoHeight = 40; // Height for the image
+    const customLogoWidth = 40; // Width for the image
+    const customLogoX = margin + 10; // X position
+    const logoUrlCustom = invoiceData.CostEstimatesId.image[0];
+    
+    
+    doc.addImage(logoUrlCustom, 'PNG', customLogoX, customLogoY, customLogoWidth, customLogoHeight);
     doc.text(companyDetails.logoText, margin + 10, finalY + 25);
     doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
-    doc.text(companyDetails.addressDetails, margin + 10, finalY + 45);
+    doc.text(companyDetails.addressDetails, margin + 10, finalY + 55);
     const companyNameBlockY = finalY;
     doc.setFillColor(192, 0, 0);
     doc.rect(pageWidth - margin - 150, companyNameBlockY, 150, 30, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    doc.text(companyDetails.name, pageWidth - margin - 140, companyNameBlockY + 20, { align: 'left' });
+    doc.text(companyDetails.name, pageWidth - margin - 145, companyNameBlockY + 20, { align: 'left' });
     let titleY = companyNameBlockY + 30 + 20;
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(18);
@@ -376,7 +386,11 @@ const getStatusClass = (status) => {
     doc.setFontSize(8);
     // Insert the stamp image instead of text
     try {
-      const imgData = await getImageBase64FromUrl(stamp);
+      // Use image from ReceivablePurchaseId.image if available, otherwise fallback to local stamp
+      const stampImageUrl = (invoiceData.ReceivablePurchaseId && Array.isArray(invoiceData.ReceivablePurchaseId.image) && invoiceData.ReceivablePurchaseId.image.length > 0)
+        ? invoiceData.ReceivablePurchaseId.image[0]
+        : stamp;
+      const imgData = await getImageBase64FromUrl(stampImageUrl);
       // Center the image in the stamp box and make it smaller for a better fit
       const stampImgWidth = 80; // Adjust width as needed
       const stampImgHeight = 80; // Adjust height as needed

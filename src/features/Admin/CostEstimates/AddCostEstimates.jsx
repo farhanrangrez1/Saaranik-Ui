@@ -19,14 +19,14 @@ const currencies = [
 ];
 
 // const poStatuses = ["PO Status", "Approved", "pending", "Rejected"];
-const statuses = ["Status Select", "Active", "Inactive", "Completed","pending"];
+const statuses = ["Status Select", "Active", "Inactive", "Completed", "pending"];
 
 function AddCostEstimates() {
   const location = useLocation();
   const po = location.state?.po;
   const id = po?._id;
   console.log("po", po);
-  
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -58,24 +58,26 @@ function AddCostEstimates() {
   ]);
 
   const [formData, setFormData] = useState({
-    clientId: [""],
-    projectId: [""],
+    clientId: "",
+    projectId: "",
     estimateDate: "",
     validUntil: "",
     Notes: "",
     currency: "USD",
-    // POStatus: "",
-    Status: "",
+    POStatus: "Pending",
+    Status: "Draft",
   });
+
+  const [image, setImage] = useState(null);
 
   useEffect(() => {
     if (po && project?.data?.length) {
-let projectId = '';
-if (Array.isArray(po.projectId) && po.projectId.length > 0) {
-  projectId = po.projectId[0]._id;
-} else if (Array.isArray(po.projects) && po.projects.length > 0) {
-  projectId = po.projects[0]?.projectId || po.projects[0]?._id || "";
-}
+      let projectId = '';
+      if (Array.isArray(po.projectId) && po.projectId.length > 0) {
+        projectId = po.projectId[0]._id;
+      } else if (Array.isArray(po.projects) && po.projects.length > 0) {
+        projectId = po.projects[0]?.projectId || po.projects[0]?._id || "";
+      }
 
       let clientId = "";
       let clientName = "";
@@ -91,13 +93,15 @@ if (Array.isArray(po.projectId) && po.projectId.length > 0) {
       setFormData((prev) => ({
         ...prev,
         ...po,
-        projectId: projectId ? [projectId] : [""],
-        clientId: clientId ? [clientId] : [""],
+        projectId: projectId || "",
+        clientId: clientId || "",
         clientName: clientName,
         Notes: po.Notes || "",
         currency: po.currency || "USD",
         estimateDate: po.estimateDate ? po.estimateDate.substring(0, 10) : "",
         validUntil: po.validUntil ? po.validUntil.substring(0, 10) : "",
+        POStatus: po.POStatus || "Pending",
+        Status: po.Status || "Draft",
       }));
 
       if (Array.isArray(po.lineItems) && po.lineItems.length > 0) {
@@ -138,38 +142,53 @@ if (Array.isArray(po.projectId) && po.projectId.length > 0) {
   const tax = subtotal * taxRate;
   const total = subtotal + tax;
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  const payload = {
-    ...formData,
-    VATRate: taxRate * 100,
-    lineItems: items,
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const formDataToSend = new FormData();
+    formDataToSend.append("projectId", formData.projectId);
+    formDataToSend.append("clientId", formData.clientId);
+    formDataToSend.append("estimateDate", formData.estimateDate);
+    formDataToSend.append("validUntil", formData.validUntil);
+    formDataToSend.append("currency", formData.currency);
+    formDataToSend.append("lineItems", JSON.stringify(items));
+    formDataToSend.append("VATRate", taxRate * 100);
+    formDataToSend.append("Notes", formData.Notes);
+    formDataToSend.append("POStatus", formData.POStatus);
+    formDataToSend.append("Status", formData.Status);
+    if (image) {
+      formDataToSend.append("image", image);
+    }
+
+    const isDuplicate = location.state?.isDuplicate;
+    if (isDuplicate || !id) {
+      dispatch(createCostEstimate(formDataToSend))
+        .unwrap()
+        .then(() => {
+          toast.success("Estimates created successfully!");
+          navigate(-1); // Go back to previous page
+        })
+        .catch(() => {
+          toast.error("Failed to create estimates");
+        });
+    } else {
+      dispatch(updateCostEstimate({ id, data: formDataToSend }))
+        .unwrap()
+        .then(() => {
+          toast.success("Estimates updated successfully!");
+          navigate(-1); // Go back to previous page
+        })
+        .catch(() => {
+          toast.error("Failed to update estimates");
+        });
+    }
   };
 
-  const isDuplicate = location.state?.isDuplicate;
-  if (isDuplicate || !id) {
-    dispatch(createCostEstimate(payload))
-      .unwrap()
-      .then(() => {
-        toast.success("Estimates created successfully!");
-        navigate(-1); // Go back to previous page
-      })
-      .catch(() => {
-        toast.error("Failed to create estimates");
-      });
-  } else {
-    dispatch(updateCostEstimate({ id, data: payload }))
-      .unwrap()
-      .then(() => {
-        toast.success("Estimates updated successfully!");
-        navigate(-1); // Go back to previous page
-      })
-      .catch(() => {
-        toast.error("Failed to update estimates");
-      });
-  }
-};
-
+  const handleImageChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setImage(e.target.files[0]);
+    }
+  };
 
   return (
     <>
@@ -182,18 +201,23 @@ const handleSubmit = async (e) => {
           <form onSubmit={handleSubmit}>
             <div className="row mb-3">
               <div className="col-md-4 mb-3">
-                <label className="form-label">Client</label>
+               <div class="d-flex align-items-center justify-content-between mb-2">
+                  <label class="form-label mb-0 fw-bold">Client</label>
+                  <Link to={"/admin/AddClientManagement"}><button class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1">
+                    + Create
+                  </button></Link>
+                </div>
                 <select
                   className="form-select"
                   name="clientId"
-                  value={formData.clientId[0] || ""}
+                  value={formData.clientId || ""}
                   onChange={(e) => {
                     const selectedClientId = e.target.value;
                     const selectedClient = Clients?.data?.find(c => c._id === selectedClientId);
 
                     setFormData({
                       ...formData,
-                      clientId: [selectedClientId],
+                      clientId: selectedClientId,
                       clientName: selectedClient ? selectedClient.clientName : "",
                     });
                   }}
@@ -209,17 +233,22 @@ const handleSubmit = async (e) => {
               </div>
 
               <div className="col-md-4 mb-3">
-                <label className="form-label">Project</label>
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                  <label class="form-label mb-0 fw-bold">Project</label>
+                  <Link to={"/admin/AddProjectList"}><button class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1">
+                    + Projects
+                  </button></Link>
+                </div>
                 <select
                   className="form-select"
                   name="projectId"
-                  value={formData.projectId[0] || ""}
+                  value={formData.projectId || ""}
                   onChange={(e) => {
                     const selectedId = e.target.value;
                     const selectedProject = project?.data?.find(p => p._id === selectedId);
                     setFormData({
                       ...formData,
-                      projectId: [selectedId],
+                      projectId: selectedId,
                       projectName: selectedProject?.projectName || "",
                     });
                   }}
@@ -275,7 +304,20 @@ const handleSubmit = async (e) => {
                 </select>
               </div>
 
-             
+              <div className="col-md-4 mb-3">
+                <label className="form-label">PO Status</label>
+                <select
+                  className="form-select"
+                  name="POStatus"
+                  value={formData.POStatus}
+                  onChange={handleFormChange}
+                  required
+                >
+                  <option value="Pending">Pending</option>
+                  <option value="Approved">Approved</option>
+                  <option value="Rejected">Rejected</option>
+                </select>
+              </div>
 
               <div className="col-md-4 mb-3">
                 <label className="form-label">Status</label>
@@ -286,16 +328,25 @@ const handleSubmit = async (e) => {
                   onChange={handleFormChange}
                   required
                 >
-                  <option value="" disabled>
-                    Status Select
-                  </option>
-                  {statuses.slice(1).map((status) => (
-                    <option key={status} value={status}>
-                      {status}
-                    </option>
-                  ))}
+                  <option value="Draft">Draft</option>
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                  <option value="Completed">Completed</option>
+                  <option value="pending">pending</option>
                 </select>
+              </div>
 
+
+              <div className="col-md-4 mb-3">
+                {/* <label className="form-label">Upload Image</label> */}
+                <label className="form-label">Upload PDF Logo</label>
+                <input
+                  type="file"
+                  className="form-control"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  required
+                />
               </div>
             </div>
 
@@ -404,14 +455,15 @@ const handleSubmit = async (e) => {
               </div>
             </div>
 
+              
             <div className="text-end mt-4">
-             <button
-  className="btn btn-light me-2"
-  type="button"
-  onClick={() => navigate(-1)}  
->
-  Cancel
-</button>
+              <button
+                className="btn btn-light me-2"
+                type="button"
+                onClick={() => navigate(-1)}
+              >
+                Cancel
+              </button>
 
               <button className="btn btn-dark" type="submit">
                 Create Estimate
