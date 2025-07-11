@@ -305,15 +305,18 @@ function NewJobsList() {
     currentAssignment * itemsAssignment
   );
 
-  const handleSubmitAssignment = () => {
+  const handleSubmitAssignment = async() => {
     const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
     const payload = {
       employeeId: [selectedEmployee],
       jobId: selectedJobIds,
       selectDesigner: selectedDesigner,
       description: assignmentDescription,
+      Status:"In Progress",
     };
     console.log("Assignment Payload:", payload);
+    // then update the job itself
+    const response = await dispatch(updatejob({ id: selectedJobIds[0], data: payload }))
     dispatch(createAssigns(payload))
       .unwrap()
       .then((response) => {
@@ -333,6 +336,8 @@ function NewJobsList() {
         toast.error(error.message || "Failed to update project!");
       });
   };
+
+
 
   const handleJobAssign = (selectedIds, assignTo) => {
     const payload = {
@@ -456,7 +461,7 @@ function NewJobsList() {
               <th>PackCode</th>
               <th>TimeLogged</th>
               <th>Due Date</th>
-              <th>assigned</th>
+              <th>assign</th>
               <th>Priority</th>
               <th>Status</th>
               <th>Actions</th>

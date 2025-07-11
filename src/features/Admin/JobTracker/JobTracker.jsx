@@ -212,9 +212,9 @@ function JobTracker() {
               <th>PackSize</th>
               <th>PackCode</th>
               <th>Priority</th>
-              <th>Due Date</th>
               <th>Assign</th>
-              <th>TimeLogged</th>
+              <th>Due Date</th>
+              <th>Created At</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
@@ -242,8 +242,8 @@ function JobTracker() {
                 <td>
                   <span className={getPriorityClass(job.priority)}>{job.priority}</span>
                 </td>
-                <td>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job?.assignedTo}</td>
+                <td>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
                 <td>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
                 <td>
                   <span className={`badge ${getStatusClass(job.Status)} px-2 py-1`}>

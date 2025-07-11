@@ -93,7 +93,7 @@ const cancelledProjectsCount = projects.filter(
 
 // Chart data
 const projectStatusData = {
-  labels: ['Active Project', 'Completed', 'Pending', 'Cancelled'],
+  labels: ['Active Project', 'Completed', 'In Progress', 'Cancelled'],
   datasets: [{
     data: [
       activeProjectsCount,

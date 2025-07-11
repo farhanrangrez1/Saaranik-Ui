@@ -237,9 +237,9 @@ function Completed_Jobs() {
                       <td>{job.brandName}</td>
                       <td style={{ whiteSpace: "nowrap" }}>{job.subBrand}</td>
                       <td>{job.flavour}</td>
-                      <td>{job.packType}</td>
-                      <td>{job.packSize}</td>
-                      <td>{job.packCode}</td>
+                      <td style={{ whiteSpace: "nowrap" }}>{job.packType}</td>
+                      <td style={{ whiteSpace: "nowrap" }}>{job.packSize}</td>
+                      <td style={{ whiteSpace: "nowrap" }}>{job.packCode}</td>
                       <td><span className={getPriorityClass(job.priority)}>{job.priority}</span></td>
                       <td>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
                       <td style={{ whiteSpace: 'nowrap' }}>{job.assignedTo}</td>

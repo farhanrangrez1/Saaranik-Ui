@@ -93,39 +93,78 @@ function ProjectJobsTab() {
     currentAssignment * itemsAssignment
   );
 
-  const handleSubmitAssignment = () => {
-    const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
-    const payload = {
-      employeeId: [selectedEmployee],
-      jobId: selectedJobIds,
-      selectDesigner: selectedDesigner,
-      description: assignmentDescription,
-    };
+  // const handleSubmitAssignment = () => {
+  //   const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
+  //   const payload = {
+  //     employeeId: [selectedEmployee],
+  //     jobId: selectedJobIds,
+  //     selectDesigner: selectedDesigner,
+  //     description: assignmentDescription,
+  //      Status:"In Progress",
+  //   };
 
-    console.log("Assignment Payload:", payload);
+  //   console.log("Assignment Payload:", payload);
+  //   if (id) {
+  //     dispatch(createAssigns(payload))
+  //     dispatch(updatejob({ id: selectedJobIds[0], data: payload }))
+  //       .unwrap()
+  //       .then((response) => {
+  //         console.log("API Response:", response);
+  //         // ✅ Agar API success ho to navigate kare
+  //         if (response.success) {
+  //           toast.success(response.message || "Project Assigned Successfully!");
+  //           setShowAssignModal(false);
+  //           setSelectedJobs(false);
+  //           navigate("/admin/MyJobs");
+  //         } else {
+  //           setShowAssignModal(false);
+  //           toast.error(response.message || "Assignment failed!");
+  //         }
+  //       })
+  //       .catch((error) => {
+  //         console.error("API Error:", error);
+  //         toast.error(error.message || "Failed to update project!");
+  //       });
+  //   }
+  // };
 
-    if (id) {
-      dispatch(createAssigns(payload))
-        .unwrap()
-        .then((response) => {
-          console.log("API Response:", response);
-          // ✅ Agar API success ho to navigate kare
-          if (response.success) {
-            toast.success(response.message || "Project Assigned Successfully!");
-            setShowAssignModal(false);
-            setSelectedJobs(false);
-            navigate("/admin/MyJobs");
-          } else {
-            setShowAssignModal(false);
-            toast.error(response.message || "Assignment failed!");
-          }
-        })
-        .catch((error) => {
-          console.error("API Error:", error);
-          toast.error(error.message || "Failed to update project!");
-        });
-    }
+  const handleSubmitAssignment = async () => {
+  const selectedJobIds = Object.keys(selectedJobs).filter(id => selectedJobs[id]);
+
+  if (!selectedJobIds.length || !selectedEmployee || !selectedDesigner) {
+    toast.error("Please select job(s), designer & employee first!");
+    return;
+  }
+
+  const payload = {
+    employeeId: [selectedEmployee],
+    jobId: selectedJobIds,
+    selectDesigner: selectedDesigner,
+    description: assignmentDescription,
+    Status: "In Progress",
   };
+
+  console.log("Assignment Payload:", payload);
+
+  try {
+    // 1️⃣  Job ko employee se assign karo
+    await dispatch(createAssigns(payload)).unwrap();
+
+    // 2️⃣  Job document update karo
+    const response = await dispatch(
+      updatejob({ id: selectedJobIds[0], data: payload })
+    ).unwrap();           // yahan await karo, tabhi aage ka code chalega
+
+    toast.success(response.message || "Project assigned successfully!");
+    setShowAssignModal(false);
+    setSelectedJobs({});   // false ki jagah empty object/array
+    navigate("/admin/MyJobs");
+  } catch (err) {
+    console.error("Assignment error:", err);
+    toast.error(err.message || "Assignment failed!");
+    setShowAssignModal(false);
+  }
+};
 
   const handleJobAssign = (selectedIds, assignTo) => {
     const payload = {
@@ -435,9 +474,9 @@ function ProjectJobsTab() {
                       <button className="btn btn-sm btn-outline-primary me-1" onClick={() => handleUpdate(job)}>
                         <i className="bi bi-pencil"></i> Edit
                       </button>
-                      <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(job._id)}>
+                      {/* <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(job._id)}>
                         <i className="bi bi-trash"></i> Cancelled
-                      </button>
+                      </button> */}
                     </td>
                   </tr>
                 ))}

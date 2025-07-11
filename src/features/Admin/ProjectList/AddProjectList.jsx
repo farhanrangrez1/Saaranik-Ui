@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Form, Button, Container, Row, Col } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useNavigate, useParams, useLocation, Link } from 'react-router-dom';
 import { createProject, updateProject, fetchProjectById } from '../../../redux/slices/ProjectsSlice';
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -10,7 +10,7 @@ import { fetchClient } from '../../../redux/slices/ClientSlice';
 function AddProjectList() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { id: paramId } = useParams(); 
+  const { id: paramId } = useParams();
   const location = useLocation();
   const { project } = location.state || {};
   const id = paramId || project?._id;
@@ -139,7 +139,13 @@ function AddProjectList() {
             </Col>
             <Col md={6}>
               <Form.Group>
-                <Form.Label className="text-muted mb-1">Client Name</Form.Label>
+
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                  <Form.Label className="text-muted mb-1">Client Name</Form.Label>
+                  <Link to={"/admin/AddClientManagement"}><button class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1">
+                    + Create
+                  </button></Link>
+                </div>
                 <Form.Select
                   name="clientId"
                   value={formData.clientId}

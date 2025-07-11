@@ -289,7 +289,7 @@ function MyJobs() {
               <th>Due Date</th>
               <th>Assign</th>
               <th>TimeLogged</th>
-              <th>Status</th>
+              {/* <th>Status</th> */}
               <th>Actions</th>
             </tr>
           </thead>
@@ -310,18 +310,18 @@ function MyJobs() {
                   <td>{job.jobId?.[0]?.brandName || 'N/A'}</td>
                   <td style={{ whiteSpace: 'nowrap' }}>{job.jobId?.[0]?.subBrand || 'N/A'}</td>
                   <td>{job.jobId?.[0]?.flavour || 'N/A'}</td>
-                  <td>{job.jobId?.[0]?.packType || 'N/A'}</td>
-                  <td>{job.jobId?.[0]?.packSize || 'N/A'}</td>
-                  <td>{job.jobId?.[0]?.packCode || 'N/A'}</td>
+                  <td style={{ whiteSpace: "nowrap" }}>{job.jobId?.[0]?.packType || 'N/A'}</td>
+                  <td style={{ whiteSpace: "nowrap" }}>{job.jobId?.[0]?.packSize || 'N/A'}</td>
+                  <td style={{ whiteSpace: "nowrap" }}>{job.jobId?.[0]?.packCode || 'N/A'}</td>
                   <td><span className={getPriorityClass(job.jobId?.[0]?.priority)}>{job.jobId?.[0]?.priority || 'N/A'}</span></td>
                   <td>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
                   <td style={{ whiteSpace: "nowrap" }}>{job.selectDesigner}</td>
                   <td>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
-                  <td>
+                  {/* <td>
                     <span className={`badge ${getStatusClass(job.jobId?.[0]?.Status) || ''} `}>
                       {job.jobId?.[0]?.Status || 'N/A'}
                     </span>
-                  </td>
+                  </td> */}
                   <td className="d-flex gap-2">
                     <input
                       type="file"
@@ -382,7 +382,12 @@ function MyJobs() {
                                 <td>{j.packType}</td>
                                 <td>{j.packSize}</td>
                                 <td>{j.packCode}</td>
-                                <td>{j.Status}</td>
+                                  <td>
+                    <span className={`badge ${getStatusClass(j.Status) || ''} `}>
+                    
+                      {j.Status}
+                    </span>
+                  </td>
                               </tr>
                             ))}
                           </tbody>

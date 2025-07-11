@@ -416,8 +416,9 @@ function CostEstimates() {
       const terms = searchQuery.toLowerCase().trim().split(/\s+/).filter(Boolean);
       // Prepare searchable fields as strings
       const estimateRef = (estimate.estimateRef || '').toLowerCase();
-      const clientName = (estimate.clientId?.[0]?.clientName || '').toLowerCase();
-      const projectNames = (estimate.projectId || []).map(project => (project.projectName || project.name || '').toLowerCase()).join(' ');
+      // FIX: Use 'clients' and 'projects' fields for search
+      const clientName = (estimate.clients?.[0]?.clientName || '').toLowerCase();
+      const projectNames = (estimate.projects || []).map(project => (project.projectName || project.name || '').toLowerCase()).join(' ');
       const status = (estimate.Status || '').toLowerCase();
       const poStatus = (estimate.POStatus || '').toLowerCase();
       const fields = [
@@ -432,13 +433,14 @@ function CostEstimates() {
         fields.some(field => field.includes(term))
       );
       const matchesClient = selectedClient === "All Clients" ||
-        estimate.clientId[0]?.clientName === selectedClient;
+        estimate.clients?.[0]?.clientName === selectedClient;
       const matchesPOStatus = selectedPOStatus === "All PO Status" ||
         estimate.POStatus === selectedPOStatus;
       const matchesStatus = selectedStatus === "All Status" ||
         estimate.Status === selectedStatus;
-      const matchesDate = !selectedDate ||
-        new Date(estimate.estimateDate).toLocaleDateString() === new Date(selectedDate).toLocaleDateString();
+      // FIX: Compare date in 'YYYY-MM-DD' format
+      const estimateDateStr = estimate.estimateDate ? estimate.estimateDate.slice(0, 10) : "";
+      const matchesDate = !selectedDate || estimateDateStr === selectedDate;
       return matchesSearch && matchesClient && matchesPOStatus && matchesStatus && matchesDate;
     });
 
@@ -644,15 +646,14 @@ function CostEstimates() {
           <Dropdown className="filter-dropdown">
             <Dropdown.Toggle
               variant="light"
-              id="designer-dropdown"
+              id="client-dropdown"
               className="custom-dropdown"
             >
               {selectedClient}
             </Dropdown.Toggle>
             <Dropdown.Menu>
               <Dropdown.Item onClick={() => setSelectedClient("All Clients")}>All Clients</Dropdown.Item>
-              {[...new Set(estimates?.costEstimates?.map(po => po.clients?.[0]?.clientName || 'N/A'))]
-                .filter(name => name !== 'N/A')
+              {[...new Set(estimates?.costEstimates?.map(po => po.clients?.[0]?.clientName).filter(Boolean))]
                 .map((clientName, index) => (
                   <Dropdown.Item key={index} onClick={() => setSelectedClient(clientName)}>
                     {clientName}
@@ -661,22 +662,7 @@ function CostEstimates() {
             </Dropdown.Menu>
           </Dropdown>
 
-          <Dropdown className="filter-dropdown">
-            <Dropdown.Toggle
-              variant="light"
-              id="viewall-dropdown"
-              className="custom-dropdown"
-            >
-              {selectedPOStatus}
-            </Dropdown.Toggle>
-            <Dropdown.Menu>
-              <Dropdown.Item onClick={() => setSelectedPOStatus("All PO Status")}>All PO Status</Dropdown.Item>
-              <Dropdown.Item onClick={() => setSelectedPOStatus("Approved")}>Approved</Dropdown.Item>
-              <Dropdown.Item onClick={() => setSelectedPOStatus("Rejected")}>Rejected</Dropdown.Item>
-              <Dropdown.Item onClick={() => setSelectedPOStatus("pending")}>Pending</Dropdown.Item>
-            </Dropdown.Menu>
-          </Dropdown>
-
+ 
           <Dropdown className="filter-dropdown">
             <Dropdown.Toggle
               variant="light"
@@ -688,6 +674,7 @@ function CostEstimates() {
             <Dropdown.Menu>
               <Dropdown.Item onClick={() => setSelectedStatus("All Status")}>All Status</Dropdown.Item>
               <Dropdown.Item onClick={() => setSelectedStatus("Active")}>Active</Dropdown.Item>
+              <Dropdown.Item onClick={() => setSelectedStatus("pending")}>pending</Dropdown.Item>
               <Dropdown.Item onClick={() => setSelectedStatus("Invoice")}>Invoice</Dropdown.Item>
               <Dropdown.Item onClick={() => setSelectedStatus("Completed")}>Completed</Dropdown.Item>
             </Dropdown.Menu>
@@ -702,14 +689,14 @@ function CostEstimates() {
           <thead style={{ backgroundColor: "#f8f9fa", position: "sticky", top: 0, zIndex: 1 }}>
             <tr>
               <th><input type="checkbox" /></th>
-              <th>CENo</th>
+              <th style={{ whiteSpace: 'nowrap' }}>CE No</th>
               <th style={{ whiteSpace: 'nowrap' }}>Project Name</th>
               <th style={{ whiteSpace: 'nowrap' }}>Client Name</th>
               <th style={{ whiteSpace: 'nowrap' }}>Client Email</th>
               <th>Date</th>
               {/* <th>ProjectNo</th> */}
               <th>Amount</th>
-              <th>CoStatus</th>
+              <th style={{ whiteSpace: 'nowrap' }}>CE Status</th>
               {/* <th>POStatus</th> */}
               <th>Actions</th>
             </tr>
