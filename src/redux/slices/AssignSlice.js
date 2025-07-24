@@ -18,6 +18,26 @@ export const fetchAssign = createAsyncThunk(
 export const createAssigns = createAsyncThunk(
   'Assigns/createAssigns',
   async (payload, { rejectWithValue }) => {
+    // Defensive: sanitize employeeId
+    if (payload.selectDesigner === "Production") {
+      payload.employeeId = null;
+    } else if (payload.selectDesigner === "Designer") {
+      if (
+        Array.isArray(payload.employeeId) &&
+        payload.employeeId.length === 1 &&
+        payload.employeeId[0]
+      ) {
+        // keep as is
+      } else {
+        payload.employeeId = [];
+      }
+    } else if (
+      Array.isArray(payload.employeeId) &&
+      payload.employeeId.length === 1 &&
+      !payload.employeeId[0]
+    ) {
+      payload.employeeId = null;
+    }
     try {
       const response = await axiosInstance.post(
         `${apiUrl}/AssignmentJob`,

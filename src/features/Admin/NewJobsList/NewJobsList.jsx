@@ -5,7 +5,7 @@ import { Button, Form, Table, Pagination, Modal } from "react-bootstrap";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { FaEye } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchjobs, updatejob, UpdateJobAssign } from "../../../redux/slices/JobsSlice";
+import { fetchjobs, ProductionJobsGet, updatejob, UpdateJobAssign } from "../../../redux/slices/JobsSlice";
 import {
   FaFilePdf,
   FaUpload,
@@ -72,10 +72,14 @@ function NewJobsList() {
   ];
 
   const { job, loading, error } = useSelector((state) => state.jobs);
-
   useEffect(() => {
-    dispatch(fetchjobs());
+    dispatch(ProductionJobsGet());
   }, [dispatch]);
+
+  // ✅ Step 1: Flatten all jobId objects from the nested structure
+  const flattenedJobs = job?.data?.flatMap((item) => item.jobId) || [];
+  console.log("Flattened Jobs:", flattenedJobs);
+
 
   const handleShowDescription = (job) => {
     setSelectedJob(job);
@@ -109,7 +113,6 @@ function NewJobsList() {
     }
     setShowRejectModal(true);
   };
-
 
   const handleSubmitRejection = () => {
     const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
@@ -176,32 +179,32 @@ function NewJobsList() {
     }
   };
 
- const getStatusClass = (status) => {
-  switch (status.toLowerCase().trim()) {
-    case "in progress":
-    case "in_progress":
-      return "bg-warning text-dark";     // Yellow
-    case "completed":
-      return "bg-success text-white";    // Green
-    case "cancelled":
-      return "bg-danger text-white";     // Red
-    case "active":
-      return "bg-primary text-white";    // Blue
-    case "reject":
-      return "bg-danger text-white";
-    case "review":
-      return "bg-info text-dark";
-    case "not started":
-      return "bg-secondary text-white";
-    case "open":
-      return "bg-primary text-white";
-    default:
-      return "bg-light text-dark";
-  }
-};
+  const getStatusClass = (status) => {
+    switch (status.toLowerCase().trim()) {
+      case "in progress":
+      case "in_progress":
+        return "bg-warning text-dark";     // Yellow
+      case "completed":
+        return "bg-success text-white";    // Green
+      case "cancelled":
+        return "bg-danger text-white";     // Red
+      case "active":
+        return "bg-primary text-white";    // Blue
+      case "reject":
+        return "bg-danger text-white";
+      case "review":
+        return "bg-info text-dark";
+      case "not started":
+        return "bg-secondary text-white";
+      case "open":
+        return "bg-primary text-white";
+      default:
+        return "bg-light text-dark";
+    }
+  };
 
+  const filteredJobs = job?.data?.flatMap((item) => item.jobId) || []
 
-  const filteredJobs = (job?.jobs || [])
     .filter((j) => j.assignedTo === "Not Assigned")
     .filter((j) => {
       // Split searchQuery by spaces, ignore empty terms
@@ -298,25 +301,24 @@ function NewJobsList() {
         selectedDesigner.toLowerCase()) &&
       selectedDesigner !== ""
   );
-  console.log("lllll", filteredAssignment);
 
   const paginatedAssignment = filteredAssignment.slice(
     (currentAssignment - 1) * itemsAssignment,
     currentAssignment * itemsAssignment
   );
 
-  const handleSubmitAssignment = async() => {
+  const handleSubmitAssignment = async () => {
     const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
     const payload = {
       employeeId: [selectedEmployee],
       jobId: selectedJobIds,
       selectDesigner: selectedDesigner,
       description: assignmentDescription,
-      Status:"In Progress",
+      Status: "In Progress",
     };
     console.log("Assignment Payload:", payload);
     // then update the job itself
-    const response = await dispatch(updatejob({ id: selectedJobIds[0], data: payload }))
+    dispatch(Project_job_Id(id))
     dispatch(createAssigns(payload))
       .unwrap()
       .then((response) => {
@@ -337,15 +339,13 @@ function NewJobsList() {
       });
   };
 
-
-
   const handleJobAssign = (selectedIds, assignTo) => {
     const payload = {
       id: selectedIds,
       assign: assignTo,
     };
     console.log("Assignment Payload:", payload);
-    dispatch(UpdateJobAssign(payload))
+    dispatch(Project_job_Id(id))
       .then(() => {
         // Swal.fire("Success!", "Jobs assigned successfully", "success");
       })
@@ -443,12 +443,13 @@ function NewJobsList() {
                   onChange={(e) => {
                     const checked = e.target.checked;
                     const newSelectedJobs = {};
-                    job?.jobs?.forEach((job) => {
+                    flattenedJobs.forEach((job) => {
                       newSelectedJobs[job._id] = checked;
                     });
                     setSelectedJobs(newSelectedJobs);
                   }}
-                  checked={job?.jobs?.length > 0 && job?.jobs?.every((j) => selectedJobs[j._id])}
+                  checked={flattenedJobs.length > 0 && flattenedJobs.every((j) => selectedJobs[j._id])}
+
                 />
               </th>
               <th>JobNo</th>
@@ -498,7 +499,7 @@ function NewJobsList() {
                 <td style={{ whiteSpace: "nowrap" }}>
                   {new Date(job.createdAt).toLocaleDateString("en-GB")}
                 </td>
-                <td style={{ whiteSpace: 'nowrap' }}>{job?.assignedTo}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{job?.assign}</td>
                 <td>
                   <span className={getPriorityClass(job.priority)}>{job.priority}</span>
                 </td>
@@ -550,7 +551,7 @@ function NewJobsList() {
               >
                 <option value="">-- Select --</option>
                 <option value="Designer">Designer</option>
-                <option value="Production">Production</option>
+                {/* <option value="Production">Production</option> */}
               </Form.Select>
             </Form.Group>
             <Form.Group className="mb-3">

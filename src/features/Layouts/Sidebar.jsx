@@ -55,11 +55,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     const storedRole = localStorage.getItem("userRole");
     setRoleData(storedRole);
   }, []);
-
   const toggleMenu = (index) => {
     setOpenMenuIndex(openMenuIndex === index ? null : index);
   };
-
   const handleMenuClick = (index, path, isSubmenu = false) => {
     setActiveMenuIndex(index);
     if (isSubmenu) {

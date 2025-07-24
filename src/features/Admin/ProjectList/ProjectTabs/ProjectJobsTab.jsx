@@ -128,13 +128,9 @@ function ProjectJobsTab() {
   //   }
   // };
 
-  const handleSubmitAssignment = async () => {
-  const selectedJobIds = Object.keys(selectedJobs).filter(id => selectedJobs[id]);
 
-  if (!selectedJobIds.length || !selectedEmployee || !selectedDesigner) {
-    toast.error("Please select job(s), designer & employee first!");
-    return;
-  }
+const handleSubmitAssignment = async () => {
+  const selectedJobIds = Object.keys(selectedJobs).filter(id => selectedJobs[id]);
 
   const payload = {
     employeeId: [selectedEmployee],
@@ -143,26 +139,57 @@ function ProjectJobsTab() {
     description: assignmentDescription,
     Status: "In Progress",
   };
-
-  console.log("Assignment Payload:", payload);
-
+  console.log("📦 Assignment Payload:", payload);
   try {
-    // 1️⃣  Job ko employee se assign karo
+    // 1️⃣ Create assignment
     await dispatch(createAssigns(payload)).unwrap();
 
-    // 2️⃣  Job document update karo
+    // 2️⃣ Update job
     const response = await dispatch(
-      updatejob({ id: selectedJobIds[0], data: payload })
-    ).unwrap();           // yahan await karo, tabhi aage ka code chalega
+      dispatch(Project_job_Id(id))
+    ).unwrap();
 
     toast.success(response.message || "Project assigned successfully!");
     setShowAssignModal(false);
-    setSelectedJobs({});   // false ki jagah empty object/array
+    setSelectedJobs({});
     navigate("/admin/MyJobs");
   } catch (err) {
-    console.error("Assignment error:", err);
-    toast.error(err.message || "Assignment failed!");
-    setShowAssignModal(false);
+    console.error("❌ Full Error Object:", err);
+
+    const status =
+      err?.status ||
+      err?.originalStatus ||
+      err?.response?.status ||
+      err?.data?.status ||
+      err?.data?.statusCode ||
+      500;
+
+    const message =
+      err?.message ||
+      err?.data?.message ||
+      err?.response?.data?.message ||
+      "Assignment failed!";
+
+    console.log("📛 Status Code:", status);
+    console.log("📨 Message:", message);
+
+    if (status === 409) {
+      console.log("status === 409", status === 409);
+
+      toast.error("Job already assigned to this employee!", {
+        toastId: "job-already-assigned"
+      });
+
+      setTimeout(() => {
+        setShowAssignModal(false);
+      }, 300);
+
+    } else {
+      toast.error(message);
+      setTimeout(() => {
+        setShowAssignModal(false);
+      }, 300);
+    }
   }
 };
 
@@ -172,7 +199,7 @@ function ProjectJobsTab() {
       assign: assignTo,
     };
     console.log("Assignment Payload:", payload);
-    dispatch(UpdateJobAssign(payload))
+       dispatch(Project_job_Id(id))
       .then(() => {
         // Swal.fire("Success!", "Jobs assigned successfully", "success");
         // dispatch(fetchjobs());
@@ -267,29 +294,29 @@ function ProjectJobsTab() {
   const JobDetails = (job) => {
     navigate(`/admin/OvervieJobsTracker`, { state: { job } });
   }
- const getStatusClass = (status) => {
-  switch (status.toLowerCase().trim()) {
-    case "in progress":
-    case "in_progress":
-      return "bg-warning text-dark";     // Yellow
-    case "completed":
-      return "bg-success text-white";    // Green
-    case "cancelled":
-      return "bg-danger text-white";     // Red
-    case "active":
-      return "bg-primary text-white";    // Blue
-    case "reject":
-      return "bg-danger text-white";
-    case "review":
-      return "bg-info text-dark";
-    case "not started":
-      return "bg-secondary text-white";
-    case "open":
-      return "bg-primary text-white";
-    default:
-      return "bg-light text-dark";
-  }
-};
+  const getStatusClass = (status) => {
+    switch (status.toLowerCase().trim()) {
+      case "in progress":
+      case "in_progress":
+        return "bg-warning text-dark";     // Yellow
+      case "completed":
+        return "bg-success text-white";    // Green
+      case "cancelled":
+        return "bg-danger text-white";     // Red
+      case "active":
+        return "bg-primary text-white";    // Blue
+      case "reject":
+        return "bg-danger text-white";
+      case "review":
+        return "bg-info text-dark";
+      case "not started":
+        return "bg-secondary text-white";
+      case "open":
+        return "bg-primary text-white";
+      default:
+        return "bg-light text-dark";
+    }
+  };
 
 
   // ✅ Copy File Name & Download CSV
@@ -422,7 +449,7 @@ function ProjectJobsTab() {
                   <th>PackCode</th>
                   <th>Priority</th>
                   <th style={{ whiteSpace: 'nowrap' }}>Due Date</th>
-                  <th>Assing</th>
+                  <th>Assignee</th>
                   <th>TotalTime</th>
                   <th>Status</th>
                   <th>Actions</th>
@@ -504,7 +531,7 @@ function ProjectJobsTab() {
               >
                 <option value="">-- Select --</option>
                 <option value="Designer">Designer</option>
-                   <option value="Production">Production</option>
+                <option value="Production">Production</option>
               </Form.Select>
             </Form.Group>
 

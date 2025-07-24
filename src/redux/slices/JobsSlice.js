@@ -111,6 +111,18 @@ export const UpdateJobAssign = createAsyncThunk('jobs/updatejob', async ({ id, a
   return await response.json();
 });
 
+// Production Jobs Get (fixed name)
+export const ProductionJobsGet = createAsyncThunk(
+  'jobs/productionJobsGet',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get(`${apiUrl}/AssignmentJob/ProductionJobsGet`);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
 
 const jobsSlice = createSlice({
   name: 'jobs',
@@ -156,6 +168,19 @@ const jobsSlice = createSlice({
         state.job = action.payload;
       })
       .addCase(fetchjobs.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      })
+
+      // ProductionJobsGet
+            .addCase(ProductionJobsGet.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(ProductionJobsGet.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.job = action.payload;
+      })
+      .addCase(ProductionJobsGet.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload;
       })

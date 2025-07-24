@@ -142,7 +142,6 @@ function AddJobTracker() {
     }
   };
 
-
   const handleCancel = () => {
     navigate("/admin/projectList");
   }
@@ -160,19 +159,8 @@ function AddJobTracker() {
     idToIndexMap[project._id] = String(index + 1).padStart(4, '0');
   });
 
-
-
-
-
-
-
-
-
-
-
-
-
-    // Keep the options in local state so we can push newly‑created ones
+ 
+  // Keep the options in local state so we can push newly‑created ones
   const [brandOptions, setBrandOptions] = useState([
     { value: "Coca‑Cola", label: "Coca‑Cola" },
     { value: "Pepsi",     label: "Pepsi" },
@@ -219,7 +207,7 @@ function AddJobTracker() {
   const handleCreateOption = (field) => (inputValue) => {
     axios.post(`${apiUrl}/jobs/select`, {
       [field]: [...selectOptions[field].map(opt => opt.value), inputValue]
-    }).then(() => {
+    }).then(() =>{
       setSelectOptions(prev => ({
         ...prev,
         [field]: [...prev[field], { value: inputValue, label: inputValue }]
@@ -230,6 +218,7 @@ function AddJobTracker() {
       }));
     });
   };
+
   return (
     <>
       <ToastContainer />

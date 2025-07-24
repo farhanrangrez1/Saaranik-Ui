@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { createCostEstimate, updateCostEstimate } from "../../../redux/slices/costEstimatesSlice";
 import { fetchProject } from "../../../redux/slices/ProjectsSlice";
 import { fetchClient } from "../../../redux/slices/ClientSlice";
-import { createInvoicingBilling, updateInvoicingBilling } from "../../../redux/slices/InvoicingBillingSlice";
+import { createInvoicingBilling, GetSingleInvoice, updateInvoicingBilling } from "../../../redux/slices/InvoicingBillingSlice";
 
 const currencies = [
   { value: "", label: "Select Currency" },
@@ -25,13 +25,30 @@ const OutputFormat = ["", "PDF", "DOCX", "XLSX", "TXT"];
 const statuses = ["Status Select", "Active", "Inactive", "Completed", "pending", "overdue"];
 
 function AddInvoice() {
+    const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+
   const location = useLocation();
   const invoice = location.state?.invoice;
   const id = invoice?._id;
   console.log("hhel", invoice);
 
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
+    const { invocing } = useSelector((state) => state.InvoicingBilling);
+    console.log("invocing", invocing);
+useEffect(() => {
+  if (invoice) {
+   dispatch(GetSingleInvoice({
+  projectsId: [invoice.projectId], // wrap it in an array as expected
+  clientId: invoice.clientId,
+  CostEstimatesId: invoice.CostEstimatesId,
+  ReceivablePurchaseId: invoice.ReceivablePurchaseId,
+}));
+
+  }
+}, [dispatch, invoice]);
+
+
 
   const { project } = useSelector((state) => state.projects);
   useEffect(() => {
@@ -70,26 +87,37 @@ function AddInvoice() {
     output: "",
   });
 
-  useEffect(() => {
-    if (invoice && project?.data?.length) {
-      setFormData((prev) => ({
-        ...prev,
-        clientId: invoice.clientId || "",
-        CostEstimatesId: invoice.CostEstimatesId || "",
-        ReceivablePurchaseId: invoice.ReceivablePurchaseId || "",
-        projectsId: invoice.projectId ? [invoice.projectId] : [""],
-        status: invoice.status && statuses.includes(invoice.status) ? invoice.status : "Active",
-        Notes: invoice.Notes || "",
-        currency: invoice.currency || "",
-        date: invoice.date ? invoice.date.substring(0, 10) : "",
-        validUntil: invoice.validUntil ? invoice.validUntil.substring(0, 10) : "",
-      }));
+ useEffect(() => {
+  const data = invocing?.data;
+  if (data) {
+    setFormData((prev) => ({
+      ...prev,
+      clientId: data.client?._id || "",
+      CostEstimatesId: data.costEstimate?._id || "",
+      ReceivablePurchaseId: data.receivablePurchase?._id || "",
+      projectsId: data.projectId ? [data.projectId] : [""],
+      status: data.costEstimate?.Status && statuses.includes(data.costEstimate.Status)
+        ? data.costEstimate.Status
+        : "Active",
+      Notes: data.costEstimate?.Notes || "",
+      currency: data.costEstimate?.currency || "",
+      date: data.costEstimate?.estimateDate
+        ? data.costEstimate.estimateDate.substring(0, 10)
+        : "",
+      validUntil: data.costEstimate?.validUntil
+        ? data.costEstimate.validUntil.substring(0, 10)
+        : "",
+    }));
 
-      if (Array.isArray(invoice.lineItems) && invoice.lineItems.length > 0) {
-        setItems(invoice.lineItems);
-      }
+    if (
+      Array.isArray(data.costEstimate?.lineItems) &&
+      data.costEstimate.lineItems.length > 0
+    ) {
+      setItems(data.costEstimate.lineItems);
     }
-  }, [invoice, project?.data]);
+  }
+}, [invocing]);
+
 
 
   const [taxRate, setTaxRate] = useState(0.05);

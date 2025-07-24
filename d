@@ -148,27 +148,6 @@ status: '+$5,000',
       estimated: '$50,000',
       actual: '$45,000'
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
       import React, { useEffect, useState } from 'react';
       import { Form, Button, Container, Row, Col } from 'react-bootstrap';
       import { useDispatch } from 'react-redux';
@@ -29946,3 +29925,5022 @@ function AddProjectList() {
 }
 
 export default AddProjectList;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ////////Client //////////////// 
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { useDispatch } from 'react-redux';
+import { createClients, fetchClient, UpdateClients } from '../../../redux/slices/ClientSlice';
+import "react-toastify/dist/ReactToastify.css";
+import axios from 'axios';
+import { apiUrl } from '../../../redux/utils/config';
+import CreatableSelect from "react-select/creatable";
+
+// Add this function to format date for input fields
+const formatDate = (dateStr) => {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d)) return '';
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${month}-${day}`;
+};
+
+function AddClientManagement() {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { id } = useParams(); // for edit mo
+  const location = useLocation();
+  const { client } = location.state || {};
+  const _id = client?._id
+  console.log("oo", _id);
+
+  // Initial form state
+  const [formData, setFormData] = useState({
+    clientName: '',
+    industry: '',
+    website: '',
+    clientAddress: '',
+    TaxID_VATNumber: '',
+    CSRCode: '',
+    Status: ''
+  });
+
+  // Contact persons state
+  const [contactPersons, setContactPersons] = useState([
+    {
+      contactName: '',
+      jobTitle: '',
+      email: '',
+      phone: '',
+      department: '',
+      salesRepresentative: ''
+    }
+  ]);
+
+  // Billing information state
+  const [billingInformation, setBillingInformation] = useState([
+    {
+      billingAddress: '',
+      billingContactName: '',
+      billingEmail: '',
+      billingPhone: '',
+      currency: '',
+      preferredPaymentMethod: ''
+    }
+  ]);
+  // Shipping information state
+  const [shippingInformation, setShippingInformation] = useState([
+    {
+      shippingAddress: '',
+      shippingContactName: '',
+      shippingEmail: '',
+      shippingPhone: '',
+      preferredShippingMethod: '',
+      specialInstructions: ''
+    }
+  ]);
+  // Financial information state
+  const [financialInformation, setFinancialInformation] = useState([
+    {
+      annualRevenue: '',
+      creditRating: '',
+      bankName: '',
+      accountNumber: '',
+      fiscalYearEnd: '',
+      financialContact: ''
+    }
+  ]);
+
+  // Ledger information state
+  const [ledgerInformation, setLedgerInformation] = useState([
+    {
+      accountCode: '',
+      accountType: '',
+      openingBalance: '',
+      balanceDate: '',
+      taxCategory: '',
+      costCenter: ''
+    }
+  ]);
+
+  // Additional information state
+  const [additionalInformation, setAdditionalInformation] = useState({
+    paymentTerms: '',
+    creditLimit: '',
+    notes: ''
+  });
+
+  // Add state for errors
+  const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    const updateStates = (clientData) => {
+      setFormData({
+        clientName: clientData.clientName || '',
+        industry: clientData.industry || '',
+        website: clientData.website || '',
+        clientAddress: clientData.clientAddress || '',
+        TaxID_VATNumber: clientData.TaxID_VATNumber || '',
+        CSRCode: clientData.CSRCode || '',
+        Status: clientData.Status || ''
+      });
+
+      setContactPersons(clientData.contactPersons || []);
+      setBillingInformation(clientData.billingInformation || []);
+      setShippingInformation(clientData.shippingInformation || []);
+      setFinancialInformation(
+        (clientData.financialInformation || []).map((item) => ({
+          ...item,
+          fiscalYearEnd: formatDate(item.fiscalYearEnd),
+        }))
+      );
+      setLedgerInformation(
+        (clientData.ledgerInformation || []).map((item) => ({
+          ...item,
+          balanceDate: formatDate(item.balanceDate),
+        }))
+      );
+      setAdditionalInformation(clientData.additionalInformation || {
+        paymentTerms: '',
+        creditLimit: '',
+        notes: ''
+      });
+    };
+
+    if (client) {
+      updateStates(client);
+    } else if (id) {
+      dispatch(fetchclientById(id)).then((res) => {
+        const fetchedclient = res.payload;
+        if (fetchedclient) {
+          updateStates(fetchedclient);
+        }
+      });
+    }
+  }, [id, dispatch, client]);
+
+
+
+  // Handle basic form field changes
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Handle contact person changes
+  const handleContactChange = (index, e) => {
+    const { name, value } = e.target;
+    let newValue = value;
+    if (name === 'phone') {
+      newValue = newValue.replace(/[^\d]/g, '').slice(0, 10);
+    }
+    const updatedContacts = [...contactPersons];
+    updatedContacts[index] = {
+      ...updatedContacts[index],
+      [name]: newValue
+    };
+    setContactPersons(updatedContacts);
+  };
+
+  // Handle billing information changes
+  const handleBillingChange = (index, e) => {
+    const { name, value } = e.target;
+    let newValue = value;
+    if (name === 'billingPhone') {
+      newValue = newValue.replace(/[^\d]/g, '').slice(0, 10);
+    }
+    const updatedBilling = [...billingInformation];
+    updatedBilling[index] = {
+      ...updatedBilling[index],
+      [name]: newValue
+    };
+    setBillingInformation(updatedBilling);
+  };
+
+  // Handle shipping information changes
+  const handleShippingChange = (index, e) => {
+    const { name, value } = e.target;
+    let newValue = value;
+    if (name === 'shippingPhone') {
+      newValue = newValue.replace(/[^\d]/g, '').slice(0, 10);
+    }
+    const updatedShipping = [...shippingInformation];
+    updatedShipping[index] = {
+      ...updatedShipping[index],
+      [name]: newValue
+    };
+    setShippingInformation(updatedShipping);
+  };
+
+  // Handle financial information changes
+  const handleFinancialChange = (index, e) => {
+    const { name, value } = e.target;
+    let newValue = value;
+    if (name === 'creditRating') {
+      // Only allow numbers between 1 and 5
+      let num = Number(newValue);
+      if (newValue === '') {
+        newValue = '';
+      } else if (num < 1) {
+        newValue = '1';
+      } else if (num > 5) {
+        newValue = '5';
+      } else {
+        newValue = String(num);
+      }
+    }
+    const updatedFinancial = [...financialInformation];
+    updatedFinancial[index] = {
+      ...updatedFinancial[index],
+      [name]: newValue
+    };
+    setFinancialInformation(updatedFinancial);
+  };
+
+  // Handle ledger information changes
+  const handleLedgerChange = (index, e) => {
+    const { name, value } = e.target;
+    const updatedLedger = [...ledgerInformation];
+    updatedLedger[index] = {
+      ...updatedLedger[index],
+      [name]: value
+    };
+    setLedgerInformation(updatedLedger);
+  };
+
+
+  const handleAdditionalChange = (e) => {
+    const { name, value } = e.target;
+    setAdditionalInformation(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Validation function
+  const validate = () => {
+    const newErrors = {};
+
+    // Basic form fields
+    if (!formData.clientName.trim()) newErrors.clientName = 'Name is required';
+    if (!formData.industry) newErrors.industry = 'Industry is required';
+    if (!formData.website.trim()) newErrors.website = 'Website is required';
+    else if (!/^https?:\/\//.test(formData.website)) newErrors.website = 'Website must start with http:// or https://';
+    if (!formData.clientAddress.trim()) newErrors.clientAddress = 'Client Address is required';
+    if (!formData.TaxID_VATNumber.trim()) newErrors.TaxID_VATNumber = 'Tax ID/VAT Number is required';
+    if (!formData.CSRCode.trim()) newErrors.CSRCode = 'CSR Code is required';
+    if (!formData.Status) newErrors.Status = 'Status is required';
+
+    // Contact Persons
+    contactPersons.forEach((contact, idx) => {
+      if (!contact.contactName.trim()) newErrors[`contactName_${idx}`] = 'Contact Name is required';
+      if (!contact.jobTitle.trim()) newErrors[`jobTitle_${idx}`] = 'Job Title is required';
+      if (!contact.email.trim()) newErrors[`email_${idx}`] = 'Email is required';
+      else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(contact.email)) newErrors[`email_${idx}`] = 'Invalid email';
+      if (!contact.phone.trim()) newErrors[`phone_${idx}`] = 'Phone is required';
+      else if (!/^\d{10}$/.test(contact.phone)) newErrors[`phone_${idx}`] = 'Phone must be 10 digits';
+      if (!contact.department.trim()) newErrors[`department_${idx}`] = 'Department is required';
+      if (!contact.salesRepresentative.trim()) newErrors[`salesRepresentative_${idx}`] = 'Sales Representative is required';
+    });
+
+    // Billing Information (first item)
+    const billing = billingInformation[0] || {};
+    if (!billing.billingAddress.trim()) newErrors.billingAddress = 'Billing Address is required';
+    if (!billing.billingContactName.trim()) newErrors.billingContactName = 'Billing Contact Name is required';
+    if (!billing.billingEmail.trim()) newErrors.billingEmail = 'Billing Email is required';
+    else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(billing.billingEmail)) newErrors.billingEmail = 'Invalid email';
+    if (!billing.billingPhone.trim()) newErrors.billingPhone = 'Billing Phone is required';
+    else if (!/^\d{10}$/.test(billing.billingPhone)) newErrors.billingPhone = 'Phone must be 10 digits';
+    if (!billing.currency) newErrors.currency = 'Currency is required';
+    if (!billing.preferredPaymentMethod) newErrors.preferredPaymentMethod = 'Preferred Payment Method is required';
+
+    // Shipping Information (first item)
+    const shipping = shippingInformation[0] || {};
+    if (!shipping.shippingAddress.trim()) newErrors.shippingAddress = 'Shipping Address is required';
+    if (!shipping.shippingContactName.trim()) newErrors.shippingContactName = 'Shipping Contact Name is required';
+    if (!shipping.shippingEmail.trim()) newErrors.shippingEmail = 'Shipping Email is required';
+    else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(shipping.shippingEmail)) newErrors.shippingEmail = 'Invalid email';
+    if (!shipping.shippingPhone.trim()) newErrors.shippingPhone = 'Shipping Phone is required';
+    else if (!/^\d{10}$/.test(shipping.shippingPhone)) newErrors.shippingPhone = 'Phone must be 10 digits';
+    if (!shipping.preferredShippingMethod) newErrors.preferredShippingMethod = 'Preferred Shipping Method is required';
+    if (!shipping.specialInstructions.trim()) newErrors.specialInstructions = 'Special Instructions are required';
+
+    // Financial Information (first item)
+    const financial = financialInformation[0] || {};
+    if (!financial.annualRevenue) newErrors.annualRevenue = 'Annual Revenue is required';
+    else if (isNaN(financial.annualRevenue) || Number(financial.annualRevenue) < 0) newErrors.annualRevenue = 'Annual Revenue must be a positive number';
+    if (!financial.creditRating) newErrors.creditRating = 'Credit Rating is required';
+    else if (isNaN(financial.creditRating) || Number(financial.creditRating) < 1 || Number(financial.creditRating) > 5) newErrors.creditRating = 'Credit Rating must be between 1 and 5';
+    if (!financial.bankName.trim()) newErrors.bankName = 'Bank Name is required';
+    if (!financial.accountNumber.trim()) newErrors.accountNumber = 'Account Number is required';
+    if (!financial.fiscalYearEnd) newErrors.fiscalYearEnd = 'Fiscal Year End is required';
+    if (!financial.financialContact.trim()) newErrors.financialContact = 'Financial Contact is required';
+
+    // Ledger Information (first item)
+    const ledger = ledgerInformation[0] || {};
+    if (!ledger.accountCode.trim()) newErrors.accountCode = 'Account Code is required';
+    if (!ledger.accountType) newErrors.accountType = 'Account Type is required';
+    if (!ledger.openingBalance) newErrors.openingBalance = 'Opening Balance is required';
+    else if (isNaN(ledger.openingBalance)) newErrors.openingBalance = 'Opening Balance must be a number';
+    if (!ledger.balanceDate) newErrors.balanceDate = 'Balance Date is required';
+    if (!ledger.taxCategory) newErrors.taxCategory = 'Tax Category is required';
+    if (!ledger.costCenter.trim()) newErrors.costCenter = 'Cost Center is required';
+
+    // Additional Information
+    if (!additionalInformation.paymentTerms) newErrors.paymentTerms = 'Payment Terms is required';
+    if (!additionalInformation.creditLimit) newErrors.creditLimit = 'Credit Limit is required';
+    else if (isNaN(additionalInformation.creditLimit) || Number(additionalInformation.creditLimit) < 0) newErrors.creditLimit = 'Credit Limit must be a positive number';
+    if (!additionalInformation.notes.trim()) newErrors.notes = 'Notes is required';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    const fullData = {
+      ...formData,
+      contactPersons,
+      billingInformation,
+      shippingInformation,
+      financialInformation,
+      ledgerInformation,
+      additionalInformation
+    };
+    console.log('Full Data Object:', fullData);
+    if (_id) {
+      dispatch(UpdateClients({ _id, data: fullData }))
+        .unwrap()
+        .then(() => {
+          toast.success("clientupdated successfully!");
+          navigate("/admin/clientManagement");
+          dispatch(fetchClient());
+        })
+        .catch(() => {
+          toast.error("Failed to update client!");
+        });
+    } else {
+      dispatch(createClients(fullData))
+        .unwrap()
+        .then(() => {
+          toast.success("clientcreated successfully!");
+          navigate("/admin/clientManagement");
+          dispatch(fetchClient());
+        })
+        .catch(() => {
+          toast.error("Error creating client");
+        });
+    }
+  };
+
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+
+  //   const fullData = {
+  //     ...formData,
+  //     contactPersons,
+  //     billingInformation,
+  //     shippingInformation,
+  //     financialInformation,
+  //     ledgerInformation,
+  //     additionalInformation
+  //   };
+  //         dispatch(createClients(fullData))
+  //       .unwrap()
+  //       .then(() => {
+  //         toast.success("clientcreated successfully!");
+  //         navigate("/clientManagement");
+  //       })
+  //       .catch(() => {
+  //         toast.error("Error creating client");
+  //       });
+  // };
+
+  // ///////////////////////////////////////////////////////////////////////////////////////////
+
+  // Keep the options in local state so we can push newly‑created ones
+  const [brandOptions, setBrandOptions] = useState([
+    { value: "Coca‑Cola", label: "Coca‑Cola" },
+    { value: "Pepsi", label: "Pepsi" },
+    // …your initial list
+  ]);
+
+  // When the user creates a brand that isn’t in the list yet
+  const handleCreate = (inputValue) => {
+    const newOption = { value: inputValue, label: inputValue };
+    setBrandOptions((prev) => [...prev, newOption]);
+    setFormData((prev) => ({ ...prev, brandName: inputValue }));
+  };
+
+  // Add state for select options
+  const [selectOptions, setSelectOptions] = useState({
+    industry: [],
+    currency: [],
+    preferredPaymentMethod: [],
+    preferredShippingMethod: [],
+    accountType: [],
+  
+  });
+
+  // Fetch select options from API on mount
+  useEffect(() => {
+    axios.get(`${apiUrl}/client/selectclient`)
+      .then(res => {
+        if (res.data.success && res.data.data) {
+          setSelectOptions({
+            industry: (res.data.data.industry || []).map(v => ({ value: v, label: v })),
+            currency: (res.data.data.currency || []).map(v => ({ value: v, label: v })),
+            preferredPaymentMethod: (res.data.data.preferredPaymentMethod || []).map(v => ({ value: v, label: v })),
+            preferredShippingMethod: (res.data.data.preferredShippingMethod || []).map(v => ({ value: v, label: v })),
+            accountType: (res.data.data.accountType || []).map(v => ({ value: v, label: v })),
+          });
+        }
+      });
+  }, []);
+
+  // Generic handler for creating new options
+  const handleCreateOption = (field) => (inputValue) => {
+    axios.post(`${apiUrl}/client/selectclient`, {
+      [field]: [...selectOptions[field].map(opt => opt.value), inputValue]
+    }).then(() => {
+      setSelectOptions(prev => ({
+        ...prev,
+        [field]: [...prev[field], { value: inputValue, label: inputValue }]
+      }));
+      setFormData(prev => ({
+        ...prev,
+        [field]: inputValue
+      }));
+    });
+  };
+
+  return (
+    <>
+      <ToastContainer />
+      <div className="container mt-5">
+        <div className="card shadow-sm">
+          <div className="card-body">
+            {/* <h1 className="card-title h4 mb-4">Add Company</h1> */}
+            <h2 className="mb-4">{id || client?._id ? "Edit client" : "New Company (Client)"}</h2>
+            <form className="row g-3" onSubmit={handleSubmit}>
+              <div className='col-md-3'>  <h6 className="mb-3">Client/Supplier Information</h6></div>
+              <div className="col-md-6"></div>
+              <div className="col-md-6">
+                <label className="form-label">Name</label>
+                <input required type="text" name="clientName" value={formData.clientName} onChange={handleChange} className="form-control" placeholder="Enter  name" />
+                {errors.clientName && <div className="text-danger small">{errors.clientName}</div>}
+              </div>
+
+              {/* <div className="col-md-6">
+                <label className="form-label">Industry</label>
+                <select className="form-select" name="industry" required value={formData.industry} onChange={handleChange}>
+                  <option value="">Select industry</option>
+                  <option value="manufacturing">Manufacturing</option>
+                  <option value="tech">Technology</option>
+                  <option value="retail">Retail</option>
+                </select>
+                {errors.industry && <div className="text-danger small">{errors.industry}</div>}
+              </div> */}
+              {/* Industry */}
+              <div className="col-md-6">
+                <label className="form-label">Industry</label>
+                <CreatableSelect
+                  options={selectOptions.industry}
+                  value={selectOptions.industry.find((opt) => opt.value === formData.industry)}
+                  onChange={(option) =>
+                    setFormData((prev) => ({ ...prev, industry: option?.value || "" }))
+                  }
+                  onCreateOption={handleCreateOption('industry')}
+                  isClearable
+                  required
+                />
+              </div>
+
+              <div className="col-md-6">
+                <label className="form-label">Website</label>
+                <input required type="url" name="website" value={formData.website} onChange={handleChange} className="form-control" placeholder="https://" />
+                {errors.website && <div className="text-danger small">{errors.website}</div>}
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Client Address</label>
+                <textarea required className="form-control" name="clientAddress" value={formData.clientAddress} onChange={handleChange}></textarea>
+                {errors.clientAddress && <div className="text-danger small">{errors.clientAddress}</div>}
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Tax ID/VAT Number</label>
+                <input required type="text" name="TaxID_VATNumber" value={formData.TaxID_VATNumber} onChange={handleChange} className="form-control" />
+                {errors.TaxID_VATNumber && <div className="text-danger small">{errors.TaxID_VATNumber}</div>}
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">CSR Code</label>
+                <input type="text" name="CSRCode" required value={formData.CSRCode} onChange={handleChange} className="form-control" />
+                {errors.CSRCode && <div className="text-danger small">{errors.CSRCode}</div>}
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Status</label>
+                <select
+                  className="form-select"
+                  name="Status"
+                  required
+                  value={formData.Status}
+                  onChange={handleChange}
+                >
+                  <option value="">Select Status</option> {/* empty option for forcing selection */}
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+                {errors.Status && <div className="text-danger small">{errors.Status}</div>}
+              </div>
+
+              <div className='col-md-12 row'>
+                <h5 className="mb-3 mt-4">Contact Persons</h5>
+                {contactPersons.map((contact, index) => (
+                  <div className="border p-3 mb-3" key={index}>
+                    <div className="row">
+                      <div className="col-md-6">
+                        <label className="form-label">Contact Name</label>
+                        <input
+                          type="text"
+                          name="contactName"
+                          required
+                          value={contact.contactName}
+                          onChange={(e) => handleContactChange(index, e)}
+                          className="form-control"
+                          placeholder="Enter Contact Name"
+                        />
+                        {errors[`contactName_${index}`] && <div className="text-danger small">{errors[`contactName_${index}`]}</div>}
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label">Job Title</label>
+                        <input
+                          type="text"
+                          name="jobTitle"
+                          value={contact.jobTitle}
+                          onChange={(e) => handleContactChange(index, e)}
+                          className="form-control"
+                          placeholder="Enter Job Title"
+                        />
+                        {errors[`jobTitle_${index}`] && <div className="text-danger small">{errors[`jobTitle_${index}`]}</div>}
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label">Email</label>
+                        <input
+                          type="email"
+                          name="email"
+                          required
+                          value={contact.email}
+                          onChange={(e) => handleContactChange(index, e)}
+                          className="form-control"
+                          placeholder="Enter Email"
+                        />
+                        {errors[`email_${index}`] && <div className="text-danger small">{errors[`email_${index}`]}</div>}
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label">Phone</label>
+                        <input
+                          type="tel"
+                          name="phone"
+                          required
+                          value={contact.phone}
+                          onChange={(e) => handleContactChange(index, e)}
+                          className="form-control"
+                          placeholder="Enter Phone"
+                          maxLength={10}
+                        />
+                        {errors[`phone_${index}`] && <div className="text-danger small">{errors[`phone_${index}`]}</div>}
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label">Department</label>
+                        <input
+                          type="text"
+                          name="department"
+                          value={contact.department}
+                          onChange={(e) => handleContactChange(index, e)}
+                          className="form-control"
+                          placeholder="Enter Department"
+                        />
+                        {errors[`department_${index}`] && <div className="text-danger small">{errors[`department_${index}`]}</div>}
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label">Sales Representative</label>
+                        <input
+                          type="text"
+                          name="salesRepresentative"
+                          value={contact.salesRepresentative}
+                          onChange={(e) => handleContactChange(index, e)}
+                          className="form-control"
+                          placeholder="Enter Sales Representative"
+                        />
+                        {errors[`salesRepresentative_${index}`] && <div className="text-danger small">{errors[`salesRepresentative_${index}`]}</div>}
+                      </div>
+
+                      <div className="col-md-12 mt-2 d-flex justify-content-end">
+                        {contactPersons.length > 1 && (
+                          <button
+                            type="button"
+                            className="btn btn-danger btn-sm"
+                            onClick={() => {
+                              const updatedContacts = [...contactPersons];
+                              updatedContacts.splice(index, 1);
+                              setContactPersons(updatedContacts);
+                            }}
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Add More Button */}
+                <div className="mb-3">
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={() => {
+                      setContactPersons([
+                        ...contactPersons,
+                        {
+                          contactName: '',
+                          jobTitle: '',
+                          email: '',
+                          phone: '',
+                          department: '',
+                          salesRepresentative: ''
+                        }
+                      ]);
+                    }}
+                  >
+                    + Add Another Contact
+                  </button>
+                </div>
+              </div>
+
+              {/* Billing Information */}
+              <div className='col-md-12 row'>
+                <h5 className="mb-3 mt-4">Billing Information</h5>
+                <div className="col-md-12">
+                  <label className="form-label">Billing Address</label>
+                  <textarea className="form-control" rows="3" name="billingAddress" value={billingInformation[0].billingAddress} onChange={(e) => handleBillingChange(0, e)}></textarea>
+                  {errors.billingAddress && <div className="text-danger small">{errors.billingAddress}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Billing Contact Name</label>
+                  <input type="text" className="form-control" name="billingContactName"  value={billingInformation[0].billingContactName} onChange={(e) => handleBillingChange(0, e)} />
+                  {errors.billingContactName && <div className="text-danger small">{errors.billingContactName}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Billing Email</label>
+                  <input type="email" className="form-control" name="billingEmail"  value={billingInformation[0].billingEmail} onChange={(e) => handleBillingChange(0, e)} />
+                  {errors.billingEmail && <div className="text-danger small">{errors.billingEmail}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Billing Phone</label>
+                  <input type="tel" className="form-control" name="billingPhone"  value={billingInformation[0].billingPhone} onChange={(e) => handleBillingChange(0, e)} maxLength={10} />
+                  {errors.billingPhone && <div className="text-danger small">{errors.billingPhone}</div>}
+                </div>
+
+                {/* <div className="col-md-6">
+                  <label className="form-label">Currency</label>
+                  <select className="form-select" name="currency" required value={billingInformation[0].currency} onChange={(e) => handleBillingChange(0, e)}>
+                    <option value="">Select Currency</option>
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="GBP">GBP</option>
+                  </select>
+                  {errors.currency && <div className="text-danger small">{errors.currency}</div>}
+                </div> */}
+                <div className="col-md-6">
+                  <label className="form-label">Currency</label>
+                  <CreatableSelect
+                    options={selectOptions.currency}
+                    value={selectOptions.currency.find((opt) => opt.value === formData.currency)}
+                    onChange={(option) =>
+                      setFormData((prev) => ({ ...prev, currency: option?.value || "" }))
+                    }
+                    onCreateOption={handleCreateOption('currency')}
+                    isClearable
+                  />
+                </div>
+
+                {/* <div className="col-md-6">
+                  <label className="form-label">Preferred Payment Method</label>
+                  <select className="form-select" name="preferredPaymentMethod" required value={billingInformation[0].preferredPaymentMethod} onChange={(e) => handleBillingChange(0, e)}>
+                    <option value="">Select Payment Method</option>
+                    <option value="BankTransfer">BankTransfer</option>
+                    <option value="CreditCard">CreditCard</option>
+                    <option value="Check">Check</option>
+                  </select>
+                  {errors.preferredPaymentMethod && <div className="text-danger small">{errors.preferredPaymentMethod}</div>}
+                </div> */}
+                <div className="col-md-6">
+                  <label className="form-label">Preferred Payment Method</label>
+                  <CreatableSelect
+                    options={selectOptions.preferredPaymentMethod}
+                    value={selectOptions.preferredPaymentMethod.find((opt) => opt.value === formData.preferredPaymentMethod)}
+                    onChange={(option) =>
+                      setFormData((prev) => ({ ...prev, preferredPaymentMethod: option?.value || "" }))
+                    }
+                    onCreateOption={handleCreateOption('preferredPaymentMethod')}
+                    isClearable
+                  />
+                </div>
+
+                {/* Shipping Information */}
+                <h5 className="mb-3 mt-4">Shipping Information</h5>
+                <div className="col-md-12">
+                  <label className="form-label">Shipping Address</label>
+                  <textarea className="form-control" rows="3" name="shippingAddress" value={shippingInformation[0].shippingAddress} onChange={(e) => handleShippingChange(0, e)}></textarea>
+                  {errors.shippingAddress && <div className="text-danger small">{errors.shippingAddress}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Shipping Contact Name</label>
+                  <input type="text" className="form-control" name="shippingContactName"  value={shippingInformation[0].shippingContactName} onChange={(e) => handleShippingChange(0, e)} />
+                  {errors.shippingContactName && <div className="text-danger small">{errors.shippingContactName}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Shipping Email</label>
+                  <input type="email" className="form-control" name="shippingEmail"  value={shippingInformation[0].shippingEmail} onChange={(e) => handleShippingChange(0, e)} />
+                  {errors.shippingEmail && <div className="text-danger small">{errors.shippingEmail}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Shipping Phone</label>
+                  <input type="tel" className="form-control" name="shippingPhone"  value={shippingInformation[0].shippingPhone} onChange={(e) => handleShippingChange(0, e)} maxLength={10} />
+                  {errors.shippingPhone && <div className="text-danger small">{errors.shippingPhone}</div>}
+                </div>
+
+                {/* <div className="col-md-6">
+                  <label className="form-label">Preferred Shipping Method</label>
+                  <select className="form-select" name="preferredShippingMethod" required value={shippingInformation[0].preferredShippingMethod} onChange={(e) => handleShippingChange(0, e)}>
+                    <option value="">Select Shipping Method</option>
+                    <option value="ground">Ground</option>
+                    <option value="standard">Standard</option>
+                    <option value="express">Express</option>
+                    <option value="overnight">Overnight</option>
+                  </select>
+                  {errors.preferredShippingMethod && <div className="text-danger small">{errors.preferredShippingMethod}</div>}
+                </div> */}
+             <div className="col-md-6">
+                  <label className="form-label">Preferred Shipping Method</label>
+                  <CreatableSelect
+                    options={selectOptions.preferredShippingMethod}
+                    value={selectOptions.preferredShippingMethod.find((opt) => opt.value === formData.preferredShippingMethod)}
+                    onChange={(option) =>
+                      setFormData((prev) => ({ ...prev, preferredShippingMethod: option?.value || "" }))
+                    }
+                    onCreateOption={handleCreateOption('preferredShippingMethod')}
+                    isClearable
+                  
+                  />
+                </div>
+
+
+                <div className="col-md-12">
+                  <label className="form-label">Special Instructions</label>
+                  <textarea className="form-control" rows="3" name="specialInstructions"  value={shippingInformation[0].specialInstructions} onChange={(e) => handleShippingChange(0, e)}></textarea>
+                  {errors.specialInstructions && <div className="text-danger small">{errors.specialInstructions}</div>}
+                </div>
+
+                {/* Financial Information */}
+                <h5 className="mb-3 mt-4">Financial Information</h5>
+                <div className="col-md-6">
+                  <label className="form-label">Annual Revenue</label>
+                  <input type="number" className="form-control" name="annualRevenue"  value={financialInformation[0].annualRevenue} onChange={(e) => handleFinancialChange(0, e)} />
+                  {errors.annualRevenue && <div className="text-danger small">{errors.annualRevenue}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Credit Rating</label>
+                  <input type="number" className="form-control" name="creditRating"  value={financialInformation[0].creditRating} onChange={(e) => handleFinancialChange(0, e)} min={1} max={5} />
+                  {errors.creditRating && <div className="text-danger small">{errors.creditRating}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Bank Name</label>
+                  <input type="text" className="form-control" name="bankName"  value={financialInformation[0].bankName} onChange={(e) => handleFinancialChange(0, e)} />
+                  {errors.bankName && <div className="text-danger small">{errors.bankName}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Account Number</label>
+                  <input type="text" className="form-control" name="accountNumber"  value={financialInformation[0].accountNumber} onChange={(e) => handleFinancialChange(0, e)} />
+                  {errors.accountNumber && <div className="text-danger small">{errors.accountNumber}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Fiscal Year End</label>
+                  <input type="date" className="form-control" name="fiscalYearEnd"  value={financialInformation[0].fiscalYearEnd} onChange={(e) => handleFinancialChange(0, e)} />
+                  {errors.fiscalYearEnd && <div className="text-danger small">{errors.fiscalYearEnd}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Financial Contact</label>
+                  <input type="text" className="form-control" name="financialContact"  value={financialInformation[0].financialContact} onChange={(e) => handleFinancialChange(0, e)} />
+                  {errors.financialContact && <div className="text-danger small">{errors.financialContact}</div>}
+                </div>
+
+                {/* Ledger Information */}
+                <h5 className="mb-3 mt-4">Ledger Information</h5>
+                <div className="col-md-6">
+                  <label className="form-label">Account Code</label>
+                  <input type="text" className="form-control" name="accountCode"  value={ledgerInformation[0].accountCode} onChange={(e) => handleLedgerChange(0, e)} />
+                  {errors.accountCode && <div className="text-danger small">{errors.accountCode}</div>}
+                </div>
+               
+                {/* <div className="col-md-6">
+                  <label className="form-label">Account Type</label>
+                  <select className="form-select" name="accountType" required value={ledgerInformation[0].accountType} onChange={(e) => handleLedgerChange(0, e)}>
+                    <option value="">Select Account Type</option>
+                    <option value="AccountsReceivable">AccountsReceivable</option>
+                    <option value="AccountsPayable">AccountsPayable</option>
+                  </select>
+                  {errors.accountType && <div className="text-danger small">{errors.accountType}</div>}
+                </div> */}
+                  <div className="col-md-6">
+                  <label className="form-label">Account Type</label>
+                  <CreatableSelect
+                    options={selectOptions.accountType}
+                    value={selectOptions.accountType.find((opt) => opt.value === formData.accountType)}
+                    onChange={(option) =>
+                      setFormData((prev) => ({ ...prev, accountType: option?.value || "" }))
+                    }
+                    onCreateOption={handleCreateOption('accountType')}
+                    isClearable
+                    
+                  />
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label">Opening Balance</label>
+                  <input type="number" className="form-control" name="openingBalance"  value={ledgerInformation[0].openingBalance} onChange={(e) => handleLedgerChange(0, e)} />
+                  {errors.openingBalance && <div className="text-danger small">{errors.openingBalance}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Balance Date</label>
+                  <input type="date" className="form-control" name="balanceDate"  value={ledgerInformation[0].balanceDate} onChange={(e) => handleLedgerChange(0, e)} />
+                  {errors.balanceDate && <div className="text-danger small">{errors.balanceDate}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Tax Category</label>
+                  <select className="form-select" name="taxCategory"  value={ledgerInformation[0].taxCategory} onChange={(e) => handleLedgerChange(0, e)}>
+                    <option value="standard">Standard Rate</option>
+                    <option value="reduced">Reduced Rate</option>
+                    <option value="zero">Zero Rate</option>
+                  </select>
+                  {errors.taxCategory && <div className="text-danger small">{errors.taxCategory}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Cost Center</label>
+                  <input type="text" className="form-control" name="costCenter"  value={ledgerInformation[0].costCenter} onChange={(e) => handleLedgerChange(0, e)} />
+                  {errors.costCenter && <div className="text-danger small">{errors.costCenter}</div>}
+                </div>
+
+                {/* Additional Information */}
+                <h5 className="mb-3 mt-4">Additional Information</h5>
+                <div className="col-md-6">
+                  <label className="form-label">Payment Terms</label>
+                  <select
+                    className="form-select"
+                    name="paymentTerms"
+                    value={additionalInformation.paymentTerms}
+                    onChange={handleAdditionalChange}
+                  >
+                    <option value="">Select Payment Terms</option>  {/* <-- placeholder */}
+                    <option value="net30">Net 30</option>
+                    <option value="net60">Net 60</option>
+                    <option value="net90">Net 90</option>
+                  </select>
+                  {errors.paymentTerms && <div className="text-danger small">{errors.paymentTerms}</div>}
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label">Credit Limit</label>
+                  <input type="number" className="form-control" name="creditLimit"  value={additionalInformation.creditLimit} onChange={handleAdditionalChange} />
+                  {errors.creditLimit && <div className="text-danger small">{errors.creditLimit}</div>}
+                </div>
+              </div>
+              <div className="col-md-12">
+                <label className="form-label">Notes</label>
+                <textarea className="form-control" rows="3" name="notes"  value={additionalInformation.notes} onChange={handleAdditionalChange} placeholder="Additional notes"></textarea>
+                {errors.notes && <div className="text-danger small">{errors.notes}</div>}
+              </div>
+
+              <div className="col-12 d-flex justify-content-end gap-2 mt-4">
+                <button type="button" className="btn btn-outline-secondary">Cancel</button>
+                <button type="submit" id="btn-All" className="btn btn-dark">{id || client?._id ? "Update client" : "Create"}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export default AddClientManagement;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// /////////////////////////
+
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { useDispatch } from 'react-redux';
+import { createClients, fetchClient, UpdateClients } from '../../../redux/slices/ClientSlice';
+import "react-toastify/dist/ReactToastify.css";
+import axios from 'axios';
+import { apiUrl } from '../../../redux/utils/config';
+import CreatableSelect from "react-select/creatable";
+
+// Add this function to format date for input fields
+const formatDate = (dateStr) => {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d)) return '';
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${month}-${day}`;
+};
+
+function AddClientManagement() {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { id } = useParams(); // for edit mo
+  const location = useLocation();
+  const { client } = location.state || {};
+  const _id = client?._id
+  console.log("oo", _id);
+
+  // Initial form state
+  const [formData, setFormData] = useState({
+    clientName: '',
+    industry: '',
+    website: '',
+    clientAddress: '',
+    TaxID_VATNumber: '',
+    CSRCode: '',
+    Status: ''
+  });
+
+  // Contact persons state
+  const [contactPersons, setContactPersons] = useState([
+    {
+      contactName: '',
+      jobTitle: '',
+      email: '',
+      phone: '',
+      department: '',
+      salesRepresentative: ''
+    }
+  ]);
+
+  // Billing information state
+  const [billingInformation, setBillingInformation] = useState([
+    {
+      billingAddress: '',
+      billingContactName: '',
+      billingEmail: '',
+      billingPhone: '',
+      currency: '',
+      preferredPaymentMethod: ''
+    }
+  ]);
+  // Shipping information state
+  const [shippingInformation, setShippingInformation] = useState([
+    {
+      shippingAddress: '',
+      shippingContactName: '',
+      shippingEmail: '',
+      shippingPhone: '',
+      preferredShippingMethod: '',
+      specialInstructions: ''
+    }
+  ]);
+  // Financial information state
+  const [financialInformation, setFinancialInformation] = useState([
+    {
+      annualRevenue: '',
+      creditRating: '',
+      bankName: '',
+      accountNumber: '',
+      fiscalYearEnd: '',
+      financialContact: ''
+    }
+  ]);
+
+  // Ledger information state
+  const [ledgerInformation, setLedgerInformation] = useState([
+    {
+      accountCode: '',
+      accountType: '',
+      openingBalance: '',
+      balanceDate: '',
+      taxCategory: '',
+      costCenter: ''
+    }
+  ]);
+
+  // Additional information state
+  const [additionalInformation, setAdditionalInformation] = useState({
+    paymentTerms: '',
+    creditLimit: '',
+    notes: ''
+  });
+
+  // Add state for errors
+  const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    const updateStates = (clientData) => {
+      setFormData({
+        clientName: clientData.clientName || '',
+        industry: clientData.industry || '',
+        website: clientData.website || '',
+        clientAddress: clientData.clientAddress || '',
+        TaxID_VATNumber: clientData.TaxID_VATNumber || '',
+        CSRCode: clientData.CSRCode || '',
+        Status: clientData.Status || ''
+      });
+
+      setContactPersons(clientData.contactPersons || []);
+      setBillingInformation(clientData.billingInformation || []);
+      setShippingInformation(clientData.shippingInformation || []);
+      setFinancialInformation(
+        (clientData.financialInformation || []).map((item) => ({
+          ...item,
+          fiscalYearEnd: formatDate(item.fiscalYearEnd),
+        }))
+      );
+      setLedgerInformation(
+        (clientData.ledgerInformation || []).map((item) => ({
+          ...item,
+          balanceDate: formatDate(item.balanceDate),
+        }))
+      );
+      setAdditionalInformation(clientData.additionalInformation || {
+        paymentTerms: '',
+        creditLimit: '',
+        notes: ''
+      });
+    };
+
+    if (client) {
+      updateStates(client);
+    } else if (id) {
+      dispatch(fetchclientById(id)).then((res) => {
+        const fetchedclient = res.payload;
+        if (fetchedclient) {
+          updateStates(fetchedclient);
+        }
+      });
+    }
+  }, [id, dispatch, client]);
+
+
+
+  // Handle basic form field changes
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Handle contact person changes
+  const handleContactChange = (index, e) => {
+    const { name, value } = e.target;
+    let newValue = value;
+    if (name === 'phone') {
+      newValue = newValue.replace(/[^\d]/g, '').slice(0, 10);
+    }
+    const updatedContacts = [...contactPersons];
+    updatedContacts[index] = {
+      ...updatedContacts[index],
+      [name]: newValue
+    };
+    setContactPersons(updatedContacts);
+  };
+
+  // Handle billing information changes
+  const handleBillingChange = (index, e) => {
+    const { name, value } = e.target;
+    let newValue = value;
+    if (name === 'billingPhone') {
+      newValue = newValue.replace(/[^\d]/g, '').slice(0, 10);
+    }
+    const updatedBilling = [...billingInformation];
+    updatedBilling[index] = {
+      ...updatedBilling[index],
+      [name]: newValue
+    };
+    setBillingInformation(updatedBilling);
+  };
+
+  // Handle shipping information changes
+  const handleShippingChange = (index, e) => {
+    const { name, value } = e.target;
+    let newValue = value;
+    if (name === 'shippingPhone') {
+      newValue = newValue.replace(/[^\d]/g, '').slice(0, 10);
+    }
+    const updatedShipping = [...shippingInformation];
+    updatedShipping[index] = {
+      ...updatedShipping[index],
+      [name]: newValue
+    };
+    setShippingInformation(updatedShipping);
+  };
+
+  // Handle financial information changes
+  const handleFinancialChange = (index, e) => {
+    const { name, value } = e.target;
+    let newValue = value;
+    if (name === 'creditRating') {
+      // Only allow numbers between 1 and 5
+      let num = Number(newValue);
+      if (newValue === '') {
+        newValue = '';
+      } else if (num < 1) {
+        newValue = '1';
+      } else if (num > 5) {
+        newValue = '5';
+      } else {
+        newValue = String(num);
+      }
+    }
+    const updatedFinancial = [...financialInformation];
+    updatedFinancial[index] = {
+      ...updatedFinancial[index],
+      [name]: newValue
+    };
+    setFinancialInformation(updatedFinancial);
+  };
+
+  // Handle ledger information changes
+  const handleLedgerChange = (index, e) => {
+    const { name, value } = e.target;
+    const updatedLedger = [...ledgerInformation];
+    updatedLedger[index] = {
+      ...updatedLedger[index],
+      [name]: value
+    };
+    setLedgerInformation(updatedLedger);
+  };
+
+
+  const handleAdditionalChange = (e) => {
+    const { name, value } = e.target;
+    setAdditionalInformation(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Validation function
+  const validate = () => {
+    const newErrors = {};
+
+    // Basic form fields
+    if (!formData.clientName.trim()) newErrors.clientName = 'Name is required';
+    if (!formData.industry) newErrors.industry = 'industry is required';
+    if (!formData.website.trim()) newErrors.website = 'Website is required';
+    else if (!/^https?:\/\//.test(formData.website)) newErrors.website = 'Website must start with http:// or https://';
+    if (!formData.clientAddress.trim()) newErrors.clientAddress = 'Client Address is required';
+    if (!formData.TaxID_VATNumber.trim()) newErrors.TaxID_VATNumber = 'Tax ID/VAT Number is required';
+    if (!formData.CSRCode.trim()) newErrors.CSRCode = 'CSR Code is required';
+    if (!formData.Status) newErrors.Status = 'Status is required';
+
+    // Contact Persons
+    contactPersons.forEach((contact, idx) => {
+      if (!contact.contactName.trim()) newErrors[`contactName_${idx}`] = 'Contact Name is required';
+      if (!contact.jobTitle.trim()) newErrors[`jobTitle_${idx}`] = 'Job Title is required';
+      if (!contact.email.trim()) newErrors[`email_${idx}`] = 'Email is required';
+      else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(contact.email)) newErrors[`email_${idx}`] = 'Invalid email';
+      if (!contact.phone.trim()) newErrors[`phone_${idx}`] = 'Phone is required';
+      else if (!/^\d{10}$/.test(contact.phone)) newErrors[`phone_${idx}`] = 'Phone must be 10 digits';
+      if (!contact.department.trim()) newErrors[`department_${idx}`] = 'Department is required';
+      if (!contact.salesRepresentative.trim()) newErrors[`salesRepresentative_${idx}`] = 'Sales Representative is required';
+    });
+
+    // Billing Information (first item)
+    const billing = billingInformation[0] || {};
+    if (!billing.billingAddress.trim()) newErrors.billingAddress = 'Billing Address is required';
+    if (!billing.billingContactName.trim()) newErrors.billingContactName = 'Billing Contact Name is required';
+    if (!billing.billingEmail.trim()) newErrors.billingEmail = 'Billing Email is required';
+    else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(billing.billingEmail)) newErrors.billingEmail = 'Invalid email';
+    if (!billing.billingPhone.trim()) newErrors.billingPhone = 'Billing Phone is required';
+    else if (!/^\d{10}$/.test(billing.billingPhone)) newErrors.billingPhone = 'Phone must be 10 digits';
+    if (!billing.currency) newErrors.currency = 'Currency is required';
+    if (!billing.preferredPaymentMethod) newErrors.preferredPaymentMethod = 'Preferred Payment Method is required';
+
+    // Shipping Information (first item)
+    const shipping = shippingInformation[0] || {};
+    if (!shipping.shippingAddress.trim()) newErrors.shippingAddress = 'Shipping Address is required';
+    if (!shipping.shippingContactName.trim()) newErrors.shippingContactName = 'Shipping Contact Name is required';
+    if (!shipping.shippingEmail.trim()) newErrors.shippingEmail = 'Shipping Email is required';
+    else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(shipping.shippingEmail)) newErrors.shippingEmail = 'Invalid email';
+    if (!shipping.shippingPhone.trim()) newErrors.shippingPhone = 'Shipping Phone is required';
+    else if (!/^\d{10}$/.test(shipping.shippingPhone)) newErrors.shippingPhone = 'Phone must be 10 digits';
+    if (!shipping.preferredShippingMethod) newErrors.preferredShippingMethod = 'Preferred Shipping Method is required';
+    if (!shipping.specialInstructions.trim()) newErrors.specialInstructions = 'Special Instructions are required';
+
+    // Financial Information (first item)
+    const financial = financialInformation[0] || {};
+    if (!financial.annualRevenue) newErrors.annualRevenue = 'Annual Revenue is required';
+    else if (isNaN(financial.annualRevenue) || Number(financial.annualRevenue) < 0) newErrors.annualRevenue = 'Annual Revenue must be a positive number';
+    if (!financial.creditRating) newErrors.creditRating = 'Credit Rating is required';
+    else if (isNaN(financial.creditRating) || Number(financial.creditRating) < 1 || Number(financial.creditRating) > 5) newErrors.creditRating = 'Credit Rating must be between 1 and 5';
+    if (!financial.bankName.trim()) newErrors.bankName = 'Bank Name is required';
+    if (!financial.accountNumber.trim()) newErrors.accountNumber = 'Account Number is required';
+    if (!financial.fiscalYearEnd) newErrors.fiscalYearEnd = 'Fiscal Year End is required';
+    if (!financial.financialContact.trim()) newErrors.financialContact = 'Financial Contact is required';
+
+    // Ledger Information (first item)
+    const ledger = ledgerInformation[0] || {};
+    if (!ledger.accountCode.trim()) newErrors.accountCode = 'Account Code is required';
+    if (!ledger.accountType) newErrors.accountType = 'Account Type is required';
+    if (!ledger.openingBalance) newErrors.openingBalance = 'Opening Balance is required';
+    else if (isNaN(ledger.openingBalance)) newErrors.openingBalance = 'Opening Balance must be a number';
+    if (!ledger.balanceDate) newErrors.balanceDate = 'Balance Date is required';
+    if (!ledger.taxCategory) newErrors.taxCategory = 'Tax Category is required';
+    if (!ledger.costCenter.trim()) newErrors.costCenter = 'Cost Center is required';
+
+    // Additional Information
+    if (!additionalInformation.paymentTerms) newErrors.paymentTerms = 'Payment Terms is required';
+    if (!additionalInformation.creditLimit) newErrors.creditLimit = 'Credit Limit is required';
+    else if (isNaN(additionalInformation.creditLimit) || Number(additionalInformation.creditLimit) < 0) newErrors.creditLimit = 'Credit Limit must be a positive number';
+    if (!additionalInformation.notes.trim()) newErrors.notes = 'Notes is required';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validate()) {
+      toast.error('Please fix the errors in the form.');
+      return;
+    }
+    const fullData = {
+      ...formData,
+      contactPersons,
+      billingInformation,
+      shippingInformation,
+      financialInformation,
+      ledgerInformation,
+      additionalInformation
+    };
+    console.log('Full Data Object:', fullData);
+    if (_id) {
+      dispatch(UpdateClients({ _id, data: fullData }))
+        .unwrap()
+        .then(() => {
+          toast.success("clientupdated successfully!");
+          navigate("/admin/clientManagement");
+          dispatch(fetchClient());
+        })
+        .catch(() => {
+          toast.error("Failed to update client!");
+        });
+    } else {
+      dispatch(createClients(fullData))
+        .unwrap()
+        .then(() => {
+          toast.success("clientcreated successfully!");
+          navigate("/admin/clientManagement");
+          dispatch(fetchClient());
+        })
+        .catch(() => {
+          toast.error("Error creating client");
+        });
+    }
+  };
+
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+
+  //   const fullData = {
+  //     ...formData,
+  //     contactPersons,
+  //     billingInformation,
+  //     shippingInformation,
+  //     financialInformation,
+  //     ledgerInformation,
+  //     additionalInformation
+  //   };
+  //         dispatch(createClients(fullData))
+  //       .unwrap()
+  //       .then(() => {
+  //         toast.success("clientcreated successfully!");
+  //         navigate("/clientManagement");
+  //       })
+  //       .catch(() => {
+  //         toast.error("Error creating client");
+  //       });
+  // };
+
+  // ///////////////////////////////////////////////////////////////////////////////////////////
+
+  // Keep the options in local state so we can push newly‑created ones
+  const [brandOptions, setBrandOptions] = useState([
+    { value: "Coca‑Cola", label: "Coca‑Cola" },
+    { value: "Pepsi", label: "Pepsi" },
+    // …your initial list
+  ]);
+
+  // When the user creates a brand that isn’t in the list yet
+  const handleCreate = (inputValue) => {
+    const newOption = { value: inputValue, label: inputValue };
+    setBrandOptions((prev) => [...prev, newOption]);
+    setFormData((prev) => ({ ...prev, brandName: inputValue }));
+  };
+
+  // Add state for select options
+  const [selectOptions, setSelectOptions] = useState({
+    industry: [],
+    currency: [],
+    preferredPaymentMethod: [],
+    preferredShippingMethod: [],
+    accountType: [],
+  
+  });
+
+  // Fetch select options from API on mount
+  useEffect(() => {
+    axios.get(`${apiUrl}/client/selectclient`)
+      .then(res => {
+        if (res.data.success && res.data.data) {
+          setSelectOptions({
+            industry: (res.data.data.industry || []).map(v => ({ value: v, label: v })),
+            currency: (res.data.data.currency || []).map(v => ({ value: v, label: v })),
+            preferredPaymentMethod: (res.data.data.preferredPaymentMethod || []).map(v => ({ value: v, label: v })),
+            preferredShippingMethod: (res.data.data.preferredShippingMethod || []).map(v => ({ value: v, label: v })),
+            accountType: (res.data.data.accountType || []).map(v => ({ value: v, label: v })),
+          });
+        }
+      });
+  }, []);
+
+  // Generic handler for creating new options
+  const handleCreateOption = (field) => (inputValue) => {
+    axios.post(`${apiUrl}/client/selectclient`, {
+      [field]: [...selectOptions[field].map(opt => opt.value), inputValue]
+    }).then(() => {
+      setSelectOptions(prev => ({
+        ...prev,
+        [field]: [...prev[field], { value: inputValue, label: inputValue }]
+      }));
+      setFormData(prev => ({
+        ...prev,
+        [field]: inputValue
+      }));
+    });
+  };
+
+  return (
+    <>
+      <ToastContainer />
+      <div className="container mt-5">
+        <div className="card shadow-sm">
+          <div className="card-body">
+            {/* <h1 className="card-title h4 mb-4">Add Company</h1> */}
+            <h2 className="mb-4">{id || client?._id ? "Edit client" : "New Company (Client)"}</h2>
+            <form className="row g-3" onSubmit={handleSubmit}>
+              <div className='col-md-3'>  <h6 className="mb-3">Client/Supplier Information</h6></div>
+              <div className="col-md-6"></div>
+              <div className="col-md-6">
+                <label className="form-label">Name</label>
+                <input required type="text" name="clientName" value={formData.clientName} onChange={handleChange} className="form-control" placeholder="Enter  name" />
+                {errors.clientName && <div className="text-danger small">{errors.clientName}</div>}
+              </div>
+
+              {/* <div className="col-md-6">
+                <label className="form-label">industry</label>
+                <select className="form-select" name="industry" required value={formData.industry} onChange={handleChange}>
+                  <option value="">Select industry</option>
+                  <option value="manufacturing">Manufacturing</option>
+                  <option value="tech">Technology</option>
+                  <option value="retail">Retail</option>
+                </select>
+                {errors.industry && <div className="text-danger small">{errors.industry}</div>}
+              </div> */}
+              {/* industry */}
+              <div className="col-md-6">
+                <label className="form-label">Industry</label>
+                <CreatableSelect
+                  options={selectOptions.industry}
+                  value={selectOptions.industry.find((opt) => opt.value === formData.industry)}
+                  onChange={(option) =>
+                    setFormData((prev) => ({ ...prev, industry: option?.value || "" }))
+                  }
+                  onCreateOption={handleCreateOption('industry')}
+                  isClearable
+                  required
+                />
+              </div>
+
+              <div className="col-md-6">
+                <label className="form-label">Website</label>
+                <input required type="url" name="website" value={formData.website} onChange={handleChange} className="form-control" placeholder="https://" />
+                {errors.website && <div className="text-danger small">{errors.website}</div>}
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Client Address</label>
+                <textarea required className="form-control" name="clientAddress" value={formData.clientAddress} onChange={handleChange}></textarea>
+                {errors.clientAddress && <div className="text-danger small">{errors.clientAddress}</div>}
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Tax ID/VAT Number</label>
+                <input required type="text" name="TaxID_VATNumber" value={formData.TaxID_VATNumber} onChange={handleChange} className="form-control" />
+                {errors.TaxID_VATNumber && <div className="text-danger small">{errors.TaxID_VATNumber}</div>}
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">CSR Code</label>
+                <input type="text" name="CSRCode" required value={formData.CSRCode} onChange={handleChange} className="form-control" />
+                {errors.CSRCode && <div className="text-danger small">{errors.CSRCode}</div>}
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Status</label>
+                <select
+                  className="form-select"
+                  name="Status"
+                  required
+                  value={formData.Status}
+                  onChange={handleChange}
+                >
+                  <option value="">Select Status</option> {/* empty option for forcing selection */}
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+                {errors.Status && <div className="text-danger small">{errors.Status}</div>}
+              </div>
+
+              <div className='col-md-12 row'>
+                <h5 className="mb-3 mt-4">Contact Persons</h5>
+
+                {contactPersons.map((contact, index) => (
+                  <div className="border p-3 mb-3" key={index}>
+                    <div className="row">
+                      <div className="col-md-6">
+                        <label className="form-label">Contact Name</label>
+                        <input
+                          type="text"
+                          name="contactName"
+                          required
+                          value={contact.contactName}
+                          onChange={(e) => handleContactChange(index, e)}
+                          className="form-control"
+                          placeholder="Enter Contact Name"
+                        />
+                        {errors[`contactName_${index}`] && <div className="text-danger small">{errors[`contactName_${index}`]}</div>}
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label">Job Title</label>
+                        <input
+                          type="text"
+                          name="jobTitle"
+                          required
+                          value={contact.jobTitle}
+                          onChange={(e) => handleContactChange(index, e)}
+                          className="form-control"
+                          placeholder="Enter Job Title"
+                        />
+                        {errors[`jobTitle_${index}`] && <div className="text-danger small">{errors[`jobTitle_${index}`]}</div>}
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label">Email</label>
+                        <input
+                          type="email"
+                          name="email"
+                          required
+                          value={contact.email}
+                          onChange={(e) => handleContactChange(index, e)}
+                          className="form-control"
+                          placeholder="Enter Email"
+                        />
+                        {errors[`email_${index}`] && <div className="text-danger small">{errors[`email_${index}`]}</div>}
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label">Phone</label>
+                        <input
+                          type="tel"
+                          name="phone"
+                          required
+                          value={contact.phone}
+                          onChange={(e) => handleContactChange(index, e)}
+                          className="form-control"
+                          placeholder="Enter Phone"
+                          maxLength={10}
+                        />
+                        {errors[`phone_${index}`] && <div className="text-danger small">{errors[`phone_${index}`]}</div>}
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label">Department</label>
+                        <input
+                          type="text"
+                          name="department"
+                          required
+                          value={contact.department}
+                          onChange={(e) => handleContactChange(index, e)}
+                          className="form-control"
+                          placeholder="Enter Department"
+                        />
+                        {errors[`department_${index}`] && <div className="text-danger small">{errors[`department_${index}`]}</div>}
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label">Sales Representative</label>
+                        <input
+                          type="text"
+                          name="salesRepresentative"
+                          required
+                          value={contact.salesRepresentative}
+                          onChange={(e) => handleContactChange(index, e)}
+                          className="form-control"
+                          placeholder="Enter Sales Representative"
+                        />
+                        {errors[`salesRepresentative_${index}`] && <div className="text-danger small">{errors[`salesRepresentative_${index}`]}</div>}
+                      </div>
+
+                      <div className="col-md-12 mt-2 d-flex justify-content-end">
+                        {contactPersons.length > 1 && (
+                          <button
+                            type="button"
+                            className="btn btn-danger btn-sm"
+                            onClick={() => {
+                              const updatedContacts = [...contactPersons];
+                              updatedContacts.splice(index, 1);
+                              setContactPersons(updatedContacts);
+                            }}
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Add More Button */}
+                <div className="mb-3">
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={() => {
+                      setContactPersons([
+                        ...contactPersons,
+                        {
+                          contactName: '',
+                          jobTitle: '',
+                          email: '',
+                          phone: '',
+                          department: '',
+                          salesRepresentative: ''
+                        }
+                      ]);
+                    }}
+                  >
+                    + Add Another Contact
+                  </button>
+                </div>
+              </div>
+
+              {/* Billing Information */}
+              <div className='col-md-12 row'>
+                <h5 className="mb-3 mt-4">Billing Information</h5>
+                <div className="col-md-12">
+                  <label className="form-label">Billing Address</label>
+                  <textarea className="form-control" rows="3" name="billingAddress" required value={billingInformation[0].billingAddress} onChange={(e) => handleBillingChange(0, e)}></textarea>
+                  {errors.billingAddress && <div className="text-danger small">{errors.billingAddress}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Billing Contact Name</label>
+                  <input type="text" className="form-control" name="billingContactName" required value={billingInformation[0].billingContactName} onChange={(e) => handleBillingChange(0, e)} />
+                  {errors.billingContactName && <div className="text-danger small">{errors.billingContactName}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Billing Email</label>
+                  <input type="email" className="form-control" name="billingEmail" required value={billingInformation[0].billingEmail} onChange={(e) => handleBillingChange(0, e)} />
+                  {errors.billingEmail && <div className="text-danger small">{errors.billingEmail}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Billing Phone</label>
+                  <input type="tel" className="form-control" name="billingPhone" required value={billingInformation[0].billingPhone} onChange={(e) => handleBillingChange(0, e)} maxLength={10} />
+                  {errors.billingPhone && <div className="text-danger small">{errors.billingPhone}</div>}
+                </div>
+
+                {/* <div className="col-md-6">
+                  <label className="form-label">Currency</label>
+                  <select className="form-select" name="currency" required value={billingInformation[0].currency} onChange={(e) => handleBillingChange(0, e)}>
+                    <option value="">Select Currency</option>
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="GBP">GBP</option>
+                  </select>
+                  {errors.currency && <div className="text-danger small">{errors.currency}</div>}
+                </div> */}
+                <div className="col-md-6">
+                  <label className="form-label">Currency</label>
+                  <CreatableSelect
+                    options={selectOptions.currency}
+                    value={selectOptions.currency.find((opt) => opt.value === formData.currency)}
+                    onChange={(option) =>
+                      setFormData((prev) => ({ ...prev, currency: option?.value || "" }))
+                    }
+                    onCreateOption={handleCreateOption('currency')}
+                    isClearable
+                    required
+                  />
+                </div>
+
+                {/* <div className="col-md-6">
+                  <label className="form-label">Preferred Payment Method</label>
+                  <select className="form-select" name="preferredPaymentMethod" required value={billingInformation[0].preferredPaymentMethod} onChange={(e) => handleBillingChange(0, e)}>
+                    <option value="">Select Payment Method</option>
+                    <option value="BankTransfer">BankTransfer</option>
+                    <option value="CreditCard">CreditCard</option>
+                    <option value="Check">Check</option>
+                  </select>
+                  {errors.preferredPaymentMethod && <div className="text-danger small">{errors.preferredPaymentMethod}</div>}
+                </div> */}
+                <div className="col-md-6">
+                  <label className="form-label">Preferred Payment Method</label>
+                  <CreatableSelect
+                    options={selectOptions.preferredPaymentMethod}
+                    value={selectOptions.preferredPaymentMethod.find((opt) => opt.value === formData.preferredPaymentMethod)}
+                    onChange={(option) =>
+                      setFormData((prev) => ({ ...prev, preferredPaymentMethod: option?.value || "" }))
+                    }
+                    onCreateOption={handleCreateOption('preferredPaymentMethod')}
+                    isClearable
+                    required
+                  />
+                </div>
+
+                {/* Shipping Information */}
+                <h5 className="mb-3 mt-4">Shipping Information</h5>
+                <div className="col-md-12">
+                  <label className="form-label">Shipping Address</label>
+                  <textarea className="form-control" rows="3" name="shippingAddress" required value={shippingInformation[0].shippingAddress} onChange={(e) => handleShippingChange(0, e)}></textarea>
+                  {errors.shippingAddress && <div className="text-danger small">{errors.shippingAddress}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Shipping Contact Name</label>
+                  <input type="text" className="form-control" name="shippingContactName" required value={shippingInformation[0].shippingContactName} onChange={(e) => handleShippingChange(0, e)} />
+                  {errors.shippingContactName && <div className="text-danger small">{errors.shippingContactName}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Shipping Email</label>
+                  <input type="email" className="form-control" name="shippingEmail" required value={shippingInformation[0].shippingEmail} onChange={(e) => handleShippingChange(0, e)} />
+                  {errors.shippingEmail && <div className="text-danger small">{errors.shippingEmail}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Shipping Phone</label>
+                  <input type="tel" className="form-control" name="shippingPhone" required value={shippingInformation[0].shippingPhone} onChange={(e) => handleShippingChange(0, e)} maxLength={10} />
+                  {errors.shippingPhone && <div className="text-danger small">{errors.shippingPhone}</div>}
+                </div>
+
+                {/* <div className="col-md-6">
+                  <label className="form-label">Preferred Shipping Method</label>
+                  <select className="form-select" name="preferredShippingMethod" required value={shippingInformation[0].preferredShippingMethod} onChange={(e) => handleShippingChange(0, e)}>
+                    <option value="">Select Shipping Method</option>
+                    <option value="ground">Ground</option>
+                    <option value="standard">Standard</option>
+                    <option value="express">Express</option>
+                    <option value="overnight">Overnight</option>
+                  </select>
+                  {errors.preferredShippingMethod && <div className="text-danger small">{errors.preferredShippingMethod}</div>}
+                </div> */}
+             <div className="col-md-6">
+                  <label className="form-label">Preferred Shipping Method</label>
+                  <CreatableSelect
+                    options={selectOptions.preferredShippingMethod}
+                    value={selectOptions.preferredShippingMethod.find((opt) => opt.value === formData.preferredShippingMethod)}
+                    onChange={(option) =>
+                      setFormData((prev) => ({ ...prev, preferredShippingMethod: option?.value || "" }))
+                    }
+                    onCreateOption={handleCreateOption('preferredShippingMethod')}
+                    isClearable
+                    required
+                  />
+                </div>
+
+
+                <div className="col-md-12">
+                  <label className="form-label">Special Instructions</label>
+                  <textarea className="form-control" rows="3" name="specialInstructions" required value={shippingInformation[0].specialInstructions} onChange={(e) => handleShippingChange(0, e)}></textarea>
+                  {errors.specialInstructions && <div className="text-danger small">{errors.specialInstructions}</div>}
+                </div>
+
+                {/* Financial Information */}
+                <h5 className="mb-3 mt-4">Financial Information</h5>
+                <div className="col-md-6">
+                  <label className="form-label">Annual Revenue</label>
+                  <input type="number" className="form-control" name="annualRevenue" required value={financialInformation[0].annualRevenue} onChange={(e) => handleFinancialChange(0, e)} />
+                  {errors.annualRevenue && <div className="text-danger small">{errors.annualRevenue}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Credit Rating</label>
+                  <input type="number" className="form-control" name="creditRating" required value={financialInformation[0].creditRating} onChange={(e) => handleFinancialChange(0, e)} min={1} max={5} />
+                  {errors.creditRating && <div className="text-danger small">{errors.creditRating}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Bank Name</label>
+                  <input type="text" className="form-control" name="bankName" required value={financialInformation[0].bankName} onChange={(e) => handleFinancialChange(0, e)} />
+                  {errors.bankName && <div className="text-danger small">{errors.bankName}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Account Number</label>
+                  <input type="text" className="form-control" name="accountNumber" required value={financialInformation[0].accountNumber} onChange={(e) => handleFinancialChange(0, e)} />
+                  {errors.accountNumber && <div className="text-danger small">{errors.accountNumber}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Fiscal Year End</label>
+                  <input type="date" className="form-control" name="fiscalYearEnd" required value={financialInformation[0].fiscalYearEnd} onChange={(e) => handleFinancialChange(0, e)} />
+                  {errors.fiscalYearEnd && <div className="text-danger small">{errors.fiscalYearEnd}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Financial Contact</label>
+                  <input type="text" className="form-control" name="financialContact" required value={financialInformation[0].financialContact} onChange={(e) => handleFinancialChange(0, e)} />
+                  {errors.financialContact && <div className="text-danger small">{errors.financialContact}</div>}
+                </div>
+
+                {/* Ledger Information */}
+                <h5 className="mb-3 mt-4">Ledger Information</h5>
+                <div className="col-md-6">
+                  <label className="form-label">Account Code</label>
+                  <input type="text" className="form-control" name="accountCode" required value={ledgerInformation[0].accountCode} onChange={(e) => handleLedgerChange(0, e)} />
+                  {errors.accountCode && <div className="text-danger small">{errors.accountCode}</div>}
+                </div>
+               
+                {/* <div className="col-md-6">
+                  <label className="form-label">Account Type</label>
+                  <select className="form-select" name="accountType" required value={ledgerInformation[0].accountType} onChange={(e) => handleLedgerChange(0, e)}>
+                    <option value="">Select Account Type</option>
+                    <option value="AccountsReceivable">AccountsReceivable</option>
+                    <option value="AccountsPayable">AccountsPayable</option>
+                  </select>
+                  {errors.accountType && <div className="text-danger small">{errors.accountType}</div>}
+                </div> */}
+      <div className="col-md-6">
+                  <label className="form-label">Account Type</label>
+                  <CreatableSelect
+                    options={selectOptions.accountType}
+                    value={selectOptions.accountType.find((opt) => opt.value === formData.accountType)}
+                    onChange={(option) =>
+                      setFormData((prev) => ({ ...prev, accountType: option?.value || "" }))
+                    }
+                    onCreateOption={handleCreateOption('accountType')}
+                    isClearable
+                    required
+                  />
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label">Opening Balance</label>
+                  <input type="number" className="form-control" name="openingBalance" required value={ledgerInformation[0].openingBalance} onChange={(e) => handleLedgerChange(0, e)} />
+                  {errors.openingBalance && <div className="text-danger small">{errors.openingBalance}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Balance Date</label>
+                  <input type="date" className="form-control" name="balanceDate" required value={ledgerInformation[0].balanceDate} onChange={(e) => handleLedgerChange(0, e)} />
+                  {errors.balanceDate && <div className="text-danger small">{errors.balanceDate}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Tax Category</label>
+                  <select className="form-select" name="taxCategory" required value={ledgerInformation[0].taxCategory} onChange={(e) => handleLedgerChange(0, e)}>
+                    <option value="standard">Standard Rate</option>
+                    <option value="reduced">Reduced Rate</option>
+                    <option value="zero">Zero Rate</option>
+                  </select>
+                  {errors.taxCategory && <div className="text-danger small">{errors.taxCategory}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Cost Center</label>
+                  <input type="text" className="form-control" name="costCenter" required value={ledgerInformation[0].costCenter} onChange={(e) => handleLedgerChange(0, e)} />
+                  {errors.costCenter && <div className="text-danger small">{errors.costCenter}</div>}
+                </div>
+
+                {/* Additional Information */}
+                <h5 className="mb-3 mt-4">Additional Information</h5>
+                <div className="col-md-6">
+                  <label className="form-label">Payment Terms</label>
+                  <select
+                    className="form-select"
+                    name="paymentTerms"
+                    required
+                    value={additionalInformation.paymentTerms}
+                    onChange={handleAdditionalChange}
+                  >
+                    <option value="">Select Payment Terms</option>  {/* <-- placeholder */}
+                    <option value="net30">Net 30</option>
+                    <option value="net60">Net 60</option>
+                    <option value="net90">Net 90</option>
+                  </select>
+                  {errors.paymentTerms && <div className="text-danger small">{errors.paymentTerms}</div>}
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label">Credit Limit</label>
+                  <input type="number" className="form-control" name="creditLimit" required value={additionalInformation.creditLimit} onChange={handleAdditionalChange} />
+                  {errors.creditLimit && <div className="text-danger small">{errors.creditLimit}</div>}
+                </div>
+              </div>
+              <div className="col-md-12">
+                <label className="form-label">Notes</label>
+                <textarea className="form-control" rows="3" name="notes" required value={additionalInformation.notes} onChange={handleAdditionalChange} placeholder="Additional notes"></textarea>
+                {errors.notes && <div className="text-danger small">{errors.notes}</div>}
+              </div>
+
+              <div className="col-12 d-flex justify-content-end gap-2 mt-4">
+                <button type="button" className="btn btn-outline-secondary">Cancel</button>
+                <button type="submit" id="btn-All" className="btn btn-dark">{id || client?._id ? "Update client" : "Create"}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export default AddClientManagement;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ////////////////////////////////////////////////////////
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { useDispatch } from 'react-redux';
+import { createClients, fetchClient, UpdateClients } from '../../../redux/slices/ClientSlice';
+import "react-toastify/dist/ReactToastify.css";
+import axios from 'axios';
+import { apiUrl } from '../../../redux/utils/config';
+import CreatableSelect from "react-select/creatable";
+
+// Add this function to format date for input fields
+const formatDate = (dateStr) => {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d)) return '';
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${month}-${day}`;
+};
+
+function AddClientManagement() {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { id } = useParams(); // for edit mo
+  const location = useLocation();
+  const { client } = location.state || {};
+  const _id = client?._id
+  console.log("oo", _id);
+
+  // Initial form state
+  const [formData, setFormData] = useState({
+    clientName: '',
+    industry: '',
+    website: '',
+    clientAddress: '',
+    TaxID_VATNumber: '',
+    CSRCode: '',
+    Status: '',
+    button_Client_Suplier: ''
+  });
+
+  // Contact persons state
+  const [contactPersons, setContactPersons] = useState([
+    {
+      contactName: '',
+      jobTitle: '',
+      email: '',
+      phone: '',
+      department: '',
+      salesRepresentative: ''
+    }
+  ]);
+
+  // Billing information state
+  const [billingInformation, setBillingInformation] = useState([
+    {
+      billingAddress: '',
+      billingContactName: '',
+      billingEmail: '',
+      billingPhone: '',
+      currency: '',
+      preferredPaymentMethod: ''
+    }
+  ]);
+  // Shipping information state
+  const [shippingInformation, setShippingInformation] = useState([
+    {
+      shippingAddress: '',
+      shippingContactName: '',
+      shippingEmail: '',
+      shippingPhone: '',
+      preferredShippingMethod: '',
+      specialInstructions: ''
+    }
+  ]);
+  // Financial information state
+  const [financialInformation, setFinancialInformation] = useState([
+    {
+      annualRevenue: '',
+      creditRating: '',
+      bankName: '',
+      accountNumber: '',
+      fiscalYearEnd: '',
+      financialContact: ''
+    }
+  ]);
+
+  // Ledger information state
+  const [ledgerInformation, setLedgerInformation] = useState([
+    {
+      accountCode: '',
+      accountType: '',
+      openingBalance: '',
+      balanceDate: '',
+      taxCategory: '',
+      costCenter: ''
+    }
+  ]);
+
+  // Additional information state
+  const [additionalInformation, setAdditionalInformation] = useState({
+    paymentTerms: '',
+    creditLimit: '',
+    notes: ''
+  });
+
+  // Add state for errors
+  const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    const updateStates = (clientData) => {
+      setFormData({
+        clientName: clientData.clientName || '',
+        industry: clientData.industry || '',
+        website: clientData.website || '',
+        clientAddress: clientData.clientAddress || '',
+        TaxID_VATNumber: clientData.TaxID_VATNumber || '',
+        CSRCode: clientData.CSRCode || '',
+        Status: clientData.Status || '',
+        button_Client_Suplier: clientData.button_Client_Suplier || ''
+      });
+
+      setContactPersons(clientData.contactPersons || []);
+      setBillingInformation(clientData.billingInformation || []);
+      setShippingInformation(clientData.shippingInformation || []);
+      setFinancialInformation(
+        (clientData.financialInformation || []).map((item) => ({
+          ...item,
+          fiscalYearEnd: formatDate(item.fiscalYearEnd),
+        }))
+      );
+      setLedgerInformation(
+        (clientData.ledgerInformation || []).map((item) => ({
+          ...item,
+          balanceDate: formatDate(item.balanceDate),
+        }))
+      );
+      setAdditionalInformation(clientData.additionalInformation || {
+        paymentTerms: '',
+        creditLimit: '',
+        notes: ''
+      });
+    };
+
+    if (client) {
+      updateStates(client);
+    } else if (id) {
+      dispatch(fetchclientById(id)).then((res) => {
+        const fetchedclient = res.payload;
+        if (fetchedclient) {
+          updateStates(fetchedclient);
+        }
+      });
+    }
+  }, [id, dispatch, client]);
+
+
+
+  // Handle basic form field changes
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Handle contact person changes
+  const handleContactChange = (index, e) => {
+    const { name, value } = e.target;
+    let newValue = value;
+    if (name === 'phone') {
+      newValue = newValue.replace(/[^\d]/g, '').slice(0, 10);
+    }
+    const updatedContacts = [...contactPersons];
+    updatedContacts[index] = {
+      ...updatedContacts[index],
+      [name]: newValue
+    };
+    setContactPersons(updatedContacts);
+  };
+
+  // Handle billing information changes
+  const handleBillingChange = (index, e) => {
+    const { name, value } = e.target;
+    let newValue = value;
+    if (name === 'billingPhone') {
+      newValue = newValue.replace(/[^\d]/g, '').slice(0, 10);
+    }
+    const updatedBilling = [...billingInformation];
+    updatedBilling[index] = {
+      ...updatedBilling[index],
+      [name]: newValue
+    };
+    setBillingInformation(updatedBilling);
+  };
+
+  // Handle shipping information changes
+  const handleShippingChange = (index, e) => {
+    const { name, value } = e.target;
+    let newValue = value;
+    if (name === 'shippingPhone') {
+      newValue = newValue.replace(/[^\d]/g, '').slice(0, 10);
+    }
+    const updatedShipping = [...shippingInformation];
+    updatedShipping[index] = {
+      ...updatedShipping[index],
+      [name]: newValue
+    };
+    setShippingInformation(updatedShipping);
+  };
+
+  // Handle financial information changes
+  const handleFinancialChange = (index, e) => {
+    const { name, value } = e.target;
+    let newValue = value;
+    if (name === 'creditRating') {
+      // Only allow numbers between 1 and 5
+      let num = Number(newValue);
+      if (newValue === '') {
+        newValue = '';
+      } else if (num < 1) {
+        newValue = '1';
+      } else if (num > 5) {
+        newValue = '5';
+      } else {
+        newValue = String(num);
+      }
+    }
+    const updatedFinancial = [...financialInformation];
+    updatedFinancial[index] = {
+      ...updatedFinancial[index],
+      [name]: newValue
+    };
+    setFinancialInformation(updatedFinancial);
+  };
+
+  // Handle ledger information changes
+  const handleLedgerChange = (index, e) => {
+    const { name, value } = e.target;
+    const updatedLedger = [...ledgerInformation];
+    updatedLedger[index] = {
+      ...updatedLedger[index],
+      [name]: value
+    };
+    setLedgerInformation(updatedLedger);
+  };
+
+
+  const handleAdditionalChange = (e) => {
+    const { name, value } = e.target;
+    setAdditionalInformation(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Validation function
+  const validate = () => {
+    const newErrors = {};
+
+    // Basic form fields
+    if (!formData.clientName.trim()) newErrors.clientName = 'Name is required';
+    if (!formData.industry) newErrors.industry = 'industry is required';
+    if (!formData.website.trim()) newErrors.website = 'Website is required';
+    else if (!/^https?:\/\//.test(formData.website)) newErrors.website = 'Website must start with http:// or https://';
+    if (!formData.clientAddress.trim()) newErrors.clientAddress = 'Client Address is required';
+    if (!formData.TaxID_VATNumber.trim()) newErrors.TaxID_VATNumber = 'Tax ID/VAT Number is required';
+    if (!formData.CSRCode.trim()) newErrors.CSRCode = 'CSR Code is required';
+    if (!formData.Status) newErrors.Status = 'Status is required';
+
+    // Contact Persons
+    contactPersons.forEach((contact, idx) => {
+      if (!contact.contactName.trim()) newErrors[`contactName_${idx}`] = 'Contact Name is required';
+      if (!contact.jobTitle.trim()) newErrors[`jobTitle_${idx}`] = 'Job Title is required';
+      if (!contact.email.trim()) newErrors[`email_${idx}`] = 'Email is required';
+      else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(contact.email)) newErrors[`email_${idx}`] = 'Invalid email';
+      if (!contact.phone.trim()) newErrors[`phone_${idx}`] = 'Phone is required';
+      else if (!/^\d{10}$/.test(contact.phone)) newErrors[`phone_${idx}`] = 'Phone must be 10 digits';
+      if (!contact.department.trim()) newErrors[`department_${idx}`] = 'Department is required';
+      if (!contact.salesRepresentative.trim()) newErrors[`salesRepresentative_${idx}`] = 'Sales Representative is required';
+    });
+
+    // Billing Information (first item)
+    const billing = billingInformation[0] || {};
+    if (!billing.billingAddress.trim()) newErrors.billingAddress = 'Billing Address is required';
+    if (!billing.billingContactName.trim()) newErrors.billingContactName = 'Billing Contact Name is required';
+    if (!billing.billingEmail.trim()) newErrors.billingEmail = 'Billing Email is required';
+    else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(billing.billingEmail)) newErrors.billingEmail = 'Invalid email';
+    if (!billing.billingPhone.trim()) newErrors.billingPhone = 'Billing Phone is required';
+    else if (!/^\d{10}$/.test(billing.billingPhone)) newErrors.billingPhone = 'Phone must be 10 digits';
+    if (!billing.currency) newErrors.currency = 'Currency is required';
+    if (!billing.preferredPaymentMethod) newErrors.preferredPaymentMethod = 'Preferred Payment Method is required';
+
+    // Shipping Information (first item)
+    const shipping = shippingInformation[0] || {};
+    if (!shipping.shippingAddress.trim()) newErrors.shippingAddress = 'Shipping Address is required';
+    if (!shipping.shippingContactName.trim()) newErrors.shippingContactName = 'Shipping Contact Name is required';
+    if (!shipping.shippingEmail.trim()) newErrors.shippingEmail = 'Shipping Email is required';
+    else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(shipping.shippingEmail)) newErrors.shippingEmail = 'Invalid email';
+    if (!shipping.shippingPhone.trim()) newErrors.shippingPhone = 'Shipping Phone is required';
+    else if (!/^\d{10}$/.test(shipping.shippingPhone)) newErrors.shippingPhone = 'Phone must be 10 digits';
+    if (!shipping.preferredShippingMethod) newErrors.preferredShippingMethod = 'Preferred Shipping Method is required';
+    if (!shipping.specialInstructions.trim()) newErrors.specialInstructions = 'Special Instructions are required';
+
+    // Financial Information (first item)
+    const financial = financialInformation[0] || {};
+    if (!financial.annualRevenue) newErrors.annualRevenue = 'Annual Revenue is required';
+    else if (isNaN(financial.annualRevenue) || Number(financial.annualRevenue) < 0) newErrors.annualRevenue = 'Annual Revenue must be a positive number';
+    if (!financial.creditRating) newErrors.creditRating = 'Credit Rating is required';
+    else if (isNaN(financial.creditRating) || Number(financial.creditRating) < 1 || Number(financial.creditRating) > 5) newErrors.creditRating = 'Credit Rating must be between 1 and 5';
+    if (!financial.bankName.trim()) newErrors.bankName = 'Bank Name is required';
+    if (!financial.accountNumber.trim()) newErrors.accountNumber = 'Account Number is required';
+    if (!financial.fiscalYearEnd) newErrors.fiscalYearEnd = 'Fiscal Year End is required';
+    if (!financial.financialContact.trim()) newErrors.financialContact = 'Financial Contact is required';
+
+    // Ledger Information (first item)
+    const ledger = ledgerInformation[0] || {};
+    if (!ledger.accountCode.trim()) newErrors.accountCode = 'Account Code is required';
+    if (!ledger.accountType) newErrors.accountType = 'Account Type is required';
+    if (!ledger.openingBalance) newErrors.openingBalance = 'Opening Balance is required';
+    else if (isNaN(ledger.openingBalance)) newErrors.openingBalance = 'Opening Balance must be a number';
+    if (!ledger.balanceDate) newErrors.balanceDate = 'Balance Date is required';
+    if (!ledger.taxCategory) newErrors.taxCategory = 'Tax Category is required';
+    if (!ledger.costCenter.trim()) newErrors.costCenter = 'Cost Center is required';
+
+    // Additional Information
+    if (!additionalInformation.paymentTerms) newErrors.paymentTerms = 'Payment Terms is required';
+    if (!additionalInformation.creditLimit) newErrors.creditLimit = 'Credit Limit is required';
+    else if (isNaN(additionalInformation.creditLimit) || Number(additionalInformation.creditLimit) < 0) newErrors.creditLimit = 'Credit Limit must be a positive number';
+    if (!additionalInformation.notes.trim()) newErrors.notes = 'Notes is required';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const fullData = {
+      ...formData,
+      contactPersons,
+      billingInformation,
+      shippingInformation,
+      financialInformation,
+      ledgerInformation,
+      additionalInformation
+    };
+    console.log('Full Data Object:', fullData);
+    if (_id) {
+      dispatch(UpdateClients({ _id, data: fullData }))
+        .unwrap()
+        .then(() => {
+          toast.success("clientupdated successfully!");
+          navigate("/admin/clientManagement");
+          dispatch(fetchClient());
+        })
+        .catch(() => {
+          toast.error("Failed to update client!");
+        });
+    } else {
+      dispatch(createClients(fullData))
+        .unwrap()
+        .then(() => {
+          toast.success("clientcreated successfully!");
+          navigate("/admin/clientManagement");
+          dispatch(fetchClient());
+        })
+        .catch(() => {
+          toast.error("Error creating client");
+        });
+    }
+  };
+
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+
+  //   const fullData = {
+  //     ...formData,
+  //     contactPersons,
+  //     billingInformation,
+  //     shippingInformation,
+  //     financialInformation,
+  //     ledgerInformation,
+  //     additionalInformation
+  //   };
+  //         dispatch(createClients(fullData))
+  //       .unwrap()
+  //       .then(() => {
+  //         toast.success("clientcreated successfully!");
+  //         navigate("/clientManagement");
+  //       })
+  //       .catch(() => {
+  //         toast.error("Error creating client");
+  //       });
+  // };
+
+  // ///////////////////////////////////////////////////////////////////////////////////////////
+
+  // Keep the options in local state so we can push newly‑created ones
+  const [brandOptions, setBrandOptions] = useState([
+    { value: "Coca‑Cola", label: "Coca‑Cola" },
+    { value: "Pepsi", label: "Pepsi" },
+    // …your initial list
+  ]);
+
+  // When the user creates a brand that isn’t in the list yet
+  const handleCreate = (inputValue) => {
+    const newOption = { value: inputValue, label: inputValue };
+    setBrandOptions((prev) => [...prev, newOption]);
+    setFormData((prev) => ({ ...prev, brandName: inputValue }));
+  };
+
+  // Add state for select options
+  const [selectOptions, setSelectOptions] = useState({
+    industry: [],
+    currency: [],
+    preferredPaymentMethod: [],
+    preferredShippingMethod: [],
+    accountType: [],
+
+  });
+
+  // Fetch select options from API on mount
+  useEffect(() => {
+    axios.get(`${apiUrl}/client/selectclient`)
+      .then(res => {
+        if (res.data.success && res.data.data) {
+          setSelectOptions({
+            industry: (res.data.data.industry || []).map(v => ({ value: v, label: v })),
+            currency: (res.data.data.currency || []).map(v => ({ value: v, label: v })),
+            preferredPaymentMethod: (res.data.data.preferredPaymentMethod || []).map(v => ({ value: v, label: v })),
+            preferredShippingMethod: (res.data.data.preferredShippingMethod || []).map(v => ({ value: v, label: v })),
+            accountType: (res.data.data.accountType || []).map(v => ({ value: v, label: v })),
+          });
+        }
+      });
+  }, []);
+
+  // Generic handler for creating new options
+  const handleCreateOption = (field) => (inputValue) => {
+    axios.post(`${apiUrl}/client/selectclient`, {
+      [field]: [...selectOptions[field].map(opt => opt.value), inputValue]
+    }).then(() => {
+      setSelectOptions(prev => ({
+        ...prev,
+        [field]: [...prev[field], { value: inputValue, label: inputValue }]
+      }));
+      setFormData(prev => ({
+        ...prev,
+        [field]: inputValue
+      }));
+    });
+  };
+if (!/^\+447\d{9}$/.test(formData.CSRCode)) {
+  errors.CSRCode = "Enter valid UK mobile number (e.g. 7912345678)";
+}
+
+  return (
+    <>
+      <ToastContainer />
+      <div className="container mt-5">
+        <div className="card shadow-sm">
+          <div className="card-body">
+            {/* <h1 className="card-title h4 mb-4">Add Company</h1> */}
+            <h2 className="mb-4">{id || client?._id ? "Edit client" : "New Company (Client)"}</h2>
+            <form className="row g-3" onSubmit={handleSubmit}>
+              <div className='col-md-3'>  <h6 className="mb-3">Client/Supplier Information</h6></div>
+              <div className="col-md-6"></div>
+              <div className="col-md-6">
+                <label className="form-label">Name</label>
+                <input required type="text" name="clientName" value={formData.clientName} onChange={handleChange} className="form-control" placeholder="Enter  name" />
+                {errors.clientName && <div className="text-danger small">{errors.clientName}</div>}
+              </div>
+
+              {/* <div className="col-md-6">
+                <label className="form-label">industry</label>
+                <select className="form-select" name="industry" required value={formData.industry} onChange={handleChange}>
+                  <option value="">Select industry</option>
+                  <option value="manufacturing">Manufacturing</option>
+                  <option value="tech">Technology</option>
+                  <option value="retail">Retail</option>
+                </select>
+                {errors.industry && <div className="text-danger small">{errors.industry}</div>}
+              </div> */}
+              {/* industry */}
+              <div className="col-md-6">
+                <label className="form-label">Industry</label>
+                <CreatableSelect
+                  options={selectOptions.industry}
+                  value={selectOptions.industry.find((opt) => opt.value === formData.industry)}
+                  onChange={(option) =>
+                    setFormData((prev) => ({ ...prev, industry: option?.value || "" }))
+                  }
+                  onCreateOption={handleCreateOption('industry')}
+                  isClearable
+                  required
+                />
+              </div>
+
+              <div className="col-md-6">
+                <label className="form-label">Website</label>
+                <input required type="url" name="website" value={formData.website} onChange={handleChange} className="form-control" placeholder="https://" />
+                {errors.website && <div className="text-danger small">{errors.website}</div>}
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Client Address</label>
+                <textarea required className="form-control" name="clientAddress" value={formData.clientAddress} onChange={handleChange}></textarea>
+                {errors.clientAddress && <div className="text-danger small">{errors.clientAddress}</div>}
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Tax ID/VAT Number</label>
+                <input
+                  required
+                  type="text"
+                  name="TaxID_VATNumber"
+                  value={formData.TaxID_VATNumber}
+                  onChange={handleChange}
+                  className="form-control"
+                  maxLength={15}
+                  pattern="\d*"
+                  inputMode="numeric"
+                />
+
+                {errors.TaxID_VATNumber && <div className="text-danger small">{errors.TaxID_VATNumber}</div>}
+              </div>
+            <div className="col-md-6">
+  <label className="form-label">CSR Code</label>
+  <div className="input-group">
+    <span className="input-group-text">+44</span>
+    <input
+      type="tel"
+      name="CSRCode"
+      required
+      value={formData.CSRCode.replace('+44', '')} // show only main part
+      onChange={(e) => {
+        let input = e.target.value.replace(/\D/g, ''); // remove non-digits
+
+        if (input.length > 10) input = input.slice(0, 10); // max 10 digits
+
+        const finalValue = '+44' + input;
+        setFormData({ ...formData, CSRCode: finalValue });
+      }}
+      className="form-control"
+      inputMode="numeric"
+      maxLength={10}
+      placeholder="7XXXXXXXXX"
+    />
+  </div>
+  {errors.CSRCode && (
+    <div className="text-danger small">{errors.CSRCode}</div>
+  )}
+</div>
+
+              <div className="col-md-6">
+                <label className="form-label">Status</label>
+                <select
+                  className="form-select"
+                  name="Status"
+                  required
+                  value={formData.Status}
+                  onChange={handleChange}
+                >
+                  <option value="">Select Status</option> {/* empty option for forcing selection */}
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+                {errors.Status && <div className="text-danger small">{errors.Status}</div>}
+              </div>
+
+              <div className='col-md-12 row'>
+                <h5 className="mb-3 mt-4">Contact Persons</h5>
+
+                {contactPersons.map((contact, index) => (
+                  <div className="border p-3 mb-3" key={index}>
+                    <div className="row">
+                      <div className="col-md-6">
+                        <label className="form-label">Contact Name</label>
+                        <input
+                          type="text"
+                          name="contactName"
+                          required
+                          value={contact.contactName}
+                          onChange={(e) => handleContactChange(index, e)}
+                          className="form-control"
+                          placeholder="Enter Contact Name"
+                        />
+                        {errors[`contactName_${index}`] && <div className="text-danger small">{errors[`contactName_${index}`]}</div>}
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label">Job Title</label>
+                        <input
+                          type="text"
+                          name="jobTitle"
+                          required
+                          value={contact.jobTitle}
+                          onChange={(e) => handleContactChange(index, e)}
+                          className="form-control"
+                          placeholder="Enter Job Title"
+                        />
+                        {errors[`jobTitle_${index}`] && <div className="text-danger small">{errors[`jobTitle_${index}`]}</div>}
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label">Email</label>
+                        <input
+                          type="email"
+                          name="email"
+                          required
+                          value={contact.email}
+                          onChange={(e) => handleContactChange(index, e)}
+                          className="form-control"
+                          placeholder="Enter Email"
+                        />
+                        {errors[`email_${index}`] && <div className="text-danger small">{errors[`email_${index}`]}</div>}
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label">Phone</label>
+                        <input
+                          type="tel"
+                          name="phone"
+                          required
+                          value={contact.phone}
+                          onChange={(e) => handleContactChange(index, e)}
+                          className="form-control"
+                          placeholder="Enter Phone"
+                          maxLength={10}
+                        />
+                        {errors[`phone_${index}`] && <div className="text-danger small">{errors[`phone_${index}`]}</div>}
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label">Department</label>
+                        <input
+                          type="text"
+                          name="department"
+                          required
+                          value={contact.department}
+                          onChange={(e) => handleContactChange(index, e)}
+                          className="form-control"
+                          placeholder="Enter Department"
+                        />
+                        {errors[`department_${index}`] && <div className="text-danger small">{errors[`department_${index}`]}</div>}
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label">Sales Representative</label>
+                        <input
+                          type="text"
+                          name="salesRepresentative"
+                          required
+                          value={contact.salesRepresentative}
+                          onChange={(e) => handleContactChange(index, e)}
+                          className="form-control"
+                          placeholder="Enter Sales Representative"
+                        />
+                        {errors[`salesRepresentative_${index}`] && <div className="text-danger small">{errors[`salesRepresentative_${index}`]}</div>}
+                      </div>
+
+                      <div className="col-md-12 mt-2 d-flex justify-content-end">
+                        {contactPersons.length > 1 && (
+                          <button
+                            type="button"
+                            className="btn btn-danger btn-sm"
+                            onClick={() => {
+                              const updatedContacts = [...contactPersons];
+                              updatedContacts.splice(index, 1);
+                              setContactPersons(updatedContacts);
+                            }}
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Add More Button */}
+                <div className="mb-3">
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={() => {
+                      setContactPersons([
+                        ...contactPersons,
+                        {
+                          contactName: '',
+                          jobTitle: '',
+                          email: '',
+                          phone: '',
+                          department: '',
+                          salesRepresentative: ''
+                        }
+                      ]);
+                    }}
+                  >
+                    + Add Another Contact
+                  </button>
+                </div>
+              </div>
+
+              {/* Billing Information */}
+              <div className='col-md-12 row'>
+                <h5 className="mb-3 mt-4">Billing Information</h5>
+                <div className="col-md-12">
+                  <label className="form-label">Billing Address</label>
+                  <textarea className="form-control" rows="3" name="billingAddress" value={billingInformation[0].billingAddress} onChange={(e) => handleBillingChange(0, e)}></textarea>
+                  {errors.billingAddress && <div className="text-danger small">{errors.billingAddress}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Billing Contact Name</label>
+                  <input type="text" className="form-control" name="billingContactName" value={billingInformation[0].billingContactName} onChange={(e) => handleBillingChange(0, e)} />
+                  {errors.billingContactName && <div className="text-danger small">{errors.billingContactName}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Billing Email</label>
+                  <input type="email" className="form-control" name="billingEmail" value={billingInformation[0].billingEmail} onChange={(e) => handleBillingChange(0, e)} />
+                  {errors.billingEmail && <div className="text-danger small">{errors.billingEmail}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Billing Phone</label>
+                  <input type="tel" className="form-control" name="billingPhone" value={billingInformation[0].billingPhone} onChange={(e) => handleBillingChange(0, e)} maxLength={10} />
+                  {errors.billingPhone && <div className="text-danger small">{errors.billingPhone}</div>}
+                </div>
+
+                {/* <div className="col-md-6">
+                  <label className="form-label">Currency</label>
+                  <select className="form-select" name="currency" required value={billingInformation[0].currency} onChange={(e) => handleBillingChange(0, e)}>
+                    <option value="">Select Currency</option>
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="GBP">GBP</option>
+                  </select>
+                  {errors.currency && <div className="text-danger small">{errors.currency}</div>}
+                </div> */}
+                <div className="col-md-6">
+                  <label className="form-label">Currency</label>
+                  <CreatableSelect
+                    options={selectOptions.currency}
+                    value={selectOptions.currency.find((opt) => opt.value === formData.currency)}
+                    onChange={(option) =>
+                      setFormData((prev) => ({ ...prev, currency: option?.value || "" }))
+                    }
+                    onCreateOption={handleCreateOption('currency')}
+                    isClearable
+
+                  />
+                </div>
+
+                {/* <div className="col-md-6">
+                  <label className="form-label">Preferred Payment Method</label>
+                  <select className="form-select" name="preferredPaymentMethod" required value={billingInformation[0].preferredPaymentMethod} onChange={(e) => handleBillingChange(0, e)}>
+                    <option value="">Select Payment Method</option>
+                    <option value="BankTransfer">BankTransfer</option>
+                    <option value="CreditCard">CreditCard</option>
+                    <option value="Check">Check</option>
+                  </select>
+                  {errors.preferredPaymentMethod && <div className="text-danger small">{errors.preferredPaymentMethod}</div>}
+                </div> */}
+                <div className="col-md-6">
+                  <label className="form-label">Preferred Payment Method</label>
+                  <CreatableSelect
+                    options={selectOptions.preferredPaymentMethod}
+                    value={selectOptions.preferredPaymentMethod.find((opt) => opt.value === formData.preferredPaymentMethod)}
+                    onChange={(option) =>
+                      setFormData((prev) => ({ ...prev, preferredPaymentMethod: option?.value || "" }))
+                    }
+                    onCreateOption={handleCreateOption('preferredPaymentMethod')}
+                    isClearable
+
+                  />
+                </div>
+
+                {/* Shipping Information */}
+                <h5 className="mb-3 mt-4">Shipping Information</h5>
+                <div className="col-md-12">
+                  <label className="form-label">Shipping Address</label>
+                  <textarea className="form-control" rows="3" name="shippingAddress" value={shippingInformation[0].shippingAddress} onChange={(e) => handleShippingChange(0, e)}></textarea>
+                  {errors.shippingAddress && <div className="text-danger small">{errors.shippingAddress}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Shipping Contact Name</label>
+                  <input type="text" className="form-control" name="shippingContactName" value={shippingInformation[0].shippingContactName} onChange={(e) => handleShippingChange(0, e)} />
+                  {errors.shippingContactName && <div className="text-danger small">{errors.shippingContactName}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Shipping Email</label>
+                  <input type="email" className="form-control" name="shippingEmail" value={shippingInformation[0].shippingEmail} onChange={(e) => handleShippingChange(0, e)} />
+                  {errors.shippingEmail && <div className="text-danger small">{errors.shippingEmail}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Shipping Phone</label>
+                  <input type="tel" className="form-control" name="shippingPhone" value={shippingInformation[0].shippingPhone} onChange={(e) => handleShippingChange(0, e)} maxLength={10} />
+                  {errors.shippingPhone && <div className="text-danger small">{errors.shippingPhone}</div>}
+                </div>
+
+                {/* <div className="col-md-6">
+                  <label className="form-label">Preferred Shipping Method</label>
+                  <select className="form-select" name="preferredShippingMethod" required value={shippingInformation[0].preferredShippingMethod} onChange={(e) => handleShippingChange(0, e)}>
+                    <option value="">Select Shipping Method</option>
+                    <option value="ground">Ground</option>
+                    <option value="standard">Standard</option>
+                    <option value="express">Express</option>
+                    <option value="overnight">Overnight</option>
+                  </select>
+                  {errors.preferredShippingMethod && <div className="text-danger small">{errors.preferredShippingMethod}</div>}
+                </div> */}
+                <div className="col-md-6">
+                  <label className="form-label">Preferred Shipping Method</label>
+                  <CreatableSelect
+                    options={selectOptions.preferredShippingMethod}
+                    value={selectOptions.preferredShippingMethod.find((opt) => opt.value === formData.preferredShippingMethod)}
+                    onChange={(option) =>
+                      setFormData((prev) => ({ ...prev, preferredShippingMethod: option?.value || "" }))
+                    }
+                    onCreateOption={handleCreateOption('preferredShippingMethod')}
+                    isClearable
+
+                  />
+                </div>
+
+
+                <div className="col-md-12">
+                  <label className="form-label">Special Instructions</label>
+                  <textarea className="form-control" rows="3" name="specialInstructions" value={shippingInformation[0].specialInstructions} onChange={(e) => handleShippingChange(0, e)}></textarea>
+                  {errors.specialInstructions && <div className="text-danger small">{errors.specialInstructions}</div>}
+                </div>
+
+                {/* Financial Information */}
+                <h5 className="mb-3 mt-4">Financial Information</h5>
+                <div className="col-md-6">
+                  <label className="form-label">Annual Revenue</label>
+                  <input type="number" className="form-control" name="annualRevenue" value={financialInformation[0].annualRevenue} onChange={(e) => handleFinancialChange(0, e)} />
+                  {errors.annualRevenue && <div className="text-danger small">{errors.annualRevenue}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Credit Rating</label>
+                  <input type="number" className="form-control" name="creditRating" value={financialInformation[0].creditRating} onChange={(e) => handleFinancialChange(0, e)} min={1} max={5} />
+                  {errors.creditRating && <div className="text-danger small">{errors.creditRating}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Bank Name</label>
+                  <input type="text" className="form-control" name="bankName" value={financialInformation[0].bankName} onChange={(e) => handleFinancialChange(0, e)} />
+                  {errors.bankName && <div className="text-danger small">{errors.bankName}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Account Number</label>
+                  <input type="text" className="form-control" name="accountNumber" value={financialInformation[0].accountNumber} onChange={(e) => handleFinancialChange(0, e)} />
+                  {errors.accountNumber && <div className="text-danger small">{errors.accountNumber}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Fiscal Year End</label>
+                  <input type="date" className="form-control" name="fiscalYearEnd" value={financialInformation[0].fiscalYearEnd} onChange={(e) => handleFinancialChange(0, e)} />
+                  {errors.fiscalYearEnd && <div className="text-danger small">{errors.fiscalYearEnd}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Financial Contact</label>
+                  <input type="text" className="form-control" name="financialContact" value={financialInformation[0].financialContact} onChange={(e) => handleFinancialChange(0, e)} />
+                  {errors.financialContact && <div className="text-danger small">{errors.financialContact}</div>}
+                </div>
+
+                {/* Ledger Information */}
+                <h5 className="mb-3 mt-4">Ledger Information</h5>
+                <div className="col-md-6">
+                  <label className="form-label">Account Code</label>
+                  <input type="text" className="form-control" name="accountCode" value={ledgerInformation[0].accountCode} onChange={(e) => handleLedgerChange(0, e)} />
+                  {errors.accountCode && <div className="text-danger small">{errors.accountCode}</div>}
+                </div>
+
+                {/* <div className="col-md-6">
+                  <label className="form-label">Account Type</label>
+                  <select className="form-select" name="accountType" required value={ledgerInformation[0].accountType} onChange={(e) => handleLedgerChange(0, e)}>
+                    <option value="">Select Account Type</option>
+                    <option value="AccountsReceivable">AccountsReceivable</option>
+                    <option value="AccountsPayable">AccountsPayable</option>
+                  </select>
+                  {errors.accountType && <div className="text-danger small">{errors.accountType}</div>}
+                </div> */}
+                <div className="col-md-6">
+                  <label className="form-label">Account Type</label>
+                  <CreatableSelect
+                    options={selectOptions.accountType}
+                    value={selectOptions.accountType.find((opt) => opt.value === formData.accountType)}
+                    onChange={(option) =>
+                      setFormData((prev) => ({ ...prev, accountType: option?.value || "" }))
+                    }
+                    onCreateOption={handleCreateOption('accountType')}
+                    isClearable
+
+                  />
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label">Opening Balance</label>
+                  <input type="number" className="form-control" name="openingBalance" value={ledgerInformation[0].openingBalance} onChange={(e) => handleLedgerChange(0, e)} />
+                  {errors.openingBalance && <div className="text-danger small">{errors.openingBalance}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Balance Date</label>
+                  <input type="date" className="form-control" name="balanceDate" value={ledgerInformation[0].balanceDate} onChange={(e) => handleLedgerChange(0, e)} />
+                  {errors.balanceDate && <div className="text-danger small">{errors.balanceDate}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Tax Category</label>
+                  <select className="form-select" name="taxCategory" value={ledgerInformation[0].taxCategory} onChange={(e) => handleLedgerChange(0, e)}>
+                    <option value="standard">Standard Rate</option>
+                    <option value="reduced">Reduced Rate</option>
+                    <option value="zero">Zero Rate</option>
+                  </select>
+                  {errors.taxCategory && <div className="text-danger small">{errors.taxCategory}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Cost Center</label>
+                  <input type="text" className="form-control" name="costCenter" value={ledgerInformation[0].costCenter} onChange={(e) => handleLedgerChange(0, e)} />
+                  {errors.costCenter && <div className="text-danger small">{errors.costCenter}</div>}
+                </div>
+
+                {/* Additional Information */}
+                <h5 className="mb-3 mt-4">Additional Information</h5>
+                <div className="col-md-6">
+                  <label className="form-label">Payment Terms</label>
+                  <select
+                    className="form-select"
+                    name="paymentTerms"
+                    value={additionalInformation.paymentTerms}
+                    onChange={handleAdditionalChange}
+                  >
+                    <option value="">Select Payment Terms</option>  {/* <-- placeholder */}
+                    <option value="net30">Net 30</option>
+                    <option value="net60">Net 60</option>
+                    <option value="net90">Net 90</option>
+                  </select>
+                  {errors.paymentTerms && <div className="text-danger small">{errors.paymentTerms}</div>}
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label">Credit Limit</label>
+                  <input type="number" className="form-control" name="creditLimit" value={additionalInformation.creditLimit} onChange={handleAdditionalChange} />
+                  {errors.creditLimit && <div className="text-danger small">{errors.creditLimit}</div>}
+                </div>
+              </div>
+              <div className="col-md-12">
+                <label className="form-label">Notes</label>
+                <textarea className="form-control" rows="3" name="notes" value={additionalInformation.notes} onChange={handleAdditionalChange} placeholder="Additional notes"></textarea>
+                {errors.notes && <div className="text-danger small">{errors.notes}</div>}
+              </div>
+
+
+
+              {/* Your form fields go here */}
+
+              <div className="col-12 d-flex justify-content-end gap-2 mt-4">
+                <button type="button" className="btn btn-outline-secondary">Cancel</button>
+
+                {!(id || client?._id) ? (
+                  <>
+                    <button
+                      type="submit"
+                      className={`btn ${formData.button_Client_Suplier === 'Client' ? 'btn-primary' : 'btn-outline-primary'}`}
+                      onClick={() => setFormData({ ...formData, button_Client_Suplier: 'Client' })}
+                    >
+                      Client
+                    </button>
+
+                    <button
+                      type="submit"
+                      className={`btn ${formData.button_Client_Suplier === 'Supplier' ? 'btn-primary' : 'btn-outline-primary'}`}
+                      onClick={() => setFormData({ ...formData, button_Client_Suplier: 'Supplier' })}
+                    >
+                      Supplier
+                    </button>
+                  </>
+                ) : (
+                  <button id="btn-All" type="submit" className="btn btn-primary">
+                    Update Client
+                  </button>
+                )}
+              </div>
+
+
+
+
+              {/* <div className="col-12 d-flex justify-content-end gap-2 mt-4">
+                <button type="button" className="btn btn-outline-secondary">Cancel</button>
+                {!(id || client?._id) ? (
+                  <>
+                    <button type="submit" id="btn-All" className="btn btn-dark">Create Client</button>
+                    <button type="submit" id="btn-All" className="btn btn-dark">Create Supplier</button>
+                  </>
+                ) : (
+                  <button type="submit" id="btn-All" className="btn btn-dark">Update Client</button>
+                )}
+              </div> */}
+            </form>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export default AddClientManagement;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// //////////
+import React, { useEffect, useState } from "react";
+import { MdEditSquare } from "react-icons/md";
+import { FaRegTrashCan } from "react-icons/fa6";
+import { Button, Form, Table, Pagination, Modal } from "react-bootstrap";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { FaEye } from "react-icons/fa";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchjobs, updatejob, UpdateJobAssign } from "../../../redux/slices/JobsSlice";
+import {
+  FaFilePdf,
+  FaUpload,
+  FaLink,
+  FaClock,
+  FaEdit,
+} from "react-icons/fa";
+import { Dropdown } from "react-bootstrap";
+import Swal from "sweetalert2";
+import { fetchusers } from "../../../redux/slices/userSlice";
+import { createAssigns } from "../../../redux/slices/AssignSlice";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { BiCopy } from "react-icons/bi";
+
+function NewJobsList() {
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [selectedProduction, setSelectedProduction] = useState("");
+  const [selectedAdditional, setSelectedAdditional] = useState("");
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [attachedFile, setAttachedFile] = useState(null);
+  const [selectedJobs, setSelectedJobs] = useState({});
+  const [errorMessage, setErrorMessage] = useState("");
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [selectedDesigner, setSelectedDesigner] = useState("");
+  const [assignmentDescription, setAssignmentDescription] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedProject, setSelectedProject] = useState("All Projects");
+  const [selectedPriority, setSelectedPriority] = useState("All Priorities");
+  const [selectedStatus, setSelectedStatus] = useState("All Status");
+  const [selectedStage, setSelectedStage] = useState("All Stages");
+  const [showModal, setShowModal] = useState(false);
+
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const location = useLocation();
+  const params = useParams();
+  const id = location.state?.id || params.id;
+
+  const jobs = [
+    {
+      id: "00001",
+      project: "PackageRedesign",
+      client: "AcmeCorp",
+      brief: "Redesign...",
+      date: "2024-02-20",
+    },
+    {
+      id: "00002",
+      project: "BrandGuidelines",
+      client: "TechSolutions",
+      brief: "Create...",
+      date: "2024-02-19",
+    },
+    {
+      id: "00003",
+      project: "MarketingMaterials",
+      client: "GlobalInc",
+      brief: "Design...",
+      date: "2024-02-18",
+    },
+  ];
+
+  const { job, loading, error } = useSelector((state) => state.jobs);
+
+  useEffect(() => {
+    dispatch(fetchjobs());
+  }, [dispatch]);
+
+  const handleShowDescription = (job) => {
+    setSelectedJob(job);
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setSelectedJob(null);
+  };
+
+  const handleAssignJob = (job) => {
+    if (job === null) {
+      const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
+      if (selectedJobIds.length === 0) {
+        setErrorMessage("Please select at least 1 job to assign.");
+        setTimeout(() => setErrorMessage(""), 3000);
+        return;
+      }
+    }
+    setSelectedJob(job);
+    setShowAssignModal(true);
+  };
+
+  const handleRejectJobs = () => {
+    const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
+    if (selectedJobIds.length === 0) {
+      setErrorMessage("Please select at least 1 job to reject.");
+      setTimeout(() => setErrorMessage(""), 3000);
+      return;
+    }
+    setShowRejectModal(true);
+  };
+
+
+  const handleSubmitRejection = () => {
+    const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
+    console.log(selectedJobIds);
+
+    if (!rejectionReason.trim()) {
+      setErrorMessage("Please enter a reason for rejection.");
+      setTimeout(() => setErrorMessage(""), 3000);
+      return;
+    }
+    // dispatch(updatejob({ id: selectedJobIds, data: { Status: "Reject" } }))
+    dispatch(updatejob({ id: selectedJobIds, data: { Status: "Cancelled" } }))
+    setSuccessMessage("Jobs rejected successfully.");
+    dispatch(fetchjobs());
+    setTimeout(() => setSuccessMessage(""), 3000);
+    dispatch(fetchjobs());
+    setSelectedJobs({});
+    dispatch(fetchjobs());
+    setRejectionReason("");
+    dispatch(fetchjobs());
+    setShowRejectModal(false);
+  };
+
+  // const handleDelete = (_id) => {
+  //     console.log(_id);
+  //     Swal.fire({
+  //       title: "Are you sure?",
+  //       text: "You want to mark this job as Cancelled?",
+  //       icon: "warning",
+  //       showCancelButton: true,
+  //       confirmButtonColor: "#3085d6",
+  //       cancelButtonColor: "#d33",
+  //       confirmButtonText: "Yes, mark as Cancelled!",
+  //     }).then((result) => {
+  //       if (result.isConfirmed) {
+  //         // dispatch(deletejob({ id: _id, data: { status: "Cancelled" } }))
+  //         console.log(id);
+
+  //         dispatch(updatejob({ id: _id, data: { Status: "Cancelled" } }))
+  //           .unwrap()
+  //           .then(() => {
+  //             Swal.fire("Updated!", "The job has been marked as Cancelled.", "success");
+  //             dispatch(Project_job_Id(id));
+  //           })
+  //           .catch(() => {
+  //             Swal.fire("Error!", "Something went wrong while updating.", "error");
+  //           });
+  //       }
+  //     });
+  //   };
+
+
+
+  const getPriorityClass = (priority) => {
+    switch ((priority || "").toLowerCase()) {
+      case "high":
+        return "text-danger";
+      case "medium":
+        return "text-warning";
+      case "low":
+        return "text-success";
+      default:
+        return "";
+    }
+  };
+
+ const getStatusClass = (status) => {
+  switch (status.toLowerCase().trim()) {
+    case "in progress":
+    case "in_progress":
+      return "bg-warning text-dark";     // Yellow
+    case "completed":
+      return "bg-success text-white";    // Green
+    case "cancelled":
+      return "bg-danger text-white";     // Red
+    case "active":
+      return "bg-primary text-white";    // Blue
+    case "reject":
+      return "bg-danger text-white";
+    case "review":
+      return "bg-info text-dark";
+    case "not started":
+      return "bg-secondary text-white";
+    case "open":
+      return "bg-primary text-white";
+    default:
+      return "bg-light text-dark";
+  }
+};
+
+
+  const filteredJobs = (job?.jobs || [])
+    .filter((j) => j.assignedTo === "Not Assigned")
+    .filter((j) => {
+      // Split searchQuery by spaces, ignore empty terms
+      const terms = searchQuery.trim().split(/\s+/).filter(Boolean);
+      if (terms.length === 0) {
+        const matchesProject =
+          selectedProject === "All Projects" ||
+          (j.projectId?.[0]?.projectName?.toLowerCase() === selectedProject.toLowerCase());
+        const matchesPriority =
+          selectedPriority === "All Priorities" ||
+          (j.priority?.toLowerCase() === selectedPriority.toLowerCase());
+        const matchesStatus =
+          selectedStatus === "All Status" ||
+          (j.Status?.toLowerCase() === selectedStatus.toLowerCase());
+        const matchesStage =
+          selectedStage === "All Stages" ||
+          (j.stage?.toLowerCase() === selectedStage.toLowerCase());
+        return (
+          matchesProject &&
+          matchesPriority &&
+          matchesStatus &&
+          matchesStage
+        );
+      }
+      // Prepare searchable fields as strings
+      const fields = [
+        j.JobNo,
+        j.projectId?.[0]?.projectName,
+        j.brandName,
+        j.subBrand,
+        j.flavour,
+        j.packType,
+        j.packSize,
+        j.packCode,
+        j.updatedAt ? new Date(j.updatedAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }) : '',
+        j.createdAt ? new Date(j.createdAt).toLocaleDateString("en-GB") : '',
+        j.assignedTo,
+        j.priority,
+        j.Status
+      ].map(f => (f || '').toString().toLowerCase());
+      // Every term must be found in at least one field
+      const matchesSearch = terms.every(term =>
+        fields.some(field => field.includes(term.toLowerCase()))
+      );
+      const matchesProject =
+        selectedProject === "All Projects" ||
+        (j.projectId?.[0]?.projectName?.toLowerCase() === selectedProject.toLowerCase());
+      const matchesPriority =
+        selectedPriority === "All Priorities" ||
+        (j.priority?.toLowerCase() === selectedPriority.toLowerCase());
+      const matchesStatus =
+        selectedStatus === "All Status" ||
+        (j.Status?.toLowerCase() === selectedStatus.toLowerCase());
+      const matchesStage =
+        selectedStage === "All Stages" ||
+        (j.stage?.toLowerCase() === selectedStage.toLowerCase());
+      return (
+        matchesSearch &&
+        matchesProject &&
+        matchesPriority &&
+        matchesStatus &&
+        matchesStage
+      );
+    });
+
+  const handleUpdate = (job) => {
+    navigate(`/admin/AddJobTracker/${job._id}`, { state: { job } });
+  };
+
+  const JobDetails = (job) => {
+    navigate(`/admin/OvervieJobsTracker`, { state: { job } });
+  };
+
+  const handleCheckboxChange = (jobId) => {
+    setSelectedJobs((prev) => ({
+      ...prev,
+      [jobId]: !prev[jobId],
+    }));
+  };
+
+  const [selectedEmployee, setSelectedEmployee] = useState("");
+  const { userAll } = useSelector((state) => state.user);
+
+  useEffect(() => {
+    dispatch(fetchusers());
+  }, [dispatch]);
+
+  const [currentAssignment, setCurrentAssignment] = useState(1);
+  const itemsAssignment = 10;
+
+  const filteredAssignment = (userAll?.data?.users || []).filter(
+    (j) =>
+      ((j?.assign || "").toString().toLowerCase() ===
+        selectedDesigner.toLowerCase()) &&
+      selectedDesigner !== ""
+  );
+  console.log("lllll", filteredAssignment);
+
+  const paginatedAssignment = filteredAssignment.slice(
+    (currentAssignment - 1) * itemsAssignment,
+    currentAssignment * itemsAssignment
+  );
+
+  const handleSubmitAssignment = async() => {
+    const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
+    const payload = {
+      employeeId: [selectedEmployee],
+      jobId: selectedJobIds,
+      selectDesigner: selectedDesigner,
+      description: assignmentDescription,
+      Status:"In Progress",
+    };
+    console.log("Assignment Payload:", payload);
+    // then update the job itself
+    const response = await dispatch(updatejob({ id: selectedJobIds[0], data: payload }))
+    dispatch(createAssigns(payload))
+      .unwrap()
+      .then((response) => {
+        console.log("API Response:", response);
+        if (response.success) {
+          toast.success(response.message || "Project Assigned Successfully!");
+          setShowAssignModal(false);
+          setSelectedJobs(false);
+          navigate("/admin/MyJobs");
+        } else {
+          setShowAssignModal(false);
+          toast.error(response.message || "Assignment failed!");
+        }
+      })
+      .catch((error) => {
+        console.error("API Error:", error);
+        toast.error(error.message || "Failed to update project!");
+      });
+  };
+
+
+
+  const handleJobAssign = (selectedIds, assignTo) => {
+    const payload = {
+      id: selectedIds,
+      assign: assignTo,
+    };
+    console.log("Assignment Payload:", payload);
+    dispatch(UpdateJobAssign(payload))
+      .then(() => {
+        // Swal.fire("Success!", "Jobs assigned successfully", "success");
+      })
+      .catch(() => {
+        Swal.fire("Error!", "Something went wrong", "error");
+      });
+  };
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const totalPages = Math.ceil(filteredJobs.length / itemsPerPage);
+
+  const paginatedProjects = filteredJobs.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  return (
+    <div className="container bg-white p-3 mt-4 rounded shadow-sm">
+      {/* Title */}
+      <div className="d-flex justify-content-between align-items-center">
+        <h5 className="fw-bold m-0">Job Assign</h5>
+        <div className="d-flex gap-2 ">
+          <Button onClick={handleRejectJobs} id="All_btn" className="m-2" variant="primary">
+            Cancelled Job
+          </Button>
+          <Button
+            id="All_btn"
+            className="m-2"
+            variant="primary"
+            onClick={() => {
+              const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
+              if (selectedJobIds.length === 0) {
+                setErrorMessage("Please select at least 1 job to assign.");
+                setTimeout(() => setErrorMessage(""), 3000);
+              } else {
+                handleJobAssign(selectedJobIds);
+                setShowAssignModal(true);
+              }
+            }}
+          >
+            Assign
+          </Button>
+        </div>
+      </div>
+
+      {/* Show Messages */}
+      {errorMessage && (
+        <div className="alert alert-danger py-2" role="alert">
+          {errorMessage}
+        </div>
+      )}
+      {successMessage && (
+        <div className="alert alert-success py-2" role="alert">
+          {successMessage}
+        </div>
+      )}
+
+      {/* Filters */}
+      <div className="d-flex flex-wrap gap-2 mb-3 align-items-center">
+        <Form.Control
+          type="search"
+          placeholder="Search jobs..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          style={{ width: "250px" }}
+        />
+        <Dropdown>
+          <Dropdown.Toggle variant="light" id="project-dropdown">
+            {selectedProject}
+          </Dropdown.Toggle>
+          <Dropdown.Menu>
+            <Dropdown.Item onClick={() => setSelectedProject("All Projects")}>
+              All Projects
+            </Dropdown.Item>
+            {[...new Set((job?.jobs || []).map((j) => j.projectId?.[0]?.projectName || "N/A"))].map(
+              (projectName, index) => (
+                <Dropdown.Item key={index} onClick={() => setSelectedProject(projectName)}>
+                  {projectName}
+                </Dropdown.Item>
+              )
+            )}
+          </Dropdown.Menu>
+        </Dropdown>
+      </div>
+
+      {/* Table */}
+      <div className="table-responsive">
+        <Table hover className="align-middle sticky-header">
+          <thead className="bg-light">
+            <tr>
+              <th>
+                <input
+                  type="checkbox"
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    const newSelectedJobs = {};
+                    job?.jobs?.forEach((job) => {
+                      newSelectedJobs[job._id] = checked;
+                    });
+                    setSelectedJobs(newSelectedJobs);
+                  }}
+                  checked={job?.jobs?.length > 0 && job?.jobs?.every((j) => selectedJobs[j._id])}
+                />
+              </th>
+              <th>JobNo</th>
+              <th style={{ whiteSpace: "nowrap" }}>Project Name</th>
+              <th>Brand</th>
+              <th style={{ whiteSpace: "nowrap" }}>Sub Brand</th>
+              <th>Flavour</th>
+              <th>PackType</th>
+              <th>PackSize</th>
+              <th>PackCode</th>
+              <th>TimeLogged</th>
+              <th>Due Date</th>
+              <th>assign</th>
+              <th>Priority</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {paginatedProjects.slice().reverse().map((job, index) => (
+              <tr key={job._id}>
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={selectedJobs[job._id] || false}
+                    onChange={() => handleCheckboxChange(job._id)}
+                  />
+                </td>
+                <td onClick={() => JobDetails(job)}>
+                  <Link style={{ textDecoration: "none" }}>{job.JobNo}</Link>
+                </td>
+                <td style={{ whiteSpace: "nowrap" }}>
+                  {job.projectId?.[0]?.projectName || "N/A"}
+                </td>
+                <td style={{ whiteSpace: "nowrap" }}>{job.brandName}</td>
+                <td style={{ whiteSpace: "nowrap" }}>{job.subBrand}</td>
+                <td style={{ whiteSpace: "nowrap" }}>{job.flavour}</td>
+                <td style={{ whiteSpace: "nowrap" }}>{job.packType}</td>
+                <td style={{ whiteSpace: "nowrap" }}>{job.packSize}</td>
+                <td style={{ whiteSpace: "nowrap" }}>{job?.packCode}</td>
+                <td style={{ whiteSpace: "nowrap" }}>
+                  {new Date(job.updatedAt).toLocaleTimeString("en-US", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </td>
+                <td style={{ whiteSpace: "nowrap" }}>
+                  {new Date(job.createdAt).toLocaleDateString("en-GB")}
+                </td>
+                <td style={{ whiteSpace: 'nowrap' }}>{job?.assignedTo}</td>
+                <td>
+                  <span className={getPriorityClass(job.priority)}>{job.priority}</span>
+                </td>
+                <td>
+                  <span className={`badge ${getStatusClass(job.Status)} px-2 py-1`}>
+                    {job.Status}
+                  </span>
+                </td>
+                <td>
+                  <div className="d-flex gap-2">
+                    {/* <Button id="icone_btn" size="sm">
+                      <FaFilePdf />
+                    </Button>
+                    <Button id="icone_btn" size="sm">
+                      <FaUpload />
+                    </Button>
+                    <Button id="icone_btn" size="sm">
+                      <FaLink />
+                    </Button>
+                    <Button id="icone_btn" size="sm">
+                      <FaClock />
+                    </Button> */}
+                    <Button id="icone_btn" size="sm" onClick={() => handleUpdate(job)}>
+                      <FaEdit />
+                    </Button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      </div>
+
+      {/* Assign Modal */}
+      <Modal show={showAssignModal} onHide={() => setShowAssignModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Assign Job</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>Select Designer</Form.Label>
+              <Form.Select
+                value={selectedDesigner}
+                onChange={(e) => {
+                  setSelectedDesigner(e.target.value);
+                  setSelectedEmployee("");
+                }}
+              >
+                <option value="">-- Select --</option>
+                <option value="Designer">Designer</option>
+                <option value="Production">Production</option>
+              </Form.Select>
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Select Employee</Form.Label>
+              <Form.Select
+                value={selectedEmployee}
+                onChange={(e) => setSelectedEmployee(e.target.value)}
+                disabled={!selectedDesigner}
+              >
+                <option value="">-- Select Employee --</option>
+                {paginatedAssignment
+                  .filter((emp) => emp.role === 'employee')
+                  .map((emp) => (
+                    <option key={emp._id} value={emp._id}>
+                      {emp.firstName || "Unnamed Employee"} {emp.lastName || "Unnamed Employee"}
+                    </option>
+                  ))}
+              </Form.Select>
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Description</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
+                value={assignmentDescription}
+                onChange={(e) => setAssignmentDescription(e.target.value)}
+                placeholder="Enter assignment details or instructions..."
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowAssignModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleSubmitAssignment}>
+            Assign
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Reject Modal */}
+      <Modal show={showRejectModal} onHide={() => setShowRejectModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Cancelled Job</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className="alert alert-warning">
+            Are you sure you want to reject this job?
+          </div>
+          <Form.Group className="mb-3">
+            <Form.Label>Reason for Cancelled</Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={3}
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              placeholder="Enter reason..."
+            />
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowRejectModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={handleSubmitRejection}>
+            Cancelled
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Pagination */}
+      {!loading && !error && (
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <div className="text-muted small">
+            Showing {(currentPage - 1) * itemsPerPage + 1} to {(currentPage - 1) * itemsPerPage + paginatedProjects.length} of {filteredJobs.length}
+          </div>
+          <ul className="pagination pagination-sm mb-0">
+            <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
+                <span aria-hidden="true">&laquo;</span>
+              </button>
+            </li>
+            {Array.from({ length: totalPages }, (_, i) => (
+              <li key={i + 1} className={`page-item ${currentPage === i + 1 ? 'active' : ''}`}>
+                <button className="page-link" onClick={() => setCurrentPage(i + 1)}>
+                  {i + 1}
+                </button>
+              </li>
+            ))}
+            <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
+                <span aria-hidden="true">&raquo;</span>
+              </button>
+            </li>
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default NewJobsList;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ////////
+import React, { useEffect, useState } from "react";
+import { MdEditSquare } from "react-icons/md";
+import { FaRegTrashCan } from "react-icons/fa6";
+import { Button, Form, Table, Pagination, Modal } from "react-bootstrap";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { FaEye } from "react-icons/fa";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchjobs, updatejob, UpdateJobAssign } from "../../../redux/slices/JobsSlice";
+import {
+  FaFilePdf,
+  FaUpload,
+  FaLink,
+  FaClock,
+  FaEdit,
+} from "react-icons/fa";
+import { Dropdown } from "react-bootstrap";
+import Swal from "sweetalert2";
+import { fetchusers } from "../../../redux/slices/userSlice";
+import { createAssigns } from "../../../redux/slices/AssignSlice";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { BiCopy } from "react-icons/bi";
+
+function NewJobsList() {
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [selectedProduction, setSelectedProduction] = useState("");
+  const [selectedAdditional, setSelectedAdditional] = useState("");
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [attachedFile, setAttachedFile] = useState(null);
+  const [selectedJobs, setSelectedJobs] = useState({});
+  const [errorMessage, setErrorMessage] = useState("");
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [selectedDesigner, setSelectedDesigner] = useState("");
+  const [assignmentDescription, setAssignmentDescription] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedProject, setSelectedProject] = useState("All Projects");
+  const [selectedPriority, setSelectedPriority] = useState("All Priorities");
+  const [selectedStatus, setSelectedStatus] = useState("All Status");
+  const [selectedStage, setSelectedStage] = useState("All Stages");
+  const [showModal, setShowModal] = useState(false);
+
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const location = useLocation();
+  const params = useParams();
+  const id = location.state?.id || params.id;
+
+  const jobs = [
+    {
+      id: "00001",
+      project: "PackageRedesign",
+      client: "AcmeCorp",
+      brief: "Redesign...",
+      date: "2024-02-20",
+    },
+    {
+      id: "00002",
+      project: "BrandGuidelines",
+      client: "TechSolutions",
+      brief: "Create...",
+      date: "2024-02-19",
+    },
+    {
+      id: "00003",
+      project: "MarketingMaterials",
+      client: "GlobalInc",
+      brief: "Design...",
+      date: "2024-02-18",
+    },
+  ];
+
+  const { job, loading, error } = useSelector((state) => state.jobs);
+
+  useEffect(() => {
+    dispatch(fetchjobs());
+  }, [dispatch]);
+
+  const handleShowDescription = (job) => {
+    setSelectedJob(job);
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setSelectedJob(null);
+  };
+
+  const handleAssignJob = (job) => {
+    if (job === null) {
+      const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
+      if (selectedJobIds.length === 0) {
+        setErrorMessage("Please select at least 1 job to assign.");
+        setTimeout(() => setErrorMessage(""), 3000);
+        return;
+      }
+    }
+    setSelectedJob(job);
+    setShowAssignModal(true);
+  };
+
+  const handleRejectJobs = () => {
+    const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
+    if (selectedJobIds.length === 0) {
+      setErrorMessage("Please select at least 1 job to reject.");
+      setTimeout(() => setErrorMessage(""), 3000);
+      return;
+    }
+    setShowRejectModal(true);
+  };
+
+
+  const handleSubmitRejection = () => {
+    const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
+    console.log(selectedJobIds);
+
+    if (!rejectionReason.trim()) {
+      setErrorMessage("Please enter a reason for rejection.");
+      setTimeout(() => setErrorMessage(""), 3000);
+      return;
+    }
+    // dispatch(updatejob({ id: selectedJobIds, data: { Status: "Reject" } }))
+    dispatch(updatejob({ id: selectedJobIds, data: { Status: "Cancelled" } }))
+    setSuccessMessage("Jobs rejected successfully.");
+    dispatch(fetchjobs());
+    setTimeout(() => setSuccessMessage(""), 3000);
+    dispatch(fetchjobs());
+    setSelectedJobs({});
+    dispatch(fetchjobs());
+    setRejectionReason("");
+    dispatch(fetchjobs());
+    setShowRejectModal(false);
+  };
+
+  // const handleDelete = (_id) => {
+  //     console.log(_id);
+  //     Swal.fire({
+  //       title: "Are you sure?",
+  //       text: "You want to mark this job as Cancelled?",
+  //       icon: "warning",
+  //       showCancelButton: true,
+  //       confirmButtonColor: "#3085d6",
+  //       cancelButtonColor: "#d33",
+  //       confirmButtonText: "Yes, mark as Cancelled!",
+  //     }).then((result) => {
+  //       if (result.isConfirmed) {
+  //         // dispatch(deletejob({ id: _id, data: { status: "Cancelled" } }))
+  //         console.log(id);
+
+  //         dispatch(updatejob({ id: _id, data: { Status: "Cancelled" } }))
+  //           .unwrap()
+  //           .then(() => {
+  //             Swal.fire("Updated!", "The job has been marked as Cancelled.", "success");
+  //             dispatch(Project_job_Id(id));
+  //           })
+  //           .catch(() => {
+  //             Swal.fire("Error!", "Something went wrong while updating.", "error");
+  //           });
+  //       }
+  //     });
+  //   };
+
+
+
+  const getPriorityClass = (priority) => {
+    switch ((priority || "").toLowerCase()) {
+      case "high":
+        return "text-danger";
+      case "medium":
+        return "text-warning";
+      case "low":
+        return "text-success";
+      default:
+        return "";
+    }
+  };
+
+  const getStatusClass = (status) => {
+    switch (status.toLowerCase().trim()) {
+      case "in progress":
+      case "in_progress":
+        return "bg-warning text-dark";     // Yellow
+      case "completed":
+        return "bg-success text-white";    // Green
+      case "cancelled":
+        return "bg-danger text-white";     // Red
+      case "active":
+        return "bg-primary text-white";    // Blue
+      case "reject":
+        return "bg-danger text-white";
+      case "review":
+        return "bg-info text-dark";
+      case "not started":
+        return "bg-secondary text-white";
+      case "open":
+        return "bg-primary text-white";
+      default:
+        return "bg-light text-dark";
+    }
+  };
+
+
+  const filteredJobs = (job?.jobs || [])
+    .filter((j) => j.assignedTo === "Not Assigned")
+    .filter((j) => {
+      // Split searchQuery by spaces, ignore empty terms
+      const terms = searchQuery.trim().split(/\s+/).filter(Boolean);
+      if (terms.length === 0) {
+        const matchesProject =
+          selectedProject === "All Projects" ||
+          (j.projectId?.[0]?.projectName?.toLowerCase() === selectedProject.toLowerCase());
+        const matchesPriority =
+          selectedPriority === "All Priorities" ||
+          (j.priority?.toLowerCase() === selectedPriority.toLowerCase());
+        const matchesStatus =
+          selectedStatus === "All Status" ||
+          (j.Status?.toLowerCase() === selectedStatus.toLowerCase());
+        const matchesStage =
+          selectedStage === "All Stages" ||
+          (j.stage?.toLowerCase() === selectedStage.toLowerCase());
+        return (
+          matchesProject &&
+          matchesPriority &&
+          matchesStatus &&
+          matchesStage
+        );
+      }
+      // Prepare searchable fields as strings
+      const fields = [
+        j.JobNo,
+        j.projectId?.[0]?.projectName,
+        j.brandName,
+        j.subBrand,
+        j.flavour,
+        j.packType,
+        j.packSize,
+        j.packCode,
+        j.updatedAt ? new Date(j.updatedAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }) : '',
+        j.createdAt ? new Date(j.createdAt).toLocaleDateString("en-GB") : '',
+        j.assignedTo,
+        j.priority,
+        j.Status
+      ].map(f => (f || '').toString().toLowerCase());
+      // Every term must be found in at least one field
+      const matchesSearch = terms.every(term =>
+        fields.some(field => field.includes(term.toLowerCase()))
+      );
+      const matchesProject =
+        selectedProject === "All Projects" ||
+        (j.projectId?.[0]?.projectName?.toLowerCase() === selectedProject.toLowerCase());
+      const matchesPriority =
+        selectedPriority === "All Priorities" ||
+        (j.priority?.toLowerCase() === selectedPriority.toLowerCase());
+      const matchesStatus =
+        selectedStatus === "All Status" ||
+        (j.Status?.toLowerCase() === selectedStatus.toLowerCase());
+      const matchesStage =
+        selectedStage === "All Stages" ||
+        (j.stage?.toLowerCase() === selectedStage.toLowerCase());
+      return (
+        matchesSearch &&
+        matchesProject &&
+        matchesPriority &&
+        matchesStatus &&
+        matchesStage
+      );
+    });
+
+  const handleUpdate = (job) => {
+    navigate(`/admin/AddJobTracker/${job._id}`, { state: { job } });
+  };
+
+  const JobDetails = (job) => {
+    navigate(`/admin/OvervieJobsTracker`, { state: { job } });
+  };
+
+  const handleCheckboxChange = (jobId) => {
+    setSelectedJobs((prev) => ({
+      ...prev,
+      [jobId]: !prev[jobId],
+    }));
+  };
+
+  const [selectedEmployee, setSelectedEmployee] = useState("");
+  const { userAll } = useSelector((state) => state.user);
+
+  useEffect(() => {
+    dispatch(fetchusers());
+  }, [dispatch]);
+
+  const [currentAssignment, setCurrentAssignment] = useState(1);
+  const itemsAssignment = 10;
+
+  const filteredAssignment = (userAll?.data?.users || []).filter(
+    (j) =>
+      ((j?.assign || "").toString().toLowerCase() ===
+        selectedDesigner.toLowerCase()) &&
+      selectedDesigner !== ""
+  );
+  console.log("lllll", filteredAssignment);
+
+  const paginatedAssignment = filteredAssignment.slice(
+    (currentAssignment - 1) * itemsAssignment,
+    currentAssignment * itemsAssignment
+  );
+
+  const handleSubmitAssignment = async () => {
+    const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
+    let employeeId;
+    if (selectedDesigner === "Production") {
+      employeeId = null;
+    } else if (selectedDesigner === "Designer") {
+      employeeId = [];
+    } else if (selectedEmployee) {
+      employeeId = [selectedEmployee];
+    } else {
+      employeeId = null;
+    }
+    const payload = {
+      employeeId,
+      jobId: selectedJobIds,
+      selectDesigner: selectedDesigner,
+      description: assignmentDescription,
+      Status: "In Progress",
+    };
+    console.log("Assignment Payload:", payload);
+    // then update the job itself
+    const response = await dispatch(updatejob({ id: selectedJobIds[0], data: payload }))
+    dispatch(createAssigns(payload))
+      .unwrap()
+      .then((response) => {
+        console.log("API Response:", response);
+        if (response.success) {
+          toast.success(response.message || "Project Assigned Successfully!");
+          setShowAssignModal(false);
+          setSelectedJobs(false);
+          navigate("/admin/MyJobs");
+        } else {
+          setShowAssignModal(false);
+          toast.error(response.message || "Assignment failed!");
+        }
+      })
+      .catch((error) => {
+        console.error("API Error:", error);
+        toast.error(error.message || "Failed to update project!");
+      });
+  };
+
+  const handleJobAssign = (selectedIds, assignTo) => {
+    const payload = {
+      id: selectedIds,
+      assign: assignTo,
+    };
+    console.log("Assignment Payload:", payload);
+    dispatch(UpdateJobAssign(payload))
+      .then(() => {
+        // Swal.fire("Success!", "Jobs assigned successfully", "success");
+      })
+      .catch(() => {
+        Swal.fire("Error!", "Something went wrong", "error");
+      });
+  };
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const totalPages = Math.ceil(filteredJobs.length / itemsPerPage);
+
+  const paginatedProjects = filteredJobs.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  return (
+    <div className="container bg-white p-3 mt-4 rounded shadow-sm">
+      {/* Title */}
+      <div className="d-flex justify-content-between align-items-center">
+        <h5 className="fw-bold m-0">Job Assign</h5>
+        <div className="d-flex gap-2 ">
+          <Button onClick={handleRejectJobs} id="All_btn" className="m-2" variant="primary">
+            Cancelled Job
+          </Button>
+          <Button
+            id="All_btn"
+            className="m-2"
+            variant="primary"
+            onClick={() => {
+              const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
+              if (selectedJobIds.length === 0) {
+                setErrorMessage("Please select at least 1 job to assign.");
+                setTimeout(() => setErrorMessage(""), 3000);
+              } else {
+                handleJobAssign(selectedJobIds);
+                setShowAssignModal(true);
+              }
+            }}
+          >
+            Assign
+          </Button>
+        </div>
+      </div>
+
+      {/* Show Messages */}
+      {errorMessage && (
+        <div className="alert alert-danger py-2" role="alert">
+          {errorMessage}
+        </div>
+      )}
+      {successMessage && (
+        <div className="alert alert-success py-2" role="alert">
+          {successMessage}
+        </div>
+      )}
+
+      {/* Filters */}
+      <div className="d-flex flex-wrap gap-2 mb-3 align-items-center">
+        <Form.Control
+          type="search"
+          placeholder="Search jobs..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          style={{ width: "250px" }}
+        />
+        <Dropdown>
+          <Dropdown.Toggle variant="light" id="project-dropdown">
+            {selectedProject}
+          </Dropdown.Toggle>
+          <Dropdown.Menu>
+            <Dropdown.Item onClick={() => setSelectedProject("All Projects")}>
+              All Projects
+            </Dropdown.Item>
+            {[...new Set((job?.jobs || []).map((j) => j.projectId?.[0]?.projectName || "N/A"))].map(
+              (projectName, index) => (
+                <Dropdown.Item key={index} onClick={() => setSelectedProject(projectName)}>
+                  {projectName}
+                </Dropdown.Item>
+              )
+            )}
+          </Dropdown.Menu>
+        </Dropdown>
+      </div>
+
+      {/* Table */}
+      <div className="table-responsive">
+        <Table hover className="align-middle sticky-header">
+          <thead className="bg-light">
+            <tr>
+              <th>
+                <input
+                  type="checkbox"
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    const newSelectedJobs = {};
+                    job?.jobs?.forEach((job) => {
+                      newSelectedJobs[job._id] = checked;
+                    });
+                    setSelectedJobs(newSelectedJobs);
+                  }}
+                  checked={job?.jobs?.length > 0 && job?.jobs?.every((j) => selectedJobs[j._id])}
+                />
+              </th>
+              <th>JobNo</th>
+              <th style={{ whiteSpace: "nowrap" }}>Project Name</th>
+              <th>Brand</th>
+              <th style={{ whiteSpace: "nowrap" }}>Sub Brand</th>
+              <th>Flavour</th>
+              <th>PackType</th>
+              <th>PackSize</th>
+              <th>PackCode</th>
+              <th>TimeLogged</th>
+              <th>Due Date</th>
+              <th>assign</th>
+              <th>Priority</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {paginatedProjects.slice().reverse().map((job, index) => (
+              <tr key={job._id}>
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={selectedJobs[job._id] || false}
+                    onChange={() => handleCheckboxChange(job._id)}
+                  />
+                </td>
+                <td onClick={() => JobDetails(job)}>
+                  <Link style={{ textDecoration: "none" }}>{job.JobNo}</Link>
+                </td>
+                <td style={{ whiteSpace: "nowrap" }}>
+                  {job.projectId?.[0]?.projectName || "N/A"}
+                </td>
+                <td style={{ whiteSpace: "nowrap" }}>{job.brandName}</td>
+                <td style={{ whiteSpace: "nowrap" }}>{job.subBrand}</td>
+                <td style={{ whiteSpace: "nowrap" }}>{job.flavour}</td>
+                <td style={{ whiteSpace: "nowrap" }}>{job.packType}</td>
+                <td style={{ whiteSpace: "nowrap" }}>{job.packSize}</td>
+                <td style={{ whiteSpace: "nowrap" }}>{job?.packCode}</td>
+                <td style={{ whiteSpace: "nowrap" }}>
+                  {new Date(job.updatedAt).toLocaleTimeString("en-US", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </td>
+                <td style={{ whiteSpace: "nowrap" }}>
+                  {new Date(job.createdAt).toLocaleDateString("en-GB")}
+                </td>
+                <td style={{ whiteSpace: 'nowrap' }}>{job?.assignedTo}</td>
+                <td>
+                  <span className={getPriorityClass(job.priority)}>{job.priority}</span>
+                </td>
+                <td>
+                  <span className={`badge ${getStatusClass(job.Status)} px-2 py-1`}>
+                    {job.Status}
+                  </span>
+                </td>
+                <td>
+                  <div className="d-flex gap-2">
+                    {/* <Button id="icone_btn" size="sm">
+                      <FaFilePdf />
+                    </Button>
+                    <Button id="icone_btn" size="sm">
+                      <FaUpload />
+                    </Button>
+                    <Button id="icone_btn" size="sm">
+                      <FaLink />
+                    </Button>
+                    <Button id="icone_btn" size="sm">
+                      <FaClock />
+                    </Button> */}
+                    <Button id="icone_btn" size="sm" onClick={() => handleUpdate(job)}>
+                      <FaEdit />
+                    </Button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      </div>
+
+      {/* Assign Modal */}
+      <Modal show={showAssignModal} onHide={() => setShowAssignModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Assign Job</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>Select Designer</Form.Label>
+              <Form.Select
+                value={selectedDesigner}
+                onChange={(e) => {
+                  setSelectedDesigner(e.target.value);
+                  setSelectedEmployee("");
+                }}
+              >
+                <option value="">-- Select --</option>
+                <option value="Designer">Designer</option>
+                <option value="Production">Production</option>
+              </Form.Select>
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Select Employee</Form.Label>
+              <Form.Select
+                value={selectedEmployee}
+                onChange={(e) => setSelectedEmployee(e.target.value)}
+                disabled={!selectedDesigner}
+              >
+                <option value="">-- Select Employee --</option>
+                {paginatedAssignment
+                  .filter((emp) => emp.role === 'employee')
+                  .map((emp) => (
+                    <option key={emp._id} value={emp._id}>
+                      {emp.firstName || "Unnamed Employee"} {emp.lastName || "Unnamed Employee"}
+                    </option>
+                  ))}
+              </Form.Select>
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Description</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
+                value={assignmentDescription}
+                onChange={(e) => setAssignmentDescription(e.target.value)}
+                placeholder="Enter assignment details or instructions..."
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowAssignModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleSubmitAssignment}>
+            Assign
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Reject Modal */}
+      <Modal show={showRejectModal} onHide={() => setShowRejectModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Cancelled Job</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className="alert alert-warning">
+            Are you sure you want to reject this job?
+          </div>
+          <Form.Group className="mb-3">
+            <Form.Label>Reason for Cancelled</Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={3}
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              placeholder="Enter reason..."
+            />
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowRejectModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={handleSubmitRejection}>
+            Cancelled
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Pagination */}
+      {!loading && !error && (
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <div className="text-muted small">
+            Showing {(currentPage - 1) * itemsPerPage + 1} to {(currentPage - 1) * itemsPerPage + paginatedProjects.length} of {filteredJobs.length}
+          </div>
+          <ul className="pagination pagination-sm mb-0">
+            <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}>
+                <span aria-hidden="true">&laquo;</span>
+              </button>
+            </li>
+            {Array.from({ length: totalPages }, (_, i) => (
+              <li key={i + 1} className={`page-item ${currentPage === i + 1 ? 'active' : ''}`}>
+                <button className="page-link" onClick={() => setCurrentPage(i + 1)}>
+                  {i + 1}
+                </button>
+              </li>
+            ))}
+            <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+              <button className="page-link" onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}>
+                <span aria-hidden="true">&raquo;</span>
+              </button>
+            </li>
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default NewJobsList;
+
+
+
+
+
+
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import axiosInstance from '../utils/axiosInstance';
+import { apiUrl } from '../../redux/utils/config';
+
+
+export const fetchAssign = createAsyncThunk(
+  'assigns/fetchAssign',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get(`${apiUrl}/AssignmentJob`);
+      return response.data
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+export const createAssigns = createAsyncThunk(
+  'Assigns/createAssigns',
+  async (payload, { rejectWithValue }) => {
+    // Defensive: sanitize employeeId
+    if (payload.selectDesigner === "Production") {
+      payload.employeeId = null;
+    } else if (payload.selectDesigner === "Designer") {
+      payload.employeeId = [];
+    } else if (Array.isArray(payload.employeeId) && payload.employeeId.length === 1 && !payload.employeeId[0]) {
+      payload.employeeId = null;
+    }
+    try {
+      const response = await axiosInstance.post(
+        `${apiUrl}/AssignmentJob`,
+        payload,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+export const deleteAssigns = createAsyncThunk(
+  'Assigns/deleteAssigns',
+  async (id, { rejectWithValue }) => {
+    try {
+      await axiosInstance.delete(`${apiUrl}/Assign/${id}`);
+      return id;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+export const fetchAssignsById = createAsyncThunk('Assign/fetchById', async (id) => {
+    const response = await fetch(`/api/Assign/${id}`);
+    if (!response.ok) throw new Error("Failed to fetch Assigns");
+    return await response.json();
+  });
+
+  export const updateAssigns = createAsyncThunk('Assign/updateAssigns', async ({ id, data }) => {
+    const response = await fetch(`/api/Assign/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error("Failed to update Assigns");
+    return await response.json();
+  });
+  
+
+export const UpdateAssignsAssign = createAsyncThunk('Assign/updateAssigns', async ({ id, assign }) => {
+  const response = await fetch(`${apiUrl}/Assign`, {
+    method: "put",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ id, assign }),  
+  });
+  if (!response.ok) throw new Error("Failed to update Assign");
+  return await response.json();
+});
+
+const AssignSlice = createSlice({
+  name: 'Assign',
+  initialState: {
+    assigns: [],
+    status: 'idle',
+    error: null,
+  },
+
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+          // Add
+        //   .addCase(createAssigns.pending, (state) => {
+        //     state.loading = true;
+        //     state.error = null;
+        //   })
+        //   .addCase(createAssigns.fulfilled, (state, action) => {
+        //     state.loading = false;
+        //     state.Assigns.push(action.payload);
+        //   })
+        //   .addCase(createAssigns.rejected, (state, action) => {
+        //     state.loading = false;
+        //     state.error = action.payload;
+        //   })
+      .addCase(fetchAssign.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(fetchAssign.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.assigns = action.payload;
+      })
+      .addCase(fetchAssign.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      })
+    //   .addCase(createAssigns.fulfilled, (state, action) => {
+    //     state.Assigns.push(action.payload);
+    //   })
+    //   .addCase(createAssigns.rejected, (state, action) => {
+    //     state.status = 'failed';
+    //     state.error = action.payload;
+    //   })
+    //   .addCase(deleteAssigns.fulfilled, (state, action) => {
+    //     state.Assigns = state.Assigns.filter(
+    //       (Assigns) => Assigns.id !== action.payload
+    //     );
+    //   })
+    //   .addCase(deleteAssigns.rejected, (state, action) => {
+    //     state.status = 'failed';
+    //     state.error = action.payload;
+    //   })
+
+    //   .addCase(updateAssigns.fulfilled, (state, action) => {
+    //     const index = state.Assigns.findIndex(
+    //       (Assigns) => Assigns.id === action.payload.id
+    //     );
+    //     if (index !== -1) {
+    //       state.Assigns[index] = action.payload; 
+    //     }
+    //   })
+    //   .addCase(updateAssigns.rejected, (state, action) => {
+    //     state.status = 'failed';
+    //     state.error = action.payload;
+    //   });
+  },
+});
+
+export default AssignSlice.reducer;
+
+
+
+
+
+
+
+// Assign 
+// const handleSubmitAssignment = async () => {
+//   const selectedJobIds = Object.keys(selectedJobs).filter(id => selectedJobs[id]);
+
+//   const payload = {
+//     employeeId: [selectedEmployee],
+//     jobId: selectedJobIds,
+//     selectDesigner: selectedDesigner,
+//     description: assignmentDescription,
+//     Status: "In Progress",
+//   };
+
+//   console.log("📦 Assignment Payload:", payload);
+
+//   try {
+//     // 1️⃣ Create assignment
+//     await dispatch(createAssigns(payload)).unwrap();
+
+//     // 2️⃣ Update job
+//     const response = await dispatch(
+//       updatejob({ id: selectedJobIds[0], data: payload })
+//     ).unwrap();
+
+//     toast.success(response.message || "Project assigned successfully!");
+//     setShowAssignModal(false);
+//     setSelectedJobs({});
+//     navigate("/admin/MyJobs");
+
+//   } catch (err) {
+//     console.error("❌ Full Error Object:", err);
+
+//     // ✅ Extract status code from common structures
+//     const status =
+//       err?.status ||                    // direct status (unlikely)
+//       err?.originalStatus ||           // RTK fetchBaseQuery
+//       err?.response?.status ||         // Axios-style
+//       err?.data?.status ||             // your backend sends this
+//       err?.data?.statusCode ||         // fallback for other backends
+//       500;
+
+//     // ✅ Extract safe message
+//     const message =
+//       err?.message ||
+//       err?.data?.message ||
+//       err?.response?.data?.message ||
+//       "Assignment failed!";
+
+//     console.log("📛 Status Code:", status);
+//     console.log("📨 Message:", message);
+
+//     if (status === 409) {
+//       console.log("status === 409",status === 409 );
+      
+//       toast.error("Job already assigned to this employee!");
+//     } else {
+//       toast.error(message);
+//     }
+
+//     setShowAssignModal(false);
+//   }
+// };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { useDispatch, useSelector } from "react-redux";
+import { createCostEstimate, updateCostEstimate } from "../../../redux/slices/costEstimatesSlice";
+import { fetchProject } from "../../../redux/slices/ProjectsSlice";
+import { fetchClient } from "../../../redux/slices/ClientSlice";
+import { createInvoicingBilling, GetSingleInvoice, updateInvoicingBilling } from "../../../redux/slices/InvoicingBillingSlice";
+
+const currencies = [
+  { value: "", label: "Select Currency" },
+  { label: "USD - US Dollar", value: "USD" },
+  { label: "EUR - Euro", value: "EUR" },
+  { label: "INR - Indian Rupee", value: "INR" },
+  { label: "GBP - British Pound", value: "GBP" },
+  { label: "JPY - Japanese Yen", value: "JPY" },
+  { label: "AED - UAE Dirham", value: "AED" },
+  { label: "SAR - Saudi Riyal", value: "SAR" },
+];
+
+const document = ["Invoice Select", "Dummy Invoice", "Tax Invoice", "Proforma Invoice"];
+const OutputFormat = ["", "PDF", "DOCX", "XLSX", "TXT"];
+const statuses = ["Status Select", "Active", "Inactive", "Completed", "pending", "overdue"];
+
+function AddInvoice() {
+    const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+
+  const location = useLocation();
+  const invoice = location.state?.invoice;
+  const id = invoice?._id;
+  console.log("hhel", invoice);
+
+    const { invocing } = useSelector((state) => state.InvoicingBilling);
+    console.log("invocing", invocing);
+useEffect(() => {
+  if (invoice) {
+    dispatch(GetSingleInvoice({
+      clientId: invoice.clientId,
+      projectId: invoice.projectId,
+      CostEstimatesId: invoice.CostEstimatesId,
+      ReceivablePurchaseId: invoice.ReceivablePurchaseId,
+    }));
+  }
+}, [dispatch, invoice]);
+
+
+
+  const { project } = useSelector((state) => state.projects);
+  useEffect(() => {
+    dispatch(fetchProject());
+  }, [dispatch]);
+  const reversedProjectList = project?.data?.slice().reverse() || [];
+
+  const { Clients } = useSelector((state) => state.client);
+  useEffect(() => {
+    if (Clients && project?.data?.length) {
+      const foundProject = project.data.find((p) => p._id === Clients);
+      if (foundProject) {
+        setFormData((prev) => ({
+          ...prev,
+          projectsId: foundProject._id,
+        }));
+      }
+    }
+  }, [Clients, project]);
+
+  useEffect(() => {
+    dispatch(fetchClient());
+  }, [dispatch]);
+
+  const [items, setItems] = useState([{ description: "", quantity: 0, rate: 0, amount: 0 }]);
+
+  const [formData, setFormData] = useState({
+    clientId: "",
+    projectsId: [""],
+    CostEstimatesId: "",
+    ReceivablePurchaseId: "",
+    date: "",
+    status: "",
+    currency: "",
+    document: "",
+    output: "",
+  });
+
+  useEffect(() => {
+    if (invoice && project?.data?.length) {
+      setFormData((prev) => ({
+        ...prev,
+        clientId: invoice.clientId || "",
+        CostEstimatesId: invoice.CostEstimatesId || "",
+        ReceivablePurchaseId: invoice.ReceivablePurchaseId || "",
+        projectsId: invoice.projectId ? [invoice.projectId] : [""],
+        status: invoice.status && statuses.includes(invoice.status) ? invoice.status : "Active",
+        Notes: invoice.Notes || "",
+        currency: invoice.currency || "",
+        date: invoice.date ? invoice.date.substring(0, 10) : "",
+        validUntil: invoice.validUntil ? invoice.validUntil.substring(0, 10) : "",
+      }));
+
+      if (Array.isArray(invoice.lineItems) && invoice.lineItems.length > 0) {
+        setItems(invoice.lineItems);
+      }
+    }
+  }, [invoice, project?.data]);
+
+
+  const [taxRate, setTaxRate] = useState(0.05);
+
+  const calculateAmount = (quantity, rate) => quantity * rate;
+
+  const handleItemChange = (index, field, value) => {
+    const newItems = [...items];
+    newItems[index][field] = value;
+    newItems[index].amount = calculateAmount(newItems[index].quantity, newItems[index].rate);
+    setItems(newItems);
+  };
+
+  const handleFormChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const addItem = () => {
+    setItems([...items, { description: "", quantity: 0, rate: 0, amount: 0 }]);
+  };
+
+  const removeItem = (index) => {
+    const newItems = [...items];
+    newItems.splice(index, 1);
+    setItems(newItems);
+  };
+
+  const subtotal = items.reduce((acc, item) => acc + item.amount, 0);
+  const tax = subtotal * taxRate;
+  const total = subtotal + tax;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const payload = {
+      ...formData,
+      VATRate: taxRate * 100,
+      lineItems: items,
+    };
+
+    const isDuplicate = location.state?.isDuplicate;
+    if (isDuplicate || !id) {
+      dispatch(createInvoicingBilling(payload))
+        .unwrap()
+        .then(() => {
+          toast.success("Estimates created successfully!");
+          navigate("/admin/Invoicing_Billing", { state: { openTab: "jobs" } });
+        })
+        .catch(() => {
+          toast.error("Failed to create estimates");
+        });
+    } else {
+      dispatch(updateInvoicingBilling({ id, data: payload }))
+        .unwrap()
+        .then(() => {
+          toast.success("Estimates updated successfully!");
+          navigate("/admin/Invoicing_Billing", { state: { openTab: "jobs" } });
+        })
+        .catch(() => {
+          toast.error("Failed to update estimates");
+        });
+    }
+  };
+
+  return (
+    <>
+      <ToastContainer />
+      <div className="container-fluid p-4" style={{ backgroundColor: "white", borderRadius: "10px" }}>
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <h2>Generate New Invoice</h2>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div className="row mb-3">
+            <div className="col-md-4 mb-3">
+              <label className="form-label">Client</label>
+              <select
+                className="form-select"
+                name="clientId"
+                value={formData.clientId || ""}
+                disabled
+              >
+                {Clients?.data
+                  ?.filter((client) => client._id === formData.clientId)
+                  .map((client) => (
+                    <option key={client._id} value={client._id}>
+                      {client.clientName}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            <div className="col-md-4 mb-3">
+              <label className="form-label">Project</label>
+              <select
+                className="form-select"
+                name="projectsId"
+                value={formData.projectsId[0] || ""}
+                disabled>
+                {project?.data
+                  ?.filter((proj) => proj._id === formData.projectsId[0])
+                  .map((proj) => (
+                    <option key={proj._id} value={proj._id}>
+                      {proj.projectName}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            {/* Selectore dropdow opne ho raha hai  */}
+            {/* <div className="col-md-4 mb-3">
+              <label className="form-label">Client</label>
+              <select
+                className="form-select"
+                name="clientId"
+                value={formData.clientId[0] || ""}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    clientId: [e.target.value],
+                  })
+                }
+                required
+              >
+                <option value="">Select Client</option>
+                {Clients?.data?.map((client) => (
+                  <option key={client._id} value={client._id}>
+                    {client.clientName}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="col-md-4 mb-3">
+              <label className="form-label">Project</label>
+              <select
+                className="form-select"
+                name="projectsId"
+                value={formData.projectsId[0] || ""}
+                onChange={(e) => {
+                  const selectedId = e.target.value;
+                  const selectedProject = project?.data?.find((p) => p._id === selectedId);
+                  setFormData({
+                    ...formData,
+                    projectsId: [selectedId],
+                    projectName: selectedProject?.projectName || "",
+                  });
+                }}
+                required
+              >
+                <option value="">Select a project</option>
+                {reversedProjectList.map((proj) => (
+                  <option key={proj._id} value={proj._id}>
+                    {proj.projectName}
+                  </option>
+                ))}
+              </select>
+            </div> */}
+
+
+            <div className="col-md-4 mb-3">
+              <label className="form-label">Due Date</label>
+              <input
+                type="date"
+                className="form-control"
+                name="date"
+                required
+                value={formData.date}
+                onChange={handleFormChange}
+              />
+            </div>
+
+            <div className="col-md-4 mb-3">
+              <label className="form-label">Currency</label>
+              <select
+                className="form-select"
+                name="currency"
+                value={formData.currency}
+                onChange={handleFormChange}
+                required
+              >
+                {currencies.map((curr) => (
+                  <option
+                    key={curr.value}
+                    value={curr.value}
+                    disabled={curr.value === ""}
+                  >
+                    {curr.label}
+                  </option>
+                ))}
+              </select>
+
+            </div>
+
+            <div className="col-md-4 mb-3">
+              <label className="form-label">Document Type</label>
+              <select
+                className="form-select"
+                name="document"
+                value={formData.document}
+                onChange={handleFormChange}
+                required
+              >
+                <option value="" disabled>
+                  Select Document
+                </option>
+                {document.slice(1).map((doc) => (
+                  <option key={doc} value={doc}>
+                    {doc}
+                  </option>
+                ))}
+              </select>
+
+            </div>
+
+            <div className="col-md-4 mb-3">
+              <label className="form-label">Output Format</label>
+              <select
+                className="form-select"
+                name="output"
+                value={formData.output}
+                onChange={handleFormChange}
+                required
+              >
+                <option value="" disabled>
+                  Select Output Format
+                </option>
+                {OutputFormat.slice(1).map((format) => (
+                  <option key={format} value={format}>
+                    {format}
+                  </option>
+                ))}
+              </select>
+
+            </div>
+
+            <div className="col-md-4 mb-3">
+              <label className="form-label">Status</label>
+              <select
+                className="form-select"
+                name="status"
+                value={formData.status}
+                onChange={handleFormChange}
+                required
+              >
+                <option value="" disabled>
+                  Status Select
+                </option>
+                {statuses.slice(1).map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
+
+            </div>
+          </div>
+
+          <h6 className="fw-semibold mb-3">Line Items</h6>
+          {items.map((item, index) => (
+            <div
+              className="row gx-2 gy-2 align-items-center mb-2 px-2 py-2"
+              key={index}
+              style={{ background: "#f9f9f9", borderRadius: "8px" }}
+            >
+              <div className="col-md-5">
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Item description"
+                  required
+                  value={item.description}
+                  onChange={(e) => handleItemChange(index, "description", e.target.value)}
+                />
+              </div>
+              <div className="col-md-2">
+                <input
+                  type="number"
+                  className="form-control"
+                  required
+                  value={item.quantity}
+                  onChange={(e) =>
+                    handleItemChange(index, "quantity", parseInt(e.target.value))
+                  }
+                />
+              </div>
+              <div className="col-md-2">
+                <input
+                  type="number"
+                  required
+                  value={item.rate}
+                  onChange={(e) => handleItemChange(index, "rate", parseFloat(e.target.value))}
+                  className="form-control"
+                />
+              </div>
+              <div className="col-md-2">
+                <span>
+                  {formData.currency} {item.amount.toFixed(2)}
+                </span>
+              </div>
+              <div className="col-md-1 text-end">
+                <button type="button"
+                  className="btn btn-link text-danger p-0"
+                  onClick={() => removeItem(index)}
+                >
+                  remove
+                </button>
+              </div>
+            </div>
+          ))}
+
+          <button type="button"
+            className="btn border rounded px-3 py-1 mb-4 text-dark"
+            onClick={addItem}
+          >
+            + Add Line Item
+          </button>
+
+          <div className="text-end mt-4">
+            <button type="button" className="btn btn-light me-2" onClick={() => navigate(-1)}>  Cancel</button>
+            <button type="submit" className="btn btn-dark">
+              Generate Invoice
+            </button>
+          </div>
+        </form>
+      </div>
+    </>
+  );
+}
+
+export default AddInvoice;

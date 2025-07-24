@@ -48,24 +48,24 @@ function Invoicing_Billing() {
 
   const [invoices, setInvoices] = useState(initialInvoices);
 
-const getStatusClass = (status) => {
-  switch (status.toLowerCase().trim()) {
-    case "status select":
-      return "bg-light text-dark";       // Default/neutral
-    case "active":
-      return "bg-primary text-white";    // Blue
-    case "inactive":
-      return "bg-secondary text-white";  // Grey
-    case "completed":
-      return "bg-success text-white";    // Green
-    case "pending":
-      return "bg-warning text-dark";     // Yellow
-    case "overdue":
-      return "bg-danger text-white";     // Red
-    default:
-      return "bg-light text-dark";       // Fallback style
-  }
-};
+  const getStatusClass = (status) => {
+    switch (status.toLowerCase().trim()) {
+      case "status select":
+        return "bg-light text-dark";       // Default/neutral
+      case "active":
+        return "bg-primary text-white";    // Blue
+      case "inactive":
+        return "bg-secondary text-white";  // Grey
+      case "completed":
+        return "bg-success text-white";    // Green
+      case "pending":
+        return "bg-warning text-dark";     // Yellow
+      case "overdue":
+        return "bg-danger text-white";     // Red
+      default:
+        return "bg-light text-dark";       // Fallback style
+    }
+  };
 
 
 
@@ -200,7 +200,7 @@ const getStatusClass = (status) => {
       projectNo: project?.projectNo || 'N/A',
       projectName: project?.projectName || 'N/A',
     };
-    
+
     const bankDetails = {
       accountName: client?.financialInformation?.[0]?.bankName || 'Company Name',
       bankName: client?.financialInformation?.[0]?.bankName || 'Company Bank Name',
@@ -240,8 +240,8 @@ const getStatusClass = (status) => {
     const customLogoWidth = 40; // Width for the image
     const customLogoX = margin + 10; // X position
     const logoUrlCustom = invoiceData.CostEstimatesId.image[0];
-    
-    
+
+
     doc.addImage(logoUrlCustom, 'PNG', customLogoX, customLogoY, customLogoWidth, customLogoHeight);
     doc.text(companyDetails.logoText, margin + 10, finalY + 25);
     doc.setFontSize(8);
@@ -557,7 +557,7 @@ const getStatusClass = (status) => {
           ${showFilters ? 'd-block' : 'd-none d-md-flex'}
         `}
       >
-        <div className="col-md-4">
+        <div className="col-md-3">
           <div className="input-group">
             <span className="input-group-text bg-white border-end-0">
               <FaSearch className="text-muted" />
@@ -571,7 +571,7 @@ const getStatusClass = (status) => {
             />
           </div>
         </div>
-        <div className="col-md-4">
+        <div className="col-md-3">
           <div className="input-group">
             <span className="input-group-text bg-white border-end-0">
               {/* <FaCalendarAlt className="text-muted" /> */}
@@ -584,7 +584,7 @@ const getStatusClass = (status) => {
             />
           </div>
         </div>
-        <div className="col-md-4">
+        <div className="col-md-3">
           <Dropdown>
             <Dropdown.Toggle variant="light" id="project-dropdown" className="w-100">
               {selectedProject}
@@ -603,6 +603,16 @@ const getStatusClass = (status) => {
             </Dropdown.Menu>
           </Dropdown>
         </div>
+        <div className="col-md-3">
+          <div className="input-group">
+            <Link to={"/admin/AddInvoice"}><button
+              className="btn btn-outline-secondary "
+              type="button"
+            >+ Invoicing
+            </button></Link>
+          </div>
+        </div>
+
       </div>
 
       {/* Mobile filter dropdown panel */}
@@ -642,13 +652,13 @@ const getStatusClass = (status) => {
       <Table hover responsive>
         <thead>
           <tr>
-            <th onClick={() => handleSort('invoiceNumber')} style={{ whiteSpace: "nowrap",whiteSpace: 'nowrap' }}>Invoice #</th>
-            <th onClick={() => handleSort('project')} style={{ cursor: 'pointer',whiteSpace: 'nowrap' }}>Project</th>
-            <th onClick={() => handleSort('client')} style={{ cursor: 'pointer',whiteSpace: 'nowrap' }}>Client Name</th>
-            <th onClick={() => handleSort('email')} style={{ cursor: 'pointer',whiteSpace: 'nowrap' }}>Client Email</th>
-            <th onClick={() => handleSort('amount')} style={{ cursor: 'pointer',whiteSpace: 'nowrap' }}>Amount</th>
-            <th onClick={() => handleSort('status')} style={{ cursor: 'pointer',whiteSpace: 'nowrap' }}>Status</th>
-            <th onClick={() => handleSort('dueDate')} style={{ cursor: 'pointer',whiteSpace: 'nowrap' }}>Due Date</th>
+            <th onClick={() => handleSort('invoiceNumber')} style={{ whiteSpace: "nowrap", whiteSpace: 'nowrap' }}>Invoice #</th>
+            <th onClick={() => handleSort('project')} style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>Project</th>
+            <th onClick={() => handleSort('client')} style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>Client Name</th>
+            <th onClick={() => handleSort('email')} style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>Client Email</th>
+            <th onClick={() => handleSort('amount')} style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>Amount</th>
+            <th onClick={() => handleSort('status')} style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>Status</th>
+            <th onClick={() => handleSort('dueDate')} style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>Due Date</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -663,9 +673,9 @@ const getStatusClass = (status) => {
               <td style={{ whiteSpace: "nowrap" }}>{invoice.clientId?.contactPersons[0].email || "N/A"}</td>
               <td style={{ whiteSpace: "nowrap" }}>${invoice.lineItems?.[0]?.amount || "N/A"}</td>
               <td>
-                  <span className={`badge ${getStatusClass(invoice.status)} px-2 py-1`}>
-                    {invoice.status}
-                  </span>
+                <span className={`badge ${getStatusClass(invoice.status)} px-2 py-1`}>
+                  {invoice.status}
+                </span>
               </td>
               <td>{invoice.date ? new Date(invoice.date).toLocaleDateString("en-GB") : 'N/A'}</td>
               <td>

@@ -9,7 +9,6 @@ function Client() {
   const toggleSidebar = () => {
     setSidebarOpen(!isSidebarOpen);
   };
-
   const location = useLocation();
   const hideLayout =
     location.pathname === "/" || location.pathname.toLowerCase() === "/signup";

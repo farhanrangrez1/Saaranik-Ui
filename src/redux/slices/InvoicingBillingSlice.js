@@ -75,6 +75,20 @@ export const updateInvoicingBilling = createAsyncThunk(
   }
 );
 
+export const GetSingleInvoice = createAsyncThunk(
+  'InvoicingBilling/GetSingleInvoice',
+  async (payload, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.post(`${apiUrl}/InvoicingBilling/invoicing`, payload);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+
+
 const InvoicingBillingSlice = createSlice({
   name: 'InvoicingBilling',
   initialState: {
@@ -107,6 +121,17 @@ const InvoicingBillingSlice = createSlice({
     //     state.status = 'failed';
     //     state.error = action.payload;
     //   });
+       .addCase(GetSingleInvoice.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(GetSingleInvoice.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.invocing = action.payload;
+      })
+      .addCase(GetSingleInvoice.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      })
   },
 });
 
