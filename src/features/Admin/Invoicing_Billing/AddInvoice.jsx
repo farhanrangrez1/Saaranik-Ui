@@ -38,13 +38,12 @@ function AddInvoice() {
     console.log("invocing", invocing);
 useEffect(() => {
   if (invoice) {
-   dispatch(GetSingleInvoice({
-  projectsId: [invoice.projectId], // wrap it in an array as expected
-  clientId: invoice.clientId,
-  CostEstimatesId: invoice.CostEstimatesId,
-  ReceivablePurchaseId: invoice.ReceivablePurchaseId,
-}));
-
+    dispatch(GetSingleInvoice({
+      clientId: invoice.clientId,
+      projectId: invoice.projectId,
+      CostEstimatesId: invoice.CostEstimatesId,
+      ReceivablePurchaseId: invoice.ReceivablePurchaseId,
+    }));
   }
 }, [dispatch, invoice]);
 
@@ -86,39 +85,37 @@ useEffect(() => {
     document: "",
     output: "",
   });
+  
+  useEffect(() => {
+    const data = invocing?.data;
+    if (data) {
+      setFormData((prev) => ({
+        ...prev,
+        clientId: data.client?._id || "",
+        CostEstimatesId: data.costEstimate?._id || "",
+        ReceivablePurchaseId: data.receivablePurchase?._id || "",
+        projectsId: invoice.projectId ? [invoice.projectId] : [""],
+        status: data.costEstimate?.Status && statuses.includes(data.costEstimate.Status)
+          ? data.costEstimate.Status
+          : "Active",
+        Notes: data.costEstimate?.Notes || "",
+        currency: data.costEstimate?.currency || "",
+        date: data.costEstimate?.estimateDate
+          ? data.costEstimate.estimateDate.substring(0, 10)
+          : "",
+        validUntil: data.costEstimate?.validUntil
+          ? data.costEstimate.validUntil.substring(0, 10)
+          : "",
+      }));
 
- useEffect(() => {
-  const data = invocing?.data;
-  if (data) {
-    setFormData((prev) => ({
-      ...prev,
-      clientId: data.client?._id || "",
-      CostEstimatesId: data.costEstimate?._id || "",
-      ReceivablePurchaseId: data.receivablePurchase?._id || "",
-      projectsId: data.projectId ? [data.projectId] : [""],
-      status: data.costEstimate?.Status && statuses.includes(data.costEstimate.Status)
-        ? data.costEstimate.Status
-        : "Active",
-      Notes: data.costEstimate?.Notes || "",
-      currency: data.costEstimate?.currency || "",
-      date: data.costEstimate?.estimateDate
-        ? data.costEstimate.estimateDate.substring(0, 10)
-        : "",
-      validUntil: data.costEstimate?.validUntil
-        ? data.costEstimate.validUntil.substring(0, 10)
-        : "",
-    }));
-
-    if (
-      Array.isArray(data.costEstimate?.lineItems) &&
-      data.costEstimate.lineItems.length > 0
-    ) {
-      setItems(data.costEstimate.lineItems);
+      if (
+        Array.isArray(data.costEstimate?.lineItems) &&
+        data.costEstimate.lineItems.length > 0
+      ) {
+        setItems(data.costEstimate.lineItems);
+      }
     }
-  }
-}, [invocing]);
-
-
+  }, [invocing]);
 
   const [taxRate, setTaxRate] = useState(0.05);
 

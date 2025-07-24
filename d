@@ -34944,3 +34944,113 @@ useEffect(() => {
 }
 
 export default AddInvoice;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  const location = useLocation();
+  const invoice = location.state?.invoice;
+  const id = invoice?._id;
+  console.log("hhel", invoice);
+
+  const { invocing } = useSelector((state) => state.InvoicingBilling);
+  console.log("invocing", invocing);
+  useEffect(() => {
+    if (invoice) {
+      dispatch(GetSingleInvoice({
+        projectsId: [invoice.projectId], // wrap it in an array as expected
+        clientId: invoice.clientId,
+        CostEstimatesId: invoice.CostEstimatesId,
+        ReceivablePurchaseId: invoice.ReceivablePurchaseId,
+      }));
+
+    }
+  }, [dispatch, invoice]);
+
+
+  const { project } = useSelector((state) => state.projects);
+  useEffect(() => {
+    dispatch(fetchProject());
+  }, [dispatch]);
+  const reversedProjectList = project?.data?.slice().reverse() || [];
+
+  const { Clients } = useSelector((state) => state.client);
+  useEffect(() => {
+    if (Clients && project?.data?.length) {
+      const foundProject = project.data.find((p) => p._id === Clients);
+      if (foundProject) {
+        setFormData((prev) => ({
+          ...prev,
+          projectsId: foundProject._id,
+        }));
+      }
+    }
+  }, [Clients, project]);
+
+  useEffect(() => {
+    dispatch(fetchClient());
+  }, [dispatch]);
+
+  const [items, setItems] = useState([{ description: "", quantity: 0, rate: 0, amount: 0 }]);
+
+  const [formData, setFormData] = useState({
+    clientId: "",
+    projectsId: [""],
+    CostEstimatesId: "",
+    ReceivablePurchaseId: "",
+    date: "",
+    status: "",
+    currency: "",
+    document: "",
+    output: "",
+  });
+
+  useEffect(() => {
+    const data = invocing?.data;
+    if (data) {
+      setFormData((prev) => ({
+        ...prev,
+        clientId: data.client?._id || "",
+        CostEstimatesId: data.costEstimate?._id || "",
+        ReceivablePurchaseId: data.receivablePurchase?._id || "",
+        projectsId: data.projectId ? [data.projectId] : [""],
+        status: data.costEstimate?.Status && statuses.includes(data.costEstimate.Status)
+          ? data.costEstimate.Status
+          : "Active",
+        Notes: data.costEstimate?.Notes || "",
+        currency: data.costEstimate?.currency || "",
+        date: data.costEstimate?.estimateDate
+          ? data.costEstimate.estimateDate.substring(0, 10)
+          : "",
+        validUntil: data.costEstimate?.validUntil
+          ? data.costEstimate.validUntil.substring(0, 10)
+          : "",
+      }));
+
+      if (
+        Array.isArray(data.costEstimate?.lineItems) &&
+        data.costEstimate.lineItems.length > 0
+      ) {
+        setItems(data.costEstimate.lineItems);
+      }
+    }
+  }, [invocing]);
