@@ -5,7 +5,7 @@ import { Button, Form, Table, Pagination, Modal } from "react-bootstrap";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { FaEye } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchjobs, ProductionJobsGet, updatejob, UpdateJobAssign } from "../../../redux/slices/JobsSlice";
+import { fetchjobs, ProductionJobsGet, Project_job_Id, updatejob, UpdateJobAssign } from "../../../redux/slices/JobsSlice";
 import {
   FaFilePdf,
   FaUpload,
@@ -454,6 +454,7 @@ function NewJobsList() {
               </th>
               <th>JobNo</th>
               <th style={{ whiteSpace: "nowrap" }}>Project Name</th>
+              <th style={{ whiteSpace: "nowrap" }}>Project No</th>
               <th>Brand</th>
               <th style={{ whiteSpace: "nowrap" }}>Sub Brand</th>
               <th>Flavour</th>
@@ -469,66 +470,61 @@ function NewJobsList() {
             </tr>
           </thead>
           <tbody>
-            {paginatedProjects.slice().reverse().map((job, index) => (
-              <tr key={job._id}>
-                <td>
-                  <input
-                    type="checkbox"
-                    checked={selectedJobs[job._id] || false}
-                    onChange={() => handleCheckboxChange(job._id)}
-                  />
-                </td>
-                <td onClick={() => JobDetails(job)}>
-                  <Link style={{ textDecoration: "none" }}>{job.JobNo}</Link>
-                </td>
-                <td style={{ whiteSpace: "nowrap" }}>
-                  {job.projectId?.[0]?.projectName || "N/A"}
-                </td>
-                <td style={{ whiteSpace: "nowrap" }}>{job.brandName}</td>
-                <td style={{ whiteSpace: "nowrap" }}>{job.subBrand}</td>
-                <td style={{ whiteSpace: "nowrap" }}>{job.flavour}</td>
-                <td style={{ whiteSpace: "nowrap" }}>{job.packType}</td>
-                <td style={{ whiteSpace: "nowrap" }}>{job.packSize}</td>
-                <td style={{ whiteSpace: "nowrap" }}>{job?.packCode}</td>
-                <td style={{ whiteSpace: "nowrap" }}>
-                  {new Date(job.updatedAt).toLocaleTimeString("en-US", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </td>
-                <td style={{ whiteSpace: "nowrap" }}>
-                  {new Date(job.createdAt).toLocaleDateString("en-GB")}
-                </td>
-                <td style={{ whiteSpace: 'nowrap' }}>{job?.assign}</td>
-                <td>
-                  <span className={getPriorityClass(job.priority)}>{job.priority}</span>
-                </td>
-                <td>
-                  <span className={`badge ${getStatusClass(job.Status)} px-2 py-1`}>
-                    {job.Status}
-                  </span>
-                </td>
-                <td>
-                  <div className="d-flex gap-2">
-                    {/* <Button id="icone_btn" size="sm">
-                      <FaFilePdf />
-                    </Button>
-                    <Button id="icone_btn" size="sm">
-                      <FaUpload />
-                    </Button>
-                    <Button id="icone_btn" size="sm">
-                      <FaLink />
-                    </Button>
-                    <Button id="icone_btn" size="sm">
-                      <FaClock />
-                    </Button> */}
-                    <Button id="icone_btn" size="sm" onClick={() => handleUpdate(job)}>
-                      <FaEdit />
-                    </Button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {paginatedProjects
+              .slice()
+              .reverse()
+              .filter((job) => job.Status === "Active") // 👈 Only show Active jobs
+              .map((job, index) => (
+                <tr key={job._id}>
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={selectedJobs[job._id] || false}
+                      onChange={() => handleCheckboxChange(job._id)}
+                    />
+                  </td>
+                  <td onClick={() => JobDetails(job)}>
+                    <Link style={{ textDecoration: "none" }}>{job.JobNo}</Link>
+                  </td>
+                  <td style={{ whiteSpace: "nowrap" }}>
+                    {job.projectId?.[0]?.projectName || "N/A"}
+                  </td>
+                     <td style={{ whiteSpace: "nowrap" }}>
+                    {job.projectId?.[0]?.projectNo || "N/A"}
+                  </td>
+                  <td style={{ whiteSpace: "nowrap" }}>{job.brandName}</td>
+                  <td style={{ whiteSpace: "nowrap" }}>{job.subBrand}</td>
+                  <td style={{ whiteSpace: "nowrap" }}>{job.flavour}</td>
+                  <td style={{ whiteSpace: "nowrap" }}>{job.packType}</td>
+                  <td style={{ whiteSpace: "nowrap" }}>{job.packSize}</td>
+                  <td style={{ whiteSpace: "nowrap" }}>{job?.packCode}</td>
+                  <td style={{ whiteSpace: "nowrap" }}>
+                    {new Date(job.updatedAt).toLocaleTimeString("en-US", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </td>
+                  <td style={{ whiteSpace: "nowrap" }}>
+                    {new Date(job.createdAt).toLocaleDateString("en-GB")}
+                  </td>
+                  <td style={{ whiteSpace: 'nowrap' }}>{job?.assign}</td>
+                  <td>
+                    <span className={getPriorityClass(job.priority)}>{job.priority}</span>
+                  </td>
+                  <td>
+                    <span className={`badge ${getStatusClass(job.Status)} px-2 py-1`}>
+                      {job.Status}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="d-flex gap-2">
+                      <Button id="icone_btn" size="sm" onClick={() => handleUpdate(job)}>
+                        <FaEdit />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
           </tbody>
         </Table>
       </div>

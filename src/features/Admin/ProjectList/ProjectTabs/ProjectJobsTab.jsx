@@ -441,6 +441,7 @@ const handleSubmitAssignment = async () => {
                   </th>
                   <th>JobsNo</th>
                   <th style={{ whiteSpace: 'nowrap' }}>Project Name</th>
+                   <th style={{ whiteSpace: 'nowrap' }}>Project No</th>
                   <th>Brand</th>
                   <th>SubBrand</th>
                   <th>Flavour</th>
@@ -469,6 +470,7 @@ const handleSubmitAssignment = async () => {
                       <Link style={{ textDecoration: 'none' }}>{job.JobNo}</Link>
                     </td>
                     <td style={{ whiteSpace: 'nowrap' }}>{job.projectId?.[0]?.projectName || 'N/A'}</td>
+                    <td style={{ whiteSpace: 'nowrap' }}>{job.projectId?.[0]?.projectNo || 'N/A'}</td>
                     <td style={{ whiteSpace: 'nowrap' }}>{job.brandName}</td>
                     <td style={{ whiteSpace: 'nowrap' }}>{job.subBrand}</td>
                     <td style={{ whiteSpace: 'nowrap' }}>{job.flavour}</td>

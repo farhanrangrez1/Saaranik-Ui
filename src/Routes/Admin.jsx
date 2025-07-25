@@ -58,6 +58,7 @@ import DCompletedProject from "../features/Admin/Dashbord/DCompletedProject.jsx"
 import DJobsInProgress from "../features/Admin/Dashbord/DJobsInProgress.jsx";
 import ChangePassword from "../features/Layouts/ChangePassword.jsx";
 import UpdateProfile from "../features/Admin/Profile/UpdateProfile.jsx";
+import OvervieCostEstimates from "../features/Admin/CostEstimates/OvervieCostEstimates.jsx";
 
 function Admin() {
   const [isSidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 768);
@@ -97,6 +98,7 @@ function Admin() {
             <Route path="/AddClientManagement" element={<ProtectedRoute><AddClientManagement /></ProtectedRoute>} />
             <Route path="/ViewdetailsClientManagement" element={<ProtectedRoute><ViewdetailsClientManagement /></ProtectedRoute>} />
             <Route path="/CostEstimates" element={<ProtectedRoute><CostEstimates /></ProtectedRoute>} />
+            <Route path="/OvervieCostEstimates" element={<ProtectedRoute><OvervieCostEstimates/></ProtectedRoute>} />
             <Route path="/AddCostEstimates" element={<ProtectedRoute><AddCostEstimates /></ProtectedRoute>} />
             <Route path="/duplicate/AddCostEstimates/:id" element={<ProtectedRoute><AddCostEstimates /></ProtectedRoute>} />
             <Route path="/receivable" element={<ProtectedRoute><ReciveablePurchase /></ProtectedRoute>} />

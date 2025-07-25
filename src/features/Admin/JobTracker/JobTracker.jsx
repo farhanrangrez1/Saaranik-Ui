@@ -205,6 +205,7 @@ function JobTracker() {
               <th><input type="checkbox" /></th>
               <th>JobNo</th>
               <th>ProjectName</th>
+              <th>ProjectNo</th>
               <th>Brand</th>
               <th>SubBrand</th>
               <th>Flavour</th>
@@ -233,6 +234,7 @@ function JobTracker() {
                   <Link style={{ textDecoration: 'none' }}>{job.JobNo}</Link>
                 </td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.projectId?.[0]?.projectName || 'N/A'}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{job.projectId?.[0]?.projectNo || 'N/A'}</td>
                 <td>{job.brandName}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.subBrand}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.flavour}</td>

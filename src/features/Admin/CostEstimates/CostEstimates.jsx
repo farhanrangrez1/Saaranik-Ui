@@ -612,6 +612,12 @@ function CostEstimates() {
     }
   };
   // ... existing code ...
+
+
+
+    const CostEstimatesDetails = (po) => {
+   navigate(`/admin/OvervieCostEstimates`, { state: { po } });
+  };
   return (
     <div
       className="p-4 m-2"
@@ -705,8 +711,8 @@ function CostEstimates() {
             {paginatedEstimates?.map((po, index) => (
               <tr style={{ whiteSpace: "nowrap" }} key={po.poNumber}>
                 <td><input type="checkbox" /></td>
-                <td onClick={() => CreatJobs(po.projectId)}>
-                  <Link to={"/admin/receivable"} style={{ textDecoration: 'none', border: 'none' }}>
+                <td onClick={() => CostEstimatesDetails(po)}>
+                  <Link style={{ textDecoration: 'none', border: 'none' }}>
                     {po.estimateRef}
                   </Link>
                 </td>

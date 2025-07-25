@@ -439,6 +439,17 @@ function AddClientManagement() {
   }, []);
 
   // Generic handler for creating new options
+  const [userData, setUserData] = useState({
+    CSRCode: "",
+    countryCode: "+44",
+    // ... other fields
+  });
+  const fullNumber = userData.countryCode + userData.CSRCode;
+  if (!/^\+\d{10,15}$/.test(fullNumber)) {
+    errors.CSRCode = "Enter a valid phone number with selected country code.";
+  }
+
+
   const handleCreateOption = (field) => (inputValue) => {
     axios.post(`${apiUrl}/client/selectclient`, {
       [field]: [...selectOptions[field].map(opt => opt.value), inputValue]
@@ -453,9 +464,9 @@ function AddClientManagement() {
       }));
     });
   };
-if (!/^\+447\d{9}$/.test(formData.CSRCode)) {
-  errors.CSRCode = "Enter valid UK mobile number (e.g. 7912345678)";
-}
+  if (!/^\+447\d{9}$/.test(formData.CSRCode)) {
+    errors.CSRCode = "Enter valid UK mobile number (e.g. 7912345678)";
+  }
 
   return (
     <>
@@ -525,33 +536,47 @@ if (!/^\+447\d{9}$/.test(formData.CSRCode)) {
 
                 {errors.TaxID_VATNumber && <div className="text-danger small">{errors.TaxID_VATNumber}</div>}
               </div>
-            <div className="col-md-6">
-  <label className="form-label">CSR Code</label>
-  <div className="input-group">
-    <span className="input-group-text">+44</span>
-    <input
-      type="tel"
-      name="CSRCode"
-      required
-      value={formData.CSRCode.replace('+44', '')} // show only main part
-      onChange={(e) => {
-        let input = e.target.value.replace(/\D/g, ''); // remove non-digits
+              <div className="col-md-6">
+                <label className="form-label">CSR Code</label>
+                <div className="input-group">
+                  <select
+                    className="form-select"
+                    style={{ maxWidth: "100px" }}
+                    value={userData.countryCode}
+                    onChange={(e) =>
+                      setUserData({ ...userData, countryCode: e.target.value })
+                    }
+                  >
+                    <option value="+44">🇬🇧 +44</option>
+                    <option value="+91">🇮🇳 +91</option>
+                    <option value="+1">🇺🇸 +1</option>
+                     <option value="+1">🇺k +44</option>
+                  </select>
 
-        if (input.length > 10) input = input.slice(0, 10); // max 10 digits
+                  <input
+                    type="tel"
+                    name="CSRCode"
+                    required
+                    value={userData.CSRCode}
+                    onChange={(e) => {
+                      let input = e.target.value.replace(/\D/g, '');
+                      if (input.length > 10) input = input.slice(0, 10);
+                      setUserData({ ...userData, CSRCode: input });
+                    }}
+                    className="form-control"
+                    inputMode="numeric"
+                    maxLength={10}
+                    placeholder="Phone number"
+                  />
 
-        const finalValue = '+44' + input;
-        setFormData({ ...formData, CSRCode: finalValue });
-      }}
-      className="form-control"
-      inputMode="numeric"
-      maxLength={10}
-      placeholder="7XXXXXXXXX"
-    />
-  </div>
-  {errors.CSRCode && (
-    <div className="text-danger small">{errors.CSRCode}</div>
-  )}
-</div>
+
+                </div>
+
+                {errors.CSRCode && (
+                  <div className="text-danger small">{errors.CSRCode}</div>
+                )}
+              </div>
+
 
               <div className="col-md-6">
                 <label className="form-label">Status</label>
