@@ -1,7 +1,8 @@
 import React, { useRef, useState } from "react";
 import { Card, Row, Col, Button, Table, OverlayTrigger, Tooltip, Modal, Badge } from "react-bootstrap";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import { FaUpload, FaFileExcel, FaTimes, FaBarcode, FaUser, FaClock, FaCalendarAlt, FaInfoCircle, FaPlus } from "react-icons/fa";
+import { FaUpload, FaFileExcel, FaTimes, FaBarcode, FaUser, FaClock, FaCalendarAlt, FaInfoCircle, FaPlus, FaBox } from "react-icons/fa";
+
 import { useDispatch } from "react-redux";
 
 const OvervieJobsTracker = ({ onClose }) => {
@@ -44,7 +45,7 @@ const OvervieJobsTracker = ({ onClose }) => {
 
   // Sample job data
   const jobs = {
-    jobNo: "Banner Design - Spring Campaign",
+    JobNo: "0006",
     status: "In Progress",
     dueDate: "April 25, 2025",
     instructions:
@@ -62,21 +63,24 @@ const OvervieJobsTracker = ({ onClose }) => {
   const { id } = useParams(); // for edit mode
   const location = useLocation();
   const { job } = location.state || {};
+  console.log("hhh", job);
+  
 
   // Responsive two-column grid for job details
   const jobDetails = [
-    { label: "Job No", value: jobs.jobNo, icon: <FaCalendarAlt className="me-2 text-primary" /> },
-    { label: "Status", value: job?.Status || jobs.status, icon: <FaInfoCircle className="me-2 text-primary" /> },
-    { label: "Due Date", value: job?.createdAt ? new Date(job?.createdAt).toLocaleDateString('en-GB').replace(/\/20/, '/') : jobs.dueDate, icon: <FaCalendarAlt className="me-2 text-primary" /> },
+    { label: "Job No", value: job?.JobNo, icon: <FaBarcode className="me-2 text-primary" /> },
+    { label: "Status", value: job?.Status || job.status, icon: <FaInfoCircle className="me-2 text-primary" /> },
+    { label: "Due Date", value: job?.createdAt ? new Date(job?.createdAt).toLocaleDateString('en-GB').replace(/\/20/, '/') : job.dueDate, icon: <FaCalendarAlt className="me-2 text-primary" /> },
     { label: "Brand", value: job?.brandName, icon: <FaUser className="me-2 text-primary" /> },
     { label: "Flavour", value: job?.flavour, icon: <FaUser className="me-2 text-primary" /> },
     { label: "SubBrand", value: job?.subBrand, icon: <FaUser className="me-2 text-primary" /> },
-    { label: "Pack Type", value: job?.packType, icon: <FaUser className="me-2 text-primary" /> },
-    { label: "Pack Size", value: job?.packSize, icon: <FaUser className="me-2 text-primary" /> },
-    { label: "Priority", value: job?.priority, icon: <FaUser className="me-2 text-primary" /> },
-    { label: "Project Name", value: job?.packType, icon: <FaBarcode className="me-2 text-primary" /> },
+    { label: "Pack Type", value: job?.packType, icon: <FaBox className="me-2 text-primary" /> }, // Box type icon
+    { label: "Pack Size", value: job?.packSize, icon: <FaBox className="me-2 text-primary" /> },
+    { label: "Project Name", value: job?.projectId?.[0]?.projectName, icon: <FaBarcode className="me-2 text-primary" /> },
+    { label: "Project No", value: job?.projectId?.[0]?.projectNo, icon: <FaBarcode className="me-2 text-primary" /> },
+    { label: "Priority", value: job?.priority, icon: <FaInfoCircle className="me-2 text-primary" /> },
     { label: "Assign", value: job?.assign, icon: <FaUser className="me-2 text-primary" /> },
-    { label: "Total Time", value: job?.totalTime, icon: <FaClock className="me-2 text-primary" /> },
+    // { label: "Total Time", value: job?.totalTime, icon: <FaClock className="me-2 text-primary" /> },
     { label: "Project Barcode", value: job?.barcode, icon: <FaBarcode className="me-2 text-primary" /> },
   ];
 

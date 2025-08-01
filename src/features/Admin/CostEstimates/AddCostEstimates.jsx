@@ -304,7 +304,7 @@ function AddCostEstimates() {
                 </select>
               </div>
 
-              <div className="col-md-4 mb-3">
+              {/* <div className="col-md-4 mb-3">
                 <label className="form-label">PO Status</label>
                 <select
                   className="form-select"
@@ -317,7 +317,7 @@ function AddCostEstimates() {
                   <option value="Approved">Approved</option>
                   <option value="Rejected">Rejected</option>
                 </select>
-              </div>
+              </div> */}
 
               <div className="col-md-4 mb-3">
                 <label className="form-label">Status</label>

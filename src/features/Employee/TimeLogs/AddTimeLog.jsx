@@ -8,13 +8,15 @@ import "react-toastify/dist/ReactToastify.css";
 import { fetchusers, SingleUser } from '../../../redux/slices/userSlice';
 import { fetchMyJobs } from '../../../redux/slices/Employee/MyJobsSlice';
 
+
 function AddTimeLog() {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const { id } = useParams();
-  const location = useLocation();
-  const { entry } = location.state || {};
-  const _id = entry?._id;
+const dispatch = useDispatch();
+const navigate = useNavigate();
+const location = useLocation();
+const { id, openTab, entry,job } = location.state || {};
+
+console.log("Job ID:", job[0]?.projectId.projectName);
+console.log("Job ID:", job.JobNo);
 
   const { UserSingle, loading, error } = useSelector((state) => state.user);
 
@@ -43,26 +45,61 @@ function AddTimeLog() {
     jobName: ''
   });
 
+  // useEffect(() => {
+  //   if (entry) {
+  //     const parsedDate = entry.date
+  //       ? new Date(entry.date).toISOString().split('T')[0]
+  //       : getTodayDate();
+  //     setFormData({
+  //       date: parsedDate,
+  //       projectId: Array.isArray(entry.projectId) ? entry.projectId[0]._id : '',
+  //       jobId: Array.isArray(entry.jobId) ? entry.jobId[0]._id : '',
+  //       employeeId: Array.isArray(entry.employeeId) ? entry.employeeId[0]._id : '',
+  //       status: entry.status || '',
+  //       startTime: entry.startTime || '',
+  //       endTime: entry.endTime || '',
+  //       taskDescription: entry.taskDescription || '',
+  //       tags: entry.tags || '',
+  //       projectName: Array.isArray(entry.projectId) ? entry.projectId[0].projectName : '',
+  //       jobName: Array.isArray(entry.jobId) ? entry.jobId[0].jobName || '' : ''
+  //     });
+  //   }
+  // }, [entry]);
+
   useEffect(() => {
-    if (entry) {
-      const parsedDate = entry.date
-        ? new Date(entry.date).toISOString().split('T')[0]
-        : getTodayDate();
-      setFormData({
-        date: parsedDate,
-        projectId: Array.isArray(entry.projectId) ? entry.projectId[0]._id : '',
-        jobId: Array.isArray(entry.jobId) ? entry.jobId[0]._id : '',
-        employeeId: Array.isArray(entry.employeeId) ? entry.employeeId[0]._id : '',
-        status: entry.status || '',
-        startTime: entry.startTime || '',
-        endTime: entry.endTime || '',
-        taskDescription: entry.taskDescription || '',
-        tags: entry.tags || '',
-        projectName: Array.isArray(entry.projectId) ? entry.projectId[0].projectName : '',
-        jobName: Array.isArray(entry.jobId) ? entry.jobId[0].jobName || '' : ''
-      });
-    }
-  }, [entry]);
+  if (entry || job) {
+    // entry use karna hai agar edit mode hai
+    const data = entry || job; 
+
+    const parsedDate = data.date
+      ? new Date(data.date).toISOString().split('T')[0]
+      : getTodayDate();
+
+    setFormData({
+      date: parsedDate,
+      projectId: Array.isArray(data.projectId) 
+        ? data.projectId[0]._id 
+        : data.projectId?._id || '',
+      jobId: Array.isArray(data.jobId) 
+        ? data.jobId[0]._id 
+        : data._id || '',
+      employeeId: Array.isArray(data.employeeId)
+        ? data.employeeId[0]._id 
+        : empid,
+      status: data.status || '',
+      startTime: data.startTime || '',
+      endTime: data.endTime || '',
+      taskDescription: data.taskDescription || '',
+      tags: data.tags || '',
+      projectName: Array.isArray(data.projectId)
+        ? data.projectId[0].projectName
+        : data.projectId?.projectName || '',
+      jobName: Array.isArray(data.jobId)
+        ? data.jobId[0].jobName || data.jobId[0].JobNo
+        : data.jobName || data.JobNo || ''
+    });
+  }
+}, [entry, job, empid]);
 
   useEffect(() => {
     dispatch(fetchProject());

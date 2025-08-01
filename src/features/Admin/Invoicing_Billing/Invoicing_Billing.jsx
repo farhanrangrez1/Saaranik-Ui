@@ -605,14 +605,13 @@ function Invoicing_Billing() {
         </div>
         <div className="col-md-3">
           <div className="input-group">
-            <Link to={"/admin/AddInvoice"}><button
+            {/* <Link to={"/admin/AddInvoice"}><button
               className="btn btn-outline-secondary "
               type="button"
             >+ Invoicing
-            </button></Link>
+            </button></Link> */}
           </div>
         </div>
-
       </div>
 
       {/* Mobile filter dropdown panel */}

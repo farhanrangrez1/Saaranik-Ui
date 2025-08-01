@@ -54,6 +54,7 @@ export const adminMenuItems = [
     submenu: [
       { title: "My Jobs", path: "/admin/MyJobs" },
       { title: "Time Logs", path: "/admin/TimeLogs" },
+      { title: "Return Job", path: "/admin/Retunjob" },
     ],
   },
   {

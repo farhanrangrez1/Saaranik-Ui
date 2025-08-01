@@ -101,9 +101,19 @@ function ProjectList() {
     navigate(`/admin/AddProjectList`, { state: { project } });
   };
 
-  const CreatJobs = (id) => {
-    navigate(`/admin/ProjectOverview/${id}`, { state: { id, openTab: 'jobs' } });
-  };
+  // const CreatJobs = (id) => {
+  //   navigate(`/admin/ProjectOverview/${id}`, { state: { id, openTab: 'jobs' } });
+  // };
+
+  const CreatJobs = (project) => {
+  navigate(`/admin/ProjectOverview/${project.id}`, { 
+    state: { 
+      id: project.id, 
+      openTab: 'jobs',
+      projectDatah: project 
+    } 
+  });
+};
 
   const getStatusClass = (status) => {
     switch ((status || "").toLowerCase().trim()) {
@@ -260,9 +270,13 @@ function ProjectList() {
                     onChange={() => handleCheckboxChange(project.id)}
                   />
                 </td>
-                <td onClick={() => CreatJobs(project.id)}>
+                {/* <td onClick={() => CreatJobs(project.id)}>
                   <Link style={{ textDecoration: 'none' }}>{project.projectNo}</Link>
-                </td>
+                </td> */}
+                <td onClick={() => CreatJobs(project)}>
+  <Link style={{ textDecoration: 'none' }}>{project.projectNo}</Link>
+</td>
+
                 <td style={{ whiteSpace: 'nowrap' }}>{project.projectName}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{project.description}</td>
                 <td>{new Date(project.startDate).toLocaleDateString('en-GB').replace(/\/20/, '/')}</td>

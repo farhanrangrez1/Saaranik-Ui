@@ -9,8 +9,14 @@ import { Button } from 'react-bootstrap';
 
 function ProjectOverview() {
   const location = useLocation();
-  const [activeTab, setActiveTab] = useState('overview');
+  const { id, openTab, projectDatah } = location.state || {};
 
+  console.log("Project ID:", id);
+  console.log("Project Data:", projectDatah);
+
+
+
+  const [activeTab, setActiveTab] = useState('overview');
   useEffect(() => {
     if (location.state?.openTab) {
       setActiveTab(location.state.openTab);
@@ -75,9 +81,9 @@ function ProjectOverview() {
       {/* Project Header */}
       <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap">
         <div>
-          <h4 className="mb-1">{projectData.projectId}-{projectData.title}</h4>
+          <h4 className="mb-1">{projectDatah.projectNo}-{projectDatah.projectName}</h4>
           <div className="text-muted">
-            Client: {projectData.client}
+            Client: {projectDatah?.clientId?.clientName}
           </div>
         </div>
         <div className="mt-3 mt-md-0 d-flex flex-wrap gap-2 justify-content-md-end">

@@ -96,6 +96,19 @@ export const UpdateAssignsAssign = createAsyncThunk('Assign/updateAssigns', asyn
   return await response.json();
 });
 
+
+export const RetunjobGet = createAsyncThunk(
+  'assigns/RetunjobGet',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get(`${apiUrl}/Remove/ReturnAssignedJob`);
+      return response.data
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
 const AssignSlice = createSlice({
   name: 'Assign',
   initialState: {
@@ -160,6 +173,18 @@ const AssignSlice = createSlice({
     //     state.status = 'failed';
     //     state.error = action.payload;
     //   });
+
+       .addCase(RetunjobGet.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(RetunjobGet.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.assigns = action.payload;
+      })
+      .addCase(RetunjobGet.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      })
   },
 });
 

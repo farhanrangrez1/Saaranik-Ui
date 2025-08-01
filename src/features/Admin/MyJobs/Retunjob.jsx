@@ -16,12 +16,12 @@ import {
 import { Dropdown } from "react-bootstrap";
 import Swal from "sweetalert2";
 import { fetchusers } from "../../../redux/slices/userSlice";
-import { createAssigns } from "../../../redux/slices/AssignSlice";
+import { createAssigns, RetunjobGet } from "../../../redux/slices/AssignSlice";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { BiCopy } from "react-icons/bi";
 
-function NewJobsList() {
+function Retunjob() {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -71,14 +71,16 @@ function NewJobsList() {
     },
   ];
 
-  const { job, loading, error } = useSelector((state) => state.jobs);
-  console.log("jjjjjjjjjff",job.data)
+  const { job,} = useSelector((state) => state.jobs);
+    const { assigns, loading, error } = useSelector((state) => state.Assign);
+  console.log("Job Data:", assigns.data);
+
   useEffect(() => {
-    dispatch(ProductionJobsGet());
+    dispatch(RetunjobGet());
   }, [dispatch]);
 
   // ✅ Step 1: Flatten all jobId objects from the nested structure
-  const flattenedJobs = job?.data?.flatMap((item) => item.jobs) || [];
+  const flattenedJobs = assigns.data?.flatMap((item) => item.jobdata) || [];
   console.log("Flattened Jobs:", flattenedJobs);
 
 
@@ -204,8 +206,7 @@ function NewJobsList() {
     }
   };
 
-  const filteredJobs = job?.data?.flatMap((item) => item.jobId) || []
-
+  const filteredJobs = assigns?.data?.flatMap((item) => item.jobdata) || []
     .filter((j) => j.assignedTo === "Not Assigned")
     .filter((j) => {
       // Split searchQuery by spaces, ignore empty terms
@@ -363,16 +364,17 @@ function NewJobsList() {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+console.log("gggggggggggggggg",paginatedProjects);
 
   return (
     <div className="container bg-white p-3 mt-4 rounded shadow-sm">
       {/* Title */}
       <div className="d-flex justify-content-between align-items-center">
-        <h5 className="fw-bold m-0">Job Assign</h5>
+        <h5 className="fw-bold m-0">Retun Job</h5>
         <div className="d-flex gap-2 ">
-          {/* <Button onClick={handleRejectJobs} id="All_btn" className="m-2" variant="primary">
+          <Button onClick={handleRejectJobs} id="All_btn" className="m-2" variant="primary">
             Cancelled Job
-          </Button> */}
+          </Button>
           <Button
             id="All_btn"
             className="m-2"
@@ -388,7 +390,7 @@ function NewJobsList() {
               }
             }}
           >
-            Assign
+            Re-Assign
           </Button>
         </div>
       </div>
@@ -471,11 +473,12 @@ function NewJobsList() {
             </tr>
           </thead>
           <tbody>
+           
             {paginatedProjects
-              .slice()
-              .reverse()
-              .filter((job) => job.Status === "Active") // 👈 Only show Active jobs
-              .map((job, index) => (
+            .slice()
+            .reverse()
+            .map((job, index) => (
+              
                 <tr key={job._id}>
                   <td>
                     <input
@@ -652,4 +655,4 @@ function NewJobsList() {
   );
 }
 
-export default NewJobsList;
+export default Retunjob; 

@@ -10,6 +10,7 @@ import { fetchjobs } from '../../../redux/slices/JobsSlice';
 import { Dropdown } from "react-bootstrap";
 import { fetchProject } from '../../../redux/slices/ProjectsSlice';
 import { fetchCostEstimates } from '../../../redux/slices/costEstimatesSlice';
+import { fetchReceivablePurchases } from '../../../redux/slices/receivablePurchaseSlice';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -37,14 +38,16 @@ function Dashbord() {
   }, [dispatch]);
 
   // Job In Progress 
-  const { job ,loading, error} = useSelector((state) => state.jobs);  
-  const { project} = useSelector((state) => state.projects);
+  const { job, loading, error } = useSelector((state) => state.jobs);
+  const { project } = useSelector((state) => state.projects);
   const { estimates } = useSelector((state) => state.costEstimates);
+  const { purchases } = useSelector((state) => state.receivablePurchases);
 
   useEffect(() => {
     dispatch(fetchjobs());
     dispatch(fetchProject());
     dispatch(fetchCostEstimates());
+    dispatch(fetchReceivablePurchases());
   }, [dispatch]);
 
   const inProgressProjects = (project?.data || []).filter(
@@ -52,59 +55,67 @@ function Dashbord() {
   );
   const inProgressProjectsCount = inProgressProjects.length;
 
-const inProgressJobs = (job?.jobs || []).filter(
-  (j) => j.Status?.toLowerCase() === "in progress"
-);
- const ProjectCompleted = (project?.data || []).filter(
+  const inProgressJobs = (job?.jobs || []).filter(
+    (j) => j.Status?.toLowerCase() === "in progress"
+  );
+  const ProjectCompleted = (project?.data || []).filter(
     (j) => j.status?.toLowerCase() === "completed"
   );
   const projectCompleted = ProjectCompleted.length;
- 
+
   
-const inProgressCount = inProgressJobs.length;
-const Costestimates = (estimates?.costEstimates || []).filter(
-  // (j) => (j.POStatus || "").toLowerCase().replace(/\s|_/g, "") === "pending"
-(j) => (j.Status || "").toLowerCase().replace(/\s|_/g, "") === "pending"
-);
-const CostestimatesCount = Costestimates.length;
+  const filteredEstimates = purchases?.receivablePurchases?.filter(
+        (proj) =>
+            (proj.POStatus || "").toLowerCase().replace(/\s|_/g, "") === "pending"
+    ) || [];
+ const ReceivablePurchasesCount = filteredEstimates.length;
 
-const today = new Date().toLocaleDateString("en-CA");
-const todaysJobs = (job?.jobs || []).filter((j) => {
-  const dueDate = new Date(j.dueDate || j.createdAt).toLocaleDateString("en-CA");
-  return dueDate === today;
-});
-const todaysJobsCount = todaysJobs.length;
 
- // Sample filtered data
-const projects = project?.data || [];
+  const inProgressCount = inProgressJobs.length;
+  const Costestimates = (estimates?.costEstimates || []).filter(
+    // (j) => (j.POStatus || "").toLowerCase().replace(/\s|_/g, "") === "pending"
+    (j) => (j.Status || "").toLowerCase().replace(/\s|_/g, "") === "pending"
+  );
+  const CostestimatesCount = Costestimates.length;
 
-// Count for each status
-const activeProjectsCount = projects.filter(
-  (j) => j.status?.toLowerCase() === "active project"
-).length;
+  const today = new Date().toLocaleDateString("en-CA");
+  const todaysJobs = (job?.jobs || []).filter((j) => {
+    const dueDate = new Date(j.dueDate || j.createdAt).toLocaleDateString("en-CA");
+    return dueDate === today;
+  });
+  const todaysJobsCount = todaysJobs.length;
 
-const completedProjectsCount = projects.filter(
-  (j) => j.status?.toLowerCase() === "completed"
-).length;
+  // Sample filtered data
+  const projects = project?.data || [];
 
-const cancelledProjectsCount = projects.filter(
-  (j) => j.status?.toLowerCase() === "cancelled"
-).length;
+  // Count for each status
+  const activeProjectsCount = projects.filter(
+    (j) => j.status?.toLowerCase() === "active project"
+  ).length;
 
-// Chart data
-const projectStatusData = {
-  labels: ['Active Project', 'Completed', 'In Progress', 'Cancelled'],
-  datasets: [{
-    data: [
-      activeProjectsCount,
-      completedProjectsCount,
-      inProgressProjectsCount,
-      cancelledProjectsCount
-    ],
-    backgroundColor: ['#3B82F6', '#22C55E', '#F59E0B', '#EF4444'],
-    borderWidth: 0,
-  }],
-};
+  const completedProjectsCount = projects.filter(
+    (j) => j.status?.toLowerCase() === "completed"
+  ).length;
+
+  const cancelledProjectsCount = projects.filter(
+    (j) => j.status?.toLowerCase() === "cancelled"
+  ).length;
+
+  // Chart data
+  const projectStatusData = {
+    labels: ['Active Project', 'Completed', 'In Progress', 'Cancelled'],
+    datasets: [{
+      data: [
+        activeProjectsCount,
+        completedProjectsCount,
+        inProgressProjectsCount,
+        cancelledProjectsCount
+      ],
+      backgroundColor: ['#3B82F6', '#22C55E', '#F59E0B', '#EF4444'],
+      borderWidth: 0,
+    }],
+  };
+
 
   return (
     <Container fluid className="container p-3">
@@ -178,7 +189,7 @@ const projectStatusData = {
                   <FaClipboardCheck className="text-purple" size={24} />
                 </div>
                 <div>
-                  <h3 className="mb-0">{CostestimatesCount}</h3>
+                  <h3 className="mb-0">{ReceivablePurchasesCount}</h3>
                   <p className="text-muted mb-0">Cost Estimates</p>
                   <small className="text-danger">Waiting to receive POs</small>
                 </div>
@@ -230,7 +241,7 @@ const projectStatusData = {
           <Card className="h-100 shadow-sm">
             <Card.Body>
               <h5 className="card-title mb-4">Project Status Overview</h5>
-              <div style={{ height: '350px' ,marginLeft:"50px"}}>
+              <div style={{ height: '350px', marginLeft: "50px" }}>
                 <Doughnut data={projectStatusData} options={chartOptions} />
               </div>
             </Card.Body>

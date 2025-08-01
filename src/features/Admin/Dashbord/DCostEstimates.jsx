@@ -6,6 +6,7 @@ import { deleteCostEstimate, fetchCostEstimates } from "../../../redux/slices/co
 import { useDispatch, useSelector } from "react-redux";
 import { FaTrash } from "react-icons/fa";
 import Swal from 'sweetalert2';
+import { fetchReceivablePurchases } from "../../../redux/slices/receivablePurchaseSlice";
 
 
 function DCostEstimates() {
@@ -140,13 +141,21 @@ function DCostEstimates() {
         setPurchaseOrders(updatedPOs);
     };
 
-    const { estimates, loading, error } = useSelector((state) => state.costEstimates);
+    const { estimates, } = useSelector((state) => state.costEstimates);
     useEffect(() => {
         dispatch(fetchCostEstimates());
     }, [dispatch]);
 
 
-
+    const { purchases, loading, error } = useSelector(
+        (state) => state.receivablePurchases
+      );
+  console.log("gggggyyy",purchases?.receivablePurchases);
+  
+    
+      useEffect(() => {
+        dispatch(fetchReceivablePurchases());
+      }, [dispatch]);
 
     const Duplicate = (po) => {
         navigate(`/admin/AddCostEstimates`, {
@@ -156,6 +165,7 @@ function DCostEstimates() {
             }
         });
     }
+
     const UpdateEstimate = (po) => {
         navigate(`/admin/AddCostEstimates`, {
             state: {
@@ -245,7 +255,7 @@ function DCostEstimates() {
 
     // PAGINATION SETUP FOR ESTIMATES
     // Filter only pending estimates
-    const filteredEstimates = estimates?.costEstimates?.filter(
+    const filteredEstimates = purchases?.receivablePurchases?.filter(
         (proj) =>
             (proj.POStatus || "").toLowerCase().replace(/\s|_/g, "") === "pending"
     ) || [];
@@ -304,6 +314,29 @@ function DCostEstimates() {
         return pageNumbers;
     };
 
+
+      const handleToBeInvoiced = (po) => {
+    console.log("po", po._id)
+    const ReceivablePurchaseId = po._id;
+    const client = po.ClientId?.[0];
+    const project = po.projectId?.[0];
+    const CostEstimatesId = po.CostEstimatesId?.[0];
+    // console.log("pocost",po.CostEstimatesId[0]._id)
+    const invoice = {
+      clientId: client?._id,
+      clientName: client?.clientName,
+      projectId: project?._id,
+      projectName: project?.projectName,
+      CostEstimatesId: po.CostEstimatesId[0]._id,
+      ReceivablePurchaseId: po?._id,
+    };
+    console.log("Invoice Data:", invoice);
+
+
+    navigate("/admin/AddInvoice", {
+      state: { invoice }
+    });
+  };
     return (
         <div
             className="p-4 m-3"
@@ -324,68 +357,111 @@ function DCostEstimates() {
                 </div>
             </div>
 
-            <div className="table-responsive" style={{ maxHeight: "900px", overflowY: "auto" }}>
-                <Table hover className="align-middle sticky-header">
-                    <thead style={{ backgroundColor: "#f8f9fa", position: "sticky", top: 0, zIndex: 1 }}>
-                        <tr>
-                            {/* <th><input type="checkbox" /></th> */}
-                            <th>CENo</th>
-                            <th>Date</th>
-                            <th>Client</th>
-                            <th>ProjectNo</th>
-                            <th>ProjectName</th>
-                            <th>Amount</th>
-                            <th>POStatus</th>
-                            <th>CotStatus</th>
-                            {/* <th>Actions</th> */}
-                        </tr>
+            <div style={{ overflowX: "auto" }}>
+                  <Table hover responsive>
+                    <thead>
+                      <tr>
+                        <th
+                          onClick={() => handleSort("poNumber")}
+                          style={{ whiteSpace: "nowrap", cursor: "pointer" }}
+                        >
+                          PO Number
+                        </th>
+                        <th
+                          onClick={() => handleSort("EstimateRef")}
+                          style={{ whiteSpace: "nowrap", cursor: "pointer" }}
+                        >
+                          Estimate Ref
+                        </th>
+                        <th
+                          onClick={() => handleSort("projectId")}
+                          style={{ whiteSpace: "nowrap", cursor: "pointer" }}
+                        >
+                          Project
+                        </th>
+                        <th
+                          onClick={() => handleSort("ClientId")}
+                          style={{ whiteSpace: "nowrap", cursor: "pointer" }}
+                        >
+                          Client
+                        </th>
+                        <th
+                          onClick={() => handleSort("ReceivedDate")}
+                          style={{ whiteSpace: "nowrap", cursor: "pointer" }}
+                        >
+                          Received Date
+                        </th>
+                        <th
+                          onClick={() => handleSort("Amount")}
+                          style={{ whiteSpace: "nowrap", cursor: "pointer" }}
+                        >
+                          Amount
+                        </th>
+                        <th
+                          onClick={() => handleSort("Status")}
+                          style={{ cursor: "pointer" }}
+                        >
+                          POStatus
+                        </th>
+                        <th
+                          onClick={() => handleSort("Amount")}
+                          style={{ whiteSpace: "nowrap", cursor: "pointer" }}
+                        >
+                          Actions
+                        </th>
+                      </tr>
                     </thead>
                     <tbody>
-                        {paginatedEstimates?.map((po, index) => (
-                            <tr style={{ whiteSpace: "nowrap" }} key={po.poNumber}>
-                                {/* <td><input type="checkbox" /></td> */}
-                                <td onClick={() => CreatJobs(po.projectId)}>
-                                     <Link to={"/admin/receivable"} style={{ textDecoration: 'none' }}>
-                                        {po.estimateRef}
-                                    </Link>
-                                </td>
-                                <td>{new Date(po.estimateDate).toLocaleDateString("en-GB").slice(0, 8)}</td>
-                                <td>{po.clientId[0]?.clientName || 'N/A'}</td>
-                                <td>
-                                    {po.projectId?.map((project, i) => `${String(i + 1).padStart(4, '0')}`).join(", ")}
-                                </td>
-                                <td>
-                                    {po.projectId?.map((project) => project.projectName || project.name).join(", ")}
-                                </td>
-                                <td>
-                                    {po.lineItems?.reduce((total, item) => total + (item.amount || 0), 0).toFixed(2)}
-                                </td>
-                                <td>
-                                    <span className={`badge ${getPOStatusClass(po.POStatus)} px-2 py-1`}>
-                                        {po.POStatus}
-                                    </span>
-                                </td>
-                                <td>
-                                    <span className={`badge ${getStatusBadgeClass(po.Status)} px-2 py-1`}>
-                                        {po.Status}
-                                    </span>
-                                </td>
-                                {/* <td>
-                                    <div className="d-flex gap-2">
-                                        <button className="btn btn-sm btn-primary" onClick={() => Duplicate(po)}>Duplicate</button>
-                                         <button className="btn btn-sm btn-primary" onClick={() => handleConvertToInvoice(po)}>ConvertInvoice</button>
-                                          <button className="btn btn-sm btn-success" onClick={() => setShowAddPOModal(true)}>AddPO</button> 
-                                        <button className="btn btn-sm btn-outline-primary" onClick={() => UpdateEstimate(po)}><BsPencil /></button>
-                                        <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(po._id)}>
-                                         <FaTrash />
-                                          </button>
-                                    </div>
-                                </td> */}
-                            </tr>
-                        ))}
+                      {filteredEstimates.map((po, index) => (
+                        <tr key={index}>
+                          <td>
+                            {po.PONumber}
+                          </td>
+                          <td style={{ whiteSpace: "nowrap" }}>
+                            <Link
+                              to="/admin/CostEstimates"
+                              style={{ textDecoration: "none" }}
+                            >
+                              {po.costEstimates?.[0]?.estimateRef || "—"}
+                            </Link>
+                          </td>
+                          <td style={{ whiteSpace: "nowrap" }}>
+                            {po.projectId?.[0]?.projectName || "—"}
+                          </td>
+                          <td style={{ whiteSpace: "nowrap" }}>
+                            {po.ClientId?.[0]?.clientName || "—"}
+                          </td>
+          
+                          <td>{new Date(po.ReceivedDate).toLocaleDateString()}</td>
+                          <td>${po.Amount?.toFixed(2)}</td>
+                          <td>
+                          <span className={`badge ${getStatusClass(po.POStatus)} px-2 py-1`}>
+                            {po.POStatus}
+                          </span>
+                          </td>
+                          <div>
+                            <Button
+                              variant="outline-primary"
+                              size="sm"
+                              onClick={() => handleToBeInvoiced(po)}
+                              className="px-3 py-1 fw-semibold border-2"
+                              style={{
+                                transition: 'all 0.3s ease',
+                                borderRadius: '6px',
+                                fontSize: '12px',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.5px'
+                              }}
+                            >
+                              To be invoiced
+                            </Button>
+                          </div>
+                        </tr>
+                      ))}
                     </tbody>
-                </Table>
-            </div>
+                  </Table>
+                </div>
+          
 
             {/* Modal for converting to invoice */}
             <Modal

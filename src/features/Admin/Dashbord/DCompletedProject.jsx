@@ -9,13 +9,15 @@ import {
 } from "react-bootstrap";
 import { FaComments, FaExchangeAlt, FaEdit } from "react-icons/fa";
 import { BsPencil, BsXCircle } from "react-icons/bs";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchjobs } from "../../../redux/slices/JobsSlice";
 import { fetchProject } from "../../../redux/slices/ProjectsSlice";
 
 function DCompletedProject() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   const { job } = useSelector((state) => state.jobs);
   const { project, loading, error } = useSelector((state) => state.projects);
   const [searchQuery, setSearchQuery] = useState("");
@@ -170,6 +172,11 @@ function DCompletedProject() {
     return pageNumbers;
   };
 
+  
+  const JobsFiance = (id) => {
+    navigate(`/admin/ProjectOverview/${id}`, { state: { id, openTab: 'finance' } });
+  };
+
   return (
     <div className="container bg-white p-4 mt-4 rounded shadow-sm">
       {/* Title */}
@@ -252,11 +259,10 @@ function DCompletedProject() {
                   </td>
                   <td>
                     <div >
-                     <Link to={"/admin/AddInvoice"}>
                      <Button
                         variant="outline-primary"
                         size="sm"
-                        onClick={() => handleToBeInvoiced(project)}
+                        onClick={() => JobsFiance(project.id)}
                         className="px-3 py-1 fw-semibold border-2"
                         style={{
                           transition: 'all 0.3s ease',
@@ -267,7 +273,7 @@ function DCompletedProject() {
                         }}
                       >
                         To be invoiced
-                      </Button></Link>
+                      </Button>
                       {/* <Button
                         style={{ color: "#0d6efd" }}
                         variant="link"

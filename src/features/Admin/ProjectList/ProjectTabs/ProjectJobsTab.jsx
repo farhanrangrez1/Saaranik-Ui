@@ -129,69 +129,69 @@ function ProjectJobsTab() {
   // };
 
 
-const handleSubmitAssignment = async () => {
-  const selectedJobIds = Object.keys(selectedJobs).filter(id => selectedJobs[id]);
+  const handleSubmitAssignment = async () => {
+    const selectedJobIds = Object.keys(selectedJobs).filter(id => selectedJobs[id]);
 
-  const payload = {
-    employeeId: [selectedEmployee],
-    jobId: selectedJobIds,
-    selectDesigner: selectedDesigner,
-    description: assignmentDescription,
-    Status: "In Progress",
-  };
-  console.log("📦 Assignment Payload:", payload);
-  try {
-    // 1️⃣ Create assignment
-    await dispatch(createAssigns(payload)).unwrap();
+    const payload = {
+      employeeId: [selectedEmployee],
+      jobId: selectedJobIds,
+      selectDesigner: selectedDesigner,
+      description: assignmentDescription,
+      Status: "In Progress",
+    };
+    console.log("📦 Assignment Payload:", payload);
+    try {
+      // 1️⃣ Create assignment
+      await dispatch(createAssigns(payload)).unwrap();
 
-    // 2️⃣ Update job
-    const response = await dispatch(
-      dispatch(Project_job_Id(id))
-    ).unwrap();
+      // 2️⃣ Update job
+      const response = await dispatch(
+        dispatch(Project_job_Id(id))
+      ).unwrap();
 
-    toast.success(response.message || "Project assigned successfully!");
-    setShowAssignModal(false);
-    setSelectedJobs({});
-    navigate("/admin/MyJobs");
-  } catch (err) {
-    console.error("❌ Full Error Object:", err);
+      toast.success(response.message || "Project assigned successfully!");
+      setShowAssignModal(false);
+      setSelectedJobs({});
+      navigate("/admin/MyJobs");
+    } catch (err) {
+      console.error("❌ Full Error Object:", err);
 
-    const status =
-      err?.status ||
-      err?.originalStatus ||
-      err?.response?.status ||
-      err?.data?.status ||
-      err?.data?.statusCode ||
-      500;
+      const status =
+        err?.status ||
+        err?.originalStatus ||
+        err?.response?.status ||
+        err?.data?.status ||
+        err?.data?.statusCode ||
+        500;
 
-    const message =
-      err?.message ||
-      err?.data?.message ||
-      err?.response?.data?.message ||
-      "Assignment failed!";
+      const message =
+        err?.message ||
+        err?.data?.message ||
+        err?.response?.data?.message ||
+        "Assignment failed!";
 
-    console.log("📛 Status Code:", status);
-    console.log("📨 Message:", message);
+      console.log("📛 Status Code:", status);
+      console.log("📨 Message:", message);
 
-    if (status === 409) {
-      console.log("status === 409", status === 409);
+      if (status === 409) {
+        console.log("status === 409", status === 409);
 
-      toast.error("Job already assigned to this employee!", {
-        toastId: "job-already-assigned"
-      });
+        toast.error("Job already assigned to this employee!", {
+          toastId: "job-already-assigned"
+        });
 
-      setTimeout(() => {
-        setShowAssignModal(false);
-      }, 300);
+        setTimeout(() => {
+          setShowAssignModal(false);
+        }, 300);
 
-    } else {
-      toast.error(message);
-      setTimeout(() => {
-        setShowAssignModal(false);
-      }, 300);
+      } else {
+        toast.error(message);
+        setTimeout(() => {
+          setShowAssignModal(false);
+        }, 300);
+      }
     }
-  }
-};
+  };
 
   const handleJobAssign = (selectedIds, assignTo) => {
     const payload = {
@@ -199,7 +199,7 @@ const handleSubmitAssignment = async () => {
       assign: assignTo,
     };
     console.log("Assignment Payload:", payload);
-       dispatch(Project_job_Id(id))
+    dispatch(Project_job_Id(id))
       .then(() => {
         // Swal.fire("Success!", "Jobs assigned successfully", "success");
         // dispatch(fetchjobs());
@@ -441,7 +441,7 @@ const handleSubmitAssignment = async () => {
                   </th>
                   <th>JobsNo</th>
                   <th style={{ whiteSpace: 'nowrap' }}>Project Name</th>
-                   <th style={{ whiteSpace: 'nowrap' }}>Project No</th>
+                  <th style={{ whiteSpace: 'nowrap' }}>Project No</th>
                   <th>Brand</th>
                   <th>SubBrand</th>
                   <th>Flavour</th>

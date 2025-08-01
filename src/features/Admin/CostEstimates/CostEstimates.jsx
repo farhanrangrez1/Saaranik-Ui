@@ -41,7 +41,7 @@ function CostEstimates() {
 
   const { project } = useSelector((state) => state.projects);
   const { Clients } = useSelector((state) => state.client);
-  const statuses = ["Received", "Cancelled", "Completed", "open", "invoiced"];
+  const statuses = ["pending ", "Received", "Cancelled", "Completed", "open", "invoiced"];
 
   useEffect(() => {
     dispatch(fetchProject());
@@ -75,7 +75,7 @@ function CostEstimates() {
 
 
   const handleSavePO = async () => {
-    if (!selectedProjectId || !selectedClientId || !poDate || !POStatus || !amount) {
+    if (!selectedProjectId || !selectedClientId || !poDate  || !amount) {
       Swal.fire({
         icon: 'error',
         title: 'Required Fields Missing',
@@ -88,7 +88,7 @@ function CostEstimates() {
     formData.append('projectsId', JSON.stringify([selectedProjectId]));
     formData.append('ClientId', selectedClientId);
     formData.append('ReceivedDate', poDate);
-    formData.append('POStatus', POStatus);
+    formData.append('POStatus', POStatus || "Pending");
 
     formData.append('Amount', amount);
     formData.append('CostEstimatesId', JSON.stringify([costEstimatesId]));
@@ -113,7 +113,7 @@ function CostEstimates() {
         setSelectedClientId("");
         setCostEstimatesId("");
         setPODate("");
-        setPOStatus("");
+        setPOStatus("Pending");
         setAmount("");
         setPODocument(null);
         setShowAddPOModal(false);
@@ -146,14 +146,16 @@ function CostEstimates() {
   };
 
 
-  const Ponamehandle = (po) => {
-    console.log(po.clients[0].clientName, po.projects[0].projectName, "ddd");
-    console.log(po);
-    setSelectedClientId(po.clients[0]?.clientId || "");
-    setSelectedProjectId(po.projects[0]?.projectId || "");
-    setSelectedPO(po); // ✅ Save the whole PO object for later use
-    setShowAddPOModal(true); // ✅ Open the modal here
-  };
+const Ponamehandle = (po) => {
+  console.log(po.clients[0].clientName, po.projects[0].projectName, "ddd");
+  console.log(po);
+  setSelectedClientId(po.clients[0]?.clientId || "");
+  setSelectedProjectId(po.projects[0]?.projectId || "");
+  setPOStatus("Pending"); // ✅ Default status set here
+  setSelectedPO(po); 
+  setShowAddPOModal(true); 
+};
+
 
   // Add PO Modal
   const renderAddPOModal = () => (
@@ -225,34 +227,7 @@ function CostEstimates() {
 
             </div>
           </Form.Group>
-          <Form.Group className="mb-3">
-            <div className="row justify-content-center">
-              <div className="col-md-6">
-                <Form.Label className="d-block">PO Date</Form.Label>
-                <Form.Control
-                  type="date"
-                  value={poDate}
-                  onChange={(e) => setPODate(e.target.value)}
-                  className="form-control"
-                  required
-                />
-              </div>
-
-              <div className="col-md-6">
-                <Form.Label className="d-block">PO Status</Form.Label>
-                <Form.Select
-                  value={POStatus}
-                  onChange={(e) => setPOStatus(e.target.value)}
-                  className="form-control"
-                  required>
-                  <option value="">-- Select Status --</option>
-                  {statuses.map((s) => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </Form.Select>
-              </div>
-            </div>
-          </Form.Group>
+        
 
           <Form.Group className="mb-3">
             <div className="row justify-content-center align-items-start">
@@ -287,7 +262,34 @@ function CostEstimates() {
               </div>
             </div>
           </Form.Group>
+          <Form.Group className="mb-3">
+            <div className="">
+              <div className="col-md-6">
+                <Form.Label className="d-block">PO Date</Form.Label>
+                <Form.Control
+                  type="date"
+                  value={poDate}
+                  onChange={(e) => setPODate(e.target.value)}
+                  className="form-control"
+                  required
+                />
+              </div>
 
+              {/* <div className="col-md-6">
+                <Form.Label className="d-block">PO Status</Form.Label>
+                <Form.Select
+                  value={POStatus}
+                  onChange={(e) => setPOStatus(e.target.value)}
+                  className="form-control"
+                  required>
+                  <option value="">-- Select Status --</option>
+                  {statuses.map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </Form.Select>
+              </div> */}
+            </div>
+          </Form.Group>
         </Form>
       </Modal.Body>
       <Modal.Footer className="d-flex justify-content-end gap-2">
