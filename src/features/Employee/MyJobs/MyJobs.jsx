@@ -671,7 +671,7 @@ function MyJobs() {
                   />
                 </td>
                 <td>{job.JobNo}</td>
-                <td>{job.projectId?.[0]?.projectName || "—"}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{job.projectId?.[0]?.projectName || "—"}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.brandName}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.subBrand}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.packType || "N/A"}</td>

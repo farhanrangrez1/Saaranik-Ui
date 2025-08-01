@@ -71,8 +71,8 @@ function Retunjob() {
     },
   ];
 
-  const { job,} = useSelector((state) => state.jobs);
-    const { assigns, loading, error } = useSelector((state) => state.Assign);
+  const { job, } = useSelector((state) => state.jobs);
+  const { assigns, loading, error } = useSelector((state) => state.Assign);
   console.log("Job Data:", assigns.data);
 
   useEffect(() => {
@@ -364,7 +364,8 @@ function Retunjob() {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-console.log("gggggggggggggggg",paginatedProjects);
+  console.log("gggggggggggggggg", paginatedProjects);
+  console.log("gggggggggggggggg", paginatedProjects?.projectName);
 
   return (
     <div className="container bg-white p-3 mt-4 rounded shadow-sm">
@@ -473,12 +474,12 @@ console.log("gggggggggggggggg",paginatedProjects);
             </tr>
           </thead>
           <tbody>
-           
+
             {paginatedProjects
-            .slice()
-            .reverse()
-            .map((job, index) => (
-              
+              .slice()
+              .reverse()
+              .map((job, index) => (
+
                 <tr key={job._id}>
                   <td>
                     <input
@@ -490,12 +491,15 @@ console.log("gggggggggggggggg",paginatedProjects);
                   <td onClick={() => JobDetails(job)}>
                     <Link style={{ textDecoration: "none" }}>{job.JobNo}</Link>
                   </td>
+                  {/* Project Name */}
                   <td style={{ whiteSpace: "nowrap" }}>
                     {job.projectId?.[0]?.projectName || "N/A"}
                   </td>
-                     <td style={{ whiteSpace: "nowrap" }}>
+                  {/* Project No */}
+                  <td style={{ whiteSpace: "nowrap" }}>
                     {job.projectId?.[0]?.projectNo || "N/A"}
                   </td>
+
                   <td style={{ whiteSpace: "nowrap" }}>{job.brandName}</td>
                   <td style={{ whiteSpace: "nowrap" }}>{job.subBrand}</td>
                   <td style={{ whiteSpace: "nowrap" }}>{job.flavour}</td>

@@ -1,27 +1,18 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Container, Row, Col, Button, Form, Table, Pagination, Badge, Modal,Dropdown } from "react-bootstrap";
+import { Container, Row, Col, Button, Form, Table, Dropdown } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import * as XLSX from 'xlsx';
 import { useDispatch, useSelector } from "react-redux";
 import { fetchjobs } from "../../../redux/slices/JobsSlice";
 
-import {
-  FaFilePdf,
-  FaUpload,
-  FaLink,
-  FaClock,
-  FaEdit,
-  FaFilter,
-} from "react-icons/fa";
+import { FaUpload, FaFilter } from "react-icons/fa";
 import { fetchAssign } from "../../../redux/slices/AssignSlice";
 
 function MyJobs() {
   const [showTimesheetModal, setShowTimesheetModal] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState(null);
-  const [showBriefModal, setShowBriefModal] = useState(false);
-  const [selectedBrief, setSelectedBrief] = useState("");
-  const [showFilters, setShowFilters] = useState(false); // 👈 For responsive toggle
-  const [expandedJob, setExpandedJob] = useState(null); // Tracking the expanded job
+  const [showFilters, setShowFilters] = useState(false);
+  const [expandedJob, setExpandedJob] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState("All Status");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEmployee, setSelectedEmployee] = useState("All Employees");
@@ -35,15 +26,6 @@ function MyJobs() {
       alert('This jobs is send to the production');
       return;
     }
-  };
-
-  const handleUpload = (jobId) => {
-    console.log('Upload for job:', jobId);
-  };
-
-  const handleLogTime = (jobId) => {
-    setSelectedJobId(jobId);
-    setShowTimesheetModal(true);
   };
 
   const fileInputRef = useRef(null);
@@ -62,12 +44,7 @@ function MyJobs() {
   };
 
   const handleSelectAll = (e) => {
-    const isChecked = e.target.checked;
-    const allJobs = jobs.reduce((acc, job) => {
-      acc[job.id] = isChecked;
-      return acc;
-    }, {});
-    setSelectedJobs(allJobs);
+    // Implement your select all logic here if needed
   };
 
   const getPriorityClass = (priority) => {
@@ -96,10 +73,10 @@ function MyJobs() {
         return "bg-success text-white";
       case "open":
         return "bg-primary text-white";
-      default:
-        return "bg-light text-dark";
       case "cancelled":
         return "bg-dark text-white";
+      default:
+        return "bg-light text-dark";
     }
   };
 
@@ -110,7 +87,7 @@ function MyJobs() {
   }, [dispatch]);
 
   const { assigns } = useSelector((state) => state.Assign);
-  console.log("fvrfjk", assigns.assignments);
+  console.log("Assignments:", assigns.assignments);
 
   useEffect(() => {
     dispatch(fetchAssign());
@@ -119,28 +96,34 @@ function MyJobs() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const filteredProjects = (assigns?.assignments || []).filter((job) => {
-    // Split searchQuery by spaces, ignore empty terms
+  const filteredProjects = (assigns?.assignments || []).filter((assignment) => {
     const terms = searchQuery.trim().split(/\s+/).filter(Boolean);
-    // Prepare searchable fields as strings
-    const employeeName = job.employeeId 
-      ? `${job.employeeId.firstName} ${job.employeeId.lastName}`.toLowerCase()
+
+    const firstValidJob = (assignment.jobs || []).find(j => j.jobId);
+
+    const employeeName = assignment.employeeId
+      ? `${assignment.employeeId.firstName} ${assignment.employeeId.lastName}`.toLowerCase()
       : '';
-    const employeeEmail = (job.employeeId?.email || '').toLowerCase();
-    const description = (job.description || '').toLowerCase();
-    const brandName = (job.jobId?.[0]?.brandName || '').toLowerCase();
-    const subBrand = (job.jobId?.[0]?.subBrand || '').toLowerCase();
-    const flavour = (job.jobId?.[0]?.flavour || '').toLowerCase();
-    const packType = (job.jobId?.[0]?.packType || '').toLowerCase();
-    const packSize = (job.jobId?.[0]?.packSize || '').toLowerCase();
-    const packCode = (job.jobId?.[0]?.packCode || '').toLowerCase();
-    const jobNo = (job.jobId?.[0]?.JobNo || '').toString().toLowerCase();
-    const designer = (job.selectDesigner || '').toLowerCase();
-    const priority = (job.jobId?.[0]?.priority || '').toLowerCase();
-    const dueDate = job.createdAt ? new Date(job.createdAt).toLocaleDateString("en-GB").toLowerCase() : '';
-    const assign = (job.selectDesigner || '').toLowerCase();
-    const timeLogged = job.updatedAt ? new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }).toLowerCase() : '';
-    const status = (job.jobId?.[0]?.Status || '').toLowerCase();
+    const employeeEmail = (assignment.employeeId?.email || '').toLowerCase();
+    const description = (assignment.description || '').toLowerCase();
+    const brandName = (firstValidJob?.jobId?.brandName || '').toLowerCase();
+    const subBrand = (firstValidJob?.jobId?.subBrand || '').toLowerCase();
+    const flavour = (firstValidJob?.jobId?.flavour || '').toLowerCase();
+    const packType = (firstValidJob?.jobId?.packType || '').toLowerCase();
+    const packSize = (firstValidJob?.jobId?.packSize || '').toLowerCase();
+    const packCode = (firstValidJob?.jobId?.packCode || '').toLowerCase();
+    const jobNo = (firstValidJob?.jobId?.JobNo || '').toString().toLowerCase();
+    const priority = (firstValidJob?.jobId?.priority || '').toLowerCase();
+    const dueDate = assignment.createdAt
+      ? new Date(assignment.createdAt).toLocaleDateString("en-GB").toLowerCase()
+      : '';
+    const assign = (assignment.selectDesigner || '').toLowerCase();
+    const timeLogged = assignment.updatedAt
+      ? new Date(assignment.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }).toLowerCase()
+      : '';
+    const status = (firstValidJob?.jobId?.Status || '').toLowerCase();
+    const designer = (assignment.selectDesigner || '').toLowerCase();
+
     const fields = [
       employeeName,
       employeeEmail,
@@ -159,7 +142,7 @@ function MyJobs() {
       jobNo,
       designer
     ];
-    // Every term must be found in at least one field
+
     const matchesSearch = terms.length === 0 || terms.every(term =>
       fields.some(field => field.includes(term.toLowerCase()))
     );
@@ -168,7 +151,8 @@ function MyJobs() {
       employeeName === selectedEmployee.toLowerCase();
     const matchesStatus =
       selectedStatus === "All Status" ||
-      (job.jobId?.[0]?.Status?.toLowerCase() === selectedStatus.toLowerCase());
+      (firstValidJob?.jobId?.Status?.toLowerCase() === selectedStatus.toLowerCase());
+
     return matchesSearch && matchesEmployee && matchesStatus;
   });
 
@@ -179,28 +163,24 @@ function MyJobs() {
     currentPage * itemsPerPage
   );
 
-  const handleCopyFileName = (job, index, currentPage, itemsPerPage) => {
+  const handleCopyFileName = (assignment, index, currentPage, itemsPerPage) => {
+    const firstValidJob = (assignment.jobs || []).find(j => j.jobId);
     const displayId = String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0');
-    const fileName = `${displayId}_${job.projectName || ''}__${job.brandName || ''}_${job.subBrand || ''}_${job.flavour || ''}_${job.packType || ''}_${job.packSize || ''}_${job.packCode || ''}_${job.priority || ''}_${job.dueDate || ''}_${job.assign || ''}_${job.timeLogged || ''}_${job.status || ''}`;
+    const fileName = `${displayId}_${firstValidJob?.jobId?.JobNo || ''}_${firstValidJob?.jobId?.brandName || ''}_${firstValidJob?.jobId?.subBrand || ''}_${firstValidJob?.jobId?.flavour || ''}_${firstValidJob?.jobId?.packType || ''}_${firstValidJob?.jobId?.packSize || ''}_${firstValidJob?.jobId?.packCode || ''}`;
 
     navigator.clipboard.writeText(fileName)
       .then(() => alert("Copied to clipboard: " + fileName))
       .catch((err) => console.error("Failed to copy!", err));
   };
 
-  const handleRowClick = (jobId) => {
-    if (expandedJob === jobId) {
-      setExpandedJob(null);
-    } else {
-      setExpandedJob(jobId);
-    }
+  const handleRowClick = (id) => {
+    setExpandedJob(expandedJob === id ? null : id);
   };
 
   return (
     <div className="p-4 m-2" style={{ backgroundColor: "white", borderRadius: "10px" }}>
       <h5 className="fw-bold mb-3 text-start">My Jobs</h5>
 
-      {/* Toggle Filter Button for Mobile */}
       <div className="d-lg-none mb-2 text-end">
         <Button
           variant="primary"
@@ -213,7 +193,6 @@ function MyJobs() {
         </Button>
       </div>
 
-      {/* Filters and Actions */}
       <Row className={`mb-3 align-items-center ${showFilters ? "" : "d-none d-lg-flex"}`}>
         <Col xs={12} lg={9} className="d-flex flex-wrap gap-2 mb-2 mb-lg-0">
           <Form.Control
@@ -232,13 +211,13 @@ function MyJobs() {
               <Dropdown.Item onClick={() => setSelectedEmployee("All Employees")}>
                 All Employees
               </Dropdown.Item>
-              {[...new Set((assigns?.assignments || []).map(job => 
-                job.employeeId 
+              {[...new Set((assigns?.assignments || []).map(job =>
+                job.employeeId
                   ? `${job.employeeId.firstName} ${job.employeeId.lastName}`
                   : 'No Employee'
               ))].map((employeeName, index) => (
-                <Dropdown.Item 
-                  key={index} 
+                <Dropdown.Item
+                  key={index}
                   onClick={() => setSelectedEmployee(employeeName)}
                 >
                   {employeeName}
@@ -260,22 +239,18 @@ function MyJobs() {
           </Dropdown>
         </Col>
 
-
         <Col xs={12} lg={3} className="text-lg-end d-flex flex-wrap justify-content-lg-end gap-2">
           <Button id="All_btn" variant="dark" className="w-lg-auto" onClick={handleReturnJob}>
             Return Job
           </Button>
-        </Col>      
+        </Col>
       </Row>
 
-      {/* Table */}
       <div className="table-responsive">
         <Table hover className="align-middle sticky-header">
           <thead className="bg-light">
             <tr>
               <th><input type="checkbox" onChange={handleSelectAll} /></th>
-              {/* <th>JobNo</th>
-              <th>ProjectName</th> */}
               <th>EmployeeName</th>
               <th>EmployeeEmail</th>
               <th>Description</th>
@@ -289,124 +264,117 @@ function MyJobs() {
               <th>Due Date</th>
               <th>Assign</th>
               <th>TimeLogged</th>
-              {/* <th>Status</th> */}
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {paginatedProjects.slice().reverse().map((job, index) => (
-              <React.Fragment key={job._id}>
-                <tr onClick={() => handleRowClick(job._id)} style={{ cursor: "pointer" }}>
-                  <td><input type="checkbox" onChange={handleSelectAll} /></td>
-                  {/* <td> {job.jobId?.[0]?.JobNo || 'N/A'}</td> */}
-                  {/* <td style={{ whiteSpace: 'nowrap' }}>{job.projectId?.[0]?.projectName || 'N/A'}</td> */}
-                  <td style={{ whiteSpace: 'nowrap' }} key={index}>
-                    {job.employeeId
-                      ? `${job.employeeId.firstName} ${job.employeeId.lastName}`
-                      : 'No Employee'}
-                  </td>
-                 <td style={{ whiteSpace: "nowrap" }}>{job.employeeId?.email}</td>
-                  <td style={{ whiteSpace: "nowrap" }}>{job.description}</td>
-                  <td>{job.jobId?.[0]?.brandName || 'N/A'}</td>
-                  <td style={{ whiteSpace: 'nowrap' }}>{job.jobId?.[0]?.subBrand || 'N/A'}</td>
-                  <td>{job.jobId?.[0]?.flavour || 'N/A'}</td>
-                  <td style={{ whiteSpace: "nowrap" }}>{job.jobId?.[0]?.packType || 'N/A'}</td>
-                  <td style={{ whiteSpace: "nowrap" }}>{job.jobId?.[0]?.packSize || 'N/A'}</td>
-                  <td style={{ whiteSpace: "nowrap" }}>{job.jobId?.[0]?.packCode || 'N/A'}</td>
-                  <td><span className={getPriorityClass(job.jobId?.[0]?.priority)}>{job.jobId?.[0]?.priority || 'N/A'}</span></td>
-                  <td>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
-                  <td style={{ whiteSpace: "nowrap" }}>{job.selectDesigner}</td>
-                  <td>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
-                  {/* <td>
-                    <span className={`badge ${getStatusClass(job.jobId?.[0]?.Status) || ''} `}>
-                      {job.jobId?.[0]?.Status || 'N/A'}
-                    </span>
-                  </td> */}
-                  <td className="d-flex gap-2">
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      style={{ display: 'none' }}
-                      onChange={handleFileChange}
-                    />
-                    <Button
-                      size="sm"
-                      variant="dark"
-                      className="me-2 d-flex"
-                      onClick={handleUploadClick}
-                      id="All_btn"
-                    >
-                      <FaUpload className="me-1" />
-                      Upload
-                    </Button>
-                    <Link to={"/admin/MyJobsHolidayPackageDesign"}>
-                      {/* <Button id="All_btn" size="sm" variant="dark" onClick={() => handleLogTime(job.id)}>
-                        LogTime
-                      </Button> */}
-                    </Link>
-                    <Button
-                      id="All_btn"
-                      size="sm"
-                      variant="dark"
-                      onClick={() => handleCopyFileName(job, index, currentPage, itemsPerPage)}
-                    >
-                      CopyFN
-                    </Button>
-                  </td>
-                </tr>
-
-                {expandedJob === job._id && (
-                  <tr>
-                    <td colSpan="19">
-                      <div className="table-responsive">
-                        <Table hover className="align-middle sticky-header">
-                          <thead className="bg-light">
-                            <tr >
-                              <th>JobNo</th>
-                              <th>Brand</th>
-                              <th>Sub Brand</th>
-                              <th>Flavour</th>
-                              <th>PackType</th>
-                              <th>PackSize</th>
-                              <th>PackCode</th>
-                              <th>Status</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {job.jobId?.map((j, idx) => (
-                              <tr key={j._id || idx}>
-                                <td>{j.JobNo}</td>
-                                <td>{j.brandName}</td>
-                                <td>{j.subBrand}</td>
-                                <td>{j.flavour}</td>
-                                <td>{j.packType}</td>
-                                <td>{j.packSize}</td>
-                                <td>{j.packCode}</td>
-                                  <td>
-                    <span className={`badge ${getStatusClass(j.Status) || ''} `}>
-                    
-                      {j.Status}
-                    </span>
-                  </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </Table>
-                      </div>
+            {paginatedProjects.slice().reverse().map((assignment, index) => {
+              const firstValidJob = (assignment.jobs || []).find(j => j.jobId);
+              return (
+                <React.Fragment key={assignment._id}>
+                  <tr onClick={() => handleRowClick(assignment._id)} style={{ cursor: "pointer" }}>
+                    <td><input type="checkbox" onChange={handleSelectAll} /></td>
+                    <td style={{ whiteSpace: 'nowrap' }}>
+                      {assignment.employeeId
+                        ? `${assignment.employeeId.firstName} ${assignment.employeeId.lastName}`
+                        : 'No Employee'}
+                    </td>
+                    <td style={{ whiteSpace: "nowrap" }}>{assignment.employeeId?.email}</td>
+                    <td style={{ whiteSpace: "nowrap" }}>{assignment.description}</td>
+                    <td>{firstValidJob?.jobId?.brandName || 'N/A'}</td>
+                    <td style={{ whiteSpace: 'nowrap' }}>{firstValidJob?.jobId?.subBrand || 'N/A'}</td>
+                    <td>{firstValidJob?.jobId?.flavour || 'N/A'}</td>
+                    <td style={{ whiteSpace: "nowrap" }}>{firstValidJob?.jobId?.packType || 'N/A'}</td>
+                    <td style={{ whiteSpace: "nowrap" }}>{firstValidJob?.jobId?.packSize || 'N/A'}</td>
+                    <td style={{ whiteSpace: "nowrap" }}>{firstValidJob?.jobId?.packCode || 'N/A'}</td>
+                    <td>
+                      <span className={getPriorityClass(firstValidJob?.jobId?.priority)}>
+                        {firstValidJob?.jobId?.priority || 'N/A'}
+                      </span>
+                    </td>
+                    <td>{new Date(assignment.createdAt).toLocaleDateString("en-GB")}</td>
+                    <td style={{ whiteSpace: "nowrap" }}>{assignment.selectDesigner}</td>
+                    <td>{new Date(assignment.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
+                    <td className="d-flex gap-2">
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        style={{ display: 'none' }}
+                        onChange={handleFileChange}
+                      />
+                      <Button
+                        size="sm"
+                        variant="dark"
+                        className="me-2 d-flex"
+                        onClick={handleUploadClick}
+                        id="All_btn"
+                      >
+                        <FaUpload className="me-1" />
+                        Upload
+                      </Button>
+                      <Link to={"/admin/MyJobsHolidayPackageDesign"}></Link>
+                      <Button
+                        id="All_btn"
+                        size="sm"
+                        variant="dark"
+                        onClick={() => handleCopyFileName(assignment, index, currentPage, itemsPerPage)}
+                      >
+                        CopyFN
+                      </Button>
                     </td>
                   </tr>
-                )}
-              </React.Fragment>
-            ))}
+
+                  {expandedJob === assignment._id && (
+                    <tr>
+                      <td colSpan="19">
+                        <div className="table-responsive">
+                          <Table hover className="align-middle sticky-header">
+                            <thead className="bg-light">
+                              <tr>
+                                <th>JobNo</th>
+                                <th>Brand</th>
+                                <th>Sub Brand</th>
+                                <th>Flavour</th>
+                                <th>PackType</th>
+                                <th>PackSize</th>
+                                <th>PackCode</th>
+                                <th>Status</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {assignment.jobs?.filter(j => j.jobId).map((j, idx) => (
+                                <tr key={j._id || idx}>
+                                  <td>{j.jobId.JobNo}</td>
+                                  <td>{j.jobId.brandName}</td>
+                                  <td>{j.jobId.subBrand}</td>
+                                  <td>{j.jobId.flavour}</td>
+                                  <td>{j.jobId.packType}</td>
+                                  <td>{j.jobId.packSize}</td>
+                                  <td>{j.jobId.packCode}</td>
+                                  <td>
+                                    <span className={`badge ${getStatusClass(j.jobId.Status) || ''}`}>
+                                      {j.jobId.Status}
+                                    </span>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </Table>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              );
+            })}
           </tbody>
         </Table>
       </div>
 
-      {/* Pagination */}
       {!loading && !error && (
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div className="text-muted small">
-            Showing{(currentPage - 1) * itemsPerPage + 1} of {filteredProjects.length}
+            Showing {(currentPage - 1) * itemsPerPage + 1} of {filteredProjects.length}
           </div>
           <ul className="pagination pagination-sm mb-0">
             <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
