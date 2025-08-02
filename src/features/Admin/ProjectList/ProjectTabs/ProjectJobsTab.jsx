@@ -314,6 +314,8 @@ function ProjectJobsTab() {
         return "bg-secondary text-white";
       case "open":
         return "bg-primary text-white";
+         case "rejected": // ✅ Added for "Rejected"
+            return "bg-danger text-white";
       default:
         return "bg-light text-dark";
     }

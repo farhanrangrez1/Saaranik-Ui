@@ -66,8 +66,8 @@ function MyJobs() {
       case "in_progress":
         return "bg-warning text-dark";
       case "review":
-           case "waitingapproval":  // lowercase me likho
-      return "bg-info text-dark";
+      case "waitingapproval":  // lowercase me likho
+        return "bg-info text-dark";
         return "bg-info text-dark";
       case "not started":
         return "bg-secondary text-white";
@@ -77,6 +77,8 @@ function MyJobs() {
         return "bg-primary text-white";
       case "cancelled":
         return "bg-dark text-white";
+      case "rejected": // ✅ Added for "Rejected"
+        return "bg-danger text-white";
       default:
         return "bg-light text-dark";
     }

@@ -57,19 +57,20 @@ function  DProjectInProgress() {
   };
 
   const getStatusClass = (status) => {
-    switch ((status || "").toLowerCase().trim()) {
-      case "active project":
-        return "bg-primary text-white";
+  switch (status.toLowerCase().trim()) {
       case "in progress":
       case "in_progress":
-        return "bg-warning text-dark";
+        return "bg-warning text-dark";    
       case "completed":
-        return "bg-success text-white";
-      case "closed":
-        return "bg-dark text-white";
+        return "bg-success text-white";  
       case "cancelled":
+           case "waitingapproval":  
+      return "bg-info text-dark";
+        return "bg-danger text-white"; 
+      case "active":
+        return "bg-primary text-white";
+      case "reject":
         return "bg-danger text-white";
-      case "on hold":
       case "review":
         return "bg-info text-dark";
       case "not started":
@@ -80,7 +81,6 @@ function  DProjectInProgress() {
         return "bg-light text-dark";
     }
   };
-
   const getPriorityClass = (priority) => {
     switch ((priority || "").toLowerCase()) {
       case "high":
@@ -164,19 +164,16 @@ function  DProjectInProgress() {
       if (endPage < totalPages - 1) {
         pageNumbers.push('...');
       }
-      
       // Always show last page
       pageNumbers.push(totalPages);
     }
-    
     return pageNumbers;
   };
-
 
     const CreatJobs = (id) => {
     navigate(`/admin/ProjectOverview/${id}`, { state: { id, openTab: 'jobs' } });
   };
-
+console.log("jj",currentProjects)
   return (
     <div className="container bg-white p-4 mt-4 rounded shadow-sm">
       {/* Title */}
@@ -238,7 +235,7 @@ function  DProjectInProgress() {
                       .toLocaleDateString("en-GB")
                       .replace(/\/20/, "/")}
                   </td>
-                  <td>{project.client}</td>
+                 <td>{project.clientId?.clientName || "N/A"}</td>
                   <td>
                     {project.projectRequirements &&
                     project.projectRequirements.length > 0

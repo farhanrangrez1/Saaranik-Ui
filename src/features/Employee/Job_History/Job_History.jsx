@@ -60,6 +60,8 @@ function Job_History() {
         return "bg-success text-white";
       case "open":
         return "bg-primary text-white";
+         case "rejected": // ✅ Added for "Rejected"
+            return "bg-danger text-white";
       default:
         return "bg-light text-dark";
     }

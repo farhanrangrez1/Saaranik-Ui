@@ -173,9 +173,23 @@ function DCompletedProject() {
   };
 
   
-  const JobsFiance = (id) => {
-    navigate(`/admin/ProjectOverview/${id}`, { state: { id, openTab: 'finance' } });
+  // const JobsFiance = (id,projectNo) => {
+  //   navigate(`/admin/ProjectOverview/${id}`,{ state: { id, openTab: 'finance' } });
+  // };
+const JobsFiance = (id, projectNo, projectName, clientName) => {
+  const projectDatah = {
+    projectNo,
+    projectName,
+    clientId: {
+      clientName
+    }
   };
+
+  navigate(`/admin/ProjectOverview/${id}`, {
+    state: { id, openTab: 'finance', projectDatah }
+  });
+};
+
 
   return (
     <div className="container bg-white p-4 mt-4 rounded shadow-sm">
@@ -238,7 +252,7 @@ function DCompletedProject() {
                       .toLocaleDateString("en-GB")
                       .replace(/\/20/, "/")}
                   </td>
-                  <td>{project.client}</td>
+                 <td>{project.clientId?.clientName || "N/A"}</td>
                   <td>
                     {project.projectRequirements &&
                     project.projectRequirements.length > 0
@@ -262,7 +276,7 @@ function DCompletedProject() {
                      <Button
                         variant="outline-primary"
                         size="sm"
-                        onClick={() => JobsFiance(project.id)}
+                        onClick={() => JobsFiance(project.id, project.projectNo,project.projectName,project.clientId?.clientName)}
                         className="px-3 py-1 fw-semibold border-2"
                         style={{
                           transition: 'all 0.3s ease',

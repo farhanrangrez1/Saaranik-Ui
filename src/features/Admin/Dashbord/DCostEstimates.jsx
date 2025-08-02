@@ -149,13 +149,13 @@ function DCostEstimates() {
 
     const { purchases, loading, error } = useSelector(
         (state) => state.receivablePurchases
-      );
-  console.log("gggggyyy",purchases?.receivablePurchases);
-  
-    
-      useEffect(() => {
+    );
+    console.log("gggggyyy", purchases?.receivablePurchases);
+
+
+    useEffect(() => {
         dispatch(fetchReceivablePurchases());
-      }, [dispatch]);
+    }, [dispatch]);
 
     const Duplicate = (po) => {
         navigate(`/admin/AddCostEstimates`, {
@@ -285,58 +285,58 @@ function DCostEstimates() {
     const getPageNumbers = () => {
         const pageNumbers = [];
         const maxPagesToShow = 5;
-        
+
         if (totalPages <= maxPagesToShow) {
             for (let i = 1; i <= totalPages; i++) {
                 pageNumbers.push(i);
             }
         } else {
             pageNumbers.push(1);
-            
+
             let startPage = Math.max(2, currentPage - 1);
             let endPage = Math.min(totalPages - 1, currentPage + 1);
-            
+
             if (startPage > 2) {
                 pageNumbers.push('...');
             }
-            
+
             for (let i = startPage; i <= endPage; i++) {
                 pageNumbers.push(i);
             }
-            
+
             if (endPage < totalPages - 1) {
                 pageNumbers.push('...');
             }
-            
+
             pageNumbers.push(totalPages);
         }
-        
+
         return pageNumbers;
     };
 
 
-      const handleToBeInvoiced = (po) => {
-    console.log("po", po._id)
-    const ReceivablePurchaseId = po._id;
-    const client = po.ClientId?.[0];
-    const project = po.projectId?.[0];
-    const CostEstimatesId = po.CostEstimatesId?.[0];
-    // console.log("pocost",po.CostEstimatesId[0]._id)
-    const invoice = {
-      clientId: client?._id,
-      clientName: client?.clientName,
-      projectId: project?._id,
-      projectName: project?.projectName,
-      CostEstimatesId: po.CostEstimatesId[0]._id,
-      ReceivablePurchaseId: po?._id,
+    const handleToBeInvoiced = (po) => {
+        console.log("po", po._id)
+        const ReceivablePurchaseId = po._id;
+        const client = po.ClientId?.[0];
+        const project = po.projectId?.[0];
+        const CostEstimatesId = po.CostEstimatesId?.[0];
+        // console.log("pocost",po.CostEstimatesId[0]._id)
+        const invoice = {
+            clientId: client?._id,
+            clientName: client?.clientName,
+            projectId: project?._id,
+            projectName: project?.projectName,
+            CostEstimatesId: po.CostEstimatesId[0]._id,
+            ReceivablePurchaseId: po?._id,
+        };
+        console.log("Invoice Data:", invoice);
+
+
+        navigate("/admin/AddInvoice", {
+            state: { invoice }
+        });
     };
-    console.log("Invoice Data:", invoice);
-
-
-    navigate("/admin/AddInvoice", {
-      state: { invoice }
-    });
-  };
     return (
         <div
             className="p-4 m-3"
@@ -358,110 +358,112 @@ function DCostEstimates() {
             </div>
 
             <div style={{ overflowX: "auto" }}>
-                  <Table hover responsive>
+                <Table hover responsive>
                     <thead>
-                      <tr>
-                        <th
-                          onClick={() => handleSort("poNumber")}
-                          style={{ whiteSpace: "nowrap", cursor: "pointer" }}
-                        >
-                          PO Number
-                        </th>
-                        <th
-                          onClick={() => handleSort("EstimateRef")}
-                          style={{ whiteSpace: "nowrap", cursor: "pointer" }}
-                        >
-                          Estimate Ref
-                        </th>
-                        <th
-                          onClick={() => handleSort("projectId")}
-                          style={{ whiteSpace: "nowrap", cursor: "pointer" }}
-                        >
-                          Project
-                        </th>
-                        <th
-                          onClick={() => handleSort("ClientId")}
-                          style={{ whiteSpace: "nowrap", cursor: "pointer" }}
-                        >
-                          Client
-                        </th>
-                        <th
-                          onClick={() => handleSort("ReceivedDate")}
-                          style={{ whiteSpace: "nowrap", cursor: "pointer" }}
-                        >
-                          Received Date
-                        </th>
-                        <th
-                          onClick={() => handleSort("Amount")}
-                          style={{ whiteSpace: "nowrap", cursor: "pointer" }}
-                        >
-                          Amount
-                        </th>
-                        <th
-                          onClick={() => handleSort("Status")}
-                          style={{ cursor: "pointer" }}
-                        >
-                          POStatus
-                        </th>
-                        <th
-                          onClick={() => handleSort("Amount")}
-                          style={{ whiteSpace: "nowrap", cursor: "pointer" }}
-                        >
-                          Actions
-                        </th>
-                      </tr>
+                        <tr>
+                            <th
+                                onClick={() => handleSort("poNumber")}
+                                style={{ whiteSpace: "nowrap", cursor: "pointer" }}
+                            >
+                                PO Number
+                            </th>
+                            <th
+                                onClick={() => handleSort("EstimateRef")}
+                                style={{ whiteSpace: "nowrap", cursor: "pointer" }}
+                            >
+                                Estimate Ref
+                            </th>
+                            <th
+                                onClick={() => handleSort("projectId")}
+                                style={{ whiteSpace: "nowrap", cursor: "pointer" }}
+                            >
+                                Project
+                            </th>
+                            <th
+                                onClick={() => handleSort("ClientId")}
+                                style={{ whiteSpace: "nowrap", cursor: "pointer" }}
+                            >
+                                Client
+                            </th>
+                            <th
+                                onClick={() => handleSort("ReceivedDate")}
+                                style={{ whiteSpace: "nowrap", cursor: "pointer" }}
+                            >
+                                Received Date
+                            </th>
+                            <th
+                                onClick={() => handleSort("Amount")}
+                                style={{ whiteSpace: "nowrap", cursor: "pointer" }}
+                            >
+                                Amount
+                            </th>
+                            <th
+                                onClick={() => handleSort("Status")}
+                                style={{ cursor: "pointer" }}
+                            >
+                                POStatus
+                            </th>
+                            <th
+                                onClick={() => handleSort("Amount")}
+                                style={{ whiteSpace: "nowrap", cursor: "pointer" }}
+                            >
+                                Actions
+                            </th>
+                        </tr>
                     </thead>
                     <tbody>
-                      {filteredEstimates.map((po, index) => (
-                        <tr key={index}>
-                          <td>
-                            {po.PONumber}
-                          </td>
-                          <td style={{ whiteSpace: "nowrap" }}>
-                            <Link
-                              to="/admin/CostEstimates"
-                              style={{ textDecoration: "none" }}
-                            >
-                              {po.costEstimates?.[0]?.estimateRef || "—"}
-                            </Link>
-                          </td>
-                          <td style={{ whiteSpace: "nowrap" }}>
-                            {po.projectId?.[0]?.projectName || "—"}
-                          </td>
-                          <td style={{ whiteSpace: "nowrap" }}>
-                            {po.ClientId?.[0]?.clientName || "—"}
-                          </td>
-          
-                          <td>{new Date(po.ReceivedDate).toLocaleDateString()}</td>
-                          <td>${po.Amount?.toFixed(2)}</td>
-                          <td>
-                          <span className={`badge ${getStatusClass(po.POStatus)} px-2 py-1`}>
-                            {po.POStatus}
-                          </span>
-                          </td>
-                          <div>
-                            <Button
-                              variant="outline-primary"
-                              size="sm"
-                              onClick={() => handleToBeInvoiced(po)}
-                              className="px-3 py-1 fw-semibold border-2"
-                              style={{
-                                transition: 'all 0.3s ease',
-                                borderRadius: '6px',
-                                fontSize: '12px',
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.5px'
-                              }}
-                            >
-                              To be invoiced
-                            </Button>
-                          </div>
-                        </tr>
-                      ))}
+                        {filteredEstimates.map((po, index) => (
+                            <tr key={index}>
+                                <td>
+                                    {po.PONumber}
+                                </td>
+                                <td style={{ whiteSpace: "nowrap" }}>
+                                    <Link
+                                        to="/admin/CostEstimates"
+                                        style={{ textDecoration: "none" }}
+                                    >
+                                        {po.costEstimates?.[0]?.estimateRef || "—"}
+                                    </Link>
+                                </td>
+                                <td style={{ whiteSpace: "nowrap" }}>
+                                    {po.projectId?.[0]?.projectName || "—"}
+                                </td>
+                                <td style={{ whiteSpace: "nowrap" }}>
+                                    {po.ClientId?.[0]?.clientName || "—"}
+                                </td>
+
+                                <td>{new Date(po.ReceivedDate).toLocaleDateString()}</td>
+                                <td>${po.Amount?.toFixed(2)}</td>
+                                <td>
+                                    <span className={`badge ${getStatusClass(po.POStatus)} px-2 py-1`}>
+                                        {po.POStatus}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div>
+                                        <Button
+                                            variant="outline-primary"
+                                            size="sm"
+                                            onClick={() => handleToBeInvoiced(po)}
+                                            className="px-3 py-1 fw-semibold border-2"
+                                            style={{
+                                                transition: 'all 0.3s ease',
+                                                borderRadius: '6px',
+                                                fontSize: '12px',
+                                                textTransform: 'uppercase',
+                                                letterSpacing: '0.5px',
+                                                whiteSpace: 'nowrap'
+                                            }}
+                                        >
+                                            To be invoiced
+                                        </Button>
+                                    </div></td>
+                            </tr>
+                        ))}
                     </tbody>
-                  </Table>
-                </div>
-          
+                </Table>
+            </div>
+
 
             {/* Modal for converting to invoice */}
             <Modal
@@ -621,7 +623,7 @@ function DCostEstimates() {
             {!loading && !error && searchFilteredEstimates.length > 0 && (
                 <div className="d-flex justify-content-between align-items-center mt-3">
                     <div className="text-muted small">
-                        Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, totalItems)} 
+                        Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, totalItems)}
                     </div>
                     <ul className="pagination pagination-sm mb-0">
                         <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
@@ -629,8 +631,8 @@ function DCostEstimates() {
                                 <span aria-hidden="true">&laquo;&laquo;</span>
                             </button>
                         </li>
-                  
-                        
+
+
                         {getPageNumbers().map((pageNum, index) => (
                             pageNum === '...' ? (
                                 <li key={`ellipsis-${index}`} className="page-item disabled">
@@ -644,7 +646,7 @@ function DCostEstimates() {
                                 </li>
                             )
                         ))}
-                        
+
 
                         <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
                             <button className="page-link" onClick={() => setCurrentPage(totalPages)}>

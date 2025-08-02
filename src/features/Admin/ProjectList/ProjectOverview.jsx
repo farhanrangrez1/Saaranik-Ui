@@ -9,10 +9,7 @@ import { Button } from 'react-bootstrap';
 
 function ProjectOverview() {
   const location = useLocation();
-  const { id, openTab, projectDatah } = location.state || {};
-
-  console.log("Project ID:", id);
-  console.log("Project Data:", projectDatah);
+  const { id, openTab, projectDatah ,projectNo,projectName,clientName} = location.state || {};
 
 
 
@@ -81,7 +78,7 @@ function ProjectOverview() {
       {/* Project Header */}
       <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap">
         <div>
-          <h4 className="mb-1">{projectDatah.projectNo}-{projectDatah.projectName}</h4>
+          <h4 className="mb-1">{projectDatah?.projectNo}-{projectDatah?.projectName}</h4>
           <div className="text-muted">
             Client: {projectDatah?.clientId?.clientName}
           </div>

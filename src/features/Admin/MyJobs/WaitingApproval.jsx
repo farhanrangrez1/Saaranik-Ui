@@ -22,6 +22,21 @@ function WaitingApproval() {
     const params = useParams();
     const id = location.state?.id || params.id;
 
+    const [Status, setStatus] = useState("WaitingApproval");
+    const [searchQuery, setSearchQuery] = useState("");
+    const [selectedProject, setSelectedProject] = useState("All Projects");
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
+
+    const { job, loading } = useSelector((state) => state.jobs);
+    console.log("Job data hai ", job.jobs);
+
+    useEffect(() => {
+        dispatch(filterStatus(Status));
+    }, [dispatch, Status]);
+
+    const isAnySelected = Object.values(selectedJobs).some(Boolean);
+
     const handleCheckboxChange = (jobId) => {
         setSelectedJobs((prev) => ({
             ...prev,
@@ -29,17 +44,6 @@ function WaitingApproval() {
         }));
         setError('');
     };
-
-    const { job, loading, } = useSelector((state) => state.jobs);
-    console.log("Job data hai ", job.jobs);
-
-    const [Status, setStatus] = useState("WaitingApproval");
-
-    useEffect(() => {
-        dispatch(filterStatus(Status));
-    }, [dispatch, Status]);
-
-    const isAnySelected = Object.values(selectedJobs).some(Boolean);
 
     const handleReturnClick = () => {
         if (isAnySelected) {
@@ -58,37 +62,29 @@ function WaitingApproval() {
         }
     };
 
-    const getStatusClass = (status) => {
-        switch ((status || "").toLowerCase().trim()) {
-            case "in progress":
-            case "in_progress":
-                return "bg-warning text-dark";
-
-            case "waitingapproval":  // lowercase me likho
-                return "bg-info text-dark";
-
-            case "review":
-                return "bg-info text-dark";
-
-            case "not started":
-                return "bg-secondary text-white";
-
-            case "completed":
-                return "bg-success text-white";
-
-            case "open":
-                return "bg-primary text-white";
-
-            case "cancelled":
-                return "bg-dark text-white";
-
-            default:
-                return "bg-light text-dark";
-        }
-    };
-
-    const [searchQuery, setSearchQuery] = useState("");
-    const [selectedProject, setSelectedProject] = useState("All Projects");
+ const getStatusClass = (status) => {
+    switch ((status || "").toLowerCase().trim()) {
+        case "in progress":
+        case "in_progress":
+            return "bg-warning text-dark";
+        case "waitingapproval":
+        case "review":
+            return "bg-info text-dark";
+        case "not started":
+            return "bg-secondary text-white";
+        case "completed":
+            return "bg-success text-white";
+        case "open":
+            return "bg-primary text-white";
+        case "cancelled":
+            return "bg-dark text-white";
+        case "reject":
+        case "rejected": // ✅ Added for "Rejected"
+            return "bg-danger text-white";
+        default:
+            return "bg-light text-dark";
+    }
+};
 
     const handleUpdate = (job) => {
         navigate(`/admin/AddJobTracker`, { state: { job } });
@@ -98,23 +94,14 @@ function WaitingApproval() {
         navigate(`/admin/OvervieJobsTracker`, { state: { job } });
     };
 
-    const handleDesignerClick = (job) => {
-        // Placeholder: Add your logic here
-    };
-
-    const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 10;
+    const handleDesignerClick = (job) => { };
 
     const filteredProjects = (job?.jobs || []).filter((j) => {
-        // Split searchQuery by spaces, ignore empty terms
         const terms = searchQuery.trim().split(/\s+/).filter(Boolean);
         if (terms.length === 0) {
-            const matchesProject =
-                selectedProject === "All Projects" ||
-                (j.projectId?.[0]?.projectName?.toLowerCase() === selectedProject.toLowerCase());
+            const matchesProject = selectedProject === "All Projects" || (j.projectId?.[0]?.projectName?.toLowerCase() === selectedProject.toLowerCase());
             return matchesProject;
         }
-        // Prepare searchable fields as strings
         const fields = [
             j.JobNo,
             j.projectId?.[0]?.projectName,
@@ -130,13 +117,8 @@ function WaitingApproval() {
             j.updatedAt ? new Date(j.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '',
             j.Status
         ].map(f => (f || '').toString().toLowerCase());
-        // Every term must be found in at least one field
-        const matchesSearch = terms.every(term =>
-            fields.some(field => field.includes(term.toLowerCase()))
-        );
-        const matchesProject =
-            selectedProject === "All Projects" ||
-            (j.projectId?.[0]?.projectName?.toLowerCase() === selectedProject.toLowerCase());
+        const matchesSearch = terms.every(term => fields.some(field => field.includes(term.toLowerCase())));
+        const matchesProject = selectedProject === "All Projects" || (j.projectId?.[0]?.projectName?.toLowerCase() === selectedProject.toLowerCase());
         return matchesSearch && matchesProject;
     });
 
@@ -147,57 +129,69 @@ function WaitingApproval() {
         currentPage * itemsPerPage
     );
 
+    const handleApproveJob = (jobId) => {
+        const selectedJob = (job?.jobs || []).find((job) => job._id === jobId);
+        if (!selectedJob) return;
 
+        Swal.fire({
+            title: "Approve Job",
+            text: "Are you sure you want to approve this job?",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonText: "Yes, mark completed!",
+            cancelButtonText: "Cancel",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                dispatch(EmployeeCompletedStatus({ id: jobId, data: { Status: "Completed" } }));
+                dispatch(filterStatus(Status));
+                Swal.fire("Marked!", "Job has been marked as completed.", "success");
+                console.log("Marking job as completed:", jobId);
+            }
+        });
+    };
 
-const handleApproveJob = (jobId) => { 
-  const selectedJob = (job?.jobs || []).find((job) => job._id === jobId);
-  if (!selectedJob) return;
+    const handleRejectJob = (jobId) => {
+        const selectedJob = (job?.jobs || []).find((job) => job._id === jobId);
+        if (!selectedJob) return;
 
-  Swal.fire({
-    title: "Approve Job",
-    text: "Are you sure you want to approve this job?",
-    icon: "question",
-    showCancelButton: true,
-    confirmButtonText: "Yes, mark completed!",
-    cancelButtonText: "Cancel",
-  }).then((result) => {
-    if (result.isConfirmed) {
-      dispatch(EmployeeCompletedStatus({
-        id: jobId,
-        data: { Status: "Completed" }
-      }));
-        dispatch(filterStatus(Status));
-      Swal.fire("Marked!", "Job has been marked as completed.", "success");
-      console.log("Marking job as completed:", jobId);
-    }
-  });
-};
+        Swal.fire({
+            title: "Reject Job",
+            text: "Are you sure you want to reject this job?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, Reject!",
+            cancelButtonText: "Cancel",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                dispatch(EmployeeCompletedStatus({ id: jobId, data: { Status: "Rejected" } }));
+                dispatch(filterStatus(Status));
+                Swal.fire("Rejected!", "Job has been rejected.", "success");
+                console.log("Rejected job:", jobId);
+            }
+        });
+    };
 
     return (
         <div className="container-fluid mt-2">
             <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap">
-                {/* <h4>Completed Jobs</h4> */}
-                <div className="d-flex gap-2 mt-2 mt-md-0">
-                    {/* <button className="btn btn-outline-primary">Back to Designer</button> */}
-                    {/* <button className="btn btn-primary" onClick={handleReturnClick}>
-            Return Completed Jobs
-          </button> */}
-                </div>
+                <div className="d-flex gap-2 mt-2 mt-md-0"></div>
             </div>
+
             {error && <div className="alert alert-danger">{error}</div>}
+
             <div className="card p-3">
                 <div className="d-flex justify-content-between align-items-center mb-4">
                     <h2 className="job-title mb-0">Waiting for Approval</h2>
                 </div>
-                {/* Responsive Toggle Button */}
+
                 <div className="d-md-none mb-3">
                     <button className="btn btn-outline-secondary w-100" onClick={() => setShowFilters(!showFilters)}>
                         {showFilters ? "Hide Filters" : "Show Filters"}
                     </button>
                 </div>
 
-
-                {/* Filters */}
+               <div style={{display:"flex",alignItems:"center" , gap:"5px"}}>
+                {/* 🔍 Search Input */}
                 <div className="d-flex flex-wrap gap-2 mb-3 align-items-center">
                     <Form.Control
                         type="search"
@@ -206,26 +200,27 @@ const handleApproveJob = (jobId) => {
                         onChange={(e) => setSearchQuery(e.target.value)}
                         style={{ width: "250px" }}
                     />
-                    {/* <Dropdown>
-            <Dropdown.Toggle variant="light" id="project-dropdown">
-              {selectedProject}
-            </Dropdown.Toggle>
-            <Dropdown.Menu>
-              <Dropdown.Item onClick={() => setSelectedProject("All Projects")}>
-                All Projects
-              </Dropdown.Item>
-              {[...new Set((job?.jobs || []).map((j) => j.projectId?.[0]?.projectName || "N/A"))].map(
-                (projectName, index) => (
-                  <Dropdown.Item key={index} onClick={() => setSelectedProject(projectName)}>
-                    {projectName}
-                  </Dropdown.Item>
-                )
-              )}
-            </Dropdown.Menu>
-          </Dropdown> */}
                 </div>
+                 <div className="d-flex gap-2 mb-2">
+                    <Button
+                        variant={Status === "WaitingApproval" ? "primary" : "outline-primary"}
+                        size="sm"
+                        onClick={() => setStatus("WaitingApproval")}
+                    >
+                        Waiting Approval
+                    </Button>
 
-                {/* Table Section */}
+                    <Button
+                        variant={Status === "Rejected" ? "danger" : "outline-danger"}
+                        size="sm"
+                        onClick={() => setStatus("Rejected")}
+                    >
+                        Rejected
+                    </Button>
+                </div>
+               </div>
+
+                {/* 📋 Table */}
                 <div className="table-responsive">
                     <Table hover className="align-middle">
                         <thead className="bg-light">
@@ -243,18 +238,16 @@ const handleApproveJob = (jobId) => {
                                 <th style={{ whiteSpace: "nowrap" }}>Date Completed</th>
                                 <th>Assign</th>
                                 <th>TimeLogged</th>
-                                <th style={{ whiteSpace: "nowrap" }}>Time Budget</th>
-                                <th style={{ whiteSpace: "nowrap" }}>Time Spent</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {paginatedProjects.some(job => job.Status?.toLowerCase() === "waitingapproval") ? (
+                            {paginatedProjects.some(job => job.Status?.toLowerCase() === Status.toLowerCase()) ? (
                                 paginatedProjects
                                     .slice()
                                     .reverse()
-                                    .filter(job => job.Status?.toLowerCase() === "waitingapproval")
+                                    .filter(job => job.Status?.toLowerCase() === Status.toLowerCase())
                                     .map((job, index) => (
                                         <tr key={job._id}>
                                             <td>
@@ -268,40 +261,45 @@ const handleApproveJob = (jobId) => {
                                                 <Link style={{ textDecoration: 'none' }}>{job.JobNo}</Link>
                                             </td>
                                             <td style={{ whiteSpace: "nowrap" }}>{job.projectId?.[0]?.projectName || 'N/A'}</td>
-                                            <td style={{ whiteSpace: 'nowrap' }}>{job.brandName}</td>
+                                            <td style={{ whiteSpace: "nowrap" }}>{job.brandName}</td>
                                             <td style={{ whiteSpace: "nowrap" }}>{job.subBrand}</td>
-                                            <td style={{ whiteSpace: 'nowrap' }}>{job.flavour}</td>
+                                            <td style={{ whiteSpace: "nowrap" }}>{job.flavour}</td>
                                             <td style={{ whiteSpace: "nowrap" }}>{job.packType}</td>
                                             <td style={{ whiteSpace: "nowrap" }}>{job.packSize}</td>
                                             <td style={{ whiteSpace: "nowrap" }}>{job.packCode}</td>
-                                            <td><span className={getPriorityClass(job.priority)}>{job.priority}</span></td>
-                                            <td>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
-                                            <td style={{ whiteSpace: 'nowrap' }}>{job.assign}</td>
+                                            <td style={{ whiteSpace: "nowrap" }}><span className={getPriorityClass(job.priority)}>{job.priority}</span></td>
+                                            <td style={{ whiteSpace: "nowrap" }}>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
+                                            <td style={{ whiteSpace: "nowrap" }}>{job.assign}</td>
                                             <td>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
-                                            <td>2h 15m</td>
-                                            <td>3h 30m</td>
                                             <td>
                                                 <span className={`badge ${getStatusClass(job.Status)} px-2 py-1`}>
                                                     {job.Status}
                                                 </span>
                                             </td>
                                             <td>
-                                                <div className="d-flex gap-2">
-                                                    <button onClick={()=>handleApproveJob(job._id)} className="btn btn-primary btn-sm fw-semibold px-3 py-1 text-white">
-                                                        Approve
-                                                    </button>
-
-                                                    <button className="btn btn-outline-danger btn-sm fw-semibold px-3 py-1">
-                                                        Reject
-                                                    </button>
-                                                </div>
+                                                {Status === "WaitingApproval" && (
+                                                    <div className="d-flex gap-2">
+                                                        <button
+                                                            onClick={() => handleApproveJob(job._id)}
+                                                            className="btn btn-primary btn-sm fw-semibold px-3 py-1 text-white"
+                                                        >
+                                                            Approve
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleRejectJob(job._id)}
+                                                            className="btn btn-outline-danger btn-sm fw-semibold px-3 py-1"
+                                                        >
+                                                            Reject
+                                                        </button>
+                                                    </div>
+                                                )}
                                             </td>
                                         </tr>
                                     ))
                             ) : (
                                 <tr>
                                     <td colSpan="17" className="text-center text-muted py-4">
-                                        No completed jobs found.
+                                        No jobs found.
                                     </td>
                                 </tr>
                             )}
@@ -309,6 +307,7 @@ const handleApproveJob = (jobId) => {
                     </Table>
                 </div>
 
+                {/* Pagination */}
                 {!loading && !error && (
                     <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap">
                         <div className="text-muted small">
@@ -340,6 +339,4 @@ const handleApproveJob = (jobId) => {
     );
 }
 
-
-
-export default WaitingApproval
+export default WaitingApproval;

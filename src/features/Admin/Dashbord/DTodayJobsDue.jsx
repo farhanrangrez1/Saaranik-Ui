@@ -131,17 +131,23 @@ function DTodayJobsDue() {
     switch (status.toLowerCase().trim()) {
       case "in progress":
       case "in_progress":
-        return "bg-warning text-dark";
+        return "bg-warning text-dark";    
+      case "completed":
+        return "bg-success text-white";  
+      case "cancelled":
+           case "waitingapproval":  
+      return "bg-info text-dark";
+        return "bg-danger text-white"; 
+      case "active":
+        return "bg-primary text-white";
+      case "reject":
+        return "bg-danger text-white";
       case "review":
         return "bg-info text-dark";
       case "not started":
         return "bg-secondary text-white";
-      case "completed":
-        return "bg-success text-white";
       case "open":
         return "bg-primary text-white";
-      case "cancelled":
-        return "bg-dark text-white";
       default:
         return "bg-light text-dark";
     }
@@ -240,7 +246,7 @@ function DTodayJobsDue() {
                   {new Date(job.dueDate || job.createdAt).toLocaleDateString("en-GB")}
                 </td>
                   <td style={{ whiteSpace: 'nowrap' }}>
-                  {job.assignedTo}
+                  {job.assign}
                 </td>
                 <td>
                   {new Date(job.updatedAt).toLocaleTimeString("en-US", {
