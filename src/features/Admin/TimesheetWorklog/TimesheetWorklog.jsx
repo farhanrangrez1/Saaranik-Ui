@@ -232,7 +232,7 @@ function TimesheetWorklog() {
                 return (
                   <tr key={index}>
                     <td className="no-border-bottom">
-                      #JOB{log.jobId?.[0]?.JobNo || '----'}
+                      {log.jobId?.[0]?.JobNo || '----'}
                     </td>
                     <td style={{ whiteSpace: 'nowrap' }} key={index}>
                       {log.projectId?.[0]?.projectName || 'No Project Name'}

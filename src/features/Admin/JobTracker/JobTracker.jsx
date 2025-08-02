@@ -57,6 +57,8 @@ function JobTracker() {
     case "completed":
       return "bg-success text-white";    // Green
     case "cancelled":
+         case "waitingapproval":  // lowercase me likho
+      return "bg-info text-dark";
       return "bg-danger text-white";     // Red
     case "active":
       return "bg-primary text-white";    // Blue
@@ -244,7 +246,7 @@ function JobTracker() {
                 <td>
                   <span className={getPriorityClass(job.priority)}>{job.priority}</span>
                 </td>
-                <td style={{ whiteSpace: 'nowrap' }}>{job?.assignedTo}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{job?.assign}</td>
                 <td>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
                 <td>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
                 <td>

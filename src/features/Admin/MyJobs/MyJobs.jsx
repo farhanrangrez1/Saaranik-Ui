@@ -66,6 +66,8 @@ function MyJobs() {
       case "in_progress":
         return "bg-warning text-dark";
       case "review":
+           case "waitingapproval":  // lowercase me likho
+      return "bg-info text-dark";
         return "bg-info text-dark";
       case "not started":
         return "bg-secondary text-white";
@@ -283,7 +285,7 @@ function MyJobs() {
                     <td style={{ whiteSpace: "nowrap" }}>{assignment.description}</td>
                     <td>{firstValidJob?.jobId?.brandName || 'N/A'}</td>
                     <td style={{ whiteSpace: 'nowrap' }}>{firstValidJob?.jobId?.subBrand || 'N/A'}</td>
-                    <td>{firstValidJob?.jobId?.flavour || 'N/A'}</td>
+                    <td style={{ whiteSpace: "nowrap" }}>{firstValidJob?.jobId?.flavour || 'N/A'}</td>
                     <td style={{ whiteSpace: "nowrap" }}>{firstValidJob?.jobId?.packType || 'N/A'}</td>
                     <td style={{ whiteSpace: "nowrap" }}>{firstValidJob?.jobId?.packSize || 'N/A'}</td>
                     <td style={{ whiteSpace: "nowrap" }}>{firstValidJob?.jobId?.packCode || 'N/A'}</td>

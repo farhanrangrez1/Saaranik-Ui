@@ -32,7 +32,7 @@
 //   // };
 
 // const handleLogTime = (job) => {
-  
+
 //   navigate(`/employee/AddTimeLog`, { 
 //     state: { 
 //       id: job._id,
@@ -373,7 +373,7 @@ import React, { useEffect, useState, useRef, useMemo } from "react";
 import { Row, Col, Button, Form, Table, Modal } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchjobs } from "../../../redux/slices/JobsSlice";
+import {EmployeeCompletedStatus, fetchjobs, updatejob } from "../../../redux/slices/JobsSlice";
 import { fetchMyJobs, ReturnJob } from "../../../redux/slices/Employee/MyJobsSlice";
 import { FaFilter, FaRegClock } from "react-icons/fa";
 import Swal from "sweetalert2";
@@ -397,8 +397,8 @@ function MyJobs() {
   const navigate = useNavigate();
 
   const handleLogTime = (job) => {
-    navigate(`/employee/AddTimeLog`, { 
-      state: { 
+    navigate(`/employee/AddTimeLog`, {
+      state: {
         id: job._id,
         openTab: 'jobs',
         entry: job,
@@ -546,25 +546,60 @@ function MyJobs() {
       });
   };
 
-  const getStatusClass = (status) => {
-    switch ((status || "").toLowerCase().trim()) {
-      case "in progress":
-      case "in_progress":
-        return "bg-warning text-dark";
-      case "review":
-        return "bg-info text-dark";
-      case "not started":
-        return "bg-secondary text-white";
-      case "completed":
-        return "bg-success text-white";
-      case "open":
-        return "bg-primary text-white";
-      case "cancelled":
-        return "bg-dark text-white";
-      default:
-        return "bg-light text-dark";
+const getStatusClass = (status) => {
+  switch ((status || "").toLowerCase().trim()) {
+    case "in progress":
+    case "in_progress":
+      return "bg-warning text-dark";
+
+    case "waitingapproval":  // lowercase me likho
+      return "bg-info text-dark";
+
+    case "review":
+      return "bg-info text-dark";
+
+    case "not started":
+      return "bg-secondary text-white";
+
+    case "completed":
+      return "bg-success text-white";
+
+    case "open":
+      return "bg-primary text-white";
+
+    case "cancelled":
+      return "bg-dark text-white";
+
+    default:
+      return "bg-light text-dark";
+  }
+};
+
+
+const handleMarkAsCompleted = (jobId) => { 
+  const selectedJob = MynewJobsdata.find((job) => job._id === jobId);
+  if (!selectedJob) return;
+
+  Swal.fire({
+    title: "Are you sure?",
+    text: "Do you want to mark this job as completed?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonText: "Yes, mark completed!",
+    cancelButtonText: "Cancel",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      dispatch(EmployeeCompletedStatus({
+        id: jobId,
+        data: { Status: "WaitingApproval" }
+      }));
+        dispatch(fetchMyJobs());
+      Swal.fire("Marked!", "Job has been marked as completed.", "success");
+      console.log("Marking job as completed:", jobId);
     }
-  };
+  });
+};
+
 
   return (
     <div className="p-4 m-2" style={{ backgroundColor: "white", borderRadius: "10px" }}>
@@ -682,7 +717,7 @@ function MyJobs() {
                     {job.Status || "N/A"}
                   </span>
                 </td>
-                <td>
+                <td style={{display:"flex",gap:"5px"}}>
                   <Button
                     id="All_btn"
                     size="sm"
@@ -690,6 +725,15 @@ function MyJobs() {
                     onClick={() => handleLogTime(job)}
                   >
                     <FaRegClock />
+                  </Button>
+                   <Button
+                    id="All_btn"
+                    size="sm"
+                    variant="dark"
+                    style={{height:"40px"}}
+                    onClick={() => handleMarkAsCompleted(job._id)}
+                  >
+                    Completed_Jobs
                   </Button>
                 </td>
               </tr>

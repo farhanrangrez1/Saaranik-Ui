@@ -60,6 +60,7 @@ import ChangePassword from "../features/Layouts/ChangePassword.jsx";
 import UpdateProfile from "../features/Admin/Profile/UpdateProfile.jsx";
 import OvervieCostEstimates from "../features/Admin/CostEstimates/OvervieCostEstimates.jsx";
 import Retunjob from "../features/Admin/MyJobs/Retunjob.jsx";
+import WaitingApproval from "../features/Admin/MyJobs/WaitingApproval.jsx";
 
 function Admin() {
   const [isSidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 768);
@@ -144,6 +145,7 @@ function Admin() {
             <Route path="/ChangePassword" element={<ProtectedRoute><ChangePassword/></ProtectedRoute>} />
             <Route path="/UpdateProfile" element={<ProtectedRoute><UpdateProfile/></ProtectedRoute>} />
             <Route path="/Retunjob" element={<ProtectedRoute><Retunjob/></ProtectedRoute>} />
+                <Route path="/approval" element={<ProtectedRoute><WaitingApproval/></ProtectedRoute>} />
           </Routes>
         </div>
       </div>

@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react'; import { useDispatch, useSelector } from 'react-redux';
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { fetchProject } from '../../../redux/slices/ProjectsSlice';
 import { fetchjobs } from '../../../redux/slices/JobsSlice';
-import { createTimesheetWorklog, updateTimesheetWorklog } from '../../../redux/slices/TimesheetWorklogSlice'; // Make sure this exists
+import { createTimesheetWorklog, updateTimesheetWorklog } from '../../../redux/slices/TimesheetWorklogSlice';
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { fetchusers, SingleUser } from '../../../redux/slices/userSlice';
@@ -10,25 +11,25 @@ import { fetchMyJobs } from '../../../redux/slices/Employee/MyJobsSlice';
 
 
 function AddTimeLog() {
-const dispatch = useDispatch();
-const navigate = useNavigate();
-const location = useLocation();
-const { id, openTab, entry,job } = location.state || {};
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { id, openTab, entry, job } = location.state || {};
 
-console.log("Job ID:", job[0]?.projectId.projectName);
-console.log("Job ID:", job.JobNo);
+  console.log("Project Name:", job?.projectId[0]?.projectName);
+  console.log("Job ID:", job.JobNo);
 
   const { UserSingle, loading, error } = useSelector((state) => state.user);
 
   useEffect(() => {
     dispatch(SingleUser());
   }, [dispatch]);
-  const empid = UserSingle?._id;
 
+  const empid = UserSingle?._id;
 
   const getTodayDate = () => {
     const today = new Date();
-    return today.toISOString().split("T")[0]; // 'YYYY-MM-DD'
+    return today.toISOString().split("T")[0];
   };
 
   const [formData, setFormData] = useState({
@@ -45,61 +46,36 @@ console.log("Job ID:", job.JobNo);
     jobName: ''
   });
 
-  // useEffect(() => {
-  //   if (entry) {
-  //     const parsedDate = entry.date
-  //       ? new Date(entry.date).toISOString().split('T')[0]
-  //       : getTodayDate();
-  //     setFormData({
-  //       date: parsedDate,
-  //       projectId: Array.isArray(entry.projectId) ? entry.projectId[0]._id : '',
-  //       jobId: Array.isArray(entry.jobId) ? entry.jobId[0]._id : '',
-  //       employeeId: Array.isArray(entry.employeeId) ? entry.employeeId[0]._id : '',
-  //       status: entry.status || '',
-  //       startTime: entry.startTime || '',
-  //       endTime: entry.endTime || '',
-  //       taskDescription: entry.taskDescription || '',
-  //       tags: entry.tags || '',
-  //       projectName: Array.isArray(entry.projectId) ? entry.projectId[0].projectName : '',
-  //       jobName: Array.isArray(entry.jobId) ? entry.jobId[0].jobName || '' : ''
-  //     });
-  //   }
-  // }, [entry]);
-
   useEffect(() => {
-  if (entry || job) {
-    // entry use karna hai agar edit mode hai
-    const data = entry || job; 
+    if (entry || job) {
+      const data = entry || job;
+      const parsedDate = data.date ? new Date(data.date).toISOString().split('T')[0] : getTodayDate();
 
-    const parsedDate = data.date
-      ? new Date(data.date).toISOString().split('T')[0]
-      : getTodayDate();
-
-    setFormData({
-      date: parsedDate,
-      projectId: Array.isArray(data.projectId) 
-        ? data.projectId[0]._id 
-        : data.projectId?._id || '',
-      jobId: Array.isArray(data.jobId) 
-        ? data.jobId[0]._id 
-        : data._id || '',
-      employeeId: Array.isArray(data.employeeId)
-        ? data.employeeId[0]._id 
-        : empid,
-      status: data.status || '',
-      startTime: data.startTime || '',
-      endTime: data.endTime || '',
-      taskDescription: data.taskDescription || '',
-      tags: data.tags || '',
-      projectName: Array.isArray(data.projectId)
-        ? data.projectId[0].projectName
-        : data.projectId?.projectName || '',
-      jobName: Array.isArray(data.jobId)
-        ? data.jobId[0].jobName || data.jobId[0].JobNo
-        : data.jobName || data.JobNo || ''
-    });
-  }
-}, [entry, job, empid]);
+      setFormData({
+        date: parsedDate,
+        projectId: Array.isArray(data.projectId)
+          ? data.projectId[0]._id
+          : data.projectId?._id || '',
+        jobId: Array.isArray(data.jobId)
+          ? data.jobId[0]._id
+          : data._id || '',
+        employeeId: Array.isArray(data.employeeId)
+          ? data.employeeId[0]._id
+          : empid,
+        status: data.status || '',
+        startTime: data.startTime || '',
+        endTime: data.endTime || '',
+        taskDescription: data.taskDescription || '',
+        tags: data.tags || '',
+        projectName: Array.isArray(data.projectId)
+          ? data.projectId[0].projectName
+          : data.projectId?.projectName || '',
+        jobName: Array.isArray(data.jobId)
+          ? data.jobId[0].jobName || data.jobId[0].JobNo
+          : data.jobName || data.JobNo || ''
+      });
+    }
+  }, [entry, job, empid]);
 
   useEffect(() => {
     dispatch(fetchProject());
@@ -118,7 +94,7 @@ console.log("Job ID:", job.JobNo);
       const end = new Date();
       end.setHours(endHour, endMinute, 0);
 
-      let diff = (end - start) / 1000 / 60 / 60; // hours
+      let diff = (end - start) / 1000 / 60 / 60;
 
       if (diff < 0) diff = 0;
 
@@ -145,55 +121,97 @@ console.log("Job ID:", job.JobNo);
     hour = hour % 12 || 12;
     return `${hour.toString().padStart(2, '0')}:${minute} ${ampm}`;
   };
-  const handleSubmit = (e) => {
-    e.preventDefault();
 
-    const payload = {
-      projectId: [formData.projectId],
-      jobId: [formData.jobId],
-      employeeId: [formData.employeeId],
-      date: formData.date,
-      startTime: convertTo12HourFormat(formData.startTime),
-      endTime: convertTo12HourFormat(formData.endTime),
-      taskDescription: formData.taskDescription,
-      status: formData.status,
-      tags: formData.tags,
-      projectName: formData.projectName,
-      jobName: formData.jobName
-    };
+//  const handleSubmit = (e) => {
+//   e.preventDefault();
+//   // Ensure projectName exists (fallback)
+//   let projectName = formData.projectName;
+//   if (!projectName) {
+//     const fallbackProject = reversedProjectList.find(p => p._id === formData.projectId);
+//     projectName = fallbackProject?.projectName || job?.projectId?.[0]?.projectName || "";
+//   }
 
-    const successNavigate = () => navigate("/employee/TimeTracking");
+//   const payload = {
+//     projectId: [formData.projectId],
+//     jobId: [formData.jobId],
+//     employeeId: [formData.employeeId],
+//     date: formData.date,
+//     startTime: convertTo12HourFormat(formData.startTime),
+//     endTime: convertTo12HourFormat(formData.endTime),
+//     taskDescription: formData.taskDescription,
+//     status: formData.status,
+//     tags: formData.tags,
+//     projectName: projectName, // ✅ fixed
+//     jobName: formData.jobName
+//   };
 
-    if (_id) {
-      dispatch(updateTimesheetWorklog({ _id, data: payload }))
-        .unwrap()
-        .then((res) => {
-          toast.success(res?.message || "Timesheet updated successfully!");
-          successNavigate();
-        })
-        .catch((err) => {
-          toast.error(err?.message || "Failed to update timesheet!");
-          console.error("Update error:", err);
-        });
-    } else {
-      dispatch(createTimesheetWorklog(payload))
-        .unwrap()
-        .then((res) => {
-          toast.success(res?.message || "Timesheet created successfully!");
-          successNavigate();
-        })
-        .catch((err) => {
-          toast.error(err?.message || "Error creating timesheet!");
-          console.error("Create error:", err);
-        });
-    }
+//   const successNavigate = () => navigate("/employee/TimeTracking");
+
+//   if (id) {
+//     dispatch(updateTimesheetWorklog({ _id: id, data: payload }))
+//       .unwrap()
+//       .then((res) => {
+//         toast.success(res?.message || "Timesheet updated successfully!");
+//         successNavigate();
+//       })
+//       .catch((err) => {
+//         toast.error(err?.message || "Failed to update timesheet!");
+//         console.error("Update error:", err);
+//       });
+//   } else {
+//     dispatch(createTimesheetWorklog(payload))
+//       .unwrap()
+//       .then((res) => {
+//         toast.success(res?.message || "Timesheet created successfully!");
+//         successNavigate();
+//       })
+//       .catch((err) => {
+//         toast.error(err?.message || "Error creating timesheet!");
+//         console.error("Create error:", err);
+//       });
+//   }
+// };
+
+
+ const handleSubmit = (e) => {
+  e.preventDefault();
+  // Ensure projectName exists (fallback)
+  let projectName = formData.projectName;
+  if (!projectName) {
+    const fallbackProject = reversedProjectList.find(p => p._id === formData.projectId);
+    projectName = fallbackProject?.projectName || job?.projectId?.[0]?.projectName || "";
+  }
+
+  const payload = {
+    projectId: [formData.projectId],
+    jobId: [formData.jobId],
+    employeeId: [formData.employeeId],
+    date: formData.date,
+    startTime: convertTo12HourFormat(formData.startTime),
+    endTime: convertTo12HourFormat(formData.endTime),
+    taskDescription: formData.taskDescription,
+    status: formData.status,
+    tags: formData.tags,
+    projectName: projectName, // ✅ fixed
+    jobName: formData.jobName
   };
 
+  const successNavigate = () => navigate("/employee/TimeTracking");
 
-  // Project Jobs Employee ye pora data araha hai 
+    dispatch(createTimesheetWorklog(payload))
+      .unwrap()
+      .then((res) => {
+        toast.success(res?.message || "Timesheet created successfully!");
+        successNavigate();
+      })
+      .catch((err) => {
+        toast.error(err?.message || "Error creating timesheet!");
+        console.error("Create error:", err);
+      });
+};
+
   const { myjobs } = useSelector((state) => state.MyJobs);
   const MynewJobsdata = myjobs && myjobs.assignments && myjobs.assignments.length > 0 ? myjobs.assignments[0].jobId : [];
-  console.log("Hhhhhhhhhhhhhhhhhhhh", MynewJobsdata);
 
   useEffect(() => {
     dispatch(fetchMyJobs());
@@ -204,7 +222,7 @@ console.log("Job ID:", job.JobNo);
     ? MynewJobsdata.flatMap(job => job.projectId).reverse()
     : [];
 
-  const reversedJobList =Array.isArray(MynewJobsdata)
+  const reversedJobList = Array.isArray(MynewJobsdata)
     ? MynewJobsdata.flatMap(job => job.JobNo).reverse()
     : [];
 
@@ -237,11 +255,9 @@ console.log("Job ID:", job.JobNo);
                       required
                     >
                       <option value="">Select a project</option>
-                      {reversedProjectList.map((proj) => (
-                        <option key={proj._id} value={proj._id}>
-                          {proj.projectName}
-                        </option>
-                      ))}
+                      <option key={job?.projectId[0]?._id} value={job?.projectId[0]?._id}>
+                        {job?.projectId[0]?.projectName}
+                      </option>
                     </select>
                   </div>
 
@@ -264,11 +280,9 @@ console.log("Job ID:", job.JobNo);
                       required
                     >
                       <option value="">Select a job</option>
-                      {filteredProjects.map((j) => (
-                        <option key={j._id} value={j._id}>
-                          {j.JobNo || `${j.brandName} ${j.subBrand}`}
-                        </option>
-                      ))}
+                      <option key={job._id} value={job._id}>
+                        {job.JobNo}
+                      </option>
                     </select>
                   </div>
 

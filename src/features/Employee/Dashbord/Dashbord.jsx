@@ -19,15 +19,12 @@ import { EmployeeDashboardData } from '../../../redux/slices/Employee/MyJobsSlic
 const EmployeeDashboard = () => {
   const [selectedTimeframe, setSelectedTimeframe] = useState('This Week');
   const dispatch = useDispatch()
-
-
   const { DasbordAll, loading, error } = useSelector((state) => state.MyJobs);
 
-  console.log("DasbordAll", DasbordAll[0]?.data); 
 
   useEffect(() => {
     dispatch(EmployeeDashboardData());
-  }, [dispatch]);
+  }, [dispatch]);  
 
   const summary = DasbordAll[0]?.data?.summary || {};
   const todaysPerformance = DasbordAll[0]?.data?.todaysPerformance || {};
@@ -138,6 +135,20 @@ const EmployeeDashboard = () => {
 
       {/* Metrics Cards */}
       <Row className="g-4 mb-4">
+      <Col xs={6} md={3}>
+          <Card style={{ borderRadius: '16px', boxShadow: '0 2px 4px rgba(145, 158, 171, 0.16)', border: 'none' }}>
+            <Card.Body className="d-flex align-items-center">
+              <div className="me-3 d-flex align-items-center justify-content-center" style={{ width: '48px', height: '48px', backgroundColor: '#FFE7E7', borderRadius: '12px' }}>
+                <FaTasks  style={{ color: '#FF4842' }} size={24} />
+              </div>
+              <div>
+                <div style={{ fontSize: '32px', fontWeight: '700', color: '#212B36', lineHeight: '1.2' }}>{summary.InProgress || 0}</div>
+                <div style={{ color: '#637381', fontSize: '14px' }}>In Progress</div>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+
         <Col xs={6} md={3}>
           <Card style={{ borderRadius: '16px', boxShadow: '0 2px 4px rgba(145, 158, 171, 0.16)', border: 'none' }}>
             <Card.Body className="d-flex align-items-center">
@@ -145,14 +156,30 @@ const EmployeeDashboard = () => {
                 <FaTasks style={{ color: '#2065D1' }} size={24} />
               </div>
               <div>
-                <div style={{ fontSize: '32px', fontWeight: '700', color: '#212B36', lineHeight: '1.2' }}>{summary.activeTasks || 0}</div>
-                <div style={{ color: '#637381', fontSize: '14px' }}>Active Tasks</div>
+                <div style={{ fontSize: '32px', fontWeight: '700', color: '#212B36', lineHeight: '1.2' }}>{summary.WaitingApproval || 0}</div>
+                <div style={{ color: '#637381', fontSize: '14px' }}>Waiting Approval</div>
               </div>
             </Card.Body>
           </Card>
         </Col>
 
+
         <Col xs={6} md={3}>
+          <Card style={{ borderRadius: '16px', boxShadow: '0 2px 4px rgba(145, 158, 171, 0.16)', border: 'none' }}>
+            <Card.Body className="d-flex align-items-center">
+              <div className="me-3 d-flex align-items-center justify-content-center" style={{ width: '48px', height: '48px', backgroundColor: '#E8FFF3', borderRadius: '12px' }}>
+                <BsCheckCircle style={{ color: '#36B37E' }} size={24} />
+              </div>
+              <div>
+                <div style={{ fontSize: '32px', fontWeight: '700', color: '#212B36', lineHeight: '1.2' }}>{summary.completedTasks || 0}</div>
+                <div style={{ color: '#637381', fontSize: '14px' }}>Completed Job</div>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+
+
+      <Col xs={6} md={3}>
           <Card style={{ borderRadius: '16px', boxShadow: '0 2px 4px rgba(145, 158, 171, 0.16)', border: 'none' }}>
             <Card.Body className="d-flex align-items-center">
               <div className="me-3 d-flex align-items-center justify-content-center" style={{ width: '48px', height: '48px', backgroundColor: '#FFF7CD', borderRadius: '12px' }}>
@@ -166,33 +193,6 @@ const EmployeeDashboard = () => {
           </Card>
         </Col>
 
-        <Col xs={6} md={3}>
-          <Card style={{ borderRadius: '16px', boxShadow: '0 2px 4px rgba(145, 158, 171, 0.16)', border: 'none' }}>
-            <Card.Body className="d-flex align-items-center">
-              <div className="me-3 d-flex align-items-center justify-content-center" style={{ width: '48px', height: '48px', backgroundColor: '#E8FFF3', borderRadius: '12px' }}>
-                <BsCheckCircle style={{ color: '#36B37E' }} size={24} />
-              </div>
-              <div>
-                <div style={{ fontSize: '32px', fontWeight: '700', color: '#212B36', lineHeight: '1.2' }}>{summary.completedTasks || 0}</div>
-                <div style={{ color: '#637381', fontSize: '14px' }}>Completed Tasks</div>
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
-
-        <Col xs={6} md={3}>
-          <Card style={{ borderRadius: '16px', boxShadow: '0 2px 4px rgba(145, 158, 171, 0.16)', border: 'none' }}>
-            <Card.Body className="d-flex align-items-center">
-              <div className="me-3 d-flex align-items-center justify-content-center" style={{ width: '48px', height: '48px', backgroundColor: '#FFE7E7', borderRadius: '12px' }}>
-                <FaTrophy style={{ color: '#FF4842' }} size={24} />
-              </div>
-              <div>
-                <div style={{ fontSize: '32px', fontWeight: '700', color: '#212B36', lineHeight: '1.2' }}>{summary.performance || 0}%</div>
-                <div style={{ color: '#637381', fontSize: '14px' }}>Performance</div>
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
       </Row>
 
       <Row className="g-4">
@@ -216,7 +216,7 @@ const EmployeeDashboard = () => {
                 </div>
                 <div className="achievement-content">
                   <div className="achievement-value">{weeklyPerformance.tasksCompleted || 0}</div>
-                  <div className="achievement-label">Tasks Completed</div>
+                  <div className="achievement-label">Job Completed</div>
                   <div className="achievement-trend positive">
                     {weeklyPerformance.compare?.tasksCompleted}
                   </div>

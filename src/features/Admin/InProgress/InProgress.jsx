@@ -235,7 +235,7 @@ const paginatedProjects = filteredProjects.slice(
             <span className={getPriorityClass(job.priority)}>{job.priority}</span>
           </td>
           <td>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
-          <td style={{ whiteSpace: 'nowrap' }}>{job.assignedTo}</td>
+          <td style={{ whiteSpace: 'nowrap' }}>{job.assign}</td>
           <td style={{ whiteSpace: 'nowrap' }}>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
           <td>
             <span className={`badge ${getStatusClass(job.Status)} px-2 py-1`}>

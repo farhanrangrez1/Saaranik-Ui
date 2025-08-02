@@ -124,6 +124,28 @@ export const ProductionJobsGet = createAsyncThunk(
   }
 );
 
+// Assign Job
+export const EmployeeCompletedStatus = createAsyncThunk('jobs/updatejob', async ({ id, data }, thunkAPI) => {
+  try {
+    const response = await fetch(`${apiUrl}/jobs/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text(); 
+      throw new Error(`Failed to update job: ${errorText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    return thunkAPI.rejectWithValue(error.message);
+  }
+});
+
 const jobsSlice = createSlice({
   name: 'jobs',
   initialState: {

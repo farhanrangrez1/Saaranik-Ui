@@ -38,8 +38,8 @@ function ProjectList() {
       ? project.data
       : activeTab === 'Completed (To Be Invoiced)'
         ? project.data?.filter(
-            (project) => project.status === 'Completed' && !project.invoiceCreated
-          )
+          (project) => project.status === 'Completed' && !project.invoiceCreated
+        )
         : project.data?.filter((project) => project.status === activeTab)
   )?.filter((project) => {
     // Split searchTerm by spaces, ignore empty terms
@@ -56,9 +56,9 @@ function ProjectList() {
       project.endDate ? new Date(project.endDate).toLocaleDateString('en-GB').replace(/\/20/, '/') : '',
       project.projectRequirements && project.projectRequirements.length > 0
         ? Object.entries(project.projectRequirements[0])
-            .filter(([_, value]) => value === true)
-            .map(([key]) => key)
-            .join(', ')
+          .filter(([_, value]) => value === true)
+          .map(([key]) => key)
+          .join(', ')
         : ''
     ].map(f => (f || '').toString().toLowerCase());
     // Every term must be found in at least one field
@@ -106,14 +106,14 @@ function ProjectList() {
   // };
 
   const CreatJobs = (project) => {
-  navigate(`/admin/ProjectOverview/${project.id}`, { 
-    state: { 
-      id: project.id, 
-      openTab: 'jobs',
-      projectDatah: project 
-    } 
-  });
-};
+    navigate(`/admin/ProjectOverview/${project.id}`, {
+      state: {
+        id: project.id,
+        openTab: 'jobs',
+        projectDatah: project
+      }
+    });
+  };
 
   const getStatusClass = (status) => {
     switch ((status || "").toLowerCase().trim()) {
@@ -274,14 +274,13 @@ function ProjectList() {
                   <Link style={{ textDecoration: 'none' }}>{project.projectNo}</Link>
                 </td> */}
                 <td onClick={() => CreatJobs(project)}>
-  <Link style={{ textDecoration: 'none' }}>{project.projectNo}</Link>
-</td>
-
+                  <Link style={{ textDecoration: 'none' }}>{project.projectNo}</Link>
+                </td>
                 <td style={{ whiteSpace: 'nowrap' }}>{project.projectName}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{project.description}</td>
                 <td>{new Date(project.startDate).toLocaleDateString('en-GB').replace(/\/20/, '/')}</td>
                 <td>{new Date(project.endDate).toLocaleDateString('en-GB').replace(/\/20/, '/')}</td>
-                <td>{project?.clientId.clientName}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{project?.clientId.clientName}</td>
                 <th>
                   {project.projectRequirements && project.projectRequirements.length > 0
                     ? Object.entries(project.projectRequirements[0])

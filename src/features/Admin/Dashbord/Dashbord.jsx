@@ -2,8 +2,8 @@ import React from 'react';
 import { Card, Row, Col, Container } from 'react-bootstrap';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
-import { FaTasks, FaProjectDiagram, FaFileInvoiceDollar, FaClipboardCheck, FaClock, FaExclamationTriangle } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
+import { FaTasks, FaProjectDiagram, FaFileInvoiceDollar, FaClipboardCheck, FaClock, FaExclamationTriangle, } from 'react-icons/fa';
+import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
 import { fetchjobs } from '../../../redux/slices/JobsSlice';
@@ -31,7 +31,17 @@ function Dashbord() {
     { type: 'completed', title: 'Project completed', description: 'Eco-friendly Bag Design - Client ABC', time: '1 day ago' },
     { type: 'po', title: 'New PO received', description: 'Design Update - Client DEF', time: '1 day ago' },
   ];
+  const navigate = useNavigate();
 
+  const handleClick = (type) => {
+    if (type === 'new') {
+      navigate('/admin/projectList');
+    } else if (type === 'completed') {
+      navigate('/admin/completedJobs');
+    } else if (type === 'po') {
+      navigate('/admin/receivable');
+    }
+  };
   // Fetch jobs on component mount
   useEffect(() => {
     dispatch(fetchjobs());
@@ -42,6 +52,7 @@ function Dashbord() {
   const { project } = useSelector((state) => state.projects);
   const { estimates } = useSelector((state) => state.costEstimates);
   const { purchases } = useSelector((state) => state.receivablePurchases);
+
 
   useEffect(() => {
     dispatch(fetchjobs());
@@ -63,13 +74,16 @@ function Dashbord() {
   );
   const projectCompleted = ProjectCompleted.length;
 
-  
   const filteredEstimates = purchases?.receivablePurchases?.filter(
-        (proj) =>
-            (proj.POStatus || "").toLowerCase().replace(/\s|_/g, "") === "pending"
-    ) || [];
- const ReceivablePurchasesCount = filteredEstimates.length;
+    (proj) =>
+      (proj.POStatus || "").toLowerCase().replace(/\s|_/g, "") === "pending"
+  ) || [];
+  const ReceivablePurchasesCount = filteredEstimates.length;
 
+  const WaitingApproval = (job?.jobs || []).filter(
+    (j) => j.Status === "WaitingApproval"
+  );
+  const waitingApprovalCount = WaitingApproval.length;
 
   const inProgressCount = inProgressJobs.length;
   const Costestimates = (estimates?.costEstimates || []).filter(
@@ -115,7 +129,6 @@ function Dashbord() {
       borderWidth: 0,
     }],
   };
-
 
   return (
     <Container fluid className="container p-3">
@@ -216,6 +229,22 @@ function Dashbord() {
           </Link>
         </Col>
 
+        <Col md={4} lg={4}>
+          <Link to="/admin/approval" className="text-decoration-none w-100 d-block">
+            <Card className="h-100 shadow-sm">
+              <Card.Body className="d-flex align-items-center">
+                <div style={{ backgroundColor: "#0dcaf0bd" }} className="rounded-circle p-3  me-3">
+                  <FaClock className="text-white" size={24} /> {/* Icon color changed to white for contrast */}
+                </div>
+                <div>
+                  <h3 className="mb-0">{waitingApprovalCount}</h3>
+                  <p className="text-muted mb-0">Waiting for Approval</p>
+                  <small className="text-info">Pending Jobs</small>
+                </div>
+              </Card.Body>
+            </Card>
+          </Link>
+        </Col>
         {/* Timesheet Discrepancies */}
         {/* <Col md={4} lg={4}>
           <Link to="/admin/TimesheetWorklog" className="text-decoration-none w-100 d-block">
@@ -254,8 +283,20 @@ function Dashbord() {
             <Card.Body>
               <h5 className="card-title mb-4">Recent Activity</h5>
               {recentActivities.map((activity, index) => (
-                <div key={index} className="d-flex align-items-start mb-3">
-                  <div className={`rounded-circle p-2 bg-light-${activity.type === 'new' ? 'blue' : activity.type === 'completed' ? 'green' : 'yellow'} me-3`}>
+                <div
+                  key={index}
+                  className="d-flex align-items-start mb-3"
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => handleClick(activity.type)}
+                >
+                  <div
+                    className={`rounded-circle p-2 bg-light-${activity.type === 'new'
+                      ? 'blue'
+                      : activity.type === 'completed'
+                        ? 'green'
+                        : 'yellow'
+                      } me-3`}
+                  >
                     {activity.type === 'new' && <FaProjectDiagram className="text-primary" />}
                     {activity.type === 'completed' && <FaClipboardCheck className="text-success" />}
                     {activity.type === 'po' && <FaFileInvoiceDollar className="text-warning" />}
@@ -276,8 +317,5 @@ function Dashbord() {
 }
 
 export default Dashbord;
-
-
-
 
 

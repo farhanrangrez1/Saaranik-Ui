@@ -131,7 +131,6 @@ function ProjectJobsTab() {
 
   const handleSubmitAssignment = async () => {
     const selectedJobIds = Object.keys(selectedJobs).filter(id => selectedJobs[id]);
-
     const payload = {
       employeeId: [selectedEmployee],
       jobId: selectedJobIds,
@@ -298,13 +297,15 @@ function ProjectJobsTab() {
     switch (status.toLowerCase().trim()) {
       case "in progress":
       case "in_progress":
-        return "bg-warning text-dark";     // Yellow
+        return "bg-warning text-dark";    
       case "completed":
-        return "bg-success text-white";    // Green
+        return "bg-success text-white";  
       case "cancelled":
-        return "bg-danger text-white";     // Red
+           case "waitingapproval":  
+      return "bg-info text-dark";
+        return "bg-danger text-white"; 
       case "active":
-        return "bg-primary text-white";    // Blue
+        return "bg-primary text-white";
       case "reject":
         return "bg-danger text-white";
       case "review":
@@ -483,7 +484,7 @@ function ProjectJobsTab() {
                       </span>
                     </td>
                     <td>{new Date(job?.createdAt).toLocaleDateString('en-GB').replace(/\/20/, '/')}</td>
-                    <td style={{ whiteSpace: 'nowrap' }}>{job.assignedTo}</td>
+                    <td style={{ whiteSpace: 'nowrap' }}>{job.assign}</td>
                     <td>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
                     {/* <th>
                                         <Button id='All_btn' variant="success" style={{ width: "130px" }} size="sm" >

@@ -48,6 +48,9 @@ function Job_History() {
       case "in_progress":
         return "bg-warning text-dark";
       case "reject":
+          case "waitingapproval":  // lowercase me likho
+                return "bg-info text-dark";
+
         return "bg-danger text-white";
       case "review":
         return "bg-info text-dark";

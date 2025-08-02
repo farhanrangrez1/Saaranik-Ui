@@ -3,7 +3,7 @@ import { FaSearch, FaCalendarAlt, FaPencilAlt, FaTrashAlt, FaPlus, FaFilter } fr
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { deleteTimeLogs, fetchTimeLogss, updateExtraHours } from '../../../redux/slices/TimeLogsSlice';
-import { Button, Form, Modal } from "react-bootstrap";
+import { Button, Form, Modal,Dropdown } from "react-bootstrap";
 import Swal from 'sweetalert2';
 // import TimesheetWorklog from '../TimesheetWorklog/TimesheetWorklog';
 import { fetchTimesheetWorklogs } from '../../../redux/slices/TimesheetWorklogSlice';
@@ -92,8 +92,39 @@ function TimeLogs() {
   }, [dispatch]);
 
   const itemsPerPage = 7;
-  const totalPages = Math.ceil((timesheetWorklog.TimesheetWorklogss?.length || 0) / itemsPerPage);
-  const paginatedTimeLogss = timesheetWorklog.TimesheetWorklogss?.slice(
+
+  const filteredTimeLogs = (timesheetWorklog.TimesheetWorklogss || []).filter((log) => {
+    // Split searchQuery by spaces, ignore empty terms
+    const terms = searchQuery.trim().split(/\s+/).filter(Boolean);
+    const employeeName = log.employeeId?.[0] 
+      ? `${log.employeeId[0].firstName} ${log.employeeId[0].lastName}`.toLowerCase()
+      : '';
+    const projectName = (log.projectId?.[0]?.projectName || '').toLowerCase();
+    const jobNo = (log.jobId?.[0]?.JobNo || '').toString().toLowerCase();
+    const taskDescription = (log.taskDescription || '').toLowerCase();
+    const status = (log.status || '').toLowerCase();
+    const fields = [
+      employeeName,
+      projectName,
+      jobNo,
+      taskDescription,
+      status
+    ];
+    // Every term must be found in at least one field
+    const matchesSearch = terms.length === 0 || terms.every(term =>
+      fields.some(field => field.includes(term.toLowerCase()))
+    );
+    const matchesDate =
+      !selectedDate ||
+      new Date(log.date).toLocaleDateString() === new Date(selectedDate).toLocaleDateString();
+    const matchesProject =
+      selectedProject === "All Projects" ||
+      projectName === selectedProject.toLowerCase();
+    return matchesSearch && matchesDate && matchesProject;
+  });
+
+  const totalPages = Math.ceil(filteredTimeLogs.length / itemsPerPage);
+  const paginatedTimeLogss = filteredTimeLogs.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -178,11 +209,11 @@ function TimeLogs() {
               <FaPlus /> ExtraTime
             </Button> */}
           </Link>
-          <Link to={"/employee/AddTimeLog"} className="text-decoration-none">
+          {/* <Link to={"/admin/AddTimesheetWorklog"} className="text-decoration-none">
             <button id='All_btn' className="btn btn-dark d-flex align-items-center gap-2">
               <FaPlus /> Add Time Log
             </button>
-          </Link>
+          </Link> */}
           {/* <Link to={"/admin/AddTimelog"} className="text-decoration-none">
             <button id='All_btn' className="btn btn-dark d-flex align-items-center gap-2">
               <FaPlus /> Add Time Log
@@ -235,19 +266,26 @@ function TimeLogs() {
           </div>
         </div>
         <div className="col-md-4">
-          <select
-            className="form-select"
-            value={selectedProject}
-            onChange={(e) => setSelectedProject(e.target.value)}
-          >
-            <option>All Projects</option>
-            <option>Holiday Package Design</option>
-            <option>Product Catalog</option>
-            <option>Brand Guidelines</option>
-          </select>
+          <Dropdown>
+            <Dropdown.Toggle variant="light" id="project-dropdown" className="w-100">
+              {selectedProject}
+            </Dropdown.Toggle>
+            <Dropdown.Menu>
+              <Dropdown.Item onClick={() => setSelectedProject("All Projects")}>
+                All Projects
+              </Dropdown.Item>
+              {[...new Set((timesheetWorklog.TimesheetWorklogss || []).map((log) => 
+                log.projectId?.[0]?.projectName || "N/A"
+              ))].filter(name => name !== "N/A").map((projectName, index) => (
+                <Dropdown.Item key={index} onClick={() => setSelectedProject(projectName)}>
+                  {projectName}
+                </Dropdown.Item>
+              ))}
+            </Dropdown.Menu>
+          </Dropdown>
         </div>
       </div>
-
+      
       <div className="card shadow-sm">
         <div className="card-body p-0">
           <div className="table-responsive">
@@ -280,7 +318,7 @@ function TimeLogs() {
                   <th>Hours</th>
                   <th style={{ whiteSpace: 'nowrap' }}>Task Description</th>
                   <th>Status</th>
-                  <th className="text-end">Actions</th>
+                  {/* <th className="text-end">Actions</th> */}
                 </tr>
               </thead>
               <tbody>
@@ -300,7 +338,7 @@ function TimeLogs() {
                         />
                       </td>
                       <td className="no-border-bottom">
-                        #JOB{log.jobId?.[0]?.JobNo || '----'}
+                        {log.jobId?.[0]?.JobNo || '----'}
                       </td>
                       <td style={{ whiteSpace: 'nowrap' }} key={index}>
                         {log.projectId?.[0]?.projectName || 'No Project Name'}
@@ -338,20 +376,20 @@ function TimeLogs() {
                           {log.status}
                         </span>
                       </td>
-                      <td className="text-end" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      {/* <td className="text-end" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <button
                           className="btn btn-link text-dark p-0 me-3"
                           onClick={() => handleEdit(log)}
                         >
                           <FaPencilAlt />
                         </button>
-                        {/* <button
+                        <button
                           className="btn btn-link text-danger p-0"
                           onClick={() => handleDelete(log._id)}
                         >
                           <FaTrashAlt />
-                        </button> */}
-                      </td>
+                        </button>
+                      </td> */}
                     </tr>
                   );
                 })}

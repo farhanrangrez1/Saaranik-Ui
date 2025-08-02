@@ -1,9 +1,9 @@
 // src/components/Sidebar.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { adminMenuItems, employeeMenuItems,clientMenuItems } from "../Layouts/menuConfig";
+import { adminMenuItems, employeeMenuItems, clientMenuItems } from "../Layouts/menuConfig";
 import "./Sidebar.css";
-
+import logo from "../../assets/logo.png"
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const [openMenuIndex, setOpenMenuIndex] = useState(null);
   const [activeMenuIndex, setActiveMenuIndex] = useState(null);
@@ -13,14 +13,14 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
- const menuItems =
-  roleData === "admin"
-    ? adminMenuItems
-    : roleData === "employee"
-    ? employeeMenuItems
-    : roleData === "client"
-    ? clientMenuItems
-    : [];
+  const menuItems =
+    roleData === "admin"
+      ? adminMenuItems
+      : roleData === "employee"
+        ? employeeMenuItems
+        : roleData === "client"
+          ? clientMenuItems
+          : [];
 
 
   useEffect(() => {
@@ -71,23 +71,41 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   return (
     <div className={`sidebar ${isOpen ? "expanded" : "collapsed"}`}>
       <div className="sidebar-header">
-        <div className="logo">
+        {/* <div className="logo">
           <span className="logo-text">Saaranik</span>
+        </div> */}
+
+        <div className="logo" style={{
+          display: 'flex',
+          alignItems: 'center',
+          height: '30px',
+          paddingLeft: '10px'
+        }}>
+          <img
+            src={logo}
+            alt="Logo"
+            style={{
+              height: '50px',
+              display: 'block',
+              objectFit: 'contain'
+            }}
+          />
         </div>
+
       </div>
+
       <ul className="menu" style={{ whiteSpace: "nowrap" }}>
         {menuItems.map((item, index) => (
           <li
             key={index}
-            className={`menu-item ${
-              item.submenu
+            className={`menu-item ${item.submenu
                 ? openMenuIndex === index
                   ? "open"
                   : ""
                 : activeMenuIndex === index
-                ? "active"
-                : ""
-            }`}
+                  ? "active"
+                  : ""
+              }`}
             onClick={() => {
               if (item.submenu) {
                 toggleMenu(index);
@@ -101,9 +119,8 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               {isOpen && <span className="menu-text">{item.title}</span>}
               {item.submenu && isOpen && (
                 <i
-                  className={`fas fa-chevron-down menu-toggle-icon ${
-                    openMenuIndex === index ? "open" : ""
-                  }`}
+                  className={`fas fa-chevron-down menu-toggle-icon ${openMenuIndex === index ? "open" : ""
+                    }`}
                 />
               )}
             </div>
@@ -112,9 +129,8 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                 {item.submenu.map((subItem, subIndex) => (
                   <li
                     key={subIndex}
-                    className={`submenu-item ${
-                      activeSubmenuPath === subItem.path ? "active-submenu-item" : ""
-                    }`}
+                    className={`submenu-item ${activeSubmenuPath === subItem.path ? "active-submenu-item" : ""
+                      }`}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleMenuClick(index, subItem.path, true);

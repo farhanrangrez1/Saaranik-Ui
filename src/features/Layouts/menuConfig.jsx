@@ -55,6 +55,7 @@ export const adminMenuItems = [
       { title: "My Jobs", path: "/admin/MyJobs" },
       { title: "Time Logs", path: "/admin/TimeLogs" },
       { title: "Return Job", path: "/admin/Retunjob" },
+       { title: "Waiting for Approval", path: "/admin/approval" },
     ],
   },
   {
