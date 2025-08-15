@@ -116,8 +116,9 @@ function Job_History() {
     currentPage * itemsPerPage
   );
 
-  const JobDetails = (job) => {
-    navigate(`/admin/OvervieJobsTracker`, { state: { job } });
+
+ const JobDetails = (job) => {
+    navigate(`/employee/OvervieJobsTracker`, { state: { job } });
   };
 
   return (
@@ -204,7 +205,7 @@ function Job_History() {
                     onChange={() => handleCheckboxChange(job._id)}/>
                 </td>
                 <td onClick={() => JobDetails(job)}>
-                  <Link style={{ textDecoration: 'none' }}>{job.JobNo}</Link>
+                  <Link  onClick={() => JobDetails(job)} style={{ textDecoration: 'none' }}>{job.JobNo}</Link>
                 </td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.projectId?.[0]?.projectName || 'N/A'}</td>
                 <td>{job.brandName}</td>
@@ -217,8 +218,14 @@ function Job_History() {
                   <span className={getPriorityClass(job.priority)}>{job.priority}</span>
                 </td>
                 <td>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
-                <td style={{ whiteSpace: 'nowrap' }}>{job?.assignedTo}</td>
-                <td>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{job.assign}</td>
+                   <td>
+                      {new Date(job.updatedAt).toLocaleTimeString('en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false
+                      })}
+                    </td>
                 <td>
                   <span className={`badge ${getStatusClass(job.Status)} px-2 py-1`}>
                     {job.Status}

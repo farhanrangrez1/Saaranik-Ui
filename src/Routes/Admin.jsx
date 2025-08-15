@@ -61,6 +61,10 @@ import UpdateProfile from "../features/Admin/Profile/UpdateProfile.jsx";
 import OvervieCostEstimates from "../features/Admin/CostEstimates/OvervieCostEstimates.jsx";
 import Retunjob from "../features/Admin/MyJobs/Retunjob.jsx";
 import WaitingApproval from "../features/Admin/MyJobs/WaitingApproval.jsx";
+import ProjectInvoiceBilling from "../features/Admin/ProjectList/ProjectTabs/ProjectInvoiceBilling.jsx";
+import Pluginss from "../assets/css/Pluginss/Pluginss.jsx";
+import DReciveablePurchase from "../features/Admin/Dashbord/DReciveablePurchase.jsx";
+import Addnotifiction from "../features/Admin/Notiifcations/Addnotifiction.jsx";
 
 function Admin() {
   const [isSidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 768);
@@ -112,6 +116,7 @@ function Admin() {
             <Route path="/ProjectOverview/:id" element={<ProtectedRoute><ProjectOverview /></ProtectedRoute>} />
             <Route path="/UpdateProjectLis" element={<ProtectedRoute><UpdateProjectLis /></ProtectedRoute>} />
             <Route path="/jobTracker" element={<ProtectedRoute><JobTracker /></ProtectedRoute>} />
+             <Route path="/farhan" element={<ProtectedRoute><Pluginss /></ProtectedRoute>} />
             <Route path="/AddJobTracker/:id" element={<ProtectedRoute><AddJobTracker /></ProtectedRoute>} />
             <Route path="/OvervieJobsTracker" element={<ProtectedRoute><OvervieJobsTracker /></ProtectedRoute>} />
             <Route path="/updateJobTracker" element={<ProtectedRoute><UpdateJobTracker /></ProtectedRoute>} />
@@ -145,7 +150,9 @@ function Admin() {
             <Route path="/ChangePassword" element={<ProtectedRoute><ChangePassword/></ProtectedRoute>} />
             <Route path="/UpdateProfile" element={<ProtectedRoute><UpdateProfile/></ProtectedRoute>} />
             <Route path="/Retunjob" element={<ProtectedRoute><Retunjob/></ProtectedRoute>} />
-                <Route path="/approval" element={<ProtectedRoute><WaitingApproval/></ProtectedRoute>} />
+            <Route path="/approval" element={<ProtectedRoute><WaitingApproval/></ProtectedRoute>} />
+            <Route path="/ProjectInvoiceBilling" element={<ProtectedRoute><ProjectInvoiceBilling/></ProtectedRoute>} />
+            <Route path="/DReciveablePurchase" element={<ProtectedRoute><DReciveablePurchase/></ProtectedRoute>} />
           </Routes>
         </div>
       </div>

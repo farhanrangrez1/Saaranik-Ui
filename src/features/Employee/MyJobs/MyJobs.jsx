@@ -1,14 +1,17 @@
+
+
+
+
 // import React, { useEffect, useState, useRef, useMemo } from "react";
 // import { Row, Col, Button, Form, Table, Modal } from "react-bootstrap";
 // import { Link, useNavigate } from "react-router-dom";
 // import { useDispatch, useSelector } from "react-redux";
-// import { fetchjobs } from "../../../redux/slices/JobsSlice";
+// import { EmployeeCompletedStatus, fetchjobs, updatejob } from "../../../redux/slices/JobsSlice";
 // import { fetchMyJobs, ReturnJob } from "../../../redux/slices/Employee/MyJobsSlice";
-// import { FaFilter } from "react-icons/fa";
+// import { FaFilter, FaRegClock } from "react-icons/fa";
 // import Swal from "sweetalert2";
 // import { toast } from "react-toastify";
 // import "react-toastify/dist/ReactToastify.css";
-// import { FaRegClock } from "react-icons/fa";
 
 // function MyJobs() {
 //   const [showTimesheetModal, setShowTimesheetModal] = useState(false);
@@ -26,25 +29,20 @@
 //   const dispatch = useDispatch();
 //   const navigate = useNavigate();
 
-//   // const handleLogTime = (jobId) => {
-//   //   setSelectedJobId(jobId);
-//   //   setShowTimesheetModal(true);
-//   // };
-
-// const handleLogTime = (job) => {
-
-//   navigate(`/employee/AddTimeLog`, { 
-//     state: { 
-//       id: job._id,
-//       openTab: 'jobs',
-//       entry: job,
-//       job: job
-//     }
-//   });
-//   console.log("Job ID clicked:", job);
-// };
+//   const handleLogTime = (job) => {
+//     navigate(`/employee/AddTimeLog`, {
+//       state: {
+//         id: job._id,
+//         openTab: 'jobs',
+//         entry: job,
+//         job: job
+//       }
+//     });
+//     console.log("Job ID clicked:", job);
+//   };
 
 //   const fileInputRef = useRef(null);
+
 //   const handleUploadClick = () => {
 //     if (fileInputRef.current) {
 //       fileInputRef.current.click();
@@ -66,10 +64,20 @@
 //   };
 
 //   const { myjobs, loading, error } = useSelector((state) => state.MyJobs);
-//   const MynewJobsdata =
-//     myjobs && myjobs.assignments && myjobs.assignments.length > 0
-//       ? myjobs.assignments[0].jobId
-//       : [];
+
+//   // UPDATED: Flatten jobs from assignments
+//   const MynewJobsdata = useMemo(() => {
+//     if (!myjobs || !myjobs.assignments) return [];
+
+//     return myjobs.assignments.flatMap(assign =>
+//       assign.jobs
+//         .filter(j => j.jobReturnStatus === false)
+//         .map(j => ({
+//           ...j.jobId,
+//           assignmentId: assign._id,
+//         }))
+//     );
+//   }, [myjobs]);
 
 //   useEffect(() => {
 //     dispatch(fetchMyJobs());
@@ -86,7 +94,6 @@
 //     let jobsToFilter = MynewJobsdata || [];
 
 //     if (searchTerm) {
-//       // Split searchTerm by spaces, ignore empty terms
 //       const terms = searchTerm.toLowerCase().split(/\s+/).filter(Boolean);
 //       jobsToFilter = jobsToFilter.filter((job) => {
 //         const fields = [
@@ -99,7 +106,6 @@
 //           job.packSize?.toLowerCase() || '',
 //           job.packCode?.toLowerCase() || ''
 //         ];
-//         // Every term must be found in at least one field
 //         return terms.every(term =>
 //           fields.some(field => field.includes(term))
 //         );
@@ -135,8 +141,8 @@
 //   const [rejectionReason, setRejectionReason] = useState("");
 
 //   const handleRejectJobs = () => {
+//     console.log("ghbjgbvkrwg ffff")
 //     const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
-
 //     if (selectedJobIds.length === 0) {
 //       setErrorMessage("Please select at least 1 job to reject.");
 //       setTimeout(() => setErrorMessage(""), 3000);
@@ -157,8 +163,11 @@
 //       setTimeout(() => setErrorMessage(""), 3000);
 //       return;
 //     }
+//   //    dispatch(EmployeeCompletedStatus({id: jobId,data: { Status: "Completed" }}));
+//   //  dispatch(fetchMyJobs());
 
-//     dispatch(ReturnJob({ jobId: selectedJobIds }))
+//   const firstJobId = selectedJobIds[0];
+//     dispatch(EmployeeCompletedStatus({ id: firstJobId,data: { Status: "Completed" } }))
 //       .unwrap()
 //       .then(() => {
 //         setSuccessMessage("Jobs rejected successfully.");
@@ -178,26 +187,75 @@
 //       case "in progress":
 //       case "in_progress":
 //         return "bg-warning text-dark";
+
+//       case "waitingapproval":  // lowercase me likho
+//         return "bg-info text-dark";
+
 //       case "review":
 //         return "bg-info text-dark";
+
 //       case "not started":
 //         return "bg-secondary text-white";
+
 //       case "completed":
 //         return "bg-success text-white";
+
 //       case "open":
 //         return "bg-primary text-white";
+
 //       case "cancelled":
 //         return "bg-dark text-white";
+//       case "rejected": // ✅ Added for "Rejected"
+//         return "bg-danger text-white";
 //       default:
 //         return "bg-light text-dark";
 //     }
 //   };
 
+//   const handleMarkAsCompleted = (jobId) => {
+//     const selectedJob = MynewJobsdata.find((job) => job._id === jobId);
+//     if (!selectedJob) return;
+
+//     Swal.fire({
+//       title: "Are you sure?",
+//       text: "Do you want to mark this job as completed?",
+//       icon: "question",
+//       showCancelButton: true,
+//       confirmButtonText: "Yes, mark completed!",
+//       cancelButtonText: "Cancel",
+//     }).then((result) => {
+//       if (result.isConfirmed) {
+//         dispatch(EmployeeCompletedStatus({
+//           id: jobId,
+//           data: { Status: "Completed" }
+//         }));
+//         dispatch(fetchMyJobs());
+//         Swal.fire("Marked!", "Job has been marked as completed.", "success");
+//         console.log("Marking job as completed:", jobId);
+//       }
+//     });
+//   };
+
+//  const JobDetails = (job) => {
+//     navigate(`/employee/OvervieJobsTracker`, { state: { job } });
+//   };
+
+//    const getPriorityClass = (priority) => {
+//     switch ((priority || "").toLowerCase()) {
+//       case "high":
+//         return "text-danger";
+//       case "medium":
+//         return "text-warning";
+//       case "low":
+//         return "text-success";
+//       default:
+//         return "";
+//     }
+//   };
 //   return (
 //     <div className="p-4 m-2" style={{ backgroundColor: "white", borderRadius: "10px" }}>
 //       <h5 className="fw-bold mb-3 text-start">My Jobs</h5>
 
-//       {/* Filter button */}
 //       <div className="d-lg-none mb-2 text-end">
 //         <Button
 //           variant="primary"
@@ -210,7 +268,6 @@
 //         </Button>
 //       </div>
 
-//       {/* Filters */}
 //       <Row className={`mb-3 align-items-center ${showFilters ? "" : "d-none d-lg-flex"}`}>
 //         <Col xs={12} lg={9} className="d-flex flex-wrap gap-2 mb-2 mb-lg-0">
 //           <Form.Control
@@ -243,7 +300,6 @@
 //             onChange={(e) => setDateFilter(e.target.value)}
 //           />
 //         </Col>
-
 //         <Col xs={12} lg={3} className="text-lg-end d-flex flex-wrap justify-content-lg-end gap-2">
 //           <Button id="All_btn" variant="dark" className="w-lg-auto" onClick={handleRejectJobs}>
 //             Return Job
@@ -251,14 +307,12 @@
 //         </Col>
 //       </Row>
 
-//       {/* Error Message Display */}
 //       {errorMessage && (
 //         <div className="alert alert-danger py-2" role="alert">
 //           {errorMessage}
 //         </div>
 //       )}
 
-//       {/* Table */}
 //       <div className="table-responsive">
 //         <Table hover className="align-middle sticky-header">
 //           <thead className="bg-light">
@@ -282,11 +336,13 @@
 //               </th>
 //               <th>JobNo</th>
 //               <th>ProjectName</th>
+//               <th>ProjectNo</th>
 //               <th>Brand</th>
 //               <th>SubBrand</th>
 //               <th>PackType</th>
 //               <th>PackSize</th>
 //               <th>PackCode</th>
+//               <th>Priority	</th>
 //               <th>Status</th>
 //               <th>Actions</th>
 //             </tr>
@@ -302,29 +358,46 @@
 //                   />
 //                 </td>
 //                 <td>{job.JobNo}</td>
-//                 <td>{job.projectId?.[0]?.projectName || "—"}</td>
-//                 <td  style={{ whiteSpace: 'nowrap' }}>{job.brandName}</td>
+//                 <td onClick={() => JobDetails(job)} style={{ whiteSpace: 'nowrap' }}><Link style={{ textDecoration: 'none' }}>{job.projectId?.[0]?.projectName || "—"}</Link></td>
+//                <td style={{ whiteSpace: 'nowrap' }}>  {job.projectId?.[0]?.projectNo || "—"}</td>
+//                 <td style={{ whiteSpace: 'nowrap' }}>{job.brandName}</td>
 //                 <td style={{ whiteSpace: 'nowrap' }}>{job.subBrand}</td>
-//                 <td  style={{ whiteSpace: 'nowrap' }}>{job.packType || "N/A"}</td>
-//                 <td  style={{ whiteSpace: 'nowrap' }}>{job.packSize || "N/A"}</td>
-//                 <td  style={{ whiteSpace: 'nowrap' }}>{job.packCode || "N/A"}</td>
+//                 <td style={{ whiteSpace: 'nowrap' }}>{job.packType || "N/A"}</td>
+//                 <td style={{ whiteSpace: 'nowrap' }}>{job.packSize || "N/A"}</td>
+//                 <td style={{ whiteSpace: 'nowrap' }}>{job.packCode || "N/A"}</td>
+//                     <td>
+//             <span className={getPriorityClass(job.priority)}>{job.priority}</span>
+//           </td>
 //                 <td>
 //                   <span className={`badge ${getStatusClass(job.Status)}`}>
 //                     {job.Status || "N/A"}
 //                   </span>
 //                 </td>
-//                 <td>
-//                   {/* <Link to={"/employee/AddTimeLog"}><Button id="All_btn" size="sm" variant="dark" onClick={() => handleLogTime(job._id)}>
-//                     LogTime
-//                   </Button></Link> */}
+//                 <td style={{ display: "flex", gap: "5px" }}>
+//                   <Button
+//                     id="All_btn"
+//                     size="sm"
+//                     variant="dark"
+//                     onClick={() => handleLogTime(job)}
+//                   >
+//                     <FaRegClock />
+//                   </Button>
 //                     <Button
-//                       id="All_btn"
-//                       size="sm"
-//                       variant="dark"
-//                       onClick={() => handleLogTime(job)}
-//                     >
-//                       <FaRegClock/> {/* Time icon with margin */}
-//                     </Button>
+//                     id="All_btn"
+//                     size="sm"
+//                     variant="dark"
+//                   >
+//                    CF
+//                   </Button>
+//                   {/* <Button
+//                     id="All_btn"
+//                     size="sm"
+//                     variant="dark"
+//                     style={{ height: "40px" }}
+//                     onClick={() => handleMarkAsCompleted(job._id)}
+//                   >
+//                     Completed_Jobs
+//                   </Button> */}
 //                 </td>
 //               </tr>
 //             ))}
@@ -332,7 +405,6 @@
 //         </Table>
 //       </div>
 
-//       {/* Reject Modal */}
 //       <Modal show={showRejectModal} onHide={() => setShowRejectModal(false)}>
 //         <Modal.Header closeButton>
 //           <Modal.Title>Return Job</Modal.Title>
@@ -366,6 +438,10 @@
 // }
 
 // export default MyJobs;
+
+
+
+
 
 
 
@@ -432,18 +508,24 @@ function MyJobs() {
 
   const { myjobs, loading, error } = useSelector((state) => state.MyJobs);
 
-  // UPDATED: Flatten jobs from assignments
+  // ✅ UPDATED: Flatten jobs from assignments & filter only "In Progress"
   const MynewJobsdata = useMemo(() => {
     if (!myjobs || !myjobs.assignments) return [];
 
-    return myjobs.assignments.flatMap(assign =>
-      assign.jobs
-        .filter(j => j.jobReturnStatus === false)
-        .map(j => ({
-          ...j.jobId,
-          assignmentId: assign._id,
-        }))
-    );
+    return myjobs.assignments
+      .flatMap(assign =>
+        assign.jobs
+          .filter(j =>
+            j.jobReturnStatus === false &&
+            (j.jobId?.Status || "")
+              .toLowerCase()
+              .replace(/\s|_/g, "") === "inprogress"
+          )
+          .map(j => ({
+            ...j.jobId,
+            assignmentId: assign._id,
+          }))
+      );
   }, [myjobs]);
 
   useEffect(() => {
@@ -509,17 +591,12 @@ function MyJobs() {
 
   const handleRejectJobs = () => {
     const selectedJobIds = Object.keys(selectedJobs).filter((id) => selectedJobs[id]);
-
     if (selectedJobIds.length === 0) {
       setErrorMessage("Please select at least 1 job to reject.");
       setTimeout(() => setErrorMessage(""), 3000);
       return;
     }
     setShowRejectModal(true);
-    const payload = {
-      jobId: selectedJobIds
-    };
-    console.log("Payload to send:", payload);
   };
 
   const handleSubmitRejection = () => {
@@ -531,7 +608,8 @@ function MyJobs() {
       return;
     }
 
-    dispatch(ReturnJob({ jobId: selectedJobIds }))
+    const firstJobId = selectedJobIds[0];
+    dispatch(EmployeeCompletedStatus({ id: firstJobId, data: { Status: "Completed" } }))
       .unwrap()
       .then(() => {
         setSuccessMessage("Jobs rejected successfully.");
@@ -551,31 +629,24 @@ function MyJobs() {
       case "in progress":
       case "in_progress":
         return "bg-warning text-dark";
-
-      case "waitingapproval":  // lowercase me likho
+      case "waitingapproval":
         return "bg-info text-dark";
-
       case "review":
         return "bg-info text-dark";
-
       case "not started":
         return "bg-secondary text-white";
-
       case "completed":
         return "bg-success text-white";
-
       case "open":
         return "bg-primary text-white";
-
       case "cancelled":
         return "bg-dark text-white";
-      case "rejected": // ✅ Added for "Rejected"
+      case "rejected":
         return "bg-danger text-white";
       default:
         return "bg-light text-dark";
     }
   };
-
 
   const handleMarkAsCompleted = (jobId) => {
     const selectedJob = MynewJobsdata.find((job) => job._id === jobId);
@@ -592,13 +663,40 @@ function MyJobs() {
       if (result.isConfirmed) {
         dispatch(EmployeeCompletedStatus({
           id: jobId,
-          data: { Status: "WaitingApproval" }
+          data: { Status: "Completed" }
         }));
         dispatch(fetchMyJobs());
         Swal.fire("Marked!", "Job has been marked as completed.", "success");
-        console.log("Marking job as completed:", jobId);
       }
     });
+  };
+
+  const JobDetails = (job) => {
+    navigate(`/employee/OvervieJobsTracker`, { state: { job } });
+  };
+
+  const getPriorityClass = (priority) => {
+    switch ((priority || "").toLowerCase()) {
+      case "high":
+        return "text-danger";
+      case "medium":
+        return "text-warning";
+      case "low":
+        return "text-success";
+      default:
+        return "";
+    }
+  };
+
+  const handleCopyFileName = (job, index, currentPage, itemsPerPage) => {
+    const displayId = String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0');
+
+    // Build file name string
+    const fileName = `${displayId}_${job.JobNo || ''}_${job.brandName || ''}_${job.packCode || ''}_${job.flavour || ''}_${job.packType || ''}`;
+
+    navigator.clipboard.writeText(fileName)
+      .then(() => alert("Copied to clipboard: " + fileName))
+      .catch((err) => console.error("Failed to copy!", err));
   };
 
 
@@ -628,7 +726,7 @@ function MyJobs() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <Form.Select
+          {/* <Form.Select
             className="flex-shrink-0"
             style={{ minWidth: "140px", maxWidth: "160px" }}
             value={statusFilter}
@@ -641,7 +739,7 @@ function MyJobs() {
             <option value="completed">Completed</option>
             <option value="not started">Not Started</option>
             <option value="cancelled">Cancelled</option>
-          </Form.Select>
+          </Form.Select> */}
           <Form.Control
             type="date"
             className="flex-shrink-0"
@@ -650,7 +748,6 @@ function MyJobs() {
             onChange={(e) => setDateFilter(e.target.value)}
           />
         </Col>
-
         <Col xs={12} lg={3} className="text-lg-end d-flex flex-wrap justify-content-lg-end gap-2">
           <Button id="All_btn" variant="dark" className="w-lg-auto" onClick={handleRejectJobs}>
             Return Job
@@ -687,11 +784,13 @@ function MyJobs() {
               </th>
               <th>JobNo</th>
               <th>ProjectName</th>
+              <th>ProjectNo</th>
               <th>Brand</th>
               <th>SubBrand</th>
               <th>PackType</th>
               <th>PackSize</th>
               <th>PackCode</th>
+              <th>Priority</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
@@ -707,12 +806,18 @@ function MyJobs() {
                   />
                 </td>
                 <td>{job.JobNo}</td>
-                <td style={{ whiteSpace: 'nowrap' }}>{job.projectId?.[0]?.projectName || "—"}</td>
+                <td onClick={() => JobDetails(job)} style={{ whiteSpace: 'nowrap' }}>
+                  <Link style={{ textDecoration: 'none' }}>{job.projectId?.[0]?.projectName || "—"}</Link>
+                </td>
+                <td style={{ whiteSpace: 'nowrap' }}>{job.projectId?.[0]?.projectNo || "—"}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.brandName}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.subBrand}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.packType || "N/A"}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.packSize || "N/A"}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job.packCode || "N/A"}</td>
+                <td>
+                  <span className={getPriorityClass(job.priority)}>{job.priority}</span>
+                </td>
                 <td>
                   <span className={`badge ${getStatusClass(job.Status)}`}>
                     {job.Status || "N/A"}
@@ -731,10 +836,9 @@ function MyJobs() {
                     id="All_btn"
                     size="sm"
                     variant="dark"
-                    style={{ height: "40px" }}
-                    onClick={() => handleMarkAsCompleted(job._id)}
+                    onClick={() => handleCopyFileName(job, currentPage, itemsPerPage)}
                   >
-                    Completed_Jobs
+                    CF
                   </Button>
                 </td>
               </tr>

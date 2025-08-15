@@ -149,7 +149,7 @@ const EmployeeDashboard = () => {
           </Card>
         </Col>
 
-        <Col xs={6} md={3}>
+        {/* <Col xs={6} md={3}>
           <Card style={{ borderRadius: '16px', boxShadow: '0 2px 4px rgba(145, 158, 171, 0.16)', border: 'none' }}>
             <Card.Body className="d-flex align-items-center">
               <div className="me-3 d-flex align-items-center justify-content-center" style={{ width: '48px', height: '48px', backgroundColor: '#E8F6FF', borderRadius: '12px' }}>
@@ -161,7 +161,7 @@ const EmployeeDashboard = () => {
               </div>
             </Card.Body>
           </Card>
-        </Col>
+        </Col> */}
 
 
         <Col xs={6} md={3}>

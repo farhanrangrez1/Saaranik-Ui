@@ -80,10 +80,24 @@ export const updateProject = createAsyncThunk(
 );
 
 
+export const OverviewProject = createAsyncThunk(
+  'Overviewproject/OverviewProject',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get(`${apiUrl}/projects/overview/${id}`);
+      return response.data
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+
 const projectsSlice = createSlice({
   name: 'projects',
   initialState: {
     project: [],
+    Overviewproject: [],
     status: 'idle',
     error: null,
   },
@@ -143,6 +157,17 @@ const projectsSlice = createSlice({
     //     state.status = 'failed';
     //     state.error = action.payload;
     //   });
+       .addCase(OverviewProject.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(OverviewProject.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.Overviewproject = action.payload;
+      })
+      .addCase(OverviewProject.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      })
   },
 });
 

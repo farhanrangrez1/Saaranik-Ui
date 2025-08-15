@@ -43,9 +43,11 @@ export const adminMenuItems = [
     title: "Production",
     icon: <FaIndustry className="menu-icon" />,
     submenu: [
-      { title: "Assinge Job", path: "/admin/newJobsList" },
+      { title: "Assign Job", path: "/admin/newJobsList" },
       { title: "In Progress", path: "/admin/inProgress" },
       { title: "Completed", path: "/admin/completedJobs" },
+      // { title: "Return Job", path: "/admin/Retunjob" },
+      // { title: "Waiting for Approval", path: "/admin/approval" },
     ],
   },
   {
@@ -54,8 +56,7 @@ export const adminMenuItems = [
     submenu: [
       { title: "My Jobs", path: "/admin/MyJobs" },
       { title: "Time Logs", path: "/admin/TimeLogs" },
-      { title: "Return Job", path: "/admin/Retunjob" },
-       { title: "Waiting for Approval", path: "/admin/approval" },
+
     ],
   },
   {
@@ -116,14 +117,21 @@ export const adminMenuItems = [
 // Employee Menu
 export const employeeMenuItems = [
   {
-    title: "Employee Dashboard",
+    title: "Dashboard",
     icon: <FaHome className="menu-icon" />,
     path: "/employee/dashboard",
   },
   {
-    title: "My Tasks",
+    title: "My Jobs",
     icon: <FaTasks className="menu-icon" />,
     path: "/employee/myJobs",
+  },
+    {
+    title: "Projects & Jobs",
+    icon: <FaProjectDiagram className="menu-icon" />,
+    submenu: [
+      { title: "Projects", path: "/employee/projectList" },
+    ],
   },
   {
     title: "Time Tracking",
@@ -140,11 +148,7 @@ export const employeeMenuItems = [
   //   icon: <FaCheckCircle className="menu-icon" />,
   //   path: "/submittask",
   // },
-  {
-    title: "View Project Details",
-    icon: <FaProjectDiagram className="menu-icon" />,
-    path: "/employee/projectList",
-  },
+  
   {
     title: "Job History",
     icon: <FaHistory className="menu-icon" />,

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Modal, Form, Table, Badge, Dropdown, Button } from "react-bootstrap";
 import { BsPlusLg, BsPencil, BsTrash, BsUpload, BsClipboard } from "react-icons/bs";
 import { Link, useNavigate } from "react-router-dom";
-import { deleteCostEstimate, fetchCostEstimates } from "../../../redux/slices/costEstimatesSlice";
+import { deleteCostEstimate, fetchCostEstimates, updateCostEstimate } from "../../../redux/slices/costEstimatesSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { FaDownload, FaTrash } from "react-icons/fa";
 import Swal from 'sweetalert2';
@@ -75,7 +75,7 @@ function CostEstimates() {
 
 
   const handleSavePO = async () => {
-    if (!selectedProjectId || !selectedClientId || !poDate  || !amount) {
+    if (!selectedProjectId || !selectedClientId || !poDate || !amount) {
       Swal.fire({
         icon: 'error',
         title: 'Required Fields Missing',
@@ -92,14 +92,13 @@ function CostEstimates() {
 
     formData.append('Amount', amount);
     formData.append('CostEstimatesId', JSON.stringify([costEstimatesId]));
-
+    console.log("kkkkkk", costEstimatesId)
     if (poDocument) {
       formData.append('image', poDocument);
     }
 
     try {
       const result = await dispatch(createReceivablePurchase(formData));
-
       // Agar API success ho jaye tab fetch karo
       if (createReceivablePurchase.fulfilled.match(result)) {
         Swal.fire({
@@ -118,6 +117,15 @@ function CostEstimates() {
         setPODocument(null);
         setShowAddPOModal(false);
 
+        dispatch(updateCostEstimate({
+          id: costEstimatesId,
+          data: {
+            projectId: selectedProjectId,
+            clientId: selectedClientId,
+            CostPOStatus: "Received"
+          }
+        }))
+        
         // ✅ Now fetch updated list
         dispatch(fetchReceivablePurchases());
         navigate("/admin/receivable");
@@ -146,15 +154,15 @@ function CostEstimates() {
   };
 
 
-const Ponamehandle = (po) => {
-  console.log(po.clients[0].clientName, po.projects[0].projectName, "ddd");
-  console.log(po);
-  setSelectedClientId(po.clients[0]?.clientId || "");
-  setSelectedProjectId(po.projects[0]?.projectId || "");
-  setPOStatus("Pending"); // ✅ Default status set here
-  setSelectedPO(po); 
-  setShowAddPOModal(true); 
-};
+  const Ponamehandle = (po) => {
+    console.log(po.clients[0].clientName, po.projects[0].projectName, "ddd");
+    console.log(po);
+    setSelectedClientId(po.clients[0]?.clientId || "");
+    setSelectedProjectId(po.projects[0]?.projectId || "");
+    setPOStatus("Pending"); // ✅ Default status set here
+    setSelectedPO(po);
+    setShowAddPOModal(true);
+  };
 
 
   // Add PO Modal
@@ -227,7 +235,7 @@ const Ponamehandle = (po) => {
 
             </div>
           </Form.Group>
-        
+
 
           <Form.Group className="mb-3">
             <div className="row justify-content-center align-items-start">
@@ -384,14 +392,18 @@ const Ponamehandle = (po) => {
     });
   }
 
-  const Duplicate = (po) => {
-    navigate(`/admin/AddCostEstimates`, {
-      state: {
-        po,
-        isDuplicate: true
-      }
-    });
-  }
+const Duplicate = (po) => {
+  navigate(`/admin/AddCostEstimates`, {
+    state: {
+      po: {
+        ...po, // pehle ka po ka sara data
+        CostPOStatus: "Pending" // is field ko override kar rahe hai
+      },
+      isDuplicate: true
+    }
+  });
+};
+
   const UpdateEstimate = (po) => {
     navigate(`/admin/AddCostEstimates`, {
       state: {
@@ -465,160 +477,375 @@ const Ponamehandle = (po) => {
     });
   };
 
-  const handleDownloadPDF = async (po) => {
-    try {
-      const response = await axiosInstance.post(
-        `/pdf?CostEstimatesId=${po._id}`,
-        {
-          projectId: po.projectId?.map(p => p._id),
-          clientId: po.clientId?.map(c => c._id),
-        }
-      );
+  // const handleDownloadPDF = async (po) => {
+  //   try {
+  //     const response = await axiosInstance.post(
+  //       `/pdf?CostEstimatesId=${po._id}`,
+  //       {
+  //         projectId: po.projectId?.map(p => p._id),
+  //         clientId: po.clientId?.map(c => c._id),
+  //       }
+  //     );
 
-      const estimate = response.data?.data?.[0];
-      if (!estimate) throw new Error("No estimate data found");
+  //     const estimate = response.data?.data?.[0];
+  //     if (!estimate) throw new Error("No estimate data found");
 
-      const client = estimate.clientId || {};
-      const project = estimate.projectId || {};
-      
-      
-      const lineItems = estimate.lineItems || [];
+  //     const client = estimate.clientId || {};
+  //     const project = estimate.projectId || {};
 
-      const doc = new jsPDF('p', 'pt', 'a4');
-      const pageWidth = doc.internal.pageSize.width;
 
-      // === HEADER ===
-      doc.setFillColor(229, 62, 62); // Red banner
-      doc.rect(40, 40, 200, 50, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(14);
-      // Insert logo image instead of text
-      
-      const logoUrl = estimate.image[0];
-      const logoBase64 = await getImageBase64(logoUrl);
-      doc.addImage(logoBase64, 'PNG', 45, 45, 60, 40);
+  //     const lineItems = estimate.lineItems || [];
 
-      doc.setFont('helvetica', 'bold');
-      doc.text("SAARANIK", 110, 60);
-      // (image, format, x, y, width, height
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'normal');
-      doc.text("COMPANY ADDRESS DETAILS", 110, 75);
-      doc.setTextColor(0, 0, 0); // Reset text color
-      // === Estimate Info (Right) ===
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.text(`Cost Estimate No. ${estimate.estimateRef || '---'}`, 350, 50);
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Date: ${new Date(estimate.estimateDate).toLocaleDateString("en-GB")}`, 350, 65);
-      doc.text(`Req. Ref.: --`, 350, 80);
+  //     const doc = new jsPDF('p', 'pt', 'a4');
+  //     const pageWidth = doc.internal.pageSize.width;
 
-      // === Client Info ===
-      let currentY = 120;
-      doc.setFontSize(10);
-      doc.text('To,', 40, currentY);
-      currentY += 15;
-      doc.text(`Client Name: ${client?.clientName || "Client Name"}`, 40, currentY);
-      currentY += 14;
-      doc.text(`Client Company Name: ${project?.projectName || "Client Company Name"}`, 40, currentY);
-      currentY += 14;
-      doc.text(`Address: ${client?.clientAddress?.split(',')[0] || "Address Line 1"}`, 40, currentY);
-      currentY += 14;
-      doc.text(`shipping Address: ${client?.shippingInformation?.[0]?.shippingAddress || "Address Line 2"}`, 40, currentY);
-      currentY += 14;
-      doc.text(`Email: ${client?.contactPersons[0].email || "email"}`, 40, currentY);
-      console.log("kkk",client?.contactPersons[0].email);
-      
-      currentY += 14;
-      doc.text(`Phone: ${client?.contactPersons[0].phone || "Phone"}`, 40, currentY);
-      currentY += 25;
+  //     // === HEADER ===
+  //     doc.setFillColor(229, 62, 62); // Red banner
+  //     doc.rect(40, 40, 200, 50, 'F');
+  //     doc.setTextColor(255, 255, 255);
+  //     doc.setFontSize(14);
+  //     // Insert logo image instead of text
 
-      // === Table Data ===
-      const tableData = lineItems.map((item, index) => [
-        (index + 1).toString(),
-        item.description || '',
-        (item.quantity || 0).toString(),
-        (item.rate || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 }),
-        ((item.quantity || 0) * (item.rate || 0)).toLocaleString('en-IN', { minimumFractionDigits: 2 })
-      ]);
+  //     const logoUrl = estimate.image[0];
+  //     const logoBase64 = await getImageBase64(logoUrl);
+  //     doc.addImage(logoBase64, 'PNG', 45, 45, 60, 40);
 
-      // Add blank rows
-      for (let i = 0; i < 15; i++) tableData.push(['', '', '', '', '']);
+  //     doc.setFont('helvetica', 'bold');
+  //     doc.text("SAARANIK", 110, 60);
+  //     // (image, format, x, y, width, height
+  //     doc.setFontSize(8);
+  //     doc.setFont('helvetica', 'normal');
+  //     doc.text("COMPANY ADDRESS DETAILS", 110, 75);
+  //     doc.setTextColor(0, 0, 0); // Reset text color
+  //     // === Estimate Info (Right) ===
+  //     doc.setFontSize(12);
+  //     doc.setFont('helvetica', 'bold');
+  //     doc.text(`Cost Estimate No. ${estimate.estimateRef || '---'}`, 350, 50);
+  //     doc.setFontSize(10);
+  //     doc.setFont('helvetica', 'normal');
+  //     doc.text(`Date: ${new Date(estimate.estimateDate).toLocaleDateString("en-GB")}`, 350, 65);
+  //     doc.text(`Req. Ref.: --`, 350, 80);
 
-      let finalY;
-      autoTable(doc, {
-        startY: currentY,
-        head: [['ITEM #', 'Brand & Design / Description', 'QTY', 'Unit Price (INR)', 'Amount (INR)']],
-        body: tableData,
-        styles: {
-          fontSize: 9,
-          cellPadding: 4,
-          lineColor: [0, 0, 0],
-          lineWidth: 0.3,
-          halign: 'center',
-          valign: 'middle'
-        },
-        headStyles: {
-          fillColor: [230, 230, 230], // Light gray like screenshot
-          textColor: [0, 0, 0],
-          fontStyle: 'bold',
-          fontSize: 9,
-          halign: 'center'
-        },
-        columnStyles: {
-          0: { halign: 'center', cellWidth: 50 },
-          1: { halign: 'left', cellWidth: 250 },
-          2: { halign: 'center', cellWidth: 40 },
-          3: { halign: 'right', cellWidth: 80 },
-          4: { halign: 'right', cellWidth: 90 }
-        },
-        theme: 'grid',
-        didDrawPage: data => { finalY = data.cursor.y; }
-      });
+  //     // === Client Info ===
+  //     let currentY = 120;
+  //     doc.setFontSize(10);
+  //     doc.text('To,', 40, currentY);
+  //     currentY += 15;
+  //     doc.text(`Client Name: ${client?.clientName || "Client Name"}`, 40, currentY);
+  //     currentY += 14;
+  //     doc.text(`Client Company Name: ${project?.projectName || "Client Company Name"}`, 40, currentY);
+  //     currentY += 14;
+  //     doc.text(`Address: ${client?.clientAddress?.split(',')[0] || "Address Line 1"}`, 40, currentY);
+  //     currentY += 14;
+  //     doc.text(`shipping Address: ${client?.shippingInformation?.[0]?.shippingAddress || "Address Line 2"}`, 40, currentY);
+  //     currentY += 14;
+  //     doc.text(`Email: ${client?.contactPersons[0].email || "email"}`, 40, currentY);
+  //     console.log("kkk", client?.contactPersons[0].email);
 
-      // === Totals Section ===
-      const subTotal = lineItems.reduce((sum, item) => sum + ((item.quantity || 0) * (item.rate || 0)), 0);
-      const vat = (subTotal * (estimate.VATRate || 0)) / 100;
-      const total = subTotal + vat;
+  //     currentY += 14;
+  //     doc.text(`Phone: ${client?.contactPersons[0].phone || "Phone"}`, 40, currentY);
+  //     currentY += 25;
 
-      const totalsBoxX = pageWidth - 160;
-      const totalsBoxY = finalY + 20;
-      doc.rect(totalsBoxX, totalsBoxY, 120, 45);
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.text('Sub-Total', totalsBoxX + 5, totalsBoxY + 12);
-      doc.text(subTotal.toFixed(2), totalsBoxX + 115, totalsBoxY + 12, { align: 'right' });
-      doc.text(`VAT (${estimate.VATRate || 0}%)`, totalsBoxX + 5, totalsBoxY + 25);
-      doc.text(vat.toFixed(2), totalsBoxX + 115, totalsBoxY + 25, { align: 'right' });
-      doc.setFont('helvetica', 'bold');
-      doc.text('TOTAL', totalsBoxX + 5, totalsBoxY + 38);
-      doc.text(total.toFixed(2), totalsBoxX + 115, totalsBoxY + 38, { align: 'right' });
+  //     // === Table Data ===
+  //     const tableData = lineItems.map((item, index) => [
+  //       (index + 1).toString(),
+  //       item.description || '',
+  //       (item.quantity || 0).toString(),
+  //       (item.rate || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 }),
+  //       ((item.quantity || 0) * (item.rate || 0)).toLocaleString('en-IN', { minimumFractionDigits: 2 })
+  //     ]);
 
-      // === Footer Notes ===
-      const footerY = totalsBoxY + 65;
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(9);
-      doc.text('• Cost based on One-off prices.', 40, footerY);
-      doc.text('• The above prices valid for 2 weeks and thereafter subject to our reconfirmation.', 40, footerY + 12);
-      doc.setFont('helvetica', 'bold');
-      doc.text(`For Your Company Name`, 40, footerY + 40);
-      doc.setFont('helvetica', 'normal');
-      doc.text('(This is system generated document, hence not signed.)', 40, footerY + 55);
+  //     // Add blank rows
+  //     for (let i = 0; i < 15; i++) tableData.push(['', '', '', '', '']);
 
-      // === Save PDF ===
-      doc.save(`Cost_Estimate_${estimate.estimateRef || 'Estimate'}.pdf`);
-    } catch (error) {
-      console.error("❌ Error generating PDF:", error);
-      alert("Failed to generate PDF.");
-    }
-  };
+  //     let finalY;
+  //     autoTable(doc, {
+  //       startY: currentY,
+  //       head: [['ITEM #', 'Brand & Design / Description', 'QTY', 'Unit Price (INR)', 'Amount (INR)']],
+  //       body: tableData,
+  //       styles: {
+  //         fontSize: 9,
+  //         cellPadding: 4,
+  //         lineColor: [0, 0, 0],
+  //         lineWidth: 0.3,
+  //         halign: 'center',
+  //         valign: 'middle'
+  //       },
+  //       headStyles: {
+  //         fillColor: [230, 230, 230], // Light gray like screenshot
+  //         textColor: [0, 0, 0],
+  //         fontStyle: 'bold',
+  //         fontSize: 9,
+  //         halign: 'center'
+  //       },
+  //       columnStyles: {
+  //         0: { halign: 'center', cellWidth: 50 },
+  //         1: { halign: 'left', cellWidth: 250 },
+  //         2: { halign: 'center', cellWidth: 40 },
+  //         3: { halign: 'right', cellWidth: 80 },
+  //         4: { halign: 'right', cellWidth: 90 }
+  //       },
+  //       theme: 'grid',
+  //       didDrawPage: data => { finalY = data.cursor.y; }
+  //     });
+
+  //     // === Totals Section ===
+  //     const subTotal = lineItems.reduce((sum, item) => sum + ((item.quantity || 0) * (item.rate || 0)), 0);
+  //     const vat = (subTotal * (estimate.VATRate || 0)) / 100;
+  //     const total = subTotal + vat;
+
+  //     const totalsBoxX = pageWidth - 160;
+  //     const totalsBoxY = finalY + 20;
+  //     doc.rect(totalsBoxX, totalsBoxY, 120, 45);
+  //     doc.setFontSize(10);
+  //     doc.setFont('helvetica', 'normal');
+  //     doc.text('Sub-Total', totalsBoxX + 5, totalsBoxY + 12);
+  //     doc.text(subTotal.toFixed(2), totalsBoxX + 115, totalsBoxY + 12, { align: 'right' });
+  //     doc.text(`VAT (${estimate.VATRate || 0}%)`, totalsBoxX + 5, totalsBoxY + 25);
+  //     doc.text(vat.toFixed(2), totalsBoxX + 115, totalsBoxY + 25, { align: 'right' });
+  //     doc.setFont('helvetica', 'bold');
+  //     doc.text('TOTAL', totalsBoxX + 5, totalsBoxY + 38);
+  //     doc.text(total.toFixed(2), totalsBoxX + 115, totalsBoxY + 38, { align: 'right' });
+
+  //     // === Footer Notes ===
+  //     const footerY = totalsBoxY + 65;
+  //     doc.setFont('helvetica', 'normal');
+  //     doc.setFontSize(9);
+  //     doc.text('• Cost based on One-off prices.', 40, footerY);
+  //     doc.text('• The above prices valid for 2 weeks and thereafter subject to our reconfirmation.', 40, footerY + 12);
+  //     doc.setFont('helvetica', 'bold');
+  //     doc.text(`For Your Company Name`, 40, footerY + 40);
+  //     doc.setFont('helvetica', 'normal');
+  //     doc.text('(This is system generated document, hence not signed.)', 40, footerY + 55);
+
+  //     // === Save PDF ===
+  //     doc.save(`Cost_Estimate_${estimate.estimateRef || 'Estimate'}.pdf`);
+  //   } catch (error) {
+  //     console.error("❌ Error generating PDF:", error);
+  //     alert("Failed to generate PDF.");
+  //   }
+  // };
   // ... existing code ...
 
+const handleDownloadPDF = async (po) => {
+  try {
+    const response = await axiosInstance.post(
+      `/pdf?CostEstimatesId=${po._id}`,
+      {
+        projectId: po.projectId?.map((p) => p._id),
+        clientId: po.clientId?.map((c) => c._id),
+      }
+    );
+
+    const estimate = response.data?.data?.[0];
+    if (!estimate) throw new Error("No estimate data found");
+
+    const client = estimate.clientId || {};
+    const project = estimate.projectId || {};
+    const lineItems = estimate.lineItems || [];
+
+    const doc = new jsPDF("p", "pt", "a4");
+    const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
+    const marginLeft = 40;
+    const contentWidth = pageWidth - marginLeft * 2;
+
+    // === HEADER ===
+    doc.setFillColor(229, 62, 62);
+    doc.rect(marginLeft, 40, 200, 50, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(14);
+
+    const logoUrl = estimate.image[0];
+    const logoBase64 = await getImageBase64(logoUrl);
+    doc.addImage(logoBase64, "PNG", marginLeft + 5, 45, 60, 40);
+
+    doc.setFont("helvetica", "bold");
+    doc.text("SAARANIK", marginLeft + 70, 60);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    doc.text("COMPANY ADDRESS DETAILS", marginLeft + 70, 75);
+    doc.setTextColor(0, 0, 0);
+
+    // === Estimate Info (Right) ===
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text(
+      `Cost Estimate No. ${estimate.estimateRef || "---"}`,
+      pageWidth - marginLeft - 180,
+      50
+    );
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(
+      `Date: ${new Date(estimate.estimateDate).toLocaleDateString("en-GB")}`,
+      pageWidth - marginLeft - 180,
+      65
+    );
+    doc.text(`Req. Ref.: --`, pageWidth - marginLeft - 180, 80);
+
+    // === Client Info ===
+    let currentY = 120;
+    doc.setFontSize(10);
+    doc.text("To,", marginLeft, currentY);
+    currentY += 15;
+    doc.text(
+      ` ${client?.clientName || "Client Name"}`,
+      marginLeft,
+      currentY
+    );
+    currentY += 14;
+    doc.text(
+      ` ${project?.projectName || "Client Company Name"}`,
+      marginLeft,
+      currentY
+    );
+    currentY += 14;
+    doc.text(
+      ` ${
+        client?.clientAddress?.split(",")[0] || "Address Line 1"
+      }`,
+      marginLeft,
+      currentY
+    );
+    currentY += 14;
+    doc.text(
+      ` ${
+        client?.shippingInformation?.[0]?.shippingAddress ||
+        "Address Line 2"
+      }`,
+      marginLeft,
+      currentY
+    );
+    currentY += 14;
+    doc.text(
+      ` ${client?.contactPersons?.[0]?.email || "email"}`,
+      marginLeft,
+      currentY
+    );
+    currentY += 14;
+    doc.text(
+      ` ${client?.contactPersons?.[0]?.phone || "Phone"}`,
+      marginLeft,
+      currentY
+    );
+    currentY += 25;
+
+    // === Table Data ===
+    const tableData = lineItems.map((item, index) => [
+      (index + 1).toString(),
+      item.description || "",
+      (item.quantity || 0).toString(),
+      (item.rate || 0).toLocaleString("en-IN", {
+        minimumFractionDigits: 2,
+      }),
+      ((item.quantity || 0) * (item.rate || 0)).toLocaleString("en-IN", {
+        minimumFractionDigits: 2,
+      }),
+    ]);
+
+    for (let i = 0; i < 15; i++) tableData.push(["", "", "", "", ""]);
+
+    let finalY;
+    autoTable(doc, {
+      startY: currentY,
+      head: [
+        [
+          "ITEM #",
+          "Brand & Design / Description",
+          "QTY",
+          "Unit Price (INR)",
+          "Amount (INR)",
+        ],
+      ],
+      body: tableData,
+      styles: {
+        fontSize: 9,
+        cellPadding: 4,
+        lineColor: [0, 0, 0],
+        lineWidth: 0.3,
+        halign: "center",
+        valign: "middle",
+      },
+      headStyles: {
+        fillColor: [230, 230, 230],
+        textColor: [0, 0, 0],
+        fontStyle: "bold",
+        fontSize: 9,
+        halign: "center",
+      },
+      columnStyles: {
+        0: { halign: "center", cellWidth: 50 },
+        1: { halign: "left", cellWidth: contentWidth - 260 },
+        2: { halign: "center", cellWidth: 40 },
+        3: { halign: "right", cellWidth: 80 },
+        4: { halign: "right", cellWidth: 90 },
+      },
+      theme: "grid",
+      margin: { left: marginLeft, right: marginLeft },
+      didDrawPage: (data) => {
+        finalY = data.cursor.y;
+      },
+    });
+
+    // === Totals Section ===
+    const subTotal = lineItems.reduce(
+      (sum, item) =>
+        sum + (item.quantity || 0) * (item.rate || 0),
+      0
+    );
+    const vat = (subTotal * (estimate.VATRate || 0)) / 100;
+    const total = subTotal + vat;
+
+    const totalsBoxX = pageWidth - marginLeft - 120;
+    const totalsBoxY = finalY + 20;
+    // doc.rect(totalsBoxX, totalsBoxY, 120, 45);
+    // doc.setFontSize(10);
+    // doc.setFont("helvetica", "normal");
+    // doc.text("Sub-Total", totalsBoxX + 5, totalsBoxY + 12);
+    // doc.text(subTotal.toFixed(2), totalsBoxX + 115, totalsBoxY + 12, {
+    //   align: "right",
+    // });
+    // doc.text(`VAT (${estimate.VATRate || 0}%)`, totalsBoxX + 5, totalsBoxY + 25);
+    // doc.text(vat.toFixed(2), totalsBoxX + 115, totalsBoxY + 25, {
+    //   align: "right",
+    // });
+    // doc.setFont("helvetica", "bold");
+    // doc.text("TOTAL", totalsBoxX + 5, totalsBoxY + 38);
+    // doc.text(total.toFixed(2), totalsBoxX + 115, totalsBoxY + 38, {
+    //   align: "right",
+    // });
+
+    // === Footer Notes ===
+    const footerY = totalsBoxY + 65;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.text("• Cost based on One-off prices.", marginLeft, footerY);
+    doc.text(
+      "• The above prices valid for 2 weeks and thereafter subject to our reconfirmation.",
+      marginLeft,
+      footerY + 12
+    );
+    doc.setFont("helvetica", "bold");
+    doc.text(`For Your Company Name`, marginLeft, footerY + 40);
+    doc.setFont("helvetica", "normal");
+    doc.text(
+      "(This is system generated document, hence not signed.)",
+      marginLeft,
+      footerY + 55
+    );
+
+    // === Save PDF ===
+    doc.save(`Cost_Estimate_${estimate.estimateRef || "Estimate"}.pdf`);
+  } catch (error) {
+    console.error("❌ Error generating PDF:", error);
+    alert("Failed to generate PDF.");
+  }
+};
 
 
-    const CostEstimatesDetails = (po) => {
-   navigate(`/admin/OvervieCostEstimates`, { state: { po } });
+  const CostEstimatesDetails = (po) => {
+    navigate(`/admin/OvervieCostEstimates`, { state: { po } });
   };
   return (
     <div
@@ -670,7 +897,7 @@ const Ponamehandle = (po) => {
             </Dropdown.Menu>
           </Dropdown>
 
- 
+
           <Dropdown className="filter-dropdown">
             <Dropdown.Toggle
               variant="light"
@@ -696,14 +923,16 @@ const Ponamehandle = (po) => {
         <Table hover className="align-middle sticky-header">
           <thead style={{ backgroundColor: "#f8f9fa", position: "sticky", top: 0, zIndex: 1 }}>
             <tr>
-              <th><input type="checkbox" /></th>
+              {/* <th><input type="checkbox" /></th> */}
               <th style={{ whiteSpace: 'nowrap' }}>CE No</th>
               <th style={{ whiteSpace: 'nowrap' }}>Project Name</th>
+              <th style={{ whiteSpace: 'nowrap' }}>Project No</th>
               <th style={{ whiteSpace: 'nowrap' }}>Client Name</th>
-              <th style={{ whiteSpace: 'nowrap' }}>Client Email</th>
+              {/* <th style={{ whiteSpace: 'nowrap' }}>Client Email</th> */}
               <th>Date</th>
               {/* <th>ProjectNo</th> */}
               <th>Amount</th>
+              <th style={{ whiteSpace: 'nowrap' }}>PO Status</th>
               <th style={{ whiteSpace: 'nowrap' }}>CE Status</th>
               {/* <th>POStatus</th> */}
               <th>Actions</th>
@@ -712,7 +941,7 @@ const Ponamehandle = (po) => {
           <tbody>
             {paginatedEstimates?.map((po, index) => (
               <tr style={{ whiteSpace: "nowrap" }} key={po.poNumber}>
-                <td><input type="checkbox" /></td>
+                {/* <td><input type="checkbox" /></td> */}
                 <td onClick={() => CostEstimatesDetails(po)}>
                   <Link style={{ textDecoration: 'none', border: 'none' }}>
                     {po.estimateRef}
@@ -721,24 +950,31 @@ const Ponamehandle = (po) => {
                 <td>
                   {po.projects?.map((project) => project.projectName).join(", ")}
                 </td>
+                <td>
+                  {po.projects?.map((project) => project.projectNo).join(", ")}
+                </td>
                 <td>{po.clients?.[0]?.clientName || 'N/A'}</td>
-                <td>{po.clients?.[0]?.clientEmail || 'N/A'}</td>
+                {/* <td>{po.clients?.[0]?.clientEmail || 'N/A'}</td> */}
                 <td>{new Date(po.estimateDate).toLocaleDateString("en-GB").slice(0, 8)}</td>
                 <td>
                   {po.lineItems?.reduce((total, item) => total + (item.amount || 0), 0).toFixed(2)}
+                </td>
+                <td>
+                  <span className={`badge ${getStatusClass(po.CostPOStatus)} px-2 py-1`}>
+                    {po.CostPOStatus}
+                  </span>
                 </td>
                 <td>
                   <span className={`badge ${getStatusClass(po.Status)} px-2 py-1`}>
                     {po.Status}
                   </span>
                 </td>
-
                 <td>
                   <div className="d-flex gap-2">
                     <button className="btn btn-sm btn-success"
                       disabled={
                         po.receivablePurchases?.length > 0 &&
-                        po.receivablePurchases[0]?.POStatus?.toLowerCase() !== "pending"
+                        po.receivablePurchases[0]?.Status?.toLowerCase() !== "pending"
                       }
                       onClick={() => {
                         setCostEstimatesId(po._id); // Store the ID

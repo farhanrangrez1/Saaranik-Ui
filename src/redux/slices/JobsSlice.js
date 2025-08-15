@@ -146,6 +146,30 @@ export const EmployeeCompletedStatus = createAsyncThunk('jobs/updatejob', async 
   }
 });
 
+export const Complete_WaitingApproval = createAsyncThunk(
+  'ProjectJob/Complete_WaitingApproval',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get(`${apiUrl}/jobs/Complete_WaitingApproval`);
+      return response.data
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+export const JobsFinace = createAsyncThunk(
+    'job/JobsFinace',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get(`${apiUrl}/jobs/jjj/${id}`);
+      return response.data
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
 const jobsSlice = createSlice({
   name: 'jobs',
   initialState: {
@@ -235,6 +259,30 @@ const jobsSlice = createSlice({
     //     state.status = 'failed';
     //     state.error = action.payload;
     //   });
+          .addCase(Complete_WaitingApproval.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(Complete_WaitingApproval.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.job = action.payload;
+      })
+      .addCase(Complete_WaitingApproval.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      })
+      // //
+        .addCase(JobsFinace.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(JobsFinace.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.job = action.payload;
+      })
+      .addCase(JobsFinace.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      })
+
   },
 });
 

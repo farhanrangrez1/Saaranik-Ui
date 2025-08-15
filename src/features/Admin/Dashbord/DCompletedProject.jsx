@@ -218,7 +218,6 @@ const JobsFiance = (id, projectNo, projectName, clientName) => {
                 {/* <th>Select</th> */}
                 <th style={{ whiteSpace: 'nowrap' }}>Project No</th>
                 <th style={{ whiteSpace: 'nowrap' }}>Project Name</th>
-                <th style={{ whiteSpace: 'nowrap' }}>Description</th>
                 <th style={{ whiteSpace: 'nowrap' }}>Start Date</th>
                 <th style={{ whiteSpace: 'nowrap' }}>End Date</th>
                 <th style={{ whiteSpace: 'nowrap' }}>Client</th>
@@ -241,7 +240,6 @@ const JobsFiance = (id, projectNo, projectName, clientName) => {
                 <Link to={"/admin/Invoicing_Billing"} style={{ textDecoration: 'none' }}> {project.projectNo}</Link>
                 </td>
                   <td style={{ whiteSpace: 'nowrap' }}>{project.projectName}</td>
-                  <td style={{ whiteSpace: 'nowrap' }}>{project.description}</td>
                   <td>
                     {new Date(project.startDate)
                       .toLocaleDateString("en-GB")

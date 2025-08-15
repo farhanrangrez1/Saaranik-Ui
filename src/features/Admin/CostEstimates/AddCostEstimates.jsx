@@ -65,6 +65,7 @@ function AddCostEstimates() {
     Notes: "",
     currency: "USD",
     POStatus: "Pending",
+    CostPOStatus:"Pending",
     Status: "Draft",
   });
 
@@ -78,7 +79,6 @@ function AddCostEstimates() {
       } else if (Array.isArray(po.projects) && po.projects.length > 0) {
         projectId = po.projects[0]?.projectId || po.projects[0]?._id || "";
       }
-
       let clientId = "";
       let clientName = "";
       if (po.clientId && Array.isArray(po.clientId) && po.clientId.length > 0) {
@@ -101,6 +101,7 @@ function AddCostEstimates() {
         estimateDate: po.estimateDate ? po.estimateDate.substring(0, 10) : "",
         validUntil: po.validUntil ? po.validUntil.substring(0, 10) : "",
         POStatus: po.POStatus || "Pending",
+         CostPOStatus: po.CostPOStatus || "Pending",
         Status: po.Status || "Draft",
       }));
 
@@ -155,7 +156,9 @@ function AddCostEstimates() {
     formDataToSend.append("VATRate", taxRate * 100);
     formDataToSend.append("Notes", formData.Notes);
     formDataToSend.append("POStatus", formData.POStatus);
+    formDataToSend.append("CostPOStatus", formData.CostPOStatus);
     formDataToSend.append("Status", formData.Status);
+
     if (image) {
       formDataToSend.append("image", image);
     }

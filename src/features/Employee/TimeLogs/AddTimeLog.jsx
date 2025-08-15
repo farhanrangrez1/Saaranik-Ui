@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { fetchProject } from '../../../redux/slices/ProjectsSlice';
 import { fetchjobs } from '../../../redux/slices/JobsSlice';
 import { createTimesheetWorklog, updateTimesheetWorklog } from '../../../redux/slices/TimesheetWorklogSlice';
 import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import { fetchusers, SingleUser } from '../../../redux/slices/userSlice';
 import { fetchMyJobs } from '../../../redux/slices/Employee/MyJobsSlice';
-
+import "react-toastify/dist/ReactToastify.css";
 
 function AddTimeLog() {
   const dispatch = useDispatch();
@@ -16,15 +15,7 @@ function AddTimeLog() {
   const location = useLocation();
   const { id, openTab, entry, job } = location.state || {};
 
-  console.log("Project Name:", job?.projectId[0]?.projectName);
-  console.log("Job ID:", job.JobNo);
-
-  const { UserSingle, loading, error } = useSelector((state) => state.user);
-
-  useEffect(() => {
-    dispatch(SingleUser());
-  }, [dispatch]);
-
+  const { UserSingle } = useSelector((state) => state.user);
   const empid = UserSingle?._id;
 
   const getTodayDate = () => {
@@ -36,195 +27,73 @@ function AddTimeLog() {
     projectId: '',
     jobId: '',
     employeeId: empid,
+    time: '',
     date: getTodayDate(),
-    status: '',
-    startTime: '',
-    endTime: '',
+    overtime: false,
+    overtimeTime: '',       // ✅ new: for overtime time input
     taskDescription: '',
-    tags: '',
-    projectName: '',
-    jobName: ''
   });
+
+  useEffect(() => {
+    dispatch(SingleUser());
+    dispatch(fetchProject());
+    dispatch(fetchjobs());
+    dispatch(fetchusers());
+    dispatch(fetchMyJobs());
+  }, [dispatch]);
 
   useEffect(() => {
     if (entry || job) {
       const data = entry || job;
       const parsedDate = data.date ? new Date(data.date).toISOString().split('T')[0] : getTodayDate();
-
       setFormData({
         date: parsedDate,
-        projectId: Array.isArray(data.projectId)
-          ? data.projectId[0]._id
-          : data.projectId?._id || '',
-        jobId: Array.isArray(data.jobId)
-          ? data.jobId[0]._id
-          : data._id || '',
-        employeeId: Array.isArray(data.employeeId)
-          ? data.employeeId[0]._id
-          : empid,
-        status: data.status || '',
-        startTime: data.startTime || '',
-        endTime: data.endTime || '',
+        projectId: Array.isArray(data.projectId) ? data.projectId[0]._id : data.projectId?._id || '',
+        jobId: Array.isArray(data.jobId) ? data.jobId[0]._id : data._id || '',
+        employeeId: Array.isArray(data.employeeId) ? data.employeeId[0]._id : empid,
+        time: data.time || '',
         taskDescription: data.taskDescription || '',
-        tags: data.tags || '',
-        projectName: Array.isArray(data.projectId)
-          ? data.projectId[0].projectName
-          : data.projectId?.projectName || '',
-        jobName: Array.isArray(data.jobId)
-          ? data.jobId[0].jobName || data.jobId[0].JobNo
-          : data.jobName || data.JobNo || ''
+        overtime: data.overtime ? true : false,
+        overtimeTime: data.overtime || '',  // ✅ set the value if available
       });
     }
   }, [entry, job, empid]);
 
-  useEffect(() => {
-    dispatch(fetchProject());
-    dispatch(fetchjobs());
-    dispatch(fetchusers());
-  }, [dispatch]);
-
-  useEffect(() => {
-    if (formData.startTime && formData.endTime) {
-      const [startHour, startMinute] = formData.startTime.split(':').map(Number);
-      const [endHour, endMinute] = formData.endTime.split(':').map(Number);
-
-      const start = new Date();
-      start.setHours(startHour, startMinute, 0);
-
-      const end = new Date();
-      end.setHours(endHour, endMinute, 0);
-
-      let diff = (end - start) / 1000 / 60 / 60;
-
-      if (diff < 0) diff = 0;
-
-      setFormData(prev => ({
-        ...prev,
-        hours: diff.toFixed(2)
-      }));
-    }
-  }, [formData.startTime, formData.endTime]);
-
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: type === 'checkbox' ? checked : value,
     }));
   };
 
-  const convertTo12HourFormat = (time24) => {
-    const [hourStr, minuteStr] = time24.split(':');
-    let hour = parseInt(hourStr, 10);
-    const minute = minuteStr;
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    hour = hour % 12 || 12;
-    return `${hour.toString().padStart(2, '0')}:${minute} ${ampm}`;
-  };
+  const handleSubmit = (e) => {
+    e.preventDefault();
 
-//  const handleSubmit = (e) => {
-//   e.preventDefault();
-//   // Ensure projectName exists (fallback)
-//   let projectName = formData.projectName;
-//   if (!projectName) {
-//     const fallbackProject = reversedProjectList.find(p => p._id === formData.projectId);
-//     projectName = fallbackProject?.projectName || job?.projectId?.[0]?.projectName || "";
-//   }
-
-//   const payload = {
-//     projectId: [formData.projectId],
-//     jobId: [formData.jobId],
-//     employeeId: [formData.employeeId],
-//     date: formData.date,
-//     startTime: convertTo12HourFormat(formData.startTime),
-//     endTime: convertTo12HourFormat(formData.endTime),
-//     taskDescription: formData.taskDescription,
-//     status: formData.status,
-//     tags: formData.tags,
-//     projectName: projectName, // ✅ fixed
-//     jobName: formData.jobName
-//   };
-
-//   const successNavigate = () => navigate("/employee/TimeTracking");
-
-//   if (id) {
-//     dispatch(updateTimesheetWorklog({ _id: id, data: payload }))
-//       .unwrap()
-//       .then((res) => {
-//         toast.success(res?.message || "Timesheet updated successfully!");
-//         successNavigate();
-//       })
-//       .catch((err) => {
-//         toast.error(err?.message || "Failed to update timesheet!");
-//         console.error("Update error:", err);
-//       });
-//   } else {
-//     dispatch(createTimesheetWorklog(payload))
-//       .unwrap()
-//       .then((res) => {
-//         toast.success(res?.message || "Timesheet created successfully!");
-//         successNavigate();
-//       })
-//       .catch((err) => {
-//         toast.error(err?.message || "Error creating timesheet!");
-//         console.error("Create error:", err);
-//       });
-//   }
-// };
-
-
- const handleSubmit = (e) => {
-  e.preventDefault();
-  // Ensure projectName exists (fallback)
-  let projectName = formData.projectName;
-  if (!projectName) {
-    const fallbackProject = reversedProjectList.find(p => p._id === formData.projectId);
-    projectName = fallbackProject?.projectName || job?.projectId?.[0]?.projectName || "";
-  }
-
-  const payload = {
-    projectId: [formData.projectId],
-    jobId: [formData.jobId],
-    employeeId: [formData.employeeId],
-    date: formData.date,
-    startTime: convertTo12HourFormat(formData.startTime),
-    endTime: convertTo12HourFormat(formData.endTime),
-    taskDescription: formData.taskDescription,
-    status: formData.status,
-    tags: formData.tags,
-    projectName: projectName, // ✅ fixed
-    jobName: formData.jobName
-  };
-
-  const successNavigate = () => navigate("/employee/TimeTracking");
+    const payload = {
+      projectId: [formData.projectId],
+      jobId: [formData.jobId],
+      employeeId: [formData.employeeId],
+      time: formData.time,
+      date: formData.date,
+      overtime: formData.overtimeTime || "00:00",  // ✅ default "00:00" if not provided
+      taskDescription: formData.taskDescription,
+    };
 
     dispatch(createTimesheetWorklog(payload))
       .unwrap()
       .then((res) => {
         toast.success(res?.message || "Timesheet created successfully!");
-        successNavigate();
+        navigate("/employee/TimeTracking");
       })
       .catch((err) => {
         toast.error(err?.message || "Error creating timesheet!");
-        console.error("Create error:", err);
       });
-};
+  };
 
   const { myjobs } = useSelector((state) => state.MyJobs);
-  const MynewJobsdata = myjobs && myjobs.assignments && myjobs.assignments.length > 0 ? myjobs.assignments[0].jobId : [];
-
-  useEffect(() => {
-    dispatch(fetchMyJobs());
-  }, [dispatch]);
-
-  const filteredProjects = MynewJobsdata || [];
-  const reversedProjectList = Array.isArray(MynewJobsdata)
-    ? MynewJobsdata.flatMap(job => job.projectId).reverse()
-    : [];
-
-  const reversedJobList = Array.isArray(MynewJobsdata)
-    ? MynewJobsdata.flatMap(job => job.JobNo).reverse()
-    : [];
+  const MynewJobsdata = myjobs?.assignments?.[0]?.jobId || [];
+  const reversedProjectList = Array.isArray(MynewJobsdata) ? MynewJobsdata.flatMap(job => job.projectId).reverse() : [];
 
   return (
     <div className="container py-4">
@@ -236,7 +105,6 @@ function AddTimeLog() {
               <form onSubmit={handleSubmit}>
                 <div className="row g-3">
 
-                  {/* Project Dropdown */}
                   <div className="col-md-6">
                     <label className="form-label">Project</label>
                     <select
@@ -252,79 +120,21 @@ function AddTimeLog() {
                           projectName: selectedProject?.projectName || ""
                         }));
                       }}
-                      required
                     >
                       <option value="">Select a project</option>
-                      <option key={job?.projectId[0]?._id} value={job?.projectId[0]?._id}>
-                        {job?.projectId[0]?.projectName}
-                      </option>
-                    </select>
-                  </div>
-
-                  {/* Jobs Dropdown */}
-                  <div className="col-md-6">
-                    <label className="form-label">Jobs</label>
-                    <select
-                      className="form-select"
-                      name="jobId"
-                      value={formData.jobId}
-                      onChange={(e) => {
-                        const selectedId = e.target.value;
-                        const reversedJobList = filteredProjects.find(j => j._id === selectedId);
-                        setFormData({
-                          ...formData,
-                          jobId: selectedId,
-                          jobName: reversedJobList?.jobName || reversedJobList?.JobNo || (reversedJobList?.brandName + " " + reversedJobList?.subBrand) || "",
-                        });
-                      }}
-                      required
-                    >
-                      <option value="">Select a job</option>
-                      <option key={job._id} value={job._id}>
-                        {job.JobNo}
+                      <option key={job?.projectId?.[0]?._id} value={job?.projectId?.[0]?._id}>
+                        {job?.projectId?.[0]?.projectName}
                       </option>
                     </select>
                   </div>
 
                   <div className="col-md-6">
-                    <label className="form-label">Start Time</label>
+                    <label className="form-label">Job No.</label>
                     <input
-                      type="time"
                       className="form-control"
-                      name="startTime"
-                      value={formData.startTime}
-                      onChange={handleInputChange}
-                      required
+                      value={job?.JobNo || formData.jobName}
+                      disabled
                     />
-                  </div>
-
-                  <div className="col-md-6">
-                    <label className="form-label">End Time</label>
-                    <input
-                      type="time"
-                      className="form-control"
-                      name="endTime"
-                      value={formData.endTime}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-
-                  <div className="col-md-6">
-                    <label className="form-label">Status</label>
-                    <select
-                      className="form-select"
-                      name="status"
-                      value={formData.status}
-                      onChange={handleInputChange}
-                      required
-                    >
-                      <option value="">Select Status</option>
-                      <option value="Approved">Approved</option>
-                      <option value="Pending">Pending</option>
-                      <option value="In Progress">In Progress</option>
-                      <option value="Completed">Completed</option>
-                    </select>
                   </div>
 
                   <div className="col-md-6">
@@ -339,8 +149,47 @@ function AddTimeLog() {
                     />
                   </div>
 
+                  <div className="col-md-6">
+                    <label className="form-label">Time</label>
+                    <input
+                      type="time"
+                      className="form-control"
+                      name="time"
+                      value={formData.time}
+                      onChange={handleInputChange}
+                      step="60"
+                      required
+                    />
+                  </div>
+
+                  {/* Overtime checkbox */}
+                  <div className="col-md-6 d-flex align-items-center">
+                    <label className="form-label me-2 text-danger">Overtime</label>
+                    <input
+                      type="checkbox"
+                      name="overtime"
+                      checked={formData.overtime}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+
+                  {/* Overtime time input — only show if overtime checked */}
+                  {formData.overtime && (
+                    <div className="col-md-6">
+                      <label className="form-label">Overtime Time</label>
+                      <input
+                        type="time"
+                        className="form-control"
+                        name="overtimeTime"
+                        value={formData.overtimeTime}
+                        onChange={handleInputChange}
+                        step="60"
+                      />
+                    </div>
+                  )}
+
                   <div className="col-12">
-                    <label className="form-label">Task Description</label>
+                    <label className="form-label">Note</label>
                     <textarea
                       className="form-control"
                       rows="4"

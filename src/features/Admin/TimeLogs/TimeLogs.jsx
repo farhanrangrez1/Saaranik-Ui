@@ -292,36 +292,15 @@ function TimeLogs() {
             <table className="table table-hover mb-0">
               <thead className="bg-light">
                 <tr>
-                  <th>
-                    <input
-                      type="checkbox"
-                      onChange={(e) => {
-                        const checked = e.target.checked;
-                        const newSelected = {};
-                        paginatedTimeLogss?.forEach((log) => {
-                          if (log._id) newSelected[log._id] = checked;
-                        });
-                        setSelectedJobs(newSelected);
-                      }}
-                      checked={
-                        paginatedTimeLogss?.length > 0 &&
-                        paginatedTimeLogss?.every((log) => selectedJobs[log._id])
-                      }
-                    />
-                  </th>
-                  <th>JobID</th>
+                 <th>JobID</th>
                   <th style={{ whiteSpace: 'nowrap' }}>Project Name</th>
-                  <th style={{ whiteSpace: 'nowrap' }}>Employee Name</th>
                   <th>Date</th>
-                  <th style={{ whiteSpace: 'nowrap' }}>Start Time</th>
-                  <th style={{ whiteSpace: 'nowrap' }}>End Time</th>
-                  <th>Hours</th>
-                  <th style={{ whiteSpace: 'nowrap' }}>Task Description</th>
-                  <th>Status</th>
-                  {/* <th className="text-end">Actions</th> */}
+                  <th style={{ whiteSpace: 'nowrap' }}>Time</th>
+                  <th style={{ whiteSpace: 'nowrap' }}>overtime</th>
+                  <th>totalTime</th>
                 </tr>
               </thead>
-              <tbody>
+              {/* <tbody>
                 {paginatedTimeLogss?.map((log, index) => {
                   const extraHoursDecimal = timeStringToDecimalHours(log.extraHours);
                   const hoursDecimal = timeStringToDecimalHours(log.hours);
@@ -355,11 +334,73 @@ function TimeLogs() {
                       <td>
                         {log.endTime}
                       </td>
+                      <td>
+                        {(!log.extraHours || log.extraHours === '0' || log.extraHours === '0:00') ? '-' : formatTimeTo12Hour(log.extraHours)}
+                      </td>
+                      <td>
+                        {log.hours}
+                      </td>
+                      <td
+                        style={{
+                          color: isHoursDiscrepant ? 'red' : 'inherit',
+                          fontWeight: isHoursDiscrepant ? 'bold' : 'normal',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {formatTimeTo12Hour(log.hours)}
+                      </td>
+                      <td style={{ whiteSpace: 'nowrap' }}>{log.taskDescription}</td>
+                      <td className="py-3">
+                        <span className={`badge rounded-pill ${log.status === 'Approved' ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning'} px-3 py-2`}>
+                          {log.status}
+                        </span>
+                      </td>
+                      <td className="text-end" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <button
+                          className="btn btn-link text-dark p-0 me-3"
+                          onClick={() => handleEdit(log)}
+                        >
+                          <FaPencilAlt />
+                        </button>
+                        <button
+                          className="btn btn-link text-danger p-0"
+                          onClick={() => handleDelete(log._id)}
+                        >
+                          <FaTrashAlt />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody> */}
+
+               <tbody>
+                {paginatedTimeLogss?.map((log, index) => {
+                  const extraHoursDecimal = timeStringToDecimalHours(log.extraHours);
+                  const hoursDecimal = timeStringToDecimalHours(log.hours);
+
+                  const isHoursDiscrepant = hoursDecimal > 8;
+                  const isExtraHoursDiscrepant = extraHoursDecimal < 8;
+                  return (
+                    <tr key={index}>
+                      <td className="no-border-bottom">
+                        {log.jobId?.[0]?.JobNo || '----'}
+                      </td>
+                      <td style={{ whiteSpace: 'nowrap' }} key={index}>
+                        {log.projectId?.[0]?.projectName || 'No Project Name'}
+                      </td>
+                      <td>{new Date(log.date).toLocaleDateString('en-GB').replace(/\/20/, '/')}</td>
+                      <td>
+                        {log.time}
+                      </td>
+                      <td>
+                        {log.overtime}
+                      </td>
                       {/* <td>
                         {(!log.extraHours || log.extraHours === '0' || log.extraHours === '0:00') ? '-' : formatTimeTo12Hour(log.extraHours)}
                       </td> */}
                       <td>
-                        {log.hours}
+                        {log.totalTime}
                       </td>
                       {/* <td
                         style={{
@@ -370,12 +411,7 @@ function TimeLogs() {
                       >
                         {formatTimeTo12Hour(log.hours)}
                       </td> */}
-                      <td style={{ whiteSpace: 'nowrap' }}>{log.taskDescription}</td>
-                      <td className="py-3">
-                        <span className={`badge rounded-pill ${log.status === 'Approved' ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning'} px-3 py-2`}>
-                          {log.status}
-                        </span>
-                      </td>
+                      {/* <td style={{ whiteSpace: 'nowrap' }}>{log.taskDescription}</td> */}
                       {/* <td className="text-end" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <button
                           className="btn btn-link text-dark p-0 me-3"

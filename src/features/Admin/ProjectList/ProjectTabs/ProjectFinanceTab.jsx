@@ -2,6 +2,7 @@ import React from 'react';
 import PurchaseOrder from './PurchaseOrder';
 import ReceivablePurchaseOrders from './ReceivablePurchaseOrders';
 import Invoicing_Billing from '../../Invoicing_Billing/Invoicing_Billing';
+import ProjectInvoiceBilling from './ProjectInvoiceBilling';
 
 function ProjectFinanceTab({ budget, purchaseOrders }) {
   return (
@@ -19,7 +20,7 @@ function ProjectFinanceTab({ budget, purchaseOrders }) {
 
       {/* Financial Summary Charts */}
       <div className="col-12">
-        <Invoicing_Billing/>
+       <ProjectInvoiceBilling/>
       </div>
 
     </div>

@@ -243,18 +243,18 @@ function MyJobs() {
           </Dropdown>
         </Col>
 
-        <Col xs={12} lg={3} className="text-lg-end d-flex flex-wrap justify-content-lg-end gap-2">
+        {/* <Col xs={12} lg={3} className="text-lg-end d-flex flex-wrap justify-content-lg-end gap-2">
           <Button id="All_btn" variant="dark" className="w-lg-auto" onClick={handleReturnJob}>
             Return Job
           </Button>
-        </Col>
+        </Col> */}
       </Row>
 
       <div className="table-responsive">
         <Table hover className="align-middle sticky-header">
           <thead className="bg-light">
             <tr>
-              <th><input type="checkbox" onChange={handleSelectAll} /></th>
+              {/* <th><input type="checkbox" onChange={handleSelectAll} /></th> */}
               <th>EmployeeName</th>
               <th>EmployeeEmail</th>
               <th>Description</th>
@@ -277,7 +277,7 @@ function MyJobs() {
               return (
                 <React.Fragment key={assignment._id}>
                   <tr onClick={() => handleRowClick(assignment._id)} style={{ cursor: "pointer" }}>
-                    <td><input type="checkbox" onChange={handleSelectAll} /></td>
+                    {/* <td><input type="checkbox" onChange={handleSelectAll} /></td> */}
                     <td style={{ whiteSpace: 'nowrap' }}>
                       {assignment.employeeId
                         ? `${assignment.employeeId.firstName} ${assignment.employeeId.lastName}`

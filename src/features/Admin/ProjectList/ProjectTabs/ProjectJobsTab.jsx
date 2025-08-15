@@ -297,13 +297,13 @@ function ProjectJobsTab() {
     switch (status.toLowerCase().trim()) {
       case "in progress":
       case "in_progress":
-        return "bg-warning text-dark";    
+        return "bg-warning text-dark";
       case "completed":
-        return "bg-success text-white";  
+        return "bg-success text-white";
       case "cancelled":
-           case "waitingapproval":  
-      return "bg-info text-dark";
-        return "bg-danger text-white"; 
+      case "waitingapproval":
+        return "bg-info text-dark";
+        return "bg-danger text-white";
       case "active":
         return "bg-primary text-white";
       case "reject":
@@ -314,8 +314,8 @@ function ProjectJobsTab() {
         return "bg-secondary text-white";
       case "open":
         return "bg-primary text-white";
-         case "rejected": // ✅ Added for "Rejected"
-            return "bg-danger text-white";
+      case "rejected": // ✅ Added for "Rejected"
+        return "bg-danger text-white";
       default:
         return "bg-light text-dark";
     }
@@ -487,7 +487,15 @@ function ProjectJobsTab() {
                     </td>
                     <td>{new Date(job?.createdAt).toLocaleDateString('en-GB').replace(/\/20/, '/')}</td>
                     <td style={{ whiteSpace: 'nowrap' }}>{job.assign}</td>
-                    <td>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
+
+                    <td>
+                      {new Date(job.updatedAt).toLocaleTimeString('en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false
+                      })}
+                    </td>
+
                     {/* <th>
                                         <Button id='All_btn' variant="success" style={{ width: "130px" }} size="sm" >
                                           {job.Status || "Active"}

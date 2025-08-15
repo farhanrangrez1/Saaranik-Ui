@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, Row, Col, Container } from 'react-bootstrap';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
-import { FaTasks, FaProjectDiagram, FaFileInvoiceDollar, FaClipboardCheck, FaClock, FaExclamationTriangle, } from 'react-icons/fa';
+import { FaTasks, FaProjectDiagram, FaFileInvoiceDollar, FaClipboardCheck, FaClock, FaExclamationTriangle, FaFileInvoice } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
@@ -80,6 +80,13 @@ function Dashbord() {
   ) || [];
   const ReceivablePurchasesCount = filteredEstimates.length;
 
+
+    const filteredEstimatesCostPOStatus = estimates.costEstimates?.filter(
+    (proj) =>
+      (proj.CostPOStatus || "").toLowerCase().replace(/\s|_/g, "") === "pending"
+  ) || [];
+  const CostPOStatusfiltered = filteredEstimatesCostPOStatus.length;
+
   const WaitingApproval = (job?.jobs || []).filter(
     (j) => j.Status === "WaitingApproval"
   );
@@ -114,6 +121,9 @@ function Dashbord() {
   const cancelledProjectsCount = projects.filter(
     (j) => j.status?.toLowerCase() === "cancelled"
   ).length;
+
+
+ 
 
   // Chart data
   const projectStatusData = {
@@ -172,9 +182,6 @@ function Dashbord() {
           </Link>
         </Col>
 
-
-
-
         {/* Jobs Due Today */}
         <Col md={4} lg={4}>
           <Link to="/admin/DTodayJobsDue" className="text-decoration-none w-100 d-block">
@@ -202,9 +209,26 @@ function Dashbord() {
                   <FaClipboardCheck className="text-purple" size={24} />
                 </div>
                 <div>
-                  <h3 className="mb-0">{ReceivablePurchasesCount}</h3>
+                  <h3 className="mb-0">{CostPOStatusfiltered}</h3>
                   <p className="text-muted mb-0">Cost Estimates</p>
                   <small className="text-danger">Waiting to receive POs</small>
+                </div>
+              </Card.Body>
+            </Card>
+          </Link>
+        </Col>
+
+         <Col md={4} lg={4}>
+          <Link to="/admin/DReciveablePurchase" className="text-decoration-none w-100 d-block">
+            <Card className="h-100 shadow-sm">
+              <Card.Body className="d-flex align-items-center">
+                <div className="rounded-circle p-3 bg-light-purple me-3">
+                  <FaFileInvoice className="bi bi-check-circle text-primary" size={24} />
+                </div>
+                <div>
+                  <h3 className="mb-0">{ReceivablePurchasesCount}</h3>
+                  <p className="text-muted mb-0">Reciveable Purchase Order</p>
+                  <small className="text-danger">Waiting to Invoicing</small>
                 </div>
               </Card.Body>
             </Card>
@@ -229,22 +253,23 @@ function Dashbord() {
           </Link>
         </Col>
 
-        <Col md={4} lg={4}>
+        {/* <Col md={4} lg={4}>
           <Link to="/admin/approval" className="text-decoration-none w-100 d-block">
             <Card className="h-100 shadow-sm">
               <Card.Body className="d-flex align-items-center">
                 <div style={{ backgroundColor: "#0dcaf0bd" }} className="rounded-circle p-3  me-3">
-                  <FaClock className="text-white" size={24} /> {/* Icon color changed to white for contrast */}
+                  <FaClock className="text-white" size={24} />
                 </div>
                 <div>
                   <h3 className="mb-0">{waitingApprovalCount}</h3>
-                  <p className="text-muted mb-0">Waiting for Approval</p>
+                  <p className="text-muted mb-0">Completed </p>
                   <small className="text-info">Pending Jobs</small>
                 </div>
               </Card.Body>
             </Card>
           </Link>
-        </Col>
+        </Col> */}
+
         {/* Timesheet Discrepancies */}
         {/* <Col md={4} lg={4}>
           <Link to="/admin/TimesheetWorklog" className="text-decoration-none w-100 d-block">
@@ -317,5 +342,3 @@ function Dashbord() {
 }
 
 export default Dashbord;
-
-

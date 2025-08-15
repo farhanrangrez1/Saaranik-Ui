@@ -499,12 +499,13 @@ function NewJobsList() {
                   <td style={{ whiteSpace: "nowrap" }}>{job.packType}</td>
                   <td style={{ whiteSpace: "nowrap" }}>{job.packSize}</td>
                   <td style={{ whiteSpace: "nowrap" }}>{job?.packCode}</td>
-                  <td style={{ whiteSpace: "nowrap" }}>
-                    {new Date(job.updatedAt).toLocaleTimeString("en-US", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </td>
+             <td>
+                      {new Date(job.updatedAt).toLocaleTimeString('en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false
+                      })}
+                    </td>
                   <td style={{ whiteSpace: "nowrap" }}>
                     {new Date(job.createdAt).toLocaleDateString("en-GB")}
                   </td>

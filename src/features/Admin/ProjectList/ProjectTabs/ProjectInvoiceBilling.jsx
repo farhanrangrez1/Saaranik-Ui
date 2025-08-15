@@ -1,24 +1,35 @@
-
 import React, { useEffect, useState } from 'react';
-import { Form, Table, Badge, InputGroup, Button,Dropdown  } from 'react-bootstrap';
+import { Form, Table, Badge, InputGroup, Button, Dropdown } from 'react-bootstrap';
 import { FaSearch, FaSort, FaEdit, FaTrash, FaDownload, FaFilter } from 'react-icons/fa';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { jsPDF } from "jspdf";
 import autoTable from 'jspdf-autotable'; // Only this import should remain
+import { deleteInvoicingBilling, fetchInvoicingBilling } from '../../../../redux/slices/InvoicingBillingSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import axiosInstance from '../../../../redux/utils/axiosInstance';
-import stamp from "../../../assets/stamp.png"
-import { deleteInvoicingBilling, fetchInvoicingBilling } from '../../../../redux/slices/InvoicingBillingSlice';
+import stamp from "../../../../assets/stamp.png"
+import { JobsFinace } from '../../../../redux/slices/JobsSlice';
 
-function InvoiceBilling() {
+function ProjectInvoiceBilling() {
+ const location = useLocation();
+  const params = useParams();
+  const id = params.id
+
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+
+const { job } = useSelector((state) => state.jobs);
+  
+useEffect(() => {
+    dispatch(JobsFinace(id))
+  }, [dispatch]);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedProject, setSelectedProject] = useState('All Projects');
   const [sortField, setSortField] = useState(null);
   const [sortDirection, setSortDirection] = useState('asc');
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
 
   const initialInvoices = [
     {
@@ -49,30 +60,28 @@ function InvoiceBilling() {
 
   const [invoices, setInvoices] = useState(initialInvoices);
 
-  const getStatusBadgeVariant = (status) => {
-    switch (status.toLowerCase()) {
-      case 'paid':
-        return 'success';
-      case 'pending':
-        return 'warning';
-      case 'overdue':
-        return 'danger';
-      case 'Inactive':
-        return 'secondary';
-      case 'completed':
-        return 'primary';
-      case 'active':
-        return 'success';
+  const getStatusClass = (status) => {
+    switch (status.toLowerCase().trim()) {
+      case "status select":
+        return "bg-light text-dark";       // Default/neutral
+      case "active":
+        return "bg-primary text-white";    // Blue
+      case "inactive":
+        return "bg-secondary text-white";  // Grey
+      case "completed":
+        return "bg-success text-white";    // Green
+      case "pending":
+        return "bg-warning text-dark";     // Yellow
+      case "overdue":
+        return "bg-danger text-white";     // Red
       default:
-        return 'secondary';
+        return "bg-light text-dark";       // Fallback style
     }
   };
-
 
   const handleSearch = (e) => {
     const query = e.target.value.toLowerCase();
     setSearchQuery(query);
-
     const filtered = initialInvoices.filter(invoice =>
       invoice.invoiceNumber.toLowerCase().includes(query) ||
       invoice.client.toLowerCase().includes(query) ||
@@ -168,14 +177,15 @@ function InvoiceBilling() {
   // Helper function to generate PDF from API JSON data
   const generatePDFfromData = async (invoiceData) => {
     const companyDetails = {
-      logoText: 'COMPANY LOGO',
+      logoText: '',
       addressDetails: 'COMPANY ADDRESS DETAILS',
-      name: 'Company name',
+      name: 'Company name Saaranik',
       trn: invoiceData.clientId?.TaxID_VATNumber || 'N/A',
     };
+
     const invoiceMeta = {
       date: invoiceData.date ? new Date(invoiceData.date).toLocaleDateString("en-GB") : 'N/A',
-      invoiceNo: invoiceData._id || 'N/A',
+      invoiceNo: invoiceData.InvoiceNo || 'N/A',
     };
     // Try to get client details from the API JSON structure
     const client = invoiceData.clientId && typeof invoiceData.clientId === 'object' && !Array.isArray(invoiceData.clientId)
@@ -199,7 +209,7 @@ function InvoiceBilling() {
       projectNo: project?.projectNo || 'N/A',
       projectName: project?.projectName || 'N/A',
     };
-    
+
     const bankDetails = {
       accountName: client?.financialInformation?.[0]?.bankName || 'Company Name',
       bankName: client?.financialInformation?.[0]?.bankName || 'Company Bank Name',
@@ -226,24 +236,33 @@ function InvoiceBilling() {
     const amountInWords = `US Dollars ${numberToWords(grandTotal)} Only`;
     const doc = new jsPDF('p', 'pt', 'a4');
     const pageWidth = doc.internal.pageSize.width;
-    const margin = 40;
+    const margin = 20;
     let finalY = margin;
     doc.setFillColor(192, 0, 0);
     doc.rect(margin, finalY, 220, 60, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
+    // Add the provided image above the COMPANY LOGO text
+    const customLogoY = finalY + 5; // 5px from the top of the red box
+    const customLogoHeight = 40; // Height for the image
+    const customLogoWidth = 40; // Width for the image
+    const customLogoX = margin + 10; // X position
+    const logoUrlCustom = invoiceData.CostEstimatesId.image[0];
+
+
+    doc.addImage(logoUrlCustom, 'PNG', customLogoX, customLogoY, customLogoWidth, customLogoHeight);
     doc.text(companyDetails.logoText, margin + 10, finalY + 25);
     doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
-    doc.text(companyDetails.addressDetails, margin + 10, finalY + 45);
+    doc.text(companyDetails.addressDetails, margin + 10, finalY + 55);
     const companyNameBlockY = finalY;
     doc.setFillColor(192, 0, 0);
     doc.rect(pageWidth - margin - 150, companyNameBlockY, 150, 30, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    doc.text(companyDetails.name, pageWidth - margin - 140, companyNameBlockY + 20, { align: 'left' });
+    doc.text(companyDetails.name, pageWidth - margin - 145, companyNameBlockY + 20, { align: 'left' });
     let titleY = companyNameBlockY + 30 + 20;
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(18);
@@ -278,7 +297,7 @@ function InvoiceBilling() {
     [
       `Client Company: ${clientDetails?.name}`,
       `Client Address: ${clientDetails?.address1}`,
-      `Client Address2: ${clientDetails?.address2}`,
+      `Shipping Address: ${clientDetails?.address2}`,
       `Tel: ${clientDetails?.tel}`,
       `Contact: ${clientDetails.contactPerson}`,
       `Email: ${clientDetails.email}`
@@ -376,7 +395,11 @@ function InvoiceBilling() {
     doc.setFontSize(8);
     // Insert the stamp image instead of text
     try {
-      const imgData = await getImageBase64FromUrl(stamp);
+      // Use image from ReceivablePurchaseId.image if available, otherwise fallback to local stamp
+      const stampImageUrl = (invoiceData.ReceivablePurchaseId && Array.isArray(invoiceData.ReceivablePurchaseId.image) && invoiceData.ReceivablePurchaseId.image.length > 0)
+        ? invoiceData.ReceivablePurchaseId.image[0]
+        : stamp;
+      const imgData = await getImageBase64FromUrl(stampImageUrl);
       // Center the image in the stamp box and make it smaller for a better fit
       const stampImgWidth = 80; // Adjust width as needed
       const stampImgHeight = 80; // Adjust height as needed
@@ -455,8 +478,11 @@ function InvoiceBilling() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
 
-
-  const filteredEstimates = invocing?.InvoicingBilling
+  console.log("new",job.invoicingData);
+  
+  const filteredEstimates = job.invoicingData
+  console.log("invocing kk",filteredEstimates)
+  
     ?.slice()
     .reverse()
     .filter((invoice) => {
@@ -543,7 +569,7 @@ function InvoiceBilling() {
           ${showFilters ? 'd-block' : 'd-none d-md-flex'}
         `}
       >
-        <div className="col-md-4">
+        <div className="col-md-3">
           <div className="input-group">
             <span className="input-group-text bg-white border-end-0">
               <FaSearch className="text-muted" />
@@ -557,7 +583,7 @@ function InvoiceBilling() {
             />
           </div>
         </div>
-        <div className="col-md-4">
+        <div className="col-md-3">
           <div className="input-group">
             <span className="input-group-text bg-white border-end-0">
               {/* <FaCalendarAlt className="text-muted" /> */}
@@ -570,7 +596,7 @@ function InvoiceBilling() {
             />
           </div>
         </div>
-        <div className="col-md-4">
+        <div className="col-md-3">
           <Dropdown>
             <Dropdown.Toggle variant="light" id="project-dropdown" className="w-100">
               {selectedProject}
@@ -588,6 +614,15 @@ function InvoiceBilling() {
               ))}
             </Dropdown.Menu>
           </Dropdown>
+        </div>
+        <div className="col-md-3">
+          <div className="input-group">
+            {/* <Link to={"/admin/AddInvoice"}><button
+              className="btn btn-outline-secondary "
+              type="button"
+            >+ Invoicing
+            </button></Link> */}
+          </div>
         </div>
       </div>
 
@@ -628,13 +663,13 @@ function InvoiceBilling() {
       <Table hover responsive>
         <thead>
           <tr>
-            <th onClick={() => handleSort('invoiceNumber')} style={{ whiteSpace: "nowrap",whiteSpace: 'nowrap' }}>Invoice #</th>
-            <th onClick={() => handleSort('project')} style={{ cursor: 'pointer',whiteSpace: 'nowrap' }}>Project</th>
-            <th onClick={() => handleSort('client')} style={{ cursor: 'pointer',whiteSpace: 'nowrap' }}>Client Name</th>
-            <th onClick={() => handleSort('email')} style={{ cursor: 'pointer',whiteSpace: 'nowrap' }}>Client Email</th>
-            <th onClick={() => handleSort('amount')} style={{ cursor: 'pointer',whiteSpace: 'nowrap' }}>Amount</th>
-            <th onClick={() => handleSort('status')} style={{ cursor: 'pointer',whiteSpace: 'nowrap' }}>Status</th>
-            <th onClick={() => handleSort('dueDate')} style={{ cursor: 'pointer',whiteSpace: 'nowrap' }}>Due Date</th>
+            <th onClick={() => handleSort('invoiceNumber')} style={{ whiteSpace: "nowrap", whiteSpace: 'nowrap' }}>Invoice #</th>
+            <th onClick={() => handleSort('project')} style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>Project</th>
+            <th onClick={() => handleSort('client')} style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>Client Name</th>
+            <th onClick={() => handleSort('email')} style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>Client Email</th>
+            <th onClick={() => handleSort('amount')} style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>Amount</th>
+            <th onClick={() => handleSort('status')} style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>Status</th>
+            <th onClick={() => handleSort('dueDate')} style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>Due Date</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -642,24 +677,23 @@ function InvoiceBilling() {
           {paginatedEstimates?.map((invoice, index) => (
             <tr key={invoice.invoiceNumber || index}>
               <td style={{ whiteSpace: "nowrap" }} /* onClick={() => JobDetails(invoice._id)} */>
-                INV-{String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}
+                {invoice.InvoiceNo || "N/A"}
               </td>
-
               <td style={{ whiteSpace: "nowrap" }}>{invoice.projectId?.[0]?.projectName || "N/A"}</td>
               <td style={{ whiteSpace: "nowrap" }}>{invoice.clients?.[0]?.clientName || "N/A"}</td>
               <td style={{ whiteSpace: "nowrap" }}>{invoice.clientId?.contactPersons[0].email || "N/A"}</td>
               <td style={{ whiteSpace: "nowrap" }}>${invoice.lineItems?.[0]?.amount || "N/A"}</td>
               <td>
-                <Badge bg={getStatusBadgeVariant(invoice.status)}>
+                <span className={`badge ${getStatusClass(invoice.status)} px-2 py-1`}>
                   {invoice.status}
-                </Badge>
+                </span>
               </td>
               <td>{invoice.date ? new Date(invoice.date).toLocaleDateString("en-GB") : 'N/A'}</td>
               <td>
                 <div className="d-flex gap-2">
-                  <button className="btn btn-sm btn-outline-primary" onClick={() => UpdateInvocing(invoice)}>
+                  {/* <button className="btn btn-sm btn-outline-primary" onClick={() => UpdateInvocing(invoice)}>
                     <FaEdit />
-                  </button>
+                  </button> */}
                   {/* <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(invoice._id)}>
                       <FaTrash />
                     </button> */}
@@ -706,5 +740,6 @@ function InvoiceBilling() {
   );
 }
 
-export default InvoiceBilling;
 
+
+export default ProjectInvoiceBilling

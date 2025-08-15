@@ -250,7 +250,13 @@ function JobTracker() {
                 </td>
                 <td style={{ whiteSpace: 'nowrap' }}>{job?.assign}</td>
                 <td>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
-                <td>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
+                 <td>
+                      {new Date(job.updatedAt).toLocaleTimeString('en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false
+                      })}
+                    </td>
                 <td>
                   <span className={`badge ${getStatusClass(job.Status)} px-2 py-1`}>
                     {job.Status}

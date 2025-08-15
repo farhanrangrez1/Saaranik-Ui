@@ -44,9 +44,7 @@ function ProjectList() {
   )?.filter((project) => {
     // Split searchTerm by spaces, ignore empty terms
     const terms = searchTerm.trim().split(/\s+/).filter(Boolean);
-    // If no search terms, include all
     if (terms.length === 0) return true;
-    // Prepare searchable fields as strings
     const fields = [
       project.projectName,
       project.projectNo,
@@ -235,7 +233,7 @@ function ProjectList() {
         <Table responsive className="project-table mb-4">
           <thead>
             <tr>
-              <th>
+              {/* <th>
                 <input
                   type="checkbox"
                   onChange={() => {
@@ -248,10 +246,10 @@ function ProjectList() {
                     setSelectedJobs(newSelectedJobs);
                   }}
                 />
-              </th>
+              </th> */}
               <th style={{ whiteSpace: 'nowrap' }}>Project No</th>
               <th style={{ textWrap: 'nowrap' }}>Project Name</th>
-              <th>Description</th>
+              {/* <th>Description</th> */}
               <th style={{ whiteSpace: 'nowrap' }}>Start Date</th>
               <th style={{ whiteSpace: 'nowrap' }}>End Date</th>
               <th>Client</th>
@@ -263,13 +261,13 @@ function ProjectList() {
           <tbody>
             {paginatedProjects.slice().reverse().map((project, index) => (
               <tr key={project.id}>
-                <td>
+                {/* <td>
                   <input
                     type="checkbox"
                     checked={selectedJobs[project.id] || false}
                     onChange={() => handleCheckboxChange(project.id)}
                   />
-                </td>
+                </td> */}
                 {/* <td onClick={() => CreatJobs(project.id)}>
                   <Link style={{ textDecoration: 'none' }}>{project.projectNo}</Link>
                 </td> */}
@@ -277,7 +275,7 @@ function ProjectList() {
                   <Link style={{ textDecoration: 'none' }}>{project.projectNo}</Link>
                 </td>
                 <td style={{ whiteSpace: 'nowrap' }}>{project.projectName}</td>
-                <td style={{ whiteSpace: 'nowrap' }}>{project.description}</td>
+                {/* <td style={{ whiteSpace: 'nowrap' }}>{project.description}</td> */}
                 <td>{new Date(project.startDate).toLocaleDateString('en-GB').replace(/\/20/, '/')}</td>
                 <td>{new Date(project.endDate).toLocaleDateString('en-GB').replace(/\/20/, '/')}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>{project?.clientId.clientName}</td>

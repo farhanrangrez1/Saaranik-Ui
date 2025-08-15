@@ -192,7 +192,6 @@ function ProjectList() {
               </th>
               <th style={{ whiteSpace: 'nowrap' }}>Project No</th>
               <th style={{ textWrap: 'nowrap' }}>Project Name</th>
-              <th>Description</th>
               <th style={{ whiteSpace: 'nowrap' }}>Start Date</th>
               <th style={{ whiteSpace: 'nowrap' }}>End Date</th>
               <th>Client</th>
@@ -217,11 +216,10 @@ function ProjectList() {
                   </Link>
                 </td> */}
                 <td>
-                  <Link>
+                  <Link to={"/employee/myJobs"}>
                     {String((currentPage - 1) * itemsPerPage + index + 1).padStart(4, '0')}</Link>
                 </td>
                 <td style={{ whiteSpace: 'nowrap' }}>{project.projectName}</td>
-                <td style={{ whiteSpace: 'nowrap' }}>{project.description}</td>
                 <td>{new Date(project.startDate).toLocaleDateString('en-GB').replace(/\/20/, '/')}</td>
                 <td>{new Date(project.endDate).toLocaleDateString('en-GB').replace(/\/20/, '/')}</td>
                 <td>{project.client}Client</td>

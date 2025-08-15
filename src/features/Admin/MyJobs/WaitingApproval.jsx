@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { LuDownload, LuEye, LuRotateCcw } from "react-icons/lu";
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { EmployeeCompletedStatus, filterStatus } from '../../../redux/slices/JobsSlice';
+import { Complete_WaitingApproval, EmployeeCompletedStatus, filterStatus } from '../../../redux/slices/JobsSlice';
 import { Button, Form, Table, ProgressBar, Pagination, Modal, Dropdown, Collapse } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { FaComments, FaDownload, FaEye } from "react-icons/fa";
@@ -32,7 +32,8 @@ function WaitingApproval() {
     console.log("Job data hai ", job.jobs);
 
     useEffect(() => {
-        dispatch(filterStatus(Status));
+        // dispatch(filterStatus(Status));
+        dispatch(Complete_WaitingApproval())
     }, [dispatch, Status]);
 
     const isAnySelected = Object.values(selectedJobs).some(Boolean);
@@ -62,29 +63,29 @@ function WaitingApproval() {
         }
     };
 
- const getStatusClass = (status) => {
-    switch ((status || "").toLowerCase().trim()) {
-        case "in progress":
-        case "in_progress":
-            return "bg-warning text-dark";
-        case "waitingapproval":
-        case "review":
-            return "bg-info text-dark";
-        case "not started":
-            return "bg-secondary text-white";
-        case "completed":
-            return "bg-success text-white";
-        case "open":
-            return "bg-primary text-white";
-        case "cancelled":
-            return "bg-dark text-white";
-        case "reject":
-        case "rejected": // ✅ Added for "Rejected"
-            return "bg-danger text-white";
-        default:
-            return "bg-light text-dark";
-    }
-};
+    const getStatusClass = (status) => {
+        switch ((status || "").toLowerCase().trim()) {
+            case "in progress":
+            case "in_progress":
+                return "bg-warning text-dark";
+            case "waitingapproval":
+            case "review":
+                return "bg-info text-dark";
+            case "not started":
+                return "bg-secondary text-white";
+            case "completed":
+                return "bg-success text-white";
+            case "open":
+                return "bg-primary text-white";
+            case "cancelled":
+                return "bg-dark text-white";
+            case "reject":
+            case "rejected": // ✅ Added for "Rejected"
+                return "bg-danger text-white";
+            default:
+                return "bg-light text-dark";
+        }
+    };
 
     const handleUpdate = (job) => {
         navigate(`/admin/AddJobTracker`, { state: { job } });
@@ -163,10 +164,10 @@ function WaitingApproval() {
             cancelButtonText: "Cancel",
         }).then((result) => {
             if (result.isConfirmed) {
-                dispatch(EmployeeCompletedStatus({ id: jobId, data: { Status: "Rejected" } }));
+                dispatch(EmployeeCompletedStatus({ id: jobId, data: { Status: "Retun" } }));
                 dispatch(filterStatus(Status));
-                Swal.fire("Rejected!", "Job has been rejected.", "success");
-                console.log("Rejected job:", jobId);
+                Swal.fire("Retun!", "Job has been Retun.", "success");
+                console.log("Retun job:", jobId);
             }
         });
     };
@@ -181,7 +182,8 @@ function WaitingApproval() {
 
             <div className="card p-3">
                 <div className="d-flex justify-content-between align-items-center mb-4">
-                    <h2 className="job-title mb-0">Waiting for Approval</h2>
+                    {/* <h2 className="job-title mb-0">Waiting for Approval</h2> */}
+                    <h2 className="job-title mb-0">Completed</h2>
                 </div>
 
                 <div className="d-md-none mb-3">
@@ -190,35 +192,35 @@ function WaitingApproval() {
                     </button>
                 </div>
 
-               <div style={{display:"flex",alignItems:"center" , gap:"5px"}}>
-                {/* 🔍 Search Input */}
-                <div className="d-flex flex-wrap gap-2 mb-3 align-items-center">
-                    <Form.Control
-                        type="search"
-                        placeholder="Search jobs..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        style={{ width: "250px" }}
-                    />
-                </div>
-                 <div className="d-flex gap-2 mb-2">
-                    <Button
-                        variant={Status === "WaitingApproval" ? "primary" : "outline-primary"}
-                        size="sm"
-                        onClick={() => setStatus("WaitingApproval")}
-                    >
-                        Waiting Approval
-                    </Button>
+                <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                    {/* 🔍 Search Input */}
+                    <div className="d-flex flex-wrap gap-2 mb-3 align-items-center">
+                        <Form.Control
+                            type="search"
+                            placeholder="Search jobs..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            style={{ width: "250px" }}
+                        />
+                    </div>
+                    {/* <div className="d-flex gap-2 mb-2">
+                        <Button
+                            variant={Status === "WaitingApproval" ? "primary" : "outline-primary"}
+                            size="sm"
+                            onClick={() => setStatus("WaitingApproval")}
+                        >
+                            Waiting Approval
+                        </Button>
 
-                    <Button
-                        variant={Status === "Rejected" ? "danger" : "outline-danger"}
-                        size="sm"
-                        onClick={() => setStatus("Rejected")}
-                    >
-                        Rejected
-                    </Button>
+                        <Button
+                            variant={Status === "Rejected" ? "danger" : "outline-danger"}
+                            size="sm"
+                            onClick={() => setStatus("Rejected")}
+                        >
+                            Rejected
+                        </Button>
+                    </div> */}
                 </div>
-               </div>
 
                 {/* 📋 Table */}
                 <div className="table-responsive">
@@ -243,11 +245,17 @@ function WaitingApproval() {
                             </tr>
                         </thead>
                         <tbody>
-                            {paginatedProjects.some(job => job.Status?.toLowerCase() === Status.toLowerCase()) ? (
+                            {paginatedProjects.some(job => {
+                                const status = job.Status?.toLowerCase();
+                                return status === "waitingapproval" || status === "completed";
+                            }) ? (
                                 paginatedProjects
                                     .slice()
                                     .reverse()
-                                    .filter(job => job.Status?.toLowerCase() === Status.toLowerCase())
+                                    .filter(job => {
+                                        const status = job.Status?.toLowerCase();
+                                        return status === "waitingapproval" || status === "completed";
+                                    })
                                     .map((job, index) => (
                                         <tr key={job._id}>
                                             <td>
@@ -277,22 +285,23 @@ function WaitingApproval() {
                                                 </span>
                                             </td>
                                             <td>
-                                                {Status === "WaitingApproval" && (
-                                                    <div className="d-flex gap-2">
-                                                        <button
-                                                            onClick={() => handleApproveJob(job._id)}
-                                                            className="btn btn-primary btn-sm fw-semibold px-3 py-1 text-white"
-                                                        >
-                                                            Approve
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleRejectJob(job._id)}
-                                                            className="btn btn-outline-danger btn-sm fw-semibold px-3 py-1"
-                                                        >
-                                                            Reject
-                                                        </button>
-                                                    </div>
-                                                )}
+                                                <div className="d-flex gap-2">
+                                                    <button
+                                                        onClick={() => handleApproveJob(job._id)}
+                                                        className="btn btn-primary btn-sm fw-semibold px-3 py-1 text-white"
+                                                        disabled={job.Status?.toLowerCase() !== "waitingapproval"}
+                                                    >
+                                                        Approve
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleRejectJob(job._id)}
+                                                        className="btn btn-outline-danger btn-sm fw-semibold px-3 py-1"
+                                                        disabled={job.Status?.toLowerCase() !== "waitingapproval"}
+                                                    >
+                                                        Retun
+                                                    </button>
+                                                </div>
+
                                             </td>
                                         </tr>
                                     ))

@@ -192,6 +192,7 @@ const paginatedProjects = filteredProjects.slice(
               <th><input type="checkbox" /></th>
               <th>JobNo</th>
               <th>ProjectName</th>
+               <th>ProjectNo</th>
               <th>Brand</th>
               <th>SubBrand</th>
               <th>Flavour</th>
@@ -225,6 +226,9 @@ const paginatedProjects = filteredProjects.slice(
             <Link style={{ textDecoration: 'none' }}>{job.JobNo}</Link>
           </td>
           <td style={{ whiteSpace: 'nowrap' }}>{job.projectId?.[0]?.projectName || 'N/A'}</td>
+                <td style={{ whiteSpace: "nowrap" }}>
+                    {job.projectId?.[0]?.projectNo || "N/A"}
+                  </td>
           <td style={{ whiteSpace: 'nowrap' }}>{job.brandName}</td>
           <td style={{ whiteSpace: 'nowrap' }}>{job.subBrand}</td>
           <td style={{ whiteSpace: 'nowrap' }}>{job.flavour}</td>
@@ -236,7 +240,13 @@ const paginatedProjects = filteredProjects.slice(
           </td>
           <td>{new Date(job.createdAt).toLocaleDateString("en-GB")}</td>
           <td style={{ whiteSpace: 'nowrap' }}>{job.assign}</td>
-          <td style={{ whiteSpace: 'nowrap' }}>{new Date(job.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
+            <td>
+                      {new Date(job.updatedAt).toLocaleTimeString('en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false
+                      })}
+                    </td>
           <td>
             <span className={`badge ${getStatusClass(job.Status)} px-2 py-1`}>
               {job.Status}

@@ -325,6 +325,7 @@ const getStatusClass = (status) => {
                   {po.POStatus}
                 </span>
                 </td>
+                <td>
                 <div>
                   <Button
                     variant="outline-primary"
@@ -336,12 +337,13 @@ const getStatusClass = (status) => {
                       borderRadius: '6px',
                       fontSize: '12px',
                       textTransform: 'uppercase',
-                      letterSpacing: '0.5px'
+                      letterSpacing: '0.5px',
+                      whiteSpace: "nowrap"
                     }}
                   >
                     To be invoiced
                   </Button>
-                </div>
+                </div></td>
               </tr>
             ))}
           </tbody>

@@ -13,12 +13,26 @@ import { deleteCostEstimate, fetchCostEstimates } from "../../../../redux/slices
 import { fetchClient } from "../../../../redux/slices/ClientSlice";
 import { fetchProject } from "../../../../redux/slices/ProjectsSlice";
 import axiosInstance from "../../../../redux/utils/axiosInstance";
+import { JobsFinace } from "../../../../redux/slices/JobsSlice";
+import { useLocation, useParams } from 'react-router-dom';
 
 function PurchaseOrder() {
+  const location = useLocation();
+  const params = useParams();
+  console.log("hello me project id", params.id);
+  const id = params.id
+  console.log("kkk", id);
+
   const dispatch = useDispatch()
   const navigate = useNavigate()
 
-  // State declarations
+const { job } = useSelector((state) => state.jobs);
+  console.log("hhhhhhhhh", job.costEstimates);
+  
+  useEffect(() => {
+    dispatch(JobsFinace(id))
+  }, [dispatch]);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedClient, setSelectedClient] = useState("All Clients");
   const [selectedPOStatus, setSelectedPOStatus] = useState("All PO Status");
@@ -40,7 +54,7 @@ function PurchaseOrder() {
 
   const { project } = useSelector((state) => state.projects);
   const { Clients } = useSelector((state) => state.client);
-  const statuses = ["Pending", "Received", "Cancelled", "Completed", "open", "invoiced"];
+  const statuses = ["pending ", "Received", "Cancelled", "Completed", "open", "invoiced"];
 
   useEffect(() => {
     dispatch(fetchProject());
@@ -74,7 +88,7 @@ function PurchaseOrder() {
 
 
   const handleSavePO = async () => {
-    if (!selectedProjectId || !selectedClientId || !poDate || !POStatus || !amount) {
+    if (!selectedProjectId || !selectedClientId || !poDate  || !amount) {
       Swal.fire({
         icon: 'error',
         title: 'Required Fields Missing',
@@ -87,7 +101,7 @@ function PurchaseOrder() {
     formData.append('projectsId', JSON.stringify([selectedProjectId]));
     formData.append('ClientId', selectedClientId);
     formData.append('ReceivedDate', poDate);
-    formData.append('POStatus', POStatus);
+    formData.append('POStatus', POStatus || "Pending");
 
     formData.append('Amount', amount);
     formData.append('CostEstimatesId', JSON.stringify([costEstimatesId]));
@@ -112,7 +126,7 @@ function PurchaseOrder() {
         setSelectedClientId("");
         setCostEstimatesId("");
         setPODate("");
-        setPOStatus("");
+        setPOStatus("Pending");
         setAmount("");
         setPODocument(null);
         setShowAddPOModal(false);
@@ -145,6 +159,17 @@ function PurchaseOrder() {
   };
 
 
+const Ponamehandle = (po) => {
+  console.log(po.clients[0].clientName, po.projects[0].projectName, "ddd");
+  console.log(po);
+  setSelectedClientId(po.clients[0]?.clientId || "");
+  setSelectedProjectId(po.projects[0]?.projectId || "");
+  setPOStatus("Pending"); // ✅ Default status set here
+  setSelectedPO(po); 
+  setShowAddPOModal(true); 
+};
+
+
   // Add PO Modal
   const renderAddPOModal = () => (
     <Modal show={showAddPOModal} onHide={() => setShowAddPOModal(false)} size="lg">
@@ -155,7 +180,7 @@ function PurchaseOrder() {
         <Form>
           <Form.Group className="mb-2">
             <div className="row justify-content-center">
-              <div className="col-md-6">
+              {/* <div className="col-md-6">
                 <Form.Label className="d-block ">Project</Form.Label>
                 <Form.Select
                   value={selectedProjectId}
@@ -184,39 +209,38 @@ function PurchaseOrder() {
                     </option>
                   ))}
                 </Form.Select>
+              </div> */}
+              <div className="row justify-content-center">
+                <div className="col-md-6">
+                  <Form.Label className="d-block">Project</Form.Label>
+                  <Form.Select
+                    value={selectedProjectId}
+                    disabled
+                    className="form-control"
+                  >
+                    <option value="">
+                      {selectedPO?.projects?.find(p => p.projectId === selectedProjectId)?.projectName || "-- No Project --"}
+                    </option>
+                  </Form.Select>
+                </div>
+
+                <div className="col-md-6">
+                  <Form.Label className="d-block">Client</Form.Label>
+                  <Form.Select
+                    value={selectedClientId}
+                    disabled
+                    className="form-control"
+                  >
+                    <option value="">
+                      {selectedPO?.clients?.find(c => c.clientId === selectedClientId)?.clientName || "-- No Client --"}
+                    </option>
+                  </Form.Select>
+                </div>
               </div>
+
             </div>
           </Form.Group>
-
-
-          <Form.Group className="mb-3">
-            <div className="row justify-content-center">
-              <div className="col-md-6">
-                <Form.Label className="d-block">PO Date</Form.Label>
-                <Form.Control
-                  type="date"
-                  value={poDate}
-                  onChange={(e) => setPODate(e.target.value)}
-                  className="form-control"
-                  required
-                />
-              </div>
-
-              <div className="col-md-6">
-                <Form.Label className="d-block">PO Status</Form.Label>
-                <Form.Select
-                  value={POStatus}
-                  onChange={(e) => setPOStatus(e.target.value)}
-                  className="form-control"
-                  required>
-                  <option value="">-- Select Status --</option>
-                  {statuses.map((s) => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </Form.Select>
-              </div>
-            </div>
-          </Form.Group>
+        
 
           <Form.Group className="mb-3">
             <div className="row justify-content-center align-items-start">
@@ -235,7 +259,8 @@ function PurchaseOrder() {
 
               {/* File Upload Field */}
               <div className="col-md-6">
-                <Form.Label className="d-block">Upload Document</Form.Label>
+                {/* <Form.Label className="d-block">Upload Document</Form.Label> */}
+                <Form.Label className="d-block">Add Stamp</Form.Label>
                 <div className="file-upload">
                   <Form.Control
                     type="file"
@@ -250,7 +275,34 @@ function PurchaseOrder() {
               </div>
             </div>
           </Form.Group>
+          <Form.Group className="mb-3">
+            <div className="">
+              <div className="col-md-6">
+                <Form.Label className="d-block">PO Date</Form.Label>
+                <Form.Control
+                  type="date"
+                  value={poDate}
+                  onChange={(e) => setPODate(e.target.value)}
+                  className="form-control"
+                  required
+                />
+              </div>
 
+              {/* <div className="col-md-6">
+                <Form.Label className="d-block">PO Status</Form.Label>
+                <Form.Select
+                  value={POStatus}
+                  onChange={(e) => setPOStatus(e.target.value)}
+                  className="form-control"
+                  required>
+                  <option value="">-- Select Status --</option>
+                  {statuses.map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </Form.Select>
+              </div> */}
+            </div>
+          </Form.Group>
         </Form>
       </Modal.Body>
       <Modal.Footer className="d-flex justify-content-end gap-2">
@@ -271,7 +323,7 @@ function PurchaseOrder() {
 
 
   // ye ok code hai 
-  const getStatusClass = (status) => {
+ const getStatusClass = (status) => {
     switch ((status || "").toLowerCase().trim()) {
       case "active":
       case "active project":
@@ -289,6 +341,29 @@ function PurchaseOrder() {
       case "cancelled":
         return "bg-danger text-white";
       case "on hold":
+      case "review":
+        return "bg-info text-dark";
+      case "not started":
+        return "bg-secondary text-white";
+      case "pending":
+        return "bg-warning text-dark";     // Yellow
+      case "received":
+        return "bg-info text-dark";        // Light Blue
+      case "cancelled":
+        return "bg-danger text-white";     // Red
+      case "completed":
+        return "bg-success text-white";    // Green
+      case "open":
+        return "bg-primary text-white";    // Blue
+      case "invoiced":
+        return "bg-dark text-white";       // Dark (You can change it as needed)
+      case "in progress":
+      case "in_progress":
+        return "bg-warning text-dark";
+      case "active":
+        return "bg-primary text-white";
+      case "reject":
+        return "bg-danger text-white";
       case "review":
         return "bg-info text-dark";
       case "not started":
@@ -348,7 +423,7 @@ function PurchaseOrder() {
   const itemsPerPage = 7;
 
   // Add filtering logic before pagination
-  const filteredEstimates = estimates?.costEstimates
+  const filteredEstimates = job.costEstimates
     ?.slice()
     .reverse()
     .filter((estimate) => {
@@ -356,8 +431,9 @@ function PurchaseOrder() {
       const terms = searchQuery.toLowerCase().trim().split(/\s+/).filter(Boolean);
       // Prepare searchable fields as strings
       const estimateRef = (estimate.estimateRef || '').toLowerCase();
-      const clientName = (estimate.clientId?.[0]?.clientName || '').toLowerCase();
-      const projectNames = (estimate.projectId || []).map(project => (project.projectName || project.name || '').toLowerCase()).join(' ');
+      // FIX: Use 'clients' and 'projects' fields for search
+      const clientName = (estimate.clients?.[0]?.clientName || '').toLowerCase();
+      const projectNames = (estimate.projects || []).map(project => (project.projectName || project.name || '').toLowerCase()).join(' ');
       const status = (estimate.Status || '').toLowerCase();
       const poStatus = (estimate.POStatus || '').toLowerCase();
       const fields = [
@@ -372,13 +448,14 @@ function PurchaseOrder() {
         fields.some(field => field.includes(term))
       );
       const matchesClient = selectedClient === "All Clients" ||
-        estimate.clientId[0]?.clientName === selectedClient;
+        estimate.clients?.[0]?.clientName === selectedClient;
       const matchesPOStatus = selectedPOStatus === "All PO Status" ||
         estimate.POStatus === selectedPOStatus;
       const matchesStatus = selectedStatus === "All Status" ||
         estimate.Status === selectedStatus;
-      const matchesDate = !selectedDate ||
-        new Date(estimate.estimateDate).toLocaleDateString() === new Date(selectedDate).toLocaleDateString();
+      // FIX: Compare date in 'YYYY-MM-DD' format
+      const estimateDateStr = estimate.estimateDate ? estimate.estimateDate.slice(0, 10) : "";
+      const matchesDate = !selectedDate || estimateDateStr === selectedDate;
       return matchesSearch && matchesClient && matchesPOStatus && matchesStatus && matchesDate;
     });
 
@@ -388,6 +465,18 @@ function PurchaseOrder() {
 
   const paginatedEstimates = filteredEstimates
     ?.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  // Helper to fetch image and convert to base64
+  const getImageBase64 = async (url) => {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  };
 
   const handleDownloadPDF = async (po) => {
     try {
@@ -402,8 +491,10 @@ function PurchaseOrder() {
       const estimate = response.data?.data?.[0];
       if (!estimate) throw new Error("No estimate data found");
 
-      const client = estimate.clientId?.[0] || {};
-      const project = estimate.projectId?.[0] || {};
+      const client = estimate.clientId || {};
+      const project = estimate.projectId || {};
+      
+      
       const lineItems = estimate.lineItems || [];
 
       const doc = new jsPDF('p', 'pt', 'a4');
@@ -414,13 +505,19 @@ function PurchaseOrder() {
       doc.rect(40, 40, 200, 50, 'F');
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(14);
+      // Insert logo image instead of text
+      
+      const logoUrl = estimate.image[0];
+      const logoBase64 = await getImageBase64(logoUrl);
+      doc.addImage(logoBase64, 'PNG', 45, 45, 60, 40);
+
       doc.setFont('helvetica', 'bold');
-      doc.text("COMPANY LOGO", 50, 60);
+      doc.text("SAARANIK", 110, 60);
+      // (image, format, x, y, width, height
       doc.setFontSize(8);
       doc.setFont('helvetica', 'normal');
-      doc.text("COMPANY ADDRESS DETAILS", 50, 75);
+      doc.text("COMPANY ADDRESS DETAILS", 110, 75);
       doc.setTextColor(0, 0, 0); // Reset text color
-
       // === Estimate Info (Right) ===
       doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
@@ -441,13 +538,15 @@ function PurchaseOrder() {
       currentY += 14;
       doc.text(`Address: ${client?.clientAddress?.split(',')[0] || "Address Line 1"}`, 40, currentY);
       currentY += 14;
-      doc.text(`shipping Address: ${client?.shippingInformation[0].shippingAddress || "Address Line 2"}`, 40, currentY);
+      doc.text(`shipping Address: ${client?.shippingInformation?.[0]?.shippingAddress || "Address Line 2"}`, 40, currentY);
       currentY += 14;
       doc.text(`Email: ${client?.contactPersons[0].email || "email"}`, 40, currentY);
+      console.log("kkk",client?.contactPersons[0].email);
+      
       currentY += 14;
       doc.text(`Phone: ${client?.contactPersons[0].phone || "Phone"}`, 40, currentY);
       currentY += 25;
-      
+
       // === Table Data ===
       const tableData = lineItems.map((item, index) => [
         (index + 1).toString(),
@@ -528,8 +627,14 @@ function PurchaseOrder() {
     }
   };
   // ... existing code ...
+
+
+
+    const CostEstimatesDetails = (po) => {
+   navigate(`/admin/OvervieCostEstimates`, { state: { po } });
+  };
   return (
-    <div
+   <div
       className="p-4 m-2"
       style={{ backgroundColor: "white", borderRadius: "10px" }} >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -559,41 +664,6 @@ function PurchaseOrder() {
               className="form-control"
             />
           </div>
-          <Dropdown className="filter-dropdown">
-            <Dropdown.Toggle
-              variant="light"
-              id="designer-dropdown"
-              className="custom-dropdown"
-            >
-              {selectedClient}
-            </Dropdown.Toggle>
-            <Dropdown.Menu>
-              <Dropdown.Item onClick={() => setSelectedClient("All Clients")}>All Clients</Dropdown.Item>
-              {[...new Set(estimates?.costEstimates?.map(po => po.clients?.[0]?.clientName || 'N/A'))]
-                .filter(name => name !== 'N/A')
-                .map((clientName, index) => (
-                  <Dropdown.Item key={index} onClick={() => setSelectedClient(clientName)}>
-                    {clientName}
-                  </Dropdown.Item>
-                ))}
-            </Dropdown.Menu>
-          </Dropdown>
-
-          <Dropdown className="filter-dropdown">
-            <Dropdown.Toggle
-              variant="light"
-              id="viewall-dropdown"
-              className="custom-dropdown"
-            >
-              {selectedPOStatus}
-            </Dropdown.Toggle>
-            <Dropdown.Menu>
-              <Dropdown.Item onClick={() => setSelectedPOStatus("All PO Status")}>All PO Status</Dropdown.Item>
-              <Dropdown.Item onClick={() => setSelectedPOStatus("Approved")}>Approved</Dropdown.Item>
-              <Dropdown.Item onClick={() => setSelectedPOStatus("Rejected")}>Rejected</Dropdown.Item>
-              <Dropdown.Item onClick={() => setSelectedPOStatus("pending")}>Pending</Dropdown.Item>
-            </Dropdown.Menu>
-          </Dropdown>
 
           <Dropdown className="filter-dropdown">
             <Dropdown.Toggle
@@ -606,6 +676,7 @@ function PurchaseOrder() {
             <Dropdown.Menu>
               <Dropdown.Item onClick={() => setSelectedStatus("All Status")}>All Status</Dropdown.Item>
               <Dropdown.Item onClick={() => setSelectedStatus("Active")}>Active</Dropdown.Item>
+              <Dropdown.Item onClick={() => setSelectedStatus("pending")}>pending</Dropdown.Item>
               <Dropdown.Item onClick={() => setSelectedStatus("Invoice")}>Invoice</Dropdown.Item>
               <Dropdown.Item onClick={() => setSelectedStatus("Completed")}>Completed</Dropdown.Item>
             </Dropdown.Menu>
@@ -619,15 +690,16 @@ function PurchaseOrder() {
         <Table hover className="align-middle sticky-header">
           <thead style={{ backgroundColor: "#f8f9fa", position: "sticky", top: 0, zIndex: 1 }}>
             <tr>
-              <th><input type="checkbox" /></th>
-              <th>CENo</th>
+              {/* <th><input type="checkbox" /></th> */}
+              <th style={{ whiteSpace: 'nowrap' }}>CE No</th>
               <th style={{ whiteSpace: 'nowrap' }}>Project Name</th>
               <th style={{ whiteSpace: 'nowrap' }}>Client Name</th>
-              <th style={{ whiteSpace: 'nowrap' }}>Client Email</th>
+              {/* <th style={{ whiteSpace: 'nowrap' }}>Client Email</th> */}
               <th>Date</th>
               {/* <th>ProjectNo</th> */}
               <th>Amount</th>
-              <th>CotStatus</th>
+              <th style={{ whiteSpace: 'nowrap' }}>PO Status</th>
+              <th style={{ whiteSpace: 'nowrap' }}>CE Status</th>
               {/* <th>POStatus</th> */}
               <th>Actions</th>
             </tr>
@@ -635,9 +707,9 @@ function PurchaseOrder() {
           <tbody>
             {paginatedEstimates?.map((po, index) => (
               <tr style={{ whiteSpace: "nowrap" }} key={po.poNumber}>
-                <td><input type="checkbox" /></td>
-                <td onClick={() => CreatJobs(po.projectId)}>
-                  <Link to={"/admin/receivable"} style={{ textDecoration: 'none', border: 'none' }}>
+                {/* <td><input type="checkbox" /></td> */}
+                <td onClick={() => CostEstimatesDetails(po)}>
+                  <Link style={{ textDecoration: 'none', border: 'none' }}>
                     {po.estimateRef}
                   </Link>
                 </td>
@@ -645,26 +717,31 @@ function PurchaseOrder() {
                   {po.projects?.map((project) => project.projectName).join(", ")}
                 </td>
                 <td>{po.clients?.[0]?.clientName || 'N/A'}</td>
-                <td>{po.clients?.[0]?.clientEmail || 'N/A'}</td>
+                {/* <td>{po.clients?.[0]?.clientEmail || 'N/A'}</td> */}
                 <td>{new Date(po.estimateDate).toLocaleDateString("en-GB").slice(0, 8)}</td>
                 <td>
                   {po.lineItems?.reduce((total, item) => total + (item.amount || 0), 0).toFixed(2)}
+                </td>
+                <td>
+                  <span className={`badge ${getStatusClass(po.CostPOStatus)} px-2 py-1`}>
+                    {po.CostPOStatus}
+                  </span>
                 </td>
                 <td>
                   <span className={`badge ${getStatusClass(po.Status)} px-2 py-1`}>
                     {po.Status}
                   </span>
                 </td>
-
                 <td>
                   <div className="d-flex gap-2">
                     <button className="btn btn-sm btn-success"
                       disabled={
                         po.receivablePurchases?.length > 0 &&
-                        po.receivablePurchases[0]?.POStatus?.toLowerCase() !== "pending"
+                        po.receivablePurchases[0]?.Status?.toLowerCase() !== "pending"
                       }
                       onClick={() => {
                         setCostEstimatesId(po._id); // Store the ID
+                        Ponamehandle(po)
                         setShowAddPOModal(true);   // Open Modal
                       }}
                     >
@@ -674,10 +751,8 @@ function PurchaseOrder() {
                     <span className={`badge ${getStatusClass(
                       po.receivablePurchases?.[0]?.POStatus?.toLowerCase() || "pending"
                     )} px-2 py-1`}>
-                      {po.receivablePurchases?.[0]?.POStatus || 'pending'}
+                      {/* {po.receivablePurchases?.[0]?.POStatus || 'pending'} */}
                     </span>
-
-
                     <button className="btn btn-sm btn-primary" onClick={() => Duplicate(po)}><FaRegCopy /></button>
                     {/* <button className="btn btn-sm btn-primary" onClick={() => handleConvertToInvoice(po)}>ConvertInvoice</button> */}
                     <button className="btn btn-sm btn-outline-primary" onClick={() => UpdateEstimate(po)}><BsPencil /></button>

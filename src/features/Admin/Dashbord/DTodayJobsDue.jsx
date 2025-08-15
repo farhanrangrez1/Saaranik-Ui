@@ -51,6 +51,7 @@ function DTodayJobsDue() {
     const dueDate = new Date(j.dueDate || j.createdAt).toLocaleDateString("en-CA");
     return dueDate === today;
   }) || [];
+      console.log("zzzg",todaysJobs);
 
   // Add search filter
   const filteredJobs = todaysJobs.filter((job) => {

@@ -439,16 +439,17 @@ function AddClientManagement() {
   }, []);
 
   // Generic handler for creating new options
-  const [userData, setUserData] = useState({
-    CSRCode: "",
-    countryCode: "+44",
-    // ... other fields
-  });
-  const fullNumber = userData.countryCode + userData.CSRCode;
-  if (!/^\+\d{10,15}$/.test(fullNumber)) {
-    errors.CSRCode = "Enter a valid phone number with selected country code.";
-  }
+const [userData, setUserData] = useState({
+  countryCode: "+44",
+  phoneNumber: "",
+});
 
+const validatePhone = () => {
+  const fullNumber = userData.countryCode + userData.phoneNumber;
+  if (!/^\+\d{10,15}$/.test(fullNumber)) {
+    errors.phoneNumber = "Enter a valid phone number with selected country code.";
+  }
+};
 
   const handleCreateOption = (field) => (inputValue) => {
     axios.post(`${apiUrl}/client/selectclient`, {
@@ -536,46 +537,40 @@ function AddClientManagement() {
 
                 {errors.TaxID_VATNumber && <div className="text-danger small">{errors.TaxID_VATNumber}</div>}
               </div>
-              <div className="col-md-6">
-                <label className="form-label">CSR Code</label>
-                <div className="input-group">
-                  <select
-                    className="form-select"
-                    style={{ maxWidth: "100px" }}
-                    value={userData.countryCode}
-                    onChange={(e) =>
-                      setUserData({ ...userData, countryCode: e.target.value })
-                    }
-                  >
-                    <option value="+44">🇬🇧 +44</option>
-                    <option value="+91">🇮🇳 +91</option>
-                    <option value="+1">🇺🇸 +1</option>
-                     <option value="+1">🇺k +44</option>
-                  </select>
+             <div className="col-md-6">
+  <label className="form-label">Phone Number</label>
+  <div className="input-group">
+    <select
+      className="form-select"
+      style={{ maxWidth: "100px" }}
+      value={userData.countryCode}
+      onChange={(e) => setUserData({ ...userData, countryCode: e.target.value })}
+    >
+      <option value="+44">🇬🇧 +44</option>
+      <option value="+91">🇮🇳 +91</option>
+      <option value="+1">🇺🇸 +1</option>
+    </select>
 
-                  <input
-                    type="tel"
-                    name="CSRCode"
-                    required
-                    value={userData.CSRCode}
-                    onChange={(e) => {
-                      let input = e.target.value.replace(/\D/g, '');
-                      if (input.length > 10) input = input.slice(0, 10);
-                      setUserData({ ...userData, CSRCode: input });
-                    }}
-                    className="form-control"
-                    inputMode="numeric"
-                    maxLength={10}
-                    placeholder="Phone number"
-                  />
+    <input
+      type="tel"
+      name="phoneNumber"
+      value={userData.phoneNumber}
+      onChange={(e) => {
+        let input = e.target.value.replace(/\D/g, "");
+        if (input.length > 10) input = input.slice(0, 10);
+        setUserData({ ...userData, phoneNumber: input });
+      }}
+      className="form-control"
+      inputMode="numeric"
+      maxLength={10}
+      placeholder="Phone number"
+    />
+  </div>
 
-
-                </div>
-
-                {errors.CSRCode && (
-                  <div className="text-danger small">{errors.CSRCode}</div>
-                )}
-              </div>
+  {errors.phoneNumber && (
+    <div className="text-danger small">{errors.phoneNumber}</div>
+  )}
+</div>
 
 
               <div className="col-md-6">
@@ -730,7 +725,7 @@ function AddClientManagement() {
 
               {/* Billing Information */}
               <div className='col-md-12 row'>
-                <h5 className="mb-3 mt-4">Billing Information</h5>
+                {/* <h5 className="mb-3 mt-4">Billing Information</h5>
                 <div className="col-md-12">
                   <label className="form-label">Billing Address</label>
                   <textarea className="form-control" rows="3" name="billingAddress" value={billingInformation[0].billingAddress} onChange={(e) => handleBillingChange(0, e)}></textarea>
@@ -750,7 +745,7 @@ function AddClientManagement() {
                   <label className="form-label">Billing Phone</label>
                   <input type="tel" className="form-control" name="billingPhone" value={billingInformation[0].billingPhone} onChange={(e) => handleBillingChange(0, e)} maxLength={10} />
                   {errors.billingPhone && <div className="text-danger small">{errors.billingPhone}</div>}
-                </div>
+                </div> */}
 
                 {/* <div className="col-md-6">
                   <label className="form-label">Currency</label>
@@ -762,7 +757,7 @@ function AddClientManagement() {
                   </select>
                   {errors.currency && <div className="text-danger small">{errors.currency}</div>}
                 </div> */}
-                <div className="col-md-6">
+                {/* <div className="col-md-6">
                   <label className="form-label">Currency</label>
                   <CreatableSelect
                     options={selectOptions.currency}
@@ -774,7 +769,7 @@ function AddClientManagement() {
                     isClearable
 
                   />
-                </div>
+                </div> */}
 
                 {/* <div className="col-md-6">
                   <label className="form-label">Preferred Payment Method</label>
@@ -786,7 +781,8 @@ function AddClientManagement() {
                   </select>
                   {errors.preferredPaymentMethod && <div className="text-danger small">{errors.preferredPaymentMethod}</div>}
                 </div> */}
-                <div className="col-md-6">
+
+                {/* <div className="col-md-6">
                   <label className="form-label">Preferred Payment Method</label>
                   <CreatableSelect
                     options={selectOptions.preferredPaymentMethod}
@@ -796,12 +792,11 @@ function AddClientManagement() {
                     }
                     onCreateOption={handleCreateOption('preferredPaymentMethod')}
                     isClearable
-
                   />
-                </div>
+                </div> */}
 
                 {/* Shipping Information */}
-                <h5 className="mb-3 mt-4">Shipping Information</h5>
+                {/* <h5 className="mb-3 mt-4">Shipping Information</h5>
                 <div className="col-md-12">
                   <label className="form-label">Shipping Address</label>
                   <textarea className="form-control" rows="3" name="shippingAddress" value={shippingInformation[0].shippingAddress} onChange={(e) => handleShippingChange(0, e)}></textarea>
@@ -821,7 +816,7 @@ function AddClientManagement() {
                   <label className="form-label">Shipping Phone</label>
                   <input type="tel" className="form-control" name="shippingPhone" value={shippingInformation[0].shippingPhone} onChange={(e) => handleShippingChange(0, e)} maxLength={10} />
                   {errors.shippingPhone && <div className="text-danger small">{errors.shippingPhone}</div>}
-                </div>
+                </div> */}
 
                 {/* <div className="col-md-6">
                   <label className="form-label">Preferred Shipping Method</label>
@@ -834,7 +829,7 @@ function AddClientManagement() {
                   </select>
                   {errors.preferredShippingMethod && <div className="text-danger small">{errors.preferredShippingMethod}</div>}
                 </div> */}
-                <div className="col-md-6">
+                {/* <div className="col-md-6">
                   <label className="form-label">Preferred Shipping Method</label>
                   <CreatableSelect
                     options={selectOptions.preferredShippingMethod}
@@ -853,10 +848,10 @@ function AddClientManagement() {
                   <label className="form-label">Special Instructions</label>
                   <textarea className="form-control" rows="3" name="specialInstructions" value={shippingInformation[0].specialInstructions} onChange={(e) => handleShippingChange(0, e)}></textarea>
                   {errors.specialInstructions && <div className="text-danger small">{errors.specialInstructions}</div>}
-                </div>
+                </div> */}
 
                 {/* Financial Information */}
-                <h5 className="mb-3 mt-4">Financial Information</h5>
+                {/* <h5 className="mb-3 mt-4">Financial Information</h5>
                 <div className="col-md-6">
                   <label className="form-label">Annual Revenue</label>
                   <input type="number" className="form-control" name="annualRevenue" value={financialInformation[0].annualRevenue} onChange={(e) => handleFinancialChange(0, e)} />
@@ -886,15 +881,15 @@ function AddClientManagement() {
                   <label className="form-label">Financial Contact</label>
                   <input type="text" className="form-control" name="financialContact" value={financialInformation[0].financialContact} onChange={(e) => handleFinancialChange(0, e)} />
                   {errors.financialContact && <div className="text-danger small">{errors.financialContact}</div>}
-                </div>
+                </div> */}
 
                 {/* Ledger Information */}
-                <h5 className="mb-3 mt-4">Ledger Information</h5>
+                {/* <h5 className="mb-3 mt-4">Ledger Information</h5>
                 <div className="col-md-6">
                   <label className="form-label">Account Code</label>
                   <input type="text" className="form-control" name="accountCode" value={ledgerInformation[0].accountCode} onChange={(e) => handleLedgerChange(0, e)} />
                   {errors.accountCode && <div className="text-danger small">{errors.accountCode}</div>}
-                </div>
+                </div> */}
 
                 {/* <div className="col-md-6">
                   <label className="form-label">Account Type</label>
@@ -905,7 +900,8 @@ function AddClientManagement() {
                   </select>
                   {errors.accountType && <div className="text-danger small">{errors.accountType}</div>}
                 </div> */}
-                <div className="col-md-6">
+
+                {/* <div className="col-md-6">
                   <label className="form-label">Account Type</label>
                   <CreatableSelect
                     options={selectOptions.accountType}
@@ -942,7 +938,7 @@ function AddClientManagement() {
                   <label className="form-label">Cost Center</label>
                   <input type="text" className="form-control" name="costCenter" value={ledgerInformation[0].costCenter} onChange={(e) => handleLedgerChange(0, e)} />
                   {errors.costCenter && <div className="text-danger small">{errors.costCenter}</div>}
-                </div>
+                </div> */}
 
                 {/* Additional Information */}
                 <h5 className="mb-3 mt-4">Additional Information</h5>

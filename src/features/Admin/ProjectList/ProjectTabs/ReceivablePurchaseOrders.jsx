@@ -2,142 +2,166 @@ import React, { useEffect, useState } from "react";
 import { Form, Table, Badge, InputGroup, Button, Collapse, Dropdown } from "react-bootstrap";
 import { FaSearch, FaFilter, FaSort } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { fetchReceivablePurchases } from "../../../../redux/slices/receivablePurchaseSlice";
+import { JobsFinace } from "../../../../redux/slices/JobsSlice";
 
 function ReceivablePurchaseOrders() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("All Status");
-  const [sortField, setSortField] = useState(null);
-  const [sortDirection, setSortDirection] = useState("asc");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [showFilters, setShowFilters] = useState(false);
-  const dispatch = useDispatch();
-  const navigate=useNavigate()
+ const location = useLocation();
+  const params = useParams();
+  const id = params.id
 
-  const { purchases, loading, error } = useSelector(
-    (state) => state.receivablePurchases
-  );
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
 
+const { job } = useSelector((state) => state.jobs);
   useEffect(() => {
-    dispatch(fetchReceivablePurchases());
+    dispatch(JobsFinace(id))
   }, [dispatch]);
 
-  const itemsPerPage = 7;
-  const allOrders = purchases?.receivablePurchases || [];
 
-  // 🔍 Filtering based on search and status
-  const filteredOrders = allOrders.filter((po) => {
-    // Split searchQuery by spaces, ignore empty terms
-    const terms = searchQuery.toLowerCase().trim().split(/\s+/).filter(Boolean);
-    // Prepare searchable fields as strings
-    const poNumber = (po?.PONumber || '').toLowerCase();
-    const estimateRef = (po?.costEstimates?.[0]?.estimateRef || '').toLowerCase();
-    const projectName = (po?.projectId?.[0]?.projectName || '').toLowerCase();
-    const clientName = (po?.ClientId?.[0]?.clientName || '').toLowerCase();
-    const status = (po?.Status || '').toLowerCase();
-    const fields = [
-      poNumber,
-      estimateRef,
-      projectName,
-      clientName,
-      status
-    ];
-    // Every term must be found in at least one field
-    const matchesSearch = terms.length === 0 || terms.every(term =>
-      fields.some(field => field.includes(term))
-    );
-    const matchesStatus = selectedStatus === "All Status" ||
-      po?.Status?.toLowerCase() === selectedStatus.toLowerCase();
-    return matchesSearch && matchesStatus;
-  });
+   const [searchQuery, setSearchQuery] = useState("");
+    const [selectedStatus, setSelectedStatus] = useState("All Status");
+    const [sortField, setSortField] = useState(null);
+    const [sortDirection, setSortDirection] = useState("asc");
+    const [currentPage, setCurrentPage] = useState(1);
+    const [showFilters, setShowFilters] = useState(false);
 
-  // ↕️ Sorting
-  const sortedOrders = [...filteredOrders].sort((a, b) => {
-    if (!sortField) return 0;
-    const aVal = a[sortField] || "";
-    const bVal = b[sortField] || "";
-
-    if (sortField === "Amount") {
-      return sortDirection === "asc" ? aVal - bVal : bVal - aVal;
-    }
-
-    return sortDirection === "asc"
-      ? String(aVal).localeCompare(String(bVal))
-      : String(bVal).localeCompare(String(aVal));
-  });
-
-  const totalPages = Math.ceil(sortedOrders.length / itemsPerPage);
-  const paginatedData = sortedOrders.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  const pendingPOs = filteredOrders.filter(
-    (po) => po.Status?.toLowerCase() === "pending"
-  ).length;
-
-  const handleSort = (field) => {
-    const isAsc = sortField === field && sortDirection === "asc";
-    setSortDirection(isAsc ? "desc" : "asc");
-    setSortField(field);
-  };
-
-  const getStatusBadgeVariant = (status) => {
-    switch (status?.toLowerCase()) {
-      case "pending":
-        return "warning";
-      case "received":
-        return "info";
-      case "cancelled":
-        return "dark";
-      case "completed":
-        return "success";
-      case "open":
-        return "primary";
-      case "invoiced":
-        return "danger";
-      default:
-        return "secondary";
-    }
-  };
-
-
-// const handleToBeInvoiced = (clientName, projectName) => {
-//   const invoice = {
-//     clientName,
-//     projectName
-//   };
-
-//   navigate("/admin/AddInvoice", {
-//     state: { invoice }
-//   });
-// };
-
-const handleToBeInvoiced = (po) => {
-  console.log("po",po._id)
-const ReceivablePurchaseId = po._id;
-  const client = po.ClientId?.[0];
-  const project = po.projectId?.[0];
-const CostEstimatesId = po.CostEstimatesId?.[0];
-// console.log("pocost",po.CostEstimatesId[0]._id)
-  const invoice = {
-    clientId: client?._id,
-    clientName: client?.clientName,
-    projectId: project?._id,
-    projectName: project?.projectName,
-    CostEstimatesId: po.CostEstimatesId[0]._id,
-    ReceivablePurchaseId:po?._id,
-  };
-  console.log("Invoice Data:", invoice);
   
+    const { purchases, loading, error } = useSelector(
+      (state) => state.receivablePurchases
+    );
+ 
+    useEffect(() => {
+      dispatch(fetchReceivablePurchases());
+    }, [dispatch]);
+  
+    const itemsPerPage = 7;
+    const allOrders =job.receivablePurchases|| [];
 
-  navigate("/admin/AddInvoice", {
-    state: { invoice }
-  });
-};
+    const filteredOrders = allOrders.filter((po) => {
+      // Split searchQuery by spaces, ignore empty terms
+      const terms = searchQuery.toLowerCase().trim().split(/\s+/).filter(Boolean);
+      // Prepare searchable fields as strings
+      const poNumber = (po?.PONumber || '').toLowerCase();
+      const estimateRef = (po?.costEstimates?.[0]?.estimateRef || '').toLowerCase();
+      const projectName = (po?.projectId?.[0]?.projectName || '').toLowerCase();
+      const clientName = (po?.ClientId?.[0]?.clientName || '').toLowerCase();
+      const status = (po?.Status || '').toLowerCase();
+      const fields = [
+        poNumber,
+        estimateRef,
+        projectName,
+        clientName,
+        status
+      ];
+      // Every term must be found in at least one field
+      const matchesSearch = terms.length === 0 || terms.every(term =>
+        fields.some(field => field.includes(term))
+      );
+      const matchesStatus = selectedStatus === "All Status" ||
+        po?.Status?.toLowerCase() === selectedStatus.toLowerCase();
+      return matchesSearch && matchesStatus;
+    });
+  
+    // ↕️ Sorting
+    const sortedOrders = [...filteredOrders].sort((a, b) => {
+      if (!sortField) return 0;
+      const aVal = a[sortField] || "";
+      const bVal = b[sortField] || "";
+  
+      if (sortField === "Amount") {
+        return sortDirection === "asc" ? aVal - bVal : bVal - aVal;
+      }
+  
+      return sortDirection === "asc"
+        ? String(aVal).localeCompare(String(bVal))
+        : String(bVal).localeCompare(String(aVal));
+    });
+  
+    const totalPages = Math.ceil(sortedOrders.length / itemsPerPage);
+    const paginatedData = sortedOrders.slice(
+      (currentPage - 1) * itemsPerPage,
+      currentPage * itemsPerPage
+    );
+  
+    const pendingPOs = filteredOrders.filter(
+      (po) => po.POStatus?.toLowerCase() === "pending"
+    ).length;
+  
+    const handleSort = (field) => {
+      const isAsc = sortField === field && sortDirection === "asc";
+      setSortDirection(isAsc ? "desc" : "asc");
+      setSortField(field);
+    };
+  
+  const getStatusClass = (status) => {
+    switch (status.toLowerCase().trim()) {
+      case "pending":
+        return "bg-warning text-dark";     // Yellow
+      case "received":
+        return "bg-info text-dark";        // Light Blue
+      case "cancelled":
+        return "bg-danger text-white";     // Red
+      case "completed":
+        return "bg-success text-white";    // Green
+      case "open":
+        return "bg-primary text-white";    // Blue
+      case "invoiced":
+        return "bg-dark text-white";       // Dark (You can change it as needed)
+      case "in progress":
+      case "in_progress":
+        return "bg-warning text-dark";
+      case "active":
+        return "bg-primary text-white";
+      case "reject":
+        return "bg-danger text-white";
+      case "review":
+        return "bg-info text-dark";
+      case "not started":
+        return "bg-secondary text-white";
+      default:
+        return "bg-light text-dark";       // Default light background
+    }
+  };
+  
+  
+    // const handleToBeInvoiced = (clientName, projectName) => {
+    //   const invoice = {
+    //     clientName,
+    //     projectName
+    //   };
+  
+    //   navigate("/admin/AddInvoice", {
+    //     state: { invoice }
+    //   });
+    // };
+  
+    const handleToBeInvoiced = (po) => {
+      console.log("po", po._id)
+      const ReceivablePurchaseId = po._id;
+      const client = po.ClientId?.[0];
+      const project = po.projectId?.[0];
+      const CostEstimatesId = po.CostEstimatesId?.[0];
+      // console.log("pocost",po.CostEstimatesId[0]._id)
+      const invoice = {
+        clientId: client?._id,
+        clientName: client?.clientName,
+        projectId: project?._id,
+        projectName: project?.projectName,
+        CostEstimatesId: po.CostEstimatesId[0]._id,
+        ReceivablePurchaseId: po?._id,
+      };
+      console.log("Invoice Data:", invoice);
+  
+  
+      navigate("/admin/AddInvoice", {
+        state: { invoice }
+      });
+    };
+
   return (
-    <div  className="p-4 m-2"
+    <div className="p-4 m-2"
       style={{ backgroundColor: "white", borderRadius: "10px" }}
     >
       <h2 className="mb-4">Receivable Purchase Orders</h2>
@@ -272,7 +296,7 @@ const CostEstimatesId = po.CostEstimatesId?.[0];
               >
                 Amount
               </th>
-                   <th
+              <th
                 onClick={() => handleSort("Status")}
                 style={{ cursor: "pointer" }}
               >
@@ -310,26 +334,29 @@ const CostEstimatesId = po.CostEstimatesId?.[0];
                 <td>{new Date(po.ReceivedDate).toLocaleDateString()}</td>
                 <td>${po.Amount?.toFixed(2)}</td>
                 <td>
-                  <Badge bg={getStatusBadgeVariant(po.Status)}>{po.POStatus}</Badge>
+                <span className={`badge ${getStatusClass(po.POStatus)} px-2 py-1`}>
+                  {po.POStatus}
+                </span>
                 </td>
+                <td>
                 <div>
-                 
-                    <Button
-                      variant="outline-primary"
-                      size="sm"
-                      onClick={() => handleToBeInvoiced(po)}
-                      className="px-3 py-1 fw-semibold border-2"
-                      style={{
-                        transition: 'all 0.3s ease',
-                        borderRadius: '6px',
-                        fontSize: '12px',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.5px'
-                      }}
-                    >
-                      To be invoiced
-                    </Button>
-                </div>
+                  <Button
+                    variant="outline-primary"
+                    size="sm"
+                    onClick={() => handleToBeInvoiced(po)}
+                    className="px-3 py-1 fw-semibold border-2"
+                    style={{
+                      transition: 'all 0.3s ease',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      whiteSpace: "nowrap"
+                    }}
+                  >
+                    To be invoiced
+                  </Button>
+                </div></td>
               </tr>
             ))}
           </tbody>
