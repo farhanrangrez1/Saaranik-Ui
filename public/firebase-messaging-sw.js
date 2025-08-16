@@ -1,5 +1,6 @@
-importScripts("https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js");
-importScripts("https://www.gstatic.com/firebasejs/9.22.2/firebase-messaging-compat.js");
+
+importScripts("https://www.gstatic.com/firebasejs/12.1.0/firebase-app-compat.js");
+importScripts("https://www.gstatic.com/firebasejs/12.1.0/firebase-messaging-compat.js");
 
 firebase.initializeApp({
     apiKey: "AIzaSyCyB8SfNP5uvqNLWw3voeB8nNtSJvWeplQ",
@@ -9,12 +10,22 @@ firebase.initializeApp({
     messagingSenderId: "987311190427",
     appId: "1:987311190427:web:1923c38024b20364afb13e"
 });
+
 const messaging = firebase.messaging();
 
+// Background messages
 messaging.onBackgroundMessage((payload) => {
-  console.log('Received background message ', payload);
-  self.registration.showNotification(payload.notification.title, {
-    body: payload.notification.body,
-    icon: payload.notification.icon,
+  const { title, body, icon } = payload.notification || {};
+  self.registration.showNotification(title || "New Message", {
+    body: body || "",
+    icon: icon || "/favicon.ico",
+    data: payload.data || {},
   });
+});
+
+// Notification click
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = event.notification.data?.click_action || "/";
+  event.waitUntil(clients.openWindow(url));
 });

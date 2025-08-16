@@ -10,15 +10,21 @@ export async function saveToken(token, userId = "guest") {
   });
 }
 
-export async function sendTestNotification(token, title, body) {
+export async function sendTestNotification(token = null, title, body) {
+  const payload = {
+    notification: { title, body },
+    data: { click_action: "https://your-site.example" },
+  };
+
+  // Agar token diya ho to add karo, warna sab tokens par jayega
+  if (token) {
+    payload.token = token;
+  }
+
   const res = await fetch(`${API_BASE}/send`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      token,
-      notification: { title, body },
-      data: { click_action: "https://your-site.example" },
-    }),
+    body: JSON.stringify(payload),
   });
   return res.json();
 }

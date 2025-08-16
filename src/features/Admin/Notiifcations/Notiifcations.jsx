@@ -257,7 +257,7 @@ function Notiifcations() {
             <button
               className="btn btn-primary me-3"
               onClick={() => setShowModal(true)}
-             style={{ whiteSpace: 'nowrap' }}
+              style={{ whiteSpace: 'nowrap' }}
             >
               Send Notification
             </button>
@@ -397,13 +397,22 @@ function Notiifcations() {
                       />
                     </div>
                   )}
-                  <button style={{ marginTop: 16 }}
-                     onClick={async () => {
-                      if (!token) return alert("Token not available");
-                      const res = await sendTestNotification(token, title, body);
-                    }} id="All_btn" type="submit" className="btn btn-success w-100">
+                  <button
+                    style={{ marginTop: 16 }}
+                    onClick={async (e) => {
+                      e.preventDefault(); // form submit rokna
+                      // null bhejne ka matlab hai -> sabhi tokens par send hoga
+                      const res = await sendTestNotification(null, title, body);
+                      console.log("Notification response:", res);
+                      alert(`Sent to all tokens: ${res.successCount} success, ${res.failureCount} failed`);
+                    }}
+                    id="All_btn"
+                    type="button"
+                    className="btn btn-success w-100"
+                  >
                     Send
                   </button>
+
                 </form>
               </div>
             </div>
@@ -415,121 +424,3 @@ function Notiifcations() {
 }
 
 export default Notiifcations;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// // frontend/src/App.js
-// import React, { useEffect, useState } from "react";
-// import { initMessaging, getFcmToken, onForegroundMessage } from "../../../firebase";
-// import { saveToken, sendTestNotification } from "./api";
-
-// const VAPID_KEY = "BBrmFxSoxxTJSvX7C4cMqpeNg437_GvbxC9pPQ6rjbtii8lR8iqHy8CfWo-BLVIu7TN53LobGEi6clH6rXSG-nw"; // Firebase Console → Cloud Messaging → Web configuration
-
-// export default function Notiifcations() {
-//   const [token, setToken] = useState("");
-//   const [title, setTitle] = useState("Hello Farhan 👋");
-//   const [body, setBody] = useState("This is a test notification");
-
-//   useEffect(() => {
-//     (async () => {
-//       const messaging = await initMessaging();
-//       if (!messaging) {
-//         console.warn("FCM not supported in this browser.");
-//         return;
-//       }
-
-//       const permission = await Notification.requestPermission();
-//       if (permission !== "granted") {
-//         console.warn("Notification permission not granted");
-//         return;
-//       }
-
-//       // Get + Save token initially
-//       const t = await getFcmToken(VAPID_KEY);
-//       if (t) {
-//         setToken(t);
-//         await saveToken(t);
-
-//         // Client → SW fallback postMessage (optional; if you use clients.matchAll in SW)
-//         if (navigator.serviceWorker?.controller) {
-//           navigator.serviceWorker.controller.postMessage({
-//             type: "NEW_FCM_TOKEN",
-//             token: t,
-//           });
-//         }
-//       }
-
-//       // Foreground message listener
-//       onForegroundMessage((payload) => {
-//         console.log("Foreground message:", payload);
-//         const { title, body, icon } = payload.notification || {};
-
-//         // Show browser native notification
-//         if (Notification.permission === "granted") {
-//           new Notification(title, {
-//             body,
-//             icon: icon || "/favicon.ico", // icon optional
-//           });
-//         }
-//       });
-
-
-//       // Simple token refresh strategy:
-//       // Re-check token on every load (and daily/interval if you want)
-//       const recheck = async () => {
-//         const newTok = await getFcmToken(VAPID_KEY);
-//         if (newTok && newTok !== token) {
-//           setToken(newTok);
-//           await saveToken(newTok);
-//           if (navigator.serviceWorker?.controller) {
-//             navigator.serviceWorker.controller.postMessage({
-//               type: "NEW_FCM_TOKEN",
-//               token: newTok,
-//             });
-//           }
-//         }
-//       };
-//       const interval = setInterval(recheck, 24 * 60 * 60 * 1000); // daily
-//       return () => clearInterval(interval);
-//     })();
-//   }, []);
-
-//   return (
-// <div style={{ padding: 24, fontFamily: "sans-serif" }}>
-//   <h2>FCM Web Push Demo</h2>
-//   <p><b>Current Token (shortened):</b> {token ? `${token.slice(0, 25)}...` : "—"}</p>
-
-//   <div style={{ marginTop: 12 }}>
-//     <label>Title:</label>
-//     <input value={title} onChange={(e) => setTitle(e.target.value)} style={{ width: 300, marginLeft: 8 }} />
-//   </div>
-//   <div style={{ marginTop: 12 }}>
-//     <label>Body:</label>
-//     <input value={body} onChange={(e) => setBody(e.target.value)} style={{ width: 300, marginLeft: 8 }} />
-//   </div>
-
-//   <button
-//     style={{ marginTop: 16 }}
-//     onClick={async () => {
-//       if (!token) return alert("Token not available");
-//       const res = await sendTestNotification(token, title, body);
-//     }}
-//   >
-//     Send Test Notification
-//   </button>
-// </div>
-//   );
-// }
